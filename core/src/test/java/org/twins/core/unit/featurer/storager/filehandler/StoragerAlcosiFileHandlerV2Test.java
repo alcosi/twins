@@ -5,7 +5,9 @@ import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +16,12 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.dto.rest.featurer.storager.filehandler.FileHandlerDeleteRqDTO;
 import org.twins.core.service.auth.AuthService;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -90,6 +94,10 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
         if (businessAccountId != null) {
             when(apiUser.getBusinessAccountId()).thenReturn(businessAccountId);
         }
+    }
+
+    private String buildStoredFileUrl(UUID businessAccountId, UUID fileId) {
+        return "http://storage-api:80/somePrefix/" + businessAccountId + "/" + fileId + "/" + fileId + "-original.jpg";
     }
 
     @Nested
@@ -167,10 +175,6 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
         @Test
         void deleteFile_successfulResponse_doesNotThrow() throws ServiceException {
-            var businessAccountId = UUID.randomUUID();
-            var domainId = UUID.randomUUID();
-            stubApiUser(domainId, businessAccountId);
-
             var params = buildParams();
             stubProperties(params);
 
@@ -185,11 +189,30 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
         }
 
         @Test
-        void deleteFile_failedResponse_throwsServiceException() throws ServiceException {
+        void deleteFile_storedUrl_deletesLastTwoDirsBeforeFileName() throws ServiceException {
             var businessAccountId = UUID.randomUUID();
-            var domainId = UUID.randomUUID();
-            stubApiUser(domainId, businessAccountId);
+            var fileId = UUID.randomUUID();
+            var params = buildParams();
+            stubProperties(params);
 
+            when(restTemplate.exchange(
+                    anyString(),
+                    any(),
+                    any(),
+                    eq(Void.class)
+            )).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+            storager.deleteFile(buildStoredFileUrl(businessAccountId, fileId), params);
+
+            var captor = ArgumentCaptor.forClass(HttpEntity.class);
+            verify(restTemplate).exchange(anyString(), any(), captor.capture(), eq(Void.class));
+            var rq = (FileHandlerDeleteRqDTO) captor.getValue().getBody();
+
+            assertEquals(List.of(businessAccountId + "/" + fileId), rq.dirs());
+        }
+
+        @Test
+        void deleteFile_failedResponse_throwsServiceException() throws ServiceException {
             var params = buildParams();
             stubProperties(params);
 
@@ -206,10 +229,6 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
         @Test
         void deleteFile_restTemplateThrows_throwsServiceException() throws ServiceException {
-            var businessAccountId = UUID.randomUUID();
-            var domainId = UUID.randomUUID();
-            stubApiUser(domainId, businessAccountId);
-
             var params = buildParams();
             stubProperties(params);
 
@@ -230,7 +249,6 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
         @Test
         void deleteFile_rateLimitedOnce_retriesAndSucceeds() throws ServiceException {
-            stubApiUser(UUID.randomUUID(), UUID.randomUUID());
             stubProperties(buildParams());
 
             when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
@@ -243,7 +261,6 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
         @Test
         void deleteFile_serverErrorOnce_retriesAndSucceeds() throws ServiceException {
-            stubApiUser(UUID.randomUUID(), UUID.randomUUID());
             stubProperties(buildParams());
 
             when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
@@ -256,7 +273,6 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
         @Test
         void deleteFile_clientError_failsWithoutRetry() throws ServiceException {
-            stubApiUser(UUID.randomUUID(), UUID.randomUUID());
             stubProperties(buildParams());
 
             when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))

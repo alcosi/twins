@@ -84,6 +84,8 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     )
     public static final FeaturerParamMap basePathReplaceMap = new FeaturerParamMap("basePathReplaceMap");
 
+    // NOTE: all deployments use the DEFAULT value "/{businessAccountId}/{fileId}". The parsers in this
+    // class (generateFileKey, addFileInternal, extractDirsToDelete) rely on that exact template shape
     @FeaturerParam(
             name = "relativePath",
             description = "Prefix for file keys.\nPlaceholders {domainId}, {businessAccountId} and {fileId} can be used to make domain/account relevant path.",
@@ -137,7 +139,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         try {
             var properties = extractProperties(params, false);
             var url = STR."\{fileHandlerUri.extract(properties)}/api/storage/delete";
-            var dirs = extractDirsToDelete(fileKey, properties);
+            var dirs = extractDirsToDelete(fileKey);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
             var resp = exchangeWithRetry(
                     "Delete " + dirs,
@@ -157,6 +159,8 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
     @Override
     public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
+        // default template renders fileKey as "{businessAccountId}/{fileId}/{fileId}":
+        // storageDir "{businessAccountId}/{fileId}" + bare fileId UUID as the file name
         var properties = extractProperties(params, false);
         var businessAccount = getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount");
         var relativePathString = addSlashAtTheEndIfNeeded(relativePath.extract(properties));
@@ -180,6 +184,8 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
             try (tikaStream) {
                 var properties = extractProperties(params, false);
+                // fileKey shape from generateFileKey: "{businessAccountId}/{fileId}/{fileId}" —
+                // the file name is a bare fileId UUID, no extension or label
                 var fileKeyElems = Arrays.stream(fileKey.split("/")).collect(Collectors.toList());
                 var fileName = fileKeyElems.removeLast();
                 var fileId = Arrays.stream(fileName.split("\\.")).toList().getFirst();
@@ -258,24 +264,15 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return result;
     }
 
-    private String extractDirsToDelete(String fileKey, Properties properties) throws ServiceException {
-        //extracting only relative path (ex. {businessAccountId}/{fileId})
+    private String extractDirsToDelete(String fileKey) {
+        // fileKey is the URL stored on save; with the default relativePath it looks like
+        // ".../{businessAccountId}/{fileId}/{fileId}-{as}.{ext}" — the handler renames the file
+        // ("{fileId}-original.jpg" etc.) but keeps our dirs. Dir to delete = last two segments
+        // before the file name: "{businessAccountId}/{fileId}" — label/extension noise goes away
+        // together with the file name itself.
+        var segments = List.of(fileKey.split("/"));
 
-        var parts = new ArrayList<>(List.of(fileKey.split("/")));
-        var fileName = parts.removeLast();
-        var fileId = fileName.split("\\.")[0];
-        var businessAccountId = getBusinessAccountId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
-        var domainId = getDomainId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
-
-        var dirs = relativePath.extract(properties)
-                .replace("{domainId}", domainId)
-                .replace("{businessAccountId}", businessAccountId)
-                .replace("{fileId}", fileId);
-
-        dirs = deleteSlashAtTheStartIfNeeded(dirs);
-        dirs = deleteSlashAtTheEndIfNeeded(dirs);
-
-        return dirs;
+        return String.join("/", segments.subList(segments.size() - 3, segments.size() - 1));
     }
 
     private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, Resource fileResource) {
