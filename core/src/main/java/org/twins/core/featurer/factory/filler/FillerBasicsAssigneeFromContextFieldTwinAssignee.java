@@ -22,7 +22,7 @@ import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookup
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -45,10 +45,10 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
     TwinService twinService;
 
     /**
-     * Direct batch override, two-phase: one lookuper batch call (bulk preloads + entity resolution
-     * once), then an isolated per-item loop collecting the linked twins from the resolved values
-     * (no db access), then ONE bulk {@code loadUser} + the in-memory distribution — see
-     * featurer_design_pattern.md.
+     * Direct batch override: one lookuper batch call (bulk preloads + entity resolution once), then
+     * an isolated per-item collection of the linked twins (no db access) — the assignee users are
+     * only known per item, so ONE bulk {@code loadUser} covers the whole batch — then the in-memory
+     * distribution under the same per-item isolation — see featurer_design_pattern.md.
      */
     @Override
     public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
@@ -57,34 +57,33 @@ public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
         UUID assigneeFieldId = linkField.extract(properties);
         LookupResult result = ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties)))
                 .lookupFieldValue(batch, assigneeFieldId);
-        var linkedTwins = new HashMap<TwinEntity, TwinEntity>();
+        var linkedTwins = new LinkedHashMap<FactoryItem, TwinEntity>();
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
                 result.rethrowFailureIfPresent(factoryItem); // original error, original per-item isolation
                 FieldValue assigneeField = result.value(factoryItem);
                 assigneeField.assertIsDefined(assigneeField.getTwinClassField().logNormal() + " is not found by fieldLookuper");
-                TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-                linkedTwins.put(outputTwinEntity, FieldValueLink.getSingleLinkedTwinSafe(assigneeField));
+                linkedTwins.put(factoryItem, FieldValueLink.getSingleLinkedTwinSafe(assigneeField));
             } catch (Exception ex) {
                 handleItemError(factoryItem, optionalStep, ex);
             }
         }
-        assignFromLinkedTwins(linkedTwins);
-    }
-
-    /** Bulk phase: one loadUser for the whole batch, then the in-memory distribution. */
-    private void assignFromLinkedTwins(Map<TwinEntity, TwinEntity> linkedTwins) throws ServiceException {
-        twinService.loadUser(linkedTwins.values());
-        for (var entry : linkedTwins.entrySet()) {
-            TwinEntity outputTwinEntity = entry.getKey();
-            TwinEntity linkedTwin = entry.getValue();
-            log.info("{} [assignee] will be filled from twin {}", outputTwinEntity.logShort(), linkedTwin);
-            UserEntity assignee = linkedTwin.getAssignerUser();
-            if (assignee == null)
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for twin[" + linkedTwin.getId() + "]");
-            outputTwinEntity
-                    .setAssignerUser(assignee)
-                    .setAssignerUserId(assignee.getId());
+        twinService.loadUser(linkedTwins.values()); // one query for the whole batch
+        for (Map.Entry<FactoryItem, TwinEntity> entry : linkedTwins.entrySet()) {
+            FactoryItem factoryItem = entry.getKey();
+            try {
+                TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
+                TwinEntity linkedTwin = entry.getValue();
+                log.info("{} [assignee] will be filled from twin {}", outputTwinEntity.logShort(), linkedTwin);
+                UserEntity assignee = linkedTwin.getAssignerUser();
+                if (assignee == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for twin[" + linkedTwin.getId() + "]");
+                outputTwinEntity
+                        .setAssignerUser(assignee)
+                        .setAssignerUserId(assignee.getId());
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
         }
     }
 }
