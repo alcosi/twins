@@ -18,7 +18,7 @@ public class FieldLookuperFromContextTwinFields extends FieldLookuperNearest {
     }
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+    public FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         FactoryItem contextItem = factoryItem.checkSingleContextItem();
         FieldValue fieldValue = contextItem.getOutput().getField(lookupTwinClassField);
         if (fieldValue != null) {
@@ -29,6 +29,6 @@ public class FieldLookuperFromContextTwinFields extends FieldLookuperNearest {
             return fieldValue;
         }
         TwinEntity contextTwin = contextItem.getTwin();
-        return twinService.getTwinFieldValue(contextTwin, lookupTwinClassField); // null when not found — batch entry turns it into an undefined value
+        return twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
     }
 }

@@ -17,7 +17,7 @@ public class FieldLookuperFromContextTwinDbFields extends FieldLookuperNearest {
     }
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
-        return twinService.getTwinFieldValue(twinService.wrapField(factoryItem.checkSingleContextTwin(), lookupTwinClassField)); // null when not found — batch entry turns it into an undefined value
+    public FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+        return twinService.getTwinFieldValue(twinService.wrapField(factoryItem.checkSingleContextTwin(), lookupTwinClassField));
     }
 }

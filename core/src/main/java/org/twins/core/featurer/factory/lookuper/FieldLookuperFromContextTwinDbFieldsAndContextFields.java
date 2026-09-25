@@ -20,7 +20,7 @@ public class FieldLookuperFromContextTwinDbFieldsAndContextFields extends FieldL
     }
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+    public FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
         FieldValue fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
         if (TwinService.isFilled(fieldValue))
@@ -34,6 +34,6 @@ public class FieldLookuperFromContextTwinDbFieldsAndContextFields extends FieldL
         fieldValue = factoryItem.getFactoryContext().getField(lookupTwinClassField);
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
-        return null; // not found — the batch entry turns it into an undefined value
+        return null;
     }
 }

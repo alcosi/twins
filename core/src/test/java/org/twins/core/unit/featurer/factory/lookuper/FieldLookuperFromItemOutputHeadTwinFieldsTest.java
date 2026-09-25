@@ -91,7 +91,7 @@ class FieldLookuperFromItemOutputHeadTwinFieldsTest extends BaseUnitTest {
             when(twinService.loadHead(twin)).thenReturn(headTwin);
             when(twinService.getTwinFieldValue(headTwin, field)).thenReturn(null);
 
-            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
         }
     }
 

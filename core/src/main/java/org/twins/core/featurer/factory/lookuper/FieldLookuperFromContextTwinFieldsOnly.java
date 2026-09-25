@@ -10,7 +10,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 public class FieldLookuperFromContextTwinFieldsOnly extends FieldLookuperNearest {
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+    public FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         FactoryItem contextItem = factoryItem.checkSingleContextItem();
         var fieldValue = contextItem.getOutput().getField(lookupTwinClassField);
         if (fieldValue != null) {

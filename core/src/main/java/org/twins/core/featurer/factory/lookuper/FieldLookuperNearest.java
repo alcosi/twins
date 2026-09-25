@@ -20,9 +20,6 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
         for (var factoryItem : factoryItemsBatch.getFactoryItems()) {
             try {
                 var value = lookupFieldValue(factoryItem, twinClassField);
-                if (value == null) {
-                    value = twinService.createFieldValue(twinClassField); //create field as undefined
-                }
                 ret.values().put(factoryItem, value);
             } catch (ServiceException ex) {
                 ret.failures().put(factoryItem, ex); // per-item isolation — the caller re-throws per item
@@ -48,5 +45,13 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
     protected void beforeLookup(FactoryItemsBatch batch, TwinClassFieldEntity twinClassField) throws ServiceException {
     }
 
-    public abstract FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException;
+    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+        var value = lookupFieldValueOrNull(factoryItem, lookupTwinClassField);
+        if (value == null) {
+            value = twinService.createFieldValue(lookupTwinClassField); //create field as undefined
+        }
+        return value;
+    }
+
+    public abstract FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException;
 }

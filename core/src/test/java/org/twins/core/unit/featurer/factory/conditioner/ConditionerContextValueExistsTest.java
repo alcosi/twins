@@ -18,10 +18,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ConditionerContextValueExistsTest extends BaseUnitTest {
 
@@ -70,8 +67,10 @@ class ConditionerContextValueExistsTest extends BaseUnitTest {
         void check_valuePresent_returnsTrue() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var props = buildProperties(fieldId);
+            var value = mock(FieldValue.class);
+            when(value.isDefined()).thenReturn(true);
             when(lookuper.lookupFieldValue(any(FactoryItem.class), eq(fieldId)))
-                    .thenReturn(mock(FieldValue.class));
+                    .thenReturn(value);
 
             assertTrue(conditioner.check(props, mock(FactoryItem.class)));
         }
@@ -81,6 +80,19 @@ class ConditionerContextValueExistsTest extends BaseUnitTest {
             var fieldId = UUID.randomUUID();
             var props = buildProperties(fieldId);
             when(lookuper.lookupFieldValue(any(FactoryItem.class), eq(fieldId))).thenReturn(null);
+
+            assertFalse(conditioner.check(props, mock(FactoryItem.class)));
+        }
+
+        @Test
+        void check_valueUndefined_returnsFalse() throws ServiceException {
+            // the per-item lookuper template converts a not-found lookup into an undefined value
+            var fieldId = UUID.randomUUID();
+            var props = buildProperties(fieldId);
+            var undefined = mock(FieldValue.class);
+            when(undefined.isDefined()).thenReturn(false);
+            when(lookuper.lookupFieldValue(any(FactoryItem.class), eq(fieldId)))
+                    .thenReturn(undefined);
 
             assertFalse(conditioner.check(props, mock(FactoryItem.class)));
         }

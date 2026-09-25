@@ -40,7 +40,8 @@ class FieldLookuperFromItemOutputFieldsTest extends BaseUnitTest {
     // contract: getFreshestValue — first try the uncommitted output field for twinEntity.id
     //           (looked up via factoryContext.getFactoryItem(twinId).getOutput().getField(fieldId));
     //           if null, fall back to twinService.getTwinFieldValue(twinEntity, fieldId).
-    //           Both null -> ServiceException(FACTORY_PIPELINE_STEP_ERROR).
+    //           Both null -> lookupFieldValueOrNull returns null; the per-item template converts
+    //           that null into an undefined value.
     //           Source priority: uncommitted output field > twin DB field.
 
     @Nested
@@ -91,7 +92,7 @@ class FieldLookuperFromItemOutputFieldsTest extends BaseUnitTest {
 
             when(twinService.getTwinFieldValue(twin, field)).thenReturn(null);
 
-            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
         }
     }
 

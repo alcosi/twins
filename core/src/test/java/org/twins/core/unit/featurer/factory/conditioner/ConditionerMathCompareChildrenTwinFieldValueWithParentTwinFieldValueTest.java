@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.service.twinfield.TwinFieldSimpleService;
 import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjection;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
@@ -17,6 +16,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputUncom
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.twinfield.TwinFieldSimpleService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -105,6 +105,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
             var statusId = UUID.randomUUID();
             var greater = mock(FieldValueText.class);
             lenient().when(greater.getValue()).thenReturn("10");
+            lenient().when(greater.isNotEmpty()).thenReturn(true); // the filled-text guard of the comparison
 
             assertTrue(conditioner.check(props(greaterFieldId, comparisonFieldId, false, statusId), item(greater)));
         }
@@ -117,6 +118,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
             var comparisonFieldId = UUID.randomUUID();
             var greater = mock(FieldValueText.class);
             lenient().when(greater.getValue()).thenReturn("10"); // parent
+            lenient().when(greater.isNotEmpty()).thenReturn(true); // the filled-text guard of the comparison
 
             var childProjection = new TwinFieldSimpleNoRelationsProjection(
                     UUID.randomUUID(), UUID.randomUUID(), comparisonFieldId, "5"); // child=5, parent 10>5 → satisfied
@@ -147,6 +149,7 @@ class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValueTest e
             var comparisonFieldId = UUID.randomUUID();
             var greater = mock(FieldValueText.class);
             lenient().when(greater.getValue()).thenReturn("10");
+            lenient().when(greater.isNotEmpty()).thenReturn(true); // the filled-text guard of the comparison
 
             var childProjection = new TwinFieldSimpleNoRelationsProjection(
                     UUID.randomUUID(), UUID.randomUUID(), comparisonFieldId, "10");

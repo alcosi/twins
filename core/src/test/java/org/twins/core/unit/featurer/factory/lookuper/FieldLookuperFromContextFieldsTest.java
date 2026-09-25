@@ -20,6 +20,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 class FieldLookuperFromContextFieldsTest extends BaseUnitTest {
 
@@ -36,7 +37,8 @@ class FieldLookuperFromContextFieldsTest extends BaseUnitTest {
 
     // contract: resolve the field value from the factory context's own fields map,
     //           keyed by lookupTwinClassFieldId. Must NOT touch the DB / TwinService.
-    //           Missing key -> ServiceException(FACTORY_PIPELINE_STEP_ERROR, code 11002).
+    //           Missing key -> lookupFieldValueOrNull returns null; the public per-item template
+    //           (FieldLookuperNearest.lookupFieldValue) converts that null into an undefined value.
 
     @Nested
     class LookupFieldValue {
@@ -62,7 +64,7 @@ class FieldLookuperFromContextFieldsTest extends BaseUnitTest {
             var field = new TwinClassFieldEntity().setId(fieldId);
             var factoryItem = new FactoryItem().setFactoryContext(new FactoryContext(null, null));
 
-            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
             verifyNoInteractions(twinService);
         }
 
@@ -74,8 +76,21 @@ class FieldLookuperFromContextFieldsTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setFactoryContext(new FactoryContext(null, null));
             factoryItem.getFactoryContext().getFields().put(otherId, fieldValue(otherId, "other"));
 
-            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
             verifyNoInteractions(twinService);
+        }
+
+        @Test
+        void lookupFieldValue_notFound_templateReturnsUndefinedValue() throws ServiceException {
+            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
+            var factoryItem = new FactoryItem().setFactoryContext(new FactoryContext(null, null));
+            var undefined = new FieldValueText(field); // no value set -> isUndefined()
+            when(twinService.createFieldValue(field)).thenReturn(undefined);
+
+            var result = lookuper.lookupFieldValue(factoryItem, field);
+
+            assertSame(undefined, result); // the per-item template converts a null lookup into an undefined value
         }
     }
 

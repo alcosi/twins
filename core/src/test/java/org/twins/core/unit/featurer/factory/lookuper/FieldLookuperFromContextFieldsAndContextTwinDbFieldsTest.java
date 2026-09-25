@@ -93,7 +93,7 @@ class FieldLookuperFromContextFieldsAndContextTwinDbFieldsTest extends BaseUnitT
             when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
             when(twinService.getTwinFieldValue(deeperTwin, field)).thenReturn(null);
 
-            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
         }
     }
 

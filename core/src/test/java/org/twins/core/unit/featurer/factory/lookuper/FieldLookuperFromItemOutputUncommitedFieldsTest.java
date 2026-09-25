@@ -62,7 +62,7 @@ class FieldLookuperFromItemOutputUncommitedFieldsTest extends BaseUnitTest {
             var output = new TwinCreate();
             var factoryItem = new FactoryItem().setOutput(output);
 
-            assertNull(lookuper.lookupFieldValue(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
             verifyNoInteractions(twinService);
         }
     }

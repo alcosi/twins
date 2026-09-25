@@ -9,7 +9,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 @Component
 public class FieldLookuperFromItemOutputUncommitedFields extends FieldLookuperNearest {
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
-        return factoryItem.getOutput().getField(lookupTwinClassField); // null when not found — batch entry turns it into an undefined value
+    public FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+        return factoryItem.getOutput().getField(lookupTwinClassField);
     }
 }

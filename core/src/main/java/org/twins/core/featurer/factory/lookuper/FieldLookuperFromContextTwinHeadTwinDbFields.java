@@ -27,8 +27,8 @@ public class FieldLookuperFromContextTwinHeadTwinDbFields extends FieldLookuperN
     }
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+    public FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         twinService.loadHead(factoryItem.getTwin());
-        return twinService.getTwinFieldValue(factoryItem.getTwin().getHeadTwin(), lookupTwinClassField); // null when not found — batch entry turns it into an undefined value
+        return twinService.getTwinFieldValue(factoryItem.getTwin().getHeadTwin(), lookupTwinClassField);
     }
 }
