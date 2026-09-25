@@ -117,10 +117,17 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID> {
     @Column(name = "has_projected_fields")
     private Boolean hasProjectedFields;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
+    private TwinClassEntity twinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity twinClass;
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table.

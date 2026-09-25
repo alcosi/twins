@@ -87,7 +87,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
             throw new RuntimeException(e);
         }
         return Specification.allOf(
-                checkUuid(domainId, false, !search.isExcludeSystemFields(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkUuid(domainId, false, !search.isExcludeSystemFields(), TwinClassFieldEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
                 checkTwinClassAndInheritable(twinClassIdMapResolved, false, TwinClassFieldEntity.Fields.twinClassId, TwinClassFieldEntity.Fields.inheritable),
@@ -143,7 +143,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
             case hasDependentFields -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.hasDependentFields);
             case projectionField -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.projectionField);
             case hasProjectedFields -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.hasProjectedFields);
-            case twinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+            case twinClassName -> I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinClassFieldEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
             case fieldTyperFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.fieldTyperFeaturerSpecOnly, FeaturerEntity.Fields.name);
             case fieldInitializerFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.fieldInitializerFeaturerSpecOnly, FeaturerEntity.Fields.name);
             case twinSorterFeaturerName -> toSortSpecification(ascending, TwinClassFieldEntity.Fields.twinSorterFeaturerSpecOnly, FeaturerEntity.Fields.name);

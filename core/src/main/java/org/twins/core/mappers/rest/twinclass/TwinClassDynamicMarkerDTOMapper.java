@@ -56,10 +56,12 @@ public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinCla
 
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassDynamicMarker2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
+            twinClassDynamicMarkerService.loadTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassDynamicMarker2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassDynamicMarker2DataListOptionMode.HIDE)) {
             dst.setMarkerDataListOptionId(src.getMarkerDataListOptionId());
+            twinClassDynamicMarkerService.loadMarkerDataListOption(src);
             dataListOptionRestDTOMapper.postpone(src.getMarkerDataListOption(), mapperContext.forkOnPoint(DataListOptionMode.TwinClassDynamicMarker2DataListOptionMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinClassDynamicMarker2TwinValidatorSetMode.HIDE)) {
@@ -74,6 +76,14 @@ public class TwinClassDynamicMarkerDTOMapper extends RestSimpleDTOMapper<TwinCla
     @Override
     public void beforeCollectionConversion(Collection<TwinClassDynamicMarkerEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassDynamicMarker2TwinClassMode.HIDE)) {
+            twinClassDynamicMarkerService.loadTwinClass(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassDynamicMarker2DataListOptionMode.HIDE)) {
+            twinClassDynamicMarkerService.loadMarkerDataListOption(srcCollection);
+        }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinClassDynamicMarker2TwinValidatorSetMode.HIDE)) {
             twinClassDynamicMarkerService.loadTwinValidatorSet(srcCollection);
         }

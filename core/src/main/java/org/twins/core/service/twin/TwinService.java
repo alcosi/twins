@@ -65,6 +65,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.recompute.TwinRecomputeService;
+import org.twins.core.service.twinclass.TwinClassFreezeService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinclassfield.TwinClassFieldValidatorService;
@@ -122,6 +123,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinflowService twinflowService;
     private final TwinStatusTriggerService twinStatusTriggerService;
     private final TwinClassService twinClassService;
+    private final TwinClassFreezeService twinClassFreezeService;
     @Lazy
     private final PermissionService permissionService;
     @Lazy
@@ -1948,6 +1950,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinStatusEntity getStatusOrFreeze(TwinEntity src) throws ServiceException {
         if (src.getTwinClass().getTwinClassFreezeId() != null) {
             twinClassService.loadFreeze(src.getTwinClass());
+            twinClassFreezeService.loadTwinStatus(src.getTwinClass().getTwinClassFreeze());
             return src.getTwinClass().getTwinClassFreeze().getTwinStatus();
         }
         return src.getTwinStatus();

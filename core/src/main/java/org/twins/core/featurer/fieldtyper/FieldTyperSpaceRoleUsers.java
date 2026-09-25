@@ -62,6 +62,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        twinClassFieldService.loadTwinClass(value.getTwinClassField());
         if (!value.getTwinClassField().getTwinClass().getPermissionSchemaSpace()) {
             return;
         }
