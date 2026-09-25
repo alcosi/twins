@@ -23,10 +23,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinstatus.TwinStatusService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -132,4 +129,16 @@ public class TwinClassFreezeService extends EntitySecureFindServiceImpl<TwinClas
         return allEntities;
     }
 
+    public void loadTwinStatus(TwinClassFreezeEntity src) throws ServiceException {
+        if (src.getTwinStatus() != null)
+            return;
+        loadTwinStatus(Collections.singletonList(src));
+    }
+
+    public void loadTwinStatus(Collection<TwinClassFreezeEntity> srcCollection) throws ServiceException {
+        twinStatusService.load(srcCollection,
+                TwinClassFreezeEntity::getTwinStatusId,
+                TwinClassFreezeEntity::getTwinStatus,
+                TwinClassFreezeEntity::setTwinStatus);
+    }
 }

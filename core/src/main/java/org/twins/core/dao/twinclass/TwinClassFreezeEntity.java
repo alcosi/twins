@@ -40,10 +40,17 @@ public class TwinClassFreezeEntity implements EasyLoggable, Identifiable<UUID> {
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_status_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity twinStatusSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity twinStatus;
 
     // Direct join to i18n_translation by raw FK — skips intermediate i18n table

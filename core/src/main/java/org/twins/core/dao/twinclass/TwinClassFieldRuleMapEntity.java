@@ -1,9 +1,7 @@
 package org.twins.core.dao.twinclass;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -31,16 +29,30 @@ public class TwinClassFieldRuleMapEntity implements EasyLoggable {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "twin_class_field_rule_id", insertable = false, updatable = false)
+    private TwinClassFieldRuleEntity twinClassFieldRuleSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassFieldRuleEntity twinClassFieldRule;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity twinClassFieldSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassFieldEntity twinClassField;
 
     @Override

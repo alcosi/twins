@@ -62,7 +62,7 @@ public class TwinClassFieldValidatorSearchService extends EntitySearchService
     public Specification<TwinClassFieldValidatorEntity> createFilterSpecification(TwinClassFieldValidatorSearch search, UUID domainId, Locale locale) throws ServiceException {
         // Domain isolation via twin_class_field -> twin_class.domain_id (no domain_id on twin_class_field_validator).
         return Specification.allOf(
-                checkFieldUuid(domainId, TwinClassFieldValidatorEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkFieldUuid(domainId, TwinClassFieldValidatorEntity.Fields.twinClassFieldSpecOnly, TwinClassFieldEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldValidatorEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldValidatorEntity.Fields.id),
                 checkUuidIn(search.getTwinClassFieldIdList(), false, false, TwinClassFieldValidatorEntity.Fields.twinClassFieldId),

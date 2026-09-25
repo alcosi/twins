@@ -108,6 +108,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     @Override
     public boolean isEntityReadDenied(TwinClassFieldEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        loadTwinClass(entity);
         if (twinClassService.isOwnerSystemType(entity.getTwinClass()))
             return false;
         if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
@@ -749,7 +750,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         loadTwinClass(Collections.singletonList(entity));
     }
 
-    public void loadTwinClass(List<TwinClassFieldEntity> entities) throws ServiceException {
+    public void loadTwinClass(Collection<TwinClassFieldEntity> entities) throws ServiceException {
         twinClassService.load(
                 entities,
                 TwinClassFieldEntity::getTwinClassId,

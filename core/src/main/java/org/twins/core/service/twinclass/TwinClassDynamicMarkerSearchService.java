@@ -37,7 +37,7 @@ public class TwinClassDynamicMarkerSearchService {
 
     private Specification<TwinClassDynamicMarkerEntity> createTwinClassDynamicMarkerSearchSpecification(TwinClassDynamicMarkerSearch search) throws ServiceException {
         return Specification.allOf(
-                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinClassDynamicMarkerEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinClassDynamicMarkerEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdMap()), false, TwinClassDynamicMarkerEntity.Fields.twinClassId, TwinClassDynamicMarkerEntity.Fields.inheritable),

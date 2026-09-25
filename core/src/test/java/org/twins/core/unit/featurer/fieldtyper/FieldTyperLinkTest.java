@@ -18,6 +18,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
@@ -38,6 +39,9 @@ class FieldTyperLinkTest extends BaseUnitTest {
     @Mock
     private TwinLinkService twinLinkService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldTyperLink fieldTyper;
 
     @BeforeEach
@@ -45,6 +49,7 @@ class FieldTyperLinkTest extends BaseUnitTest {
         fieldTyper = new FieldTyperLink();
         setField(fieldTyper, "linkService", linkService);
         setField(fieldTyper, "twinLinkService", twinLinkService);
+        setField(fieldTyper, "twinClassFieldService", twinClassFieldService);
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
