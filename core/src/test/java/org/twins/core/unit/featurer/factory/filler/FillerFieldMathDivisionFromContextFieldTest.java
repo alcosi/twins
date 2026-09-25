@@ -53,7 +53,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldMathDivisionFromContextField(twinClassFieldService);
         inject(filler, "fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getFromItemOutputDbFields()).thenReturn(dbLookuper);
+        when(fieldLookupers.getByType(FieldLookupers.Type.fromItemOutputDbFields)).thenReturn(dbLookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -76,6 +76,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
     private Properties props() {
         var p = new Properties();
         p.setProperty("dividendTwinClassFieldId", DIVIDEND_FIELD_ID.toString());
+        p.setProperty("fieldLookuper", "fromItemOutputDbFields");
         p.setProperty("divisorTwinClassFieldId", DIVISOR_FIELD_ID.toString());
         p.setProperty("targetTwinClassFieldId", TARGET_FIELD_ID.toString());
         return p;

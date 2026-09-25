@@ -49,7 +49,7 @@ class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitT
         filler = new FillerBasicsAssigneeFromContextTwinFieldTwinAssignee();
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
-        when(fieldLookupers.getFromContextTwinDbFields()).thenReturn(lookuper);
+        when(fieldLookupers.getByType(FieldLookupers.Type.fromContextTwinDbFields)).thenReturn(lookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -72,6 +72,7 @@ class FillerBasicsAssigneeFromContextTwinFieldTwinAssigneeTest extends BaseUnitT
     private Properties props() {
         var p = new Properties();
         p.setProperty("linkField", LINK_FIELD_ID.toString());
+        p.setProperty("fieldLookuper", "fromContextTwinDbFields");
         return p;
     }
 

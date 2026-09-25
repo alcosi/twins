@@ -14,11 +14,12 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputFields;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -49,6 +50,9 @@ public class FillerFieldDurationBetweenDates extends Filler {
     @FeaturerParam(name = "End date twin class field id", description = "End date field", order = 3)
     public static final FeaturerParamUUID endDateTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("endDateTwinClassFieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field values", order = 99, optional = true, defaultValue = "fromItemOutputFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Lazy
     private final TwinService twinService;
     @Lazy
@@ -66,7 +70,7 @@ public class FillerFieldDurationBetweenDates extends Filler {
         UUID durationFieldId = durationTwinClassFieldId.extract(properties);
         UUID startFieldId = startDateTwinClassFieldId.extract(properties);
         UUID endFieldId = endDateTwinClassFieldId.extract(properties);
-        FieldLookuperFromItemOutputFields lookuper = fieldLookupers.getFromItemOutputFields();
+        FieldLookuperNearest lookuper = (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
         LookupResult durationResult = lookuper.lookupFieldValue(batch, durationFieldId);
         LookupResult startResult = lookuper.lookupFieldValue(batch, startFieldId);
         LookupResult endResult = lookuper.lookupFieldValue(batch, endFieldId);

@@ -3,14 +3,17 @@ package org.twins.core.featurer.factory.filler;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -23,6 +26,9 @@ import java.util.UUID;
 @Slf4j
 public class FillerBasicsAssigneeFromContextTwinFieldTwinAssignee extends FillerBasicsAssigneeFromContextFieldTwinAssignee {
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     /**
      * Direct batch override, two-phase like the parent: one lookuper batch call (bulk preloads +
      * entity resolution once), then an isolated per-item loop collecting the linked twins from the
@@ -34,7 +40,8 @@ public class FillerBasicsAssigneeFromContextTwinFieldTwinAssignee extends Filler
         if (batch == null || batch.isEmpty())
             return;
         UUID assigneeFieldId = linkField.extract(properties);
-        LookupResult result = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(batch, assigneeFieldId);
+        FieldLookuperNearest lookuper = (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+        LookupResult result = lookuper.lookupFieldValue(batch, assigneeFieldId);
         var linkedTwins = new HashMap<TwinEntity, TwinEntity>();
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {

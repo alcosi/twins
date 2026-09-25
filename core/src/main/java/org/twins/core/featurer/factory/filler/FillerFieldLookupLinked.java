@@ -27,7 +27,7 @@ public abstract class FillerFieldLookupLinked extends Filler {
     public final void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         if (batch == null || batch.isEmpty())
             return;
-        LookupResult result = lookuper().lookupFieldValue(batch, linkedById(properties), lookupFieldId(properties));
+        LookupResult result = lookuper(properties).lookupFieldValue(batch, linkedById(properties), lookupFieldId(properties));
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
                 result.rethrowFailureIfPresent(factoryItem);
@@ -38,8 +38,12 @@ public abstract class FillerFieldLookupLinked extends Filler {
         }
     }
 
-    /** Linked lookuper of this filler — one of the FieldLookupers linked-twin beans. */
-    protected abstract FieldLookuperLinked lookuper();
+    /**
+     * Value source of this filler, resolved from the filler's own {@code fieldLookuperParam} — each
+     * concrete filler declares the param (with its default value) and binds it here, mirroring
+     * {@link FillerFieldLookup#lookuper(Properties)}.
+     */
+    protected abstract FieldLookuperLinked lookuper(Properties properties);
 
     /** Id of the link (or link field) the source twin is found by, extracted once per batch. */
     protected abstract UUID linkedById(Properties properties) throws ServiceException;

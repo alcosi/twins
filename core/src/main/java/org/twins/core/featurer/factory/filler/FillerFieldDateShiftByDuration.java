@@ -15,11 +15,12 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputFields;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -53,6 +54,9 @@ public class FillerFieldDateShiftByDuration extends Filler {
     @FeaturerParam(name = "Subtract duration", description = "If true, target = source - (duration - 1); if false, target = source + (duration - 1)", order = 4, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean subtractDuration = new FeaturerParamBoolean("subtractDuration");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field values", order = 99, optional = true, defaultValue = "fromItemOutputFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Lazy
     private final TwinService twinService;
     @Lazy
@@ -70,7 +74,7 @@ public class FillerFieldDateShiftByDuration extends Filler {
         var targetField = twinClassFieldService.findEntitySafe(targetTwinClassFieldId.extract(properties));
         var sourceField = twinClassFieldService.findEntitySafe(sourceDateTwinClassFieldId.extract(properties));
         var durationField = twinClassFieldService.findEntitySafe(durationTwinClassFieldId.extract(properties));
-        FieldLookuperFromItemOutputFields lookuper = fieldLookupers.getFromItemOutputFields();
+        FieldLookuperNearest lookuper = (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
         LookupResult targetResult = lookuper.lookupFieldValue(batch, targetField);
         LookupResult sourceResult = lookuper.lookupFieldValue(batch, sourceField);
         LookupResult durationResult = lookuper.lookupFieldValue(batch, durationField);

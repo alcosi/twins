@@ -55,7 +55,7 @@ class FillerFieldFromContextTwinLinkedByFieldTwinFieldTest extends BaseUnitTest 
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
         inject(filler, "twinClassFieldService", twinClassFieldService);
-        when(fieldLookupers.getFromContextTwinLinkedByFieldTwinFields()).thenReturn(lookuper);
+        when(fieldLookupers.getByType(FieldLookupers.Type.fromContextTwinLinkedByFieldTwinFields)).thenReturn(lookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -78,6 +78,7 @@ class FillerFieldFromContextTwinLinkedByFieldTwinFieldTest extends BaseUnitTest 
     private Properties props() {
         var p = new Properties();
         p.setProperty("contextTwinFieldId", CONTEXT_TWIN_FIELD_ID.toString());
+        p.setProperty("fieldLookuper", "fromContextTwinLinkedByFieldTwinFields");
         p.setProperty("srcTwinClassFieldId", SRC_FIELD_ID.toString());
         p.setProperty("dstTwinClassFieldId", DST_FIELD_ID.toString());
         return p;

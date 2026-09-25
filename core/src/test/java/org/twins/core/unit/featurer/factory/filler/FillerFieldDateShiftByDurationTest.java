@@ -54,7 +54,7 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldDateShiftByDuration(twinService, twinClassFieldService);
         inject(filler, "fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getFromItemOutputFields()).thenReturn(lookuper);
+        when(fieldLookupers.getByType(FieldLookupers.Type.fromItemOutputFields)).thenReturn(lookuper);
         lenient().when(twinClassFieldService.findEntitySafe(TARGET_ID)).thenReturn(TARGET_FIELD);
         lenient().when(twinClassFieldService.findEntitySafe(SOURCE_ID)).thenReturn(SOURCE_FIELD);
         lenient().when(twinClassFieldService.findEntitySafe(DURATION_ID)).thenReturn(DURATION_FIELD);
@@ -80,6 +80,7 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
     private Properties props(boolean subtract) {
         var p = new Properties();
         p.setProperty("targetTwinClassFieldId", TARGET_ID.toString());
+        p.setProperty("fieldLookuper", "fromItemOutputFields");
         p.setProperty("sourceDateTwinClassFieldId", SOURCE_ID.toString());
         p.setProperty("durationTwinClassFieldId", DURATION_ID.toString());
         p.setProperty("subtractDuration", Boolean.toString(subtract));

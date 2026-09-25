@@ -13,9 +13,11 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
@@ -39,6 +41,9 @@ public class FillerFieldAsItemOutputLinkedTwinHead extends Filler {
     @FeaturerParam(name = "dstTwinClassFieldId", description = "")
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromItemOutputFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     /**
      * Direct batch override, two-phase (not a {@code FillerFieldLookup} subclass — the linked twins
      * are discovered per item, so the head load can only be bulk after collecting them): one
@@ -49,7 +54,8 @@ public class FillerFieldAsItemOutputLinkedTwinHead extends Filler {
     public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         if (batch == null || batch.isEmpty())
             return;
-        LookupResult result = fieldLookupers.getFromItemOutputFields().lookupFieldValue(batch, linkedTwinByTwinClassFieldId.extract(properties));
+        LookupResult result = ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties)))
+                .lookupFieldValue(batch, linkedTwinByTwinClassFieldId.extract(properties));
         var linkedTwins = new HashMap<FactoryItem, TwinEntity>();
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {

@@ -17,10 +17,11 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputDbFields;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
@@ -43,6 +44,9 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
     @FeaturerParam(name = "Target twin class field id", description = "", order = 3)
     public static final FeaturerParamUUID targetTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("targetTwinClassFieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the db field values", order = 99, optional = true, defaultValue = "fromItemOutputDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
 
@@ -57,7 +61,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         UUID paramDividendTwinClassFieldId = dividendTwinClassFieldId.extract(properties);
         UUID paramDivisorTwinClassFieldId = divisorTwinClassFieldId.extract(properties);
         UUID paramTargetTwinClassFieldId = targetTwinClassFieldId.extract(properties);
-        FieldLookuperFromItemOutputDbFields lookuper = fieldLookupers.getFromItemOutputDbFields();
+        FieldLookuperNearest lookuper = (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
         LookupResult dividendDbResult = lookuper.lookupFieldValue(batch, paramDividendTwinClassFieldId);
         LookupResult divisorDbResult = lookuper.lookupFieldValue(batch, paramDivisorTwinClassFieldId);
         for (FactoryItem factoryItem : batch.getFactoryItems()) {

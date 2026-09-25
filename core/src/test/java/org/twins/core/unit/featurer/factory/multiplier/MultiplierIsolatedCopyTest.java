@@ -15,6 +15,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.multiplier.MultiplierIsolatedCopy;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -22,12 +23,16 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class MultiplierIsolatedCopyTest extends BaseUnitTest {
 
     @Mock
     private AuthService authService;
+
+    @Mock
+    private TwinService twinService;
 
     private MultiplierIsolatedCopy multiplier;
 
@@ -35,6 +40,9 @@ class MultiplierIsolatedCopyTest extends BaseUnitTest {
     void setUp() throws Exception {
         multiplier = new MultiplierIsolatedCopy();
         setField(multiplier, "authService", authService);
+        // the copyHead branch calls twinService.loadHead over the input twins; the fixture presets
+        // the heads, so a no-op mock is enough
+        setField(multiplier, "twinService", twinService);
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {

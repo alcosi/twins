@@ -12,8 +12,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinLinkedTwinByFieldDbFields;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperLinked;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -36,6 +37,9 @@ public class FillerFieldFromContextTwinLinkedByFieldTwinField extends FillerFiel
     @FeaturerParam(name = "Dst twin class field id", description = "", order = 3)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextTwinLinkedByFieldTwinFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Lazy
     @Autowired
     TwinService twinService;
@@ -44,9 +48,10 @@ public class FillerFieldFromContextTwinLinkedByFieldTwinField extends FillerFiel
     @Autowired
     TwinClassFieldService twinClassFieldService;
 
+
     @Override
-    protected FieldLookuperFromContextTwinLinkedTwinByFieldDbFields lookuper() {
-        return fieldLookupers.getFromContextTwinLinkedByFieldTwinFields();
+    protected FieldLookuperLinked lookuper(Properties properties) {
+        return (FieldLookuperLinked) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
     }
 
     @Override

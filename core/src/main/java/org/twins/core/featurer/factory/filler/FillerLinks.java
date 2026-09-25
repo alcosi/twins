@@ -48,9 +48,13 @@ public abstract class FillerLinks extends Filler {
     }
 
     /**
-     * Per-item fill. Public so concrete fillers stay directly unit-testable.
+     * Per-item fill for subclasses that use the default batch loop above. A subclass that overrides
+     * the batch entry with its own bulk logic does not implement this hook — the default body fails
+     * fast on misuse instead of silently bypassing the batch preloads.
      */
-    public abstract void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException;
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+        throw new UnsupportedOperationException(getClass().getSimpleName() + " implements the batch fill entry only");
+    }
 
     protected void addLinks(FactoryItem factoryItem, Collection<TwinLinkEntity> twinLinkList) throws ServiceException {
         twinLinkService.loadDstTwin(twinLinkList);
