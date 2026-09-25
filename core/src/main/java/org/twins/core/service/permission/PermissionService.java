@@ -181,6 +181,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return result;
     }
 
+    // permission_check_mater_batch takes the assignee/creator flags as scalar params,
+    // so keys sharing the same role combination are merged into one SQL call
+    record Roles(boolean isAssignee, boolean isCreator) {}
+
     public Map<PermissionDetectKey, Boolean> hasPermissionBatch(Map<PermissionDetectKey, UUID> permissionDetectKeys) throws ServiceException {
         if (permissionDetectKeys.isEmpty())
             return new HashMap<>();
@@ -203,37 +207,36 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         }
         if (sqlNeeded.isEmpty())
             return result;
-        Map<Boolean, Map<Boolean, List<PermissionDetectKey>>> sqlNeededByRoles = new HashMap<>();
-        for (var permissionDetectKey : sqlNeeded.entrySet()) {
+
+        Map<Roles, List<PermissionDetectKey>> sqlNeededByRoles = new LinkedHashMap<>();
+        for (PermissionDetectKey key : sqlNeeded.keySet()) {
             sqlNeededByRoles
-                    .computeIfAbsent(permissionDetectKey.getKey().isAssignee, k -> new HashMap<>())
-                    .computeIfAbsent(permissionDetectKey.getKey().isCreator, k -> new ArrayList<>())
-                    .add(permissionDetectKey.getKey());
+                    .computeIfAbsent(new Roles(key.isAssignee, key.isCreator), k -> new ArrayList<>())
+                    .add(key);
         }
-        for (var assigneeEntry : sqlNeededByRoles.entrySet()) {
-            for (var creatorEntry : assigneeEntry.getValue().entrySet()) {
-                List<PermissionDetectKey> keys = creatorEntry.getValue();
-                List<PermissionRepository.PermissionMaterBatchResult> batchResults = permissionRepository.hasPermissionBatch(
-                        toUuidArray(keys, PermissionDetectKey::getPermissionSchemaId),
-                        toUuidArray(keys, key -> sqlNeeded.get(key)),
-                        toUuidArray(keys, PermissionDetectKey::getPermissionSchemaSpaceId),
-                        toUuidArray(keys, PermissionDetectKey::getTwinClassId),
-                        creatorEntry.getKey(),
-                        assigneeEntry.getKey(),
-                        apiUser.getUserId(),
-                        userGroupsFootprint);
-                for (PermissionRepository.PermissionMaterBatchResult batchResult : batchResults) {
-                    PermissionDetectKey permissionDetectKey = new PermissionDetectKey(
-                            batchResult.getTwinClassId(),
-                            batchResult.getPermissionSchemaId(),
-                            batchResult.getPermissionSpaceId(),
-                            assigneeEntry.getKey(),
-                            creatorEntry.getKey());
-                    boolean allowed = batchResult.isAllowed();
-                    result.put(permissionDetectKey, allowed);
-                    permissionCheckRequestCache.put(new PermissionCheckRequestCache.Key(
-                            apiUser.getUserId(), userGroupsFootprint, permissionDetectKey, sqlNeeded.get(permissionDetectKey)), allowed);
-                }
+        for (var rolesEntry : sqlNeededByRoles.entrySet()) {
+            Roles roles = rolesEntry.getKey();
+            List<PermissionDetectKey> keys = rolesEntry.getValue();
+            List<PermissionRepository.PermissionMaterBatchResult> batchResults = permissionRepository.hasPermissionBatch(
+                    toUuidArray(keys, PermissionDetectKey::getPermissionSchemaId),
+                    toUuidArray(keys, sqlNeeded::get),
+                    toUuidArray(keys, PermissionDetectKey::getPermissionSchemaSpaceId),
+                    toUuidArray(keys, PermissionDetectKey::getTwinClassId),
+                    roles.isCreator(),
+                    roles.isAssignee(),
+                    apiUser.getUserId(),
+                    userGroupsFootprint);
+            for (PermissionRepository.PermissionMaterBatchResult batchResult : batchResults) {
+                PermissionDetectKey permissionDetectKey = new PermissionDetectKey(
+                        batchResult.getTwinClassId(),
+                        batchResult.getPermissionSchemaId(),
+                        batchResult.getPermissionSpaceId(),
+                        roles.isAssignee(),
+                        roles.isCreator());
+                boolean allowed = batchResult.isAllowed();
+                result.put(permissionDetectKey, allowed);
+                permissionCheckRequestCache.put(new PermissionCheckRequestCache.Key(
+                        apiUser.getUserId(), userGroupsFootprint, permissionDetectKey, sqlNeeded.get(permissionDetectKey)), allowed);
             }
         }
         return result;
