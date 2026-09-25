@@ -25,13 +25,13 @@ import java.util.function.Function;
 @FieldNameConstants
 public class TwinSearch extends EntitySearch<TwinEntity> {
     private Set<UUID> twinIdList;
+    private Set<UUID> twinIdExcludeList;
     private Set<String> twinNameLikeList;
     private Set<String> twinNameNotLikeList;
     private Set<String> twinDescriptionLikeList;
     private Set<String> twinDescriptionNotLikeList;
     private Set<String> externalIdList;
     private Set<String> externalIdExcludeList;
-    private Set<UUID> twinIdExcludeList;
     private Set<UUID> twinClassIdList;
     private Set<UUID> twinClassIdExcludeList;
     private DBUMembershipCheck dbuMembershipCheck; // this will take sense only if we search by TWIN_CLASS_USER or TWIN_CLASS_BUSINESS_ACCOUNT
