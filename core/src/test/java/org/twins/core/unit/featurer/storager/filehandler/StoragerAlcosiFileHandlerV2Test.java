@@ -281,6 +281,17 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
             assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
             verify(restTemplate, times(1)).exchange(anyString(), any(), any(), eq(Void.class));
         }
+
+        @Test
+        void deleteFile_notImplemented_failsWithoutRetry() throws ServiceException {
+            stubProperties(buildParams());
+
+            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
+                    .thenThrow(HttpServerErrorException.create(HttpStatus.NOT_IMPLEMENTED, "Not Implemented", HttpHeaders.EMPTY, null, null));
+
+            assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            verify(restTemplate, times(1)).exchange(anyString(), any(), any(), eq(Void.class));
+        }
     }
 
     @Nested

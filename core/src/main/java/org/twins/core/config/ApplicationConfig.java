@@ -85,7 +85,7 @@ public class ApplicationConfig {
     @Bean
     public RestTemplate restTemplate(RestTemplateConfig.LogRequestResponseFilter filter) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(60000); // 1 min for connection setup
+        factory.setConnectTimeout(5000); // 5 sec for connection setup
         factory.setReadTimeout(60000); // 1 min for reading data
         final RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(factory));
         restTemplate.getInterceptors().add(filter);
