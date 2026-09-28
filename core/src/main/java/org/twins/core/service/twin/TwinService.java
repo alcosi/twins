@@ -959,6 +959,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinBatchFieldValidationException batchFieldValidationException = null;
         var twinUpdatesWithFields = twinUpdates.stream().filter(twinUpdate -> MapUtils.isNotEmpty(twinUpdate.getFields())).map(TwinUpdate::getDbTwinEntity).toList();
         loadFieldEditability(twinUpdatesWithFields);
+        // Preload all field storages for the whole batch in one query per storage type;
+        // per-twin singleton loads in validate/dropUnchangedFields then become no-ops.
+        loadTwinFields(twinUpdatesWithFields);
         checkUpdatePermissionBatch(twinUpdates);
         for (TwinUpdate twinUpdate : twinUpdates) {
             if (!twinUpdate.isChanged()) continue;
@@ -2427,7 +2430,32 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    /**
+     * Drops fields whose incoming value equals storage. Field permission and validation
+     * then see only real edits. Full-form clients resend every field.
+     */
+    private void dropUnchangedFields(TwinUpdate twinUpdate) throws ServiceException {
+        Map<UUID, FieldValue> fields = twinUpdate.getFields();
+        if (MapUtils.isEmpty(fields))
+            return;
+        TwinEntity twin = twinUpdate.getDbTwinEntity();
+        if (twin == null || twin.isCreateElseUpdate())
+            return;
+        var iterator = fields.entrySet().iterator();
+        while (iterator.hasNext()) {
+            FieldValue value = iterator.next().getValue();
+            if (value == null || value.isUndefined() || value.isCleared() || value.isSystemInitialized())
+                continue;
+            FieldTyper fieldTyper = featurerService.getFeaturer(value.getTwinClassField().getFieldTyperFeaturerId(), FieldTyper.class);
+            if (fieldTyper.isUnchangedUpdate(twin, value)) {
+                log.debug("{} is unchanged, field permission check will be skipped", value.getTwinClassField().logNormal());
+                iterator.remove();
+            }
+        }
+    }
+
     public void validateFieldsOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
+        dropUnchangedFields(twinUpdate);
         TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
         Map<UUID, FieldValue> fields = twinUpdate.getFields();
         loadClass(twinEntity);

@@ -69,6 +69,17 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         return linkRepository;
     }
 
+    /**
+     * Link definitions are read several times per request (twin update reads them in the unchanged-check,
+     * validate and serialize for every link field). Request-scope dedupes those reads into one SELECT;
+     * the cache dies with the request, so no explicit eviction is needed. Same pattern as
+     * {@link org.twins.core.service.twinstatus.TwinStatusService}.
+     */
+    @Override
+    public CacheSupportType getCacheSupportType() {
+        return CacheSupportType.REQUEST;
+    }
+
     @Override
     public Function<LinkEntity, UUID> entityGetIdFunction() {
         return LinkEntity::getId;

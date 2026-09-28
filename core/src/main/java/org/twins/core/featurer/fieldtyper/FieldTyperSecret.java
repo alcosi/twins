@@ -9,6 +9,7 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
@@ -33,6 +34,13 @@ public class FieldTyperSecret
 
     @Autowired
     private StandardPBEStringEncryptor secretEncryptor;
+
+    @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueText value) {
+        // Encryption is not deterministic: the same plaintext becomes a new ciphertext on write.
+        // Repeating the secret is still a change, so the field permission check stays in place.
+        return false;
+    }
 
     @Override
     protected String processValue(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldSimpleNonIndexedEntity,

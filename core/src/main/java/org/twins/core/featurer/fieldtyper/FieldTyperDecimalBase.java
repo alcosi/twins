@@ -10,6 +10,7 @@ import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -25,6 +26,26 @@ import java.util.Properties;
 public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch>
         extends FieldTyper<D, T, TwinFieldStorageDecimal, A>
         implements FieldTyperNumeric {
+
+    @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, T value) throws ServiceException {
+        if (value.isUndefined() || value.isCleared() || !(value instanceof FieldValueText text))
+            return false;
+        if (twin.getTwinFieldDecimalKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
+            return false;
+        if (twin.getTwinFieldDecimalKit() == null)
+            return false;
+        TwinFieldDecimalEntity entity = twin.getTwinFieldDecimalKit().get(value.getTwinClassFieldId());
+        if (entity == null || entity.getValue() == null)
+            return false;
+        try {
+            Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
+            BigDecimal incoming = new BigDecimal(processAndFormatValue(properties, text));
+            return incoming.compareTo(entity.getValue()) == 0;
+        } catch (ServiceException | RuntimeException e) {
+            return false;
+        }
+    }
 
     protected abstract void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
     protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException;

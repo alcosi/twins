@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
@@ -13,9 +14,11 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageMater;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryItem;
 
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 
+@Slf4j
 public abstract class FieldTyperSingleValue<
         D extends FieldDescriptor,
         T extends FieldValue,
@@ -23,6 +26,28 @@ public abstract class FieldTyperSingleValue<
         V,
         S extends TwinFieldStorageMater<E>,
         A extends TwinFieldValueSearch> extends FieldTyper<D, T, S, A> {
+    @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, T value) throws ServiceException {
+        if (value.isUndefined() || value.isCleared())
+            return false;
+        if (getFieldKit(twin) == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
+            return false;
+        var kit = getFieldKit(twin);
+        if (kit == null)
+            return false;
+        E entity = kit.get(value.getTwinClassFieldId());
+        if (entity == null)
+            return false;
+        try {
+            Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
+            return Objects.equals(getEntityValue(entity), processValue(properties, entity, value));
+        } catch (ServiceException | RuntimeException e) {
+            // A value that cannot be normalized is not an echo of storage. Permission and validation still apply.
+            log.debug("{} unchanged check could not compare values", value.getTwinClassField().logNormal(), e);
+            return false;
+        }
+    }
+
     protected void detectValueChange(E twinFieldEntity, TwinChangesCollector twinChangesCollector, V newValue) {
         var oldValue = getEntityValue(twinFieldEntity);
         if (twinChangesCollector.collectIfChangedWithNullifySupport(twinFieldEntity, "field[" + twinFieldEntity.getTwinClassField().getKey() + "]", oldValue, newValue)) {

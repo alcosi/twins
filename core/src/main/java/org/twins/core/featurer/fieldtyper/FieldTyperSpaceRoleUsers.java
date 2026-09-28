@@ -61,6 +61,37 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     private AuthService authService;
 
     @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueUser value) throws ServiceException {
+        if (value.isUndefined() || value.isCleared())
+            return false;
+        twinClassFieldService.loadTwinClass(value.getTwinClassField());
+        if (value.getTwinClassField().getTwinClass() == null)
+            return false;
+        // Non-space classes ignore this field on write.
+        if (!value.getTwinClassField().getTwinClass().getPermissionSchemaSpace())
+            return true;
+        List<UUID> incoming = new ArrayList<>();
+        for (UserEntity user : value.getItems()) {
+            if (user == null || user.getId() == null)
+                return false;
+            incoming.add(user.getId());
+        }
+        if (twin.getTwinFieldSpaceUserKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
+            return false;
+        if (twin.getTwinFieldSpaceUserKit() == null)
+            return false;
+        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
+        UUID roleId = spaceRoleId.extract(properties);
+        List<UUID> stored = new ArrayList<>();
+        for (SpaceRoleUserEntity row : twin.getTwinFieldSpaceUserKit().getGrouped(roleId)) {
+            if (row.getUserId() == null)
+                return false;
+            stored.add(row.getUserId());
+        }
+        return FieldValueChangeHelper.sameIdMultiset(incoming, stored);
+    }
+
+    @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         twinClassFieldService.loadTwinClass(value.getTwinClassField());
         if (!value.getTwinClassField().getTwinClass().getPermissionSchemaSpace()) {

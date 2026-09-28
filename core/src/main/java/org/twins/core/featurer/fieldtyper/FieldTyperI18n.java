@@ -20,6 +20,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -97,6 +98,25 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
         }
     }
 
+
+    @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueI18n value) throws ServiceException {
+        if (value.isUndefined() || value.isCleared())
+            return false;
+        if (twin.getTwinFieldI18nKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
+            return false;
+        if (twin.getTwinFieldI18nKit() == null)
+            return false;
+        Map<Locale, TwinFieldI18nEntity> stored = getStoredFieldsForTwinAndField(twin, value.getTwinClassField());
+        for (Map.Entry<Locale, String> entry : value.getTranslations().entrySet()) {
+            if (UuidUtils.NULLIFY_MARKER.toString().equals(entry.getValue()))
+                return false;
+            TwinFieldI18nEntity storedField = stored.get(entry.getKey());
+            if (storedField == null || !Objects.equals(storedField.getTranslation(), entry.getValue()))
+                return false;
+        }
+        return true;
+    }
 
     @Override
     protected FieldValueI18n deserializeValue(Properties properties, TwinField twinField) throws ServiceException {

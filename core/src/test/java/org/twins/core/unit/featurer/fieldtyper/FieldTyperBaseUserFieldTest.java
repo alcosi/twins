@@ -157,6 +157,19 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
         }
 
         @Test
+        void serializeValue_creatorSameUser_isNoOp() throws ServiceException {
+            // Intended: resending the stored creator is not a change and must not be rejected.
+            UUID userId = UUID.randomUUID();
+            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreatedByUserId(userId);
+            var classField = new TwinClassFieldEntity().setId(CREATOR_USER_ID);
+            var value = new FieldValueUserSingle(classField).setValue(new UserEntity().setId(userId));
+
+            fieldTyper.serializeValue(new Properties(), twin, value, new TwinChangesCollector());
+
+            assertEquals(userId, twin.getCreatedByUserId());
+        }
+
+        @Test
         void serializeValue_creatorField_throwsImmutable() {
             // Intended: the creator is system-managed; serializing it must throw IMMUTABLE, not mutate the twin.
             var twin = new TwinEntity().setId(UUID.randomUUID());

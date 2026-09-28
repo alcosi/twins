@@ -21,6 +21,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsCheckboxType;
 import org.twins.core.service.history.HistoryItem;
 
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -87,6 +88,25 @@ public class FieldTyperBoolean extends FieldTyperSingleValue<
     @Override
     protected TwinFieldBooleanEntity createTwinFieldEntity(TwinEntity twin, TwinClassFieldEntity twinClassField) {
         return TwinFieldBooleanEntity.of(twin, twinClassField);
+    }
+
+    @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueBoolean value) throws ServiceException {
+        if (value.isUndefined() || value.isCleared())
+            return false;
+        if (getFieldKit(twin) == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
+            return false;
+        var kit = getFieldKit(twin);
+        if (kit == null)
+            return false;
+        TwinFieldBooleanEntity entity = kit.get(value.getTwinClassFieldId());
+        if (entity != null)
+            return Objects.equals(entity.getValue(), value.getValue());
+        if (featurerService == null)
+            return false;
+        // No stored row still reads as the configured default. Resending that default is not an edit.
+        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
+        return Objects.equals(defaultValue.extract(properties), value.getValue());
     }
 
     @Override

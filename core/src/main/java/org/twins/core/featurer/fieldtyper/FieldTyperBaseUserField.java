@@ -40,11 +40,29 @@ public class FieldTyperBaseUserField extends FieldTyper<FieldDescriptorUser, Fie
             twin.setOwnerUser(value.getValue());
             twin.setOwnerUserId(value.getValue() != null ? value.getValue().getId() : null);
         } else if (fieldId.equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID)) {
+            if (!twin.isCreateElseUpdate() && isUnchangedUpdate(twin, value))
+                return;
             throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, value.getTwinClassField().logShort() + " can not be changed by field typer");
         } else {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     "Field [" + value.getTwinClassField().logShort() + "] is not a supported base field for " + twin.logNormal());
         }
+    }
+
+    @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueUserSingle value) throws ServiceException {
+        if (value.isUndefined() || value.isCleared() || value.getValue() == null || value.getValue().getId() == null)
+            return false;
+        // Stored ids are plain columns on the loaded twin; the User entities loadUser fetches are not needed here.
+        UUID fieldId = value.getTwinClassField().getId();
+        UUID storedUserId = null;
+        if (fieldId.equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID))
+            storedUserId = twin.getAssignerUserId();
+        else if (fieldId.equals(SystemIds.TwinClassField.Base.OWNER_USER_ID))
+            storedUserId = twin.getOwnerUserId();
+        else if (fieldId.equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID))
+            storedUserId = twin.getCreatedByUserId();
+        return value.getValue().getId().equals(storedUserId);
     }
 
     @Override

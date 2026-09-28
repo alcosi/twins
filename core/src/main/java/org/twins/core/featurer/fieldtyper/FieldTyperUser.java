@@ -31,6 +31,7 @@ import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.user.UserFilterService;
 import org.twins.core.service.user.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -114,6 +115,29 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
         }
         if (twinChangesCollector.isHistoryCollectorEnabled() && historyItem.getContext().notEmpty())
             twinChangesCollector.getHistoryCollector(twin).add(historyItem);
+    }
+
+    @Override
+    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueUser value) throws ServiceException {
+        if (value.isUndefined() || value.isCleared())
+            return false;
+        List<UUID> incoming = new ArrayList<>();
+        for (UserEntity user : value.getItems()) {
+            if (user == null || user.getId() == null)
+                return false;
+            incoming.add(user.getId());
+        }
+        if (twin.getTwinFieldUserKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
+            return false;
+        if (twin.getTwinFieldUserKit() == null)
+            return false;
+        List<UUID> stored = new ArrayList<>();
+        for (TwinFieldUserEntity row : twin.getTwinFieldUserKit().getGrouped(value.getTwinClassFieldId())) {
+            if (row.getUserId() == null)
+                return false;
+            stored.add(row.getUserId());
+        }
+        return FieldValueChangeHelper.sameIdMultiset(incoming, stored);
     }
 
     public UUID checkUserAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, UserEntity userEntity) throws ServiceException {

@@ -231,7 +231,38 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isCleared()) {
             return false;
         }
-        return value.isDefined() && !value.isSystemInitialized() && twinService.isFieldImmutable(twin, value.getTwinClassField());
+        if (!value.isDefined() || value.isSystemInitialized()) {
+            return false;
+        }
+        // The same clients resend every field, changed or not. A value equal to storage is not an edit.
+        if (!twin.isCreateElseUpdate() && isUnchangedUpdate(twin, value)) {
+            return false;
+        }
+        return twinService.isFieldImmutable(twin, value.getTwinClassField());
+    }
+
+    /**
+     * True when an update repeats the value already stored.
+     * Field permission applies only to real edits; a full form resends unchanged fields too.
+     * Create is never an echo. The default stays false so an unknown typer remains permission-gated.
+     */
+    public boolean isUnchangedUpdate(TwinEntity twin, T value) throws ServiceException {
+        return false;
+    }
+
+    /**
+     * @return false when storage cannot be resolved, so the caller treats the value as a change
+     */
+    protected boolean ensureFieldStorageLoaded(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
+        TwinFieldStorage storage = twinClassField.getFieldStorage();
+        if (storage == null) {
+            if (fieldStorageService == null)
+                return false;
+            storage = getStorage(twinClassField);
+        }
+        if (!storage.isLoaded(twin))
+            storage.load(Kit.singleton(twin, TwinEntity::getId));
+        return storage.isLoaded(twin);
     }
 
     //If field is already initiated this will be checked later.
