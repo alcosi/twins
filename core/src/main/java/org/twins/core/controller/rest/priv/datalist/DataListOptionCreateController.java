@@ -61,7 +61,7 @@ public class DataListOptionCreateController extends ApiController {
     @PostMapping(value = "/private/data_list_option/v1")
     public ResponseEntity<?> dataListOptionCreateV1(
             @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionRsDTOv3.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DataListOptionCreateRqDTOv1 request) {
+            @RequestBody @Valid DataListOptionCreateRqDTOv1 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             DataListOptionEntity dataListOptionEntities = dataListOptionService.createDataListOptions(dataListOptionCreateDTOReverseMapper.convert(request));

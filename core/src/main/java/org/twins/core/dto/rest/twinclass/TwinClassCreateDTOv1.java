@@ -2,9 +2,11 @@ package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nHasTranslation;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 import org.twins.core.enums.twinclass.OwnerType;
 
@@ -20,6 +22,8 @@ public class TwinClassCreateDTOv1 {
     @Schema(description = "unique key within the domain", example = DTOExamples.TWIN_CLASS_KEY)
     public String key;
 
+    @NotNull
+    @I18nHasTranslation
     @Schema(description = "name")
     public I18nSaveDTOv1 nameI18n;
 

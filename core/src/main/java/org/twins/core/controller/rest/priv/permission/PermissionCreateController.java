@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class PermissionCreateController extends ApiController {
     @PostMapping(value = "/private/permission/v1")
     public ResponseEntity<?> permissionCreateV1(
             @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody PermissionCreateRqDTOv1 request) {
+            @RequestBody @Valid PermissionCreateRqDTOv1 request) {
         PermissionCreateRsDTOv1 rs = new PermissionCreateRsDTOv1();
         try {
             I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n(), mapperContext);

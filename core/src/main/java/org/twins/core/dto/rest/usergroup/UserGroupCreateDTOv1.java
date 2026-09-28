@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nHasTranslation;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 import org.twins.core.enums.user.UserGroupType;
 
@@ -18,6 +19,8 @@ public class UserGroupCreateDTOv1 {
     @Schema(description = "user group type")
     public UserGroupType userGroupTypeId;
 
+    @NotNull
+    @I18nHasTranslation
     @Schema(description = "Translation for name", example = DTOExamples.TRANSLATION)
     public I18nSaveDTOv1 nameI18n;
 

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,7 @@ public class TwinflowCreateController extends ApiController {
     public ResponseEntity<?> twinflowCreateV1(
             @MapperContextBinding(roots = TwinflowBaseV1RestDTOMapper.class, response = TwinflowCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestBody TwinflowCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinflowCreateRqDTOv1 request) {
         TwinflowCreateRsDTOv1 rs = new TwinflowCreateRsDTOv1();
         try {
             I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());

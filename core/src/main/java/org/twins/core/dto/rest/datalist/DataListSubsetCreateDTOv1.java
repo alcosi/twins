@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nHasTranslation;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.UUID;
@@ -22,6 +23,8 @@ public class DataListSubsetCreateDTOv1 {
     @Schema(description = "Data list subset key. Unique within the data list")
     public String key;
 
+    @NotNull
+    @I18nHasTranslation
     @Schema(description = "Name translations")
     public I18nSaveDTOv1 nameI18n;
 

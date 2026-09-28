@@ -57,7 +57,7 @@ public class TwinClassFieldCreateController extends ApiController {
     public ResponseEntity<?> twinClassFieldCreateV1(
             @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestBody TwinClassFieldCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassFieldCreateRqDTOv1 request) {
         TwinClassFieldCreateRsDTOv1 rs = new TwinClassFieldCreateRsDTOv1();
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.createFields(twinClassFieldCreateRestDTOReverseMapper.convert(request.setTwinClassId(twinClassId)));

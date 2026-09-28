@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nHasTranslation;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.HashMap;
@@ -30,6 +31,8 @@ public class TwinClassFieldCreateDTOv1 {
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to edit this field", example = "")
     public UUID editPermissionId;
 
+    @NotNull
+    @I18nHasTranslation
     @Schema(description = "I18n name", example = "")
     public I18nSaveDTOv1 nameI18n;
 

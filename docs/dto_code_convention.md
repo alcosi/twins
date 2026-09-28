@@ -92,17 +92,20 @@ Rules:
 * `@Valid` on `@RequestBody` validates only the top-level object. Every nested object or collection field that contains constrained DTOs **must** carry `@Valid` on the field itself, otherwise the constraints are silently not enforced (e.g. `List<TwinCreateDTOv1> twins` in a batch Rq wrapper)
 * **Validate endpoints do not get `@Valid`**. Endpoints like `/private/twin/validate/v1` or `/private/attachment/validate_cud/v1` exist to report validation problems in the response body with HTTP 200 — a `@Valid` on the request would reject the request with 400 before the validating logic runs, defeating their purpose
 * Multipart endpoints that read the DTO via `ApiController.mapRequest(bytes, clazz)` bypass bean validation entirely — validation for those paths must be added programmatically (`Validator.validate`) or left to the service layer
+* Mandatory `nameI18n` fields in Create DTOs are annotated `@NotNull @I18nHasTranslation` (custom constraint, `org.twins.core.dto.rest.i18n`): the object must be present **and** carry at least one non-blank translation (`translationInCurrentLocale` or a non-blank value in `translations`). `descriptionI18n` stays fully optional — do not put `@Valid`/constraints on it
 
 ### 2.4 Legacy "Save" Naming in v1 API
 
-There are **no shared `SaveDTO` base classes left** — the last one (`I18nTranslationUpdateDTOv1 extends I18nTranslationSaveDTOv1`) was migrated to a self-contained DTO.
+All former `*SaveRqDTOv1` base classes (`Permission`, `TwinClass`, `TwinClassField`, `Twinflow`, `TwinStatus`, `DataList`, `DataListOption`, `Factory`, `FactoryBranch` families) have been **migrated to self-contained Create/Update Rq DTOs** and deleted, together with their `*SaveDTOReverseMapper`s. All nine v1 create endpoints (live and `@Deprecated`) received `@Valid` + create-only constraints (`key @NotBlank`, `nameI18n`/`optionI18n` `@NotNull @I18nHasTranslation`); update endpoints stay constraint-free (PATCH semantics, ids from path).
 
-What remains is legacy **naming only**: several v1 request/response classes still carry `Save` in the class name (`TwinClassSaveRqDTOv1`, `DataListSaveRqDTOv1`, `FactorySaveRqDTOv1`, `FactoryBranchSaveRqDTOv1`, `PermissionSaveRqDTOv1`, `TwinflowSaveRqDTOv1`, `TwinStatusSaveRqDTOv1`, `DataListOptionSaveRqDTOv1`, `TwinClassFieldSaveRqDTOv1`, `*SaveRsDTOv1` responses). These classes are self-contained — they extend only `Request`/`Response` and declare their own fields.
+What remains is legacy **naming only**:
+
+* `*SaveRsDTOv1` response classes (`TwinSaveRsV1`, `PermissionSaveRsDTOv1`, `TierSaveRsDTOv1`, etc.) — responses named after the "save" operation; renaming them changes OpenAPI schema names, do it as a dedicated cleanup after confirming no client generates code from v1 schemas
+* Nested value objects (`I18nSaveDTOv1`, `DataListAttributeSaveDTOv1`) follow rule 2.2 — their `Save` naming is legacy too; same cleanup applies
 
 Rules:
 
-* Renaming them changes OpenAPI schema names — a contract change for codegen consumers of v1 API. Most of these v1 endpoints are **not** `@Deprecated` (datalist, factory, permission, twinflow, twin status), so renames must be done as a dedicated cleanup, after confirming that no client generates code from v1 schemas. Do not rename them silently alongside feature work
-* Nested value objects (`I18nSaveDTOv1`, `DataListAttributeSaveDTOv1`) follow rule 2.2 — the `Save` in their names is legacy too; same cleanup applies
+* Renaming a schema (request or response) is a contract change for codegen consumers of the v1 API — never do it silently alongside feature work
 * New DTOs **must not** use `Save` in operation DTO names — only `Create`/`Update` suffixes
 
 ---

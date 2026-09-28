@@ -1,11 +1,13 @@
 package org.twins.core.dto.rest.space;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.i18n.I18nHasTranslation;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -21,9 +23,12 @@ public class SpaceRoleCreateDTOv1 {
     @RelatedObject(type = TwinClassDTOv1.class, name = "twinClass")
     public UUID twinClassId;
 
+    @NotBlank
     @Schema(description = "key", example = "Member")
     public String key;
 
+    @NotNull
+    @I18nHasTranslation
     @Schema(description = "nameI18n")
     public I18nSaveDTOv1 nameI18n;
 

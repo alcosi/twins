@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nHasTranslation;
 import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
@@ -14,6 +15,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TransitionCreateV1")
 public class TransitionCreateDTOv1 {
+    @NotNull
+    @I18nHasTranslation
     @Schema(description = "I18n name", example = "")
     public I18nSaveDTOv1 nameI18n;
 

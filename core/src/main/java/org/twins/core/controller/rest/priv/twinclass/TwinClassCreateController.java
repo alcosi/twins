@@ -61,7 +61,7 @@ public class TwinClassCreateController extends ApiController {
     @PostMapping(value = "/private/twin_class/v1")
     public ResponseEntity<?> twinClassCreateV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassCreateRqDTOv1 request) {
         TwinClassCreateRsDTOv1 rs = new TwinClassCreateRsDTOv1();
         try {
             TwinClassEntity twinClassEntity = twinClassService.createInDomainClass(twinClassCreateRestDTOReverseMapper.convert(request), null, null);
