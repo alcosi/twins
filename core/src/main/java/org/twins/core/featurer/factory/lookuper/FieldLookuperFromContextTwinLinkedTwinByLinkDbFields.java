@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class FieldLookuperFromContextTwinLinkedTwinByLinkDbFields extends FieldLookuperLinkedTwinByLink {
 
     @Override
-    protected void beforeLookup(FactoryItemsBatch batch, UUID linkedTwinByLinkId, UUID lookupTwinClassFieldId) throws ServiceException {
+    protected void beforeLookup(FactoryItemsBatch batch, UUID linkedTwinByLinkId, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         if (batch.getContextTwins().isEmpty())
             return;
         twinLinkService.loadTwinLinks(batch.getContextTwins()); // one bulk load of the links
@@ -39,17 +40,15 @@ public class FieldLookuperFromContextTwinLinkedTwinByLinkDbFields extends FieldL
     }
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID linkedTwinByLinkId, UUID lookupTwinClassFieldId) throws ServiceException {
+    protected FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, UUID linkedTwinByLinkId, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         var contextTwin = factoryItem.checkSingleContextTwin();
-        twinLinkService.loadTwinLinks(contextTwin);
         TwinEntity fromTwin;
         try {
             var links = contextTwin.getTwinLinks().getForwardLinks().getGrouped(linkedTwinByLinkId);
-            twinLinkService.loadDstTwin(links);
-            fromTwin = links.getFirst().getDstTwin();
+            fromTwin = links.getFirst().getDstTwin(); // dst twins are preloaded by beforeLookup
         } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in context twin linked twins fields");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassField.getId() + "] is not present in context twin linked twins fields");
         }
-        return twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId); // null when not found — batch entry turns it into an undefined value
+        return twinService.getTwinFieldValue(fromTwin, lookupTwinClassField); // null when not found — batch entry turns it into an undefined value
     }
 }

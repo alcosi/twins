@@ -3,6 +3,7 @@ package org.twins.core.featurer.factory.lookuper;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -17,7 +18,7 @@ import java.util.UUID;
 public class FieldLookuperFromItemOutputHeadTwinLinkedTwinFields extends FieldLookuperLinkedTwinByField {
 
     @Override
-    protected void beforeLookup(FactoryItemsBatch batch) throws ServiceException {
+    protected void beforeLookup(FactoryItemsBatch batch, UUID linkedTwinByTwinClassFieldId, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         twinService.loadHead(batch.getTwins()); // one bulk load for the whole batch
         List<TwinEntity> headTwins = new ArrayList<>(batch.getTwins().size());
         for (TwinEntity twin : batch.getTwins()) {
@@ -28,15 +29,21 @@ public class FieldLookuperFromItemOutputHeadTwinLinkedTwinFields extends FieldLo
             twinService.loadTwinFields(headTwins); // one bulk load of the head fields; the linked twin lookup stays per item
     }
 
+    /** Pass 1: the head twin's link field value carries the linked twin. */
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
-        TwinEntity headTwin = twinService.loadHead(factoryItem.getTwin());
+    protected TwinEntity linkedTwin(FactoryItem factoryItem, UUID linkedTwinByTwinClassFieldId) throws ServiceException {
+        TwinEntity headTwin = factoryItem.getTwin().getHeadTwin(); // preloaded by beforeLookup — a plain field read here
         if (headTwin == null) // structural error — the twin has no head to look into, not a missing value
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] can not be loaded from head twin, because head is null");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "can not be loaded from head twin, because head is null");
         FieldValue itemOutputHeadTwinField = getFreshestValue(headTwin, linkedTwinByTwinClassFieldId, factoryItem.getFactoryContext());
         if (itemOutputHeadTwinField == null) // navigation field missing — the lookuper cannot even reach the linked twin
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in output item head fields");
-        TwinEntity linkDstTwin = FieldValueLink.getSingleLinkedTwinSafe(itemOutputHeadTwinField);
-        return getFreshestValue(linkDstTwin, lookupTwinClassFieldId, factoryItem.getFactoryContext()); // null when not found — batch entry turns it into an undefined value
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + linkedTwinByTwinClassFieldId + "] is not present in output item head fields");
+        return FieldValueLink.getSingleLinkedTwinSafe(itemOutputHeadTwinField);
+    }
+
+    /** Pass 2: the lookup field from the preloaded linked twin. */
+    @Override
+    protected FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinEntity linkedTwin, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+        return getFreshestValue(linkedTwin, lookupTwinClassField, factoryItem.getFactoryContext());
     }
 }
