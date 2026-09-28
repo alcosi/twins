@@ -341,7 +341,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             try {
                 return exchangeCall.get();
-            } catch (HttpServerErrorException.NotImplemented e) {
+            } catch (HttpServerErrorException.NotImplemented | HttpServerErrorException.ServiceUnavailable e) {
                 throw e;
             } catch (ResourceAccessException | HttpClientErrorException.TooManyRequests | HttpServerErrorException e) {
                 log.warn("{}: attempt {}/{} failed: {}", what, attempt, maxRetries, e.getMessage());
