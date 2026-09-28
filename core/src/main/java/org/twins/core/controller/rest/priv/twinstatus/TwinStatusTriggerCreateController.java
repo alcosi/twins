@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class TwinStatusTriggerCreateController extends ApiController {
     @PostMapping(value = "/private/twin_status/trigger/v1")
     public ResponseEntity<?> twinStatusTriggerCreateV1(
             @MapperContextBinding(roots = TwinStatusTriggerRestDTOMapper.class, response = TwinStatusTriggerCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinStatusTriggerCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinStatusTriggerCreateRqDTOv1 request) {
         TwinStatusTriggerCreateRsDTOv1 rs = new TwinStatusTriggerCreateRsDTOv1();
         try {
             List<TwinStatusTriggerEntity> statusTriggerEntities = twinStatusTriggerCreateDTOReverseMapper.convertCollection(request.getTwinStatusTriggers());

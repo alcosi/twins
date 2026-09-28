@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
@@ -66,7 +67,7 @@ public class TwinUpdateController extends ApiController {
     public ResponseEntity<?> twinUpdateV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSaveRsV1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestBody TwinUpdateRqDTOv1 request) {
+            @RequestBody @Valid TwinUpdateRqDTOv1 request) {
         return updateTwin(mapperContext, twinId, request, new HashMap<>());
     }
 
@@ -144,7 +145,7 @@ public class TwinUpdateController extends ApiController {
     @PutMapping(value = "/private/twin/batch/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinUpdateBatchV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinBatchSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinBatchUpdateRqDTOv1 request) {
+            @RequestBody @Valid TwinBatchUpdateRqDTOv1 request) {
         return updateTwinBatch(mapperContext, request, new HashMap<>());
     }
 

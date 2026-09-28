@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -64,7 +65,7 @@ public class TwinStatusCreateController extends ApiController {
     public ResponseEntity<?> twinStatusCreateV1(
             @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestBody TwinStatusCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinStatusCreateRqDTOv1 request) {
         return processCreationRequest(request, twinClassId, mapperContext, null, null);
     }
 

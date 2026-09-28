@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -14,6 +15,7 @@ import java.util.List;
 @Schema(name =  "TwinClassDynamicMarkerCreateRqV1")
 public class TwinClassDynamicMarkerCreateRqDTOv1 extends Request {
 
+    @Valid
     @Schema(description = "twin class dynamic marker list")
     public List<TwinClassDynamicMarkerCreateDTOv1> dynamicMarkers;
 }

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -57,7 +58,7 @@ public class LinkUpdateController extends ApiController {
     public ResponseEntity<?> linkUpdateV1(
             @MapperContextBinding(roots = {LinkForwardRestDTOV2Mapper.class}, response = LinkUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.LINK_ID) @PathVariable UUID linkId,
-            @RequestBody LinkUpdateDTOv1 request) {
+            @RequestBody @Valid LinkUpdateDTOv1 request) {
         LinkUpdateRsDTOv1 rs = new LinkUpdateRsDTOv1();
         try {
             I18nEntity forwardNameI18n = i18NSaveRestDTOReverseMapper.convert(request.getForwardNameI18n());

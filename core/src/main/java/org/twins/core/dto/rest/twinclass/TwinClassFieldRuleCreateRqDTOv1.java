@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -21,6 +22,7 @@ import java.util.List;
 @Schema(name = "TwinClassFieldRuleCreateRqV1")
 public class TwinClassFieldRuleCreateRqDTOv1 extends Request {
 
+    @Valid
     @Schema(description = "rules that should be created")
     public List<TwinClassFieldRuleCreateDTOv1> rules;
 }

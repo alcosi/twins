@@ -10,10 +10,15 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class TwinTriggerCreateDTOReverseMapper extends RestSimpleDTOMapper<TwinTriggerCreateDTOv1, TwinTriggerCreate> {
-    private final TwinTriggerSaveDTOReverseMapper twinTriggerSaveDTOReverseMapper;
 
     @Override
     public void map(TwinTriggerCreateDTOv1 src, TwinTriggerCreate dst, MapperContext mapperContext) throws Exception {
-        twinTriggerSaveDTOReverseMapper.map(src, dst, mapperContext);
+        dst
+                .setTriggerFeaturerId(src.getTriggerFeaturerId())
+                .setTriggerParams(src.getTriggerParams())
+                .setName(src.getName())
+                .setDescription(src.getDescription())
+                .setActive(src.getActive())
+                .setJobTwinClassId(src.getJobTwinClassId());
     }
 }

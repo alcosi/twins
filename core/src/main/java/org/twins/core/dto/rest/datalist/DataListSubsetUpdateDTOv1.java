@@ -3,18 +3,26 @@ package org.twins.core.dto.rest.datalist;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name = "DataListSubsetUpdateV1")
-public class DataListSubsetUpdateDTOv1 extends DataListSubsetSaveDTOv1 {
+public class DataListSubsetUpdateDTOv1 {
     @NotNull
     @Schema(description = "data list subset id", example = DTOExamples.UUID_ID)
     public UUID id;
+
+    @Schema(description = "Data list subset key. Unique within the data list")
+    public String key;
+
+    @Schema(description = "Name translations")
+    public I18nSaveDTOv1 nameI18n;
+
+    @Schema(description = "Description translations")
+    public I18nSaveDTOv1 descriptionI18n;
 }

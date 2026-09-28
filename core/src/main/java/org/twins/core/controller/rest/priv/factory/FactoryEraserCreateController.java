@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class FactoryEraserCreateController extends ApiController {
     public ResponseEntity<?> factoryEraserCreateV1(
             @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
-            @RequestBody FactoryEraserCreateRqDTOv1 request) {
+            @RequestBody @Valid FactoryEraserCreateRqDTOv1 request) {
         FactoryEraserSaveRsDTOv1 rs = new FactoryEraserSaveRsDTOv1();
         try {
             TwinFactoryEraserEntity entity = factoryEraserCreateDTOReverseMapper.convert(request.getEraser(), mapperContext);

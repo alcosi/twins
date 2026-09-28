@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class FactoryPipelineStepCreateController extends ApiController {
     public ResponseEntity<?> factoryPipelineStepCreateV1(
             @MapperContextBinding(roots = FactoryPipelineStepRestDTOMapper.class, response = FactoryPipelineStepSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_ID) @PathVariable UUID factoryPipelineId,
-            @RequestBody FactoryPipelineStepCreateRqDTOv1 request) {
+            @RequestBody @Valid FactoryPipelineStepCreateRqDTOv1 request) {
         FactoryPipelineStepSaveRsDTOv1 rs = new FactoryPipelineStepSaveRsDTOv1();
         try {
             request.getFactoryPipelineStep().setFactoryPipelineId(factoryPipelineId);

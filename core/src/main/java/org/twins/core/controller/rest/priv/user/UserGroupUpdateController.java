@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class UserGroupUpdateController extends ApiController {
     @PutMapping(value = "/private/user_group/v1")
     public ResponseEntity<?> userGroupBatchUpdateV1(
             @MapperContextBinding(roots = UserGroupRestDTOMapper.class, response = UserGroupListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody UserGroupUpdateRqDTOv1 request) {
+            @RequestBody @Valid UserGroupUpdateRqDTOv1 request) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
             List<UserGroupUpdate> updateList = userGroupUpdateDTOReverseMapper.convertCollection(request.getUserGroups());

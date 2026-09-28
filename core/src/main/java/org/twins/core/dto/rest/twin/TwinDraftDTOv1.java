@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -45,9 +46,11 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "fields")
     public Map<String, String> fields;
 
+    @Valid
     @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;
 
+    @Valid
     @Schema(description = "links list (with temporalId support)")
     public List<TwinLinkAddDTOv2> links;
 
@@ -64,6 +67,7 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "twin create strategy (isSketch flag replacement)")
     public TwinCreateStrategy createStrategy;
 
+    @Valid
     @Schema(description = "field attributes")
     public List<TwinFieldAttributeCreateDTOv1> fieldAttributes;
 

@@ -2,19 +2,75 @@ package org.twins.core.dto.rest.twinclass;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.i18n.I18nHasTranslation;
+import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Deprecated
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinClassFieldCreateRqV1")
-public class TwinClassFieldCreateRqDTOv1 extends TwinClassFieldSaveRqDTOv1 {
+public class TwinClassFieldCreateRqDTOv1 extends Request {
+
+    @NotBlank
+    @Schema(description = "unique key within the class", example = DTOExamples.TWIN_CLASS_FIELD_KEY)
+    public String key;
+
+    @Schema(description = "[optional] this field helps to set extra permission, needed by users to view this field", example = "")
+    public UUID viewPermissionId;
+
+    @Schema(description = "[optional] this field helps to set extra permission, needed by users to edit this field", example = "")
+    public UUID editPermissionId;
+
+    @NotNull
+    @I18nHasTranslation
+    @Schema(description = "I18n name", example = "")
+    public I18nSaveDTOv1 nameI18n;
+
+    @Schema(description = "I18n description", example = "")
+    public I18nSaveDTOv1 descriptionI18n;
+
+    @Schema(description = "Required field", example = "true")
+    public Boolean required;
+
+    @Schema(description = "System field", example = "true")
+    public Boolean system;
+
+    @Schema(description = "Inheritable field", example = "true")
+    public Boolean inheritable;
+
+    @Schema(description = "external id", example = "")
+    public String externalId;
+
+    @Schema(description = "external properties")
+    public Map<String, String> externalProperties;
+
+    @Schema(description = "Field typer featurer ID", example = "1")
+    public Integer fieldTyperFeaturerId;
+
+    @Schema(description = "Field typer parameters", example = "{}")
+    public HashMap<String, String> fieldTyperParams;
+
+    @Schema(description = "Twin sorter featurer ID", example = "1")
+    public Integer twinSorterFeaturerId;
+
+    @Schema(description = "Twin Sorter parameters", example = "{}")
+    public HashMap<String, String> twinSorterParams;
+
+    @Schema(description = "order", example = "1")
+    public Integer order;
+
     @JsonIgnore
     public UUID TwinClassId;
 

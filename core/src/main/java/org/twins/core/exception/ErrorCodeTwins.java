@@ -207,7 +207,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     DUPLICATE_TEMPORAL_ID(13602, "duplicate temporal id in batch request"),
     CYCLIC_DEPENDENCY(13603, "cyclic dependency detected in temporal references"),
     INVALID_TEMPORAL_REFERENCE(13604, "invalid temporal reference format"),
-    TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account");
+    TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account"),
+    VALIDATION_DTO_FAILED(13701, "dto bean validation failed"),
+    MALFORMED_REQUEST_BODY(13702, "request body is malformed");
 
     private final int code;
     private final String message;

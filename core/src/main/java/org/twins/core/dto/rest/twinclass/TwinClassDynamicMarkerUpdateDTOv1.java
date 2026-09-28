@@ -1,8 +1,8 @@
 package org.twins.core.dto.rest.twinclass;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
@@ -10,10 +10,10 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassDynamicMarkerUpdateV1")
-public class TwinClassDynamicMarkerUpdateDTOv1 extends TwinClassDynamicMarkerSaveDTOv1 {
+public class TwinClassDynamicMarkerUpdateDTOv1 {
 
+    @NotNull
     @Schema(description = "id")
     public UUID id;
 

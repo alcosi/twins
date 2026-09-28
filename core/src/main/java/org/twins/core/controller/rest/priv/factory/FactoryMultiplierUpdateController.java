@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class FactoryMultiplierUpdateController extends ApiController {
     public ResponseEntity<?> factoryMultiplierUpdateV1(
             @MapperContextBinding(roots = FactoryMultiplierRestDTOMapper.class, response = FactoryMultiplierRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_MULTIPLIER_ID) @PathVariable UUID factoryMultiplierId,
-            @RequestBody FactoryMultiplierUpdateRqDTOv1 request) {
+            @RequestBody @Valid FactoryMultiplierUpdateRqDTOv1 request) {
         FactoryMultiplierRsDTOv1 rs = new FactoryMultiplierRsDTOv1();
         try {
             TwinFactoryMultiplierEntity multiplierEntity = factoryMultiplierUpdateDTOReverseMapper.convert(request.getFactoryMultiplier())

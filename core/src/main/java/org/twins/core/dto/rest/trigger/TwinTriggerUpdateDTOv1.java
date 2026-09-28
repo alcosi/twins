@@ -1,18 +1,43 @@
 package org.twins.core.dto.rest.trigger;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @Schema(name = "TwinTriggerUpdateV1")
-public class TwinTriggerUpdateDTOv1 extends TwinTriggerSaveDTOv1 {
+public class TwinTriggerUpdateDTOv1 {
+    @NotNull
     @Schema(description = "id", example = DTOExamples.UUID_ID)
     public UUID id;
+
+    @Schema(description = "trigger featurer id", example = DTOExamples.FEATURER_ID)
+    @RelatedObject(type = FeaturerDTOv1.class, name = "triggerFeaturer")
+    private Integer triggerFeaturerId;
+
+    @Schema(description = "trigger params", example = DTOExamples.FACTORY_PARAMS_MAP)
+    public Map<String, String> triggerParams;
+
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
+
+    @Schema(description = "description", example = DTOExamples.DESCRIPTION)
+    public String description;
+
+    @Schema(description = "is active", example = DTOExamples.COUNT)
+    public Boolean active;
+
+    @Schema(description = "order")
+    public Integer order;
+
+    @Schema(description = "job twin class id")
+    public UUID jobTwinClassId;
 }

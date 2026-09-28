@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryBranchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryBranchUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapper;
-import org.twins.core.mappers.rest.factory.FactoryBranchSaveDTOReverseMapper;
+import org.twins.core.mappers.rest.factory.FactoryBranchUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryBranchService;
@@ -37,7 +37,7 @@ import java.util.UUID;
 @ProtectedBy(Permissions.FACTORY_BRANCH_UPDATE)
 public class FactoryBranchUpdateController extends ApiController {
     private final FactoryBranchRestDTOMapper factoryBranchRestDTOMapper;
-    private final FactoryBranchSaveDTOReverseMapper factoryBranchSaveDTOReverseMapper;
+    private final FactoryBranchUpdateDTOReverseMapper factoryBranchUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final FactoryBranchService factoryBranchService;
 
@@ -55,7 +55,7 @@ public class FactoryBranchUpdateController extends ApiController {
             @RequestBody FactoryBranchUpdateRqDTOv1 request) {
         FactoryBranchRsDTOv1 rs = new FactoryBranchRsDTOv1();
         try {
-            TwinFactoryBranchEntity branchEntity = factoryBranchSaveDTOReverseMapper.convert(request);
+            TwinFactoryBranchEntity branchEntity = factoryBranchUpdateDTOReverseMapper.convert(request);
             branchEntity.setId(factoryBranchId);
             branchEntity = factoryBranchService.updateFactoryBranch(branchEntity);
             rs

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class DataListCreateController extends ApiController {
     @PostMapping(value = "/private/data_list/v1")
     public ResponseEntity<?> dataListCreateV1(
             @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DataListCreateRqDTOv1 request) {
+            @RequestBody @Valid DataListCreateRqDTOv1 request) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             DataListEntity dataListEntity = dataListService.createDataList(dataListCreateDTOReverseMapper.convert(request));

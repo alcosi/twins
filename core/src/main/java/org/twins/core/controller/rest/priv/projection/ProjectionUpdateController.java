@@ -6,12 +6,16 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -51,7 +55,7 @@ public class ProjectionUpdateController extends ApiController {
     @PutMapping(value = "/private/projection/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> projectionUpdateV1(
             @MapperContextBinding(roots = ProjectionRestDTOMapper.class, response = ProjectionUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody ProjectionUpdateRqDTOv1 request) {
+            @RequestBody @Valid ProjectionUpdateRqDTOv1 request) {
         ProjectionUpdateRsDTOv1 rs = new ProjectionUpdateRsDTOv1();
         try {
             List<ProjectionEntity> projectionEntityList = projectionService.updateProjectionList(projectionUpdateRestDTOReverseMapper.convertCollection(request.getProjectionList()));
