@@ -1,7 +1,6 @@
 package org.twins.core.unit.featurer.factory.filler;
 
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.KitGrouped;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,6 +10,7 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerForwardLinkFromContextTwinLinkDstTwinHead;
@@ -19,11 +19,14 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 class FillerForwardLinkFromContextTwinLinkDstTwinHeadTest extends BaseUnitTest {
@@ -85,17 +88,54 @@ class FillerForwardLinkFromContextTwinLinkDstTwinHeadTest extends BaseUnitTest {
         return new FactoryItem().setOutput(output).setContextFactoryItemList(List.of(contextItem));
     }
 
-    private KitGrouped<TwinLinkEntity, UUID, UUID> kitGrouped(TwinLinkEntity... items) {
-        // Kit rejects null keys (TwinLinkEntity::getId); seed each link with a unique id like real rows have.
-        for (var item : items) {
-            if (item.getId() == null) {
-                item.setId(UUID.randomUUID());
+    /** Item whose CONTEXT item itself has a context twin (one level up the walk). */
+    private FactoryItem buildFactoryItem(TwinEntity contextTwin, TwinEntity grandContextTwin) {
+        var grandOutput = new TwinCreate();
+        grandOutput.setTwinEntity(grandContextTwin);
+        var grandContextItem = new FactoryItem().setOutput(grandOutput);
+        var contextOutput = new TwinCreate();
+        contextOutput.setTwinEntity(contextTwin);
+        var contextItem = new FactoryItem().setOutput(contextOutput).setContextFactoryItemList(List.of(grandContextItem));
+        var output = new TwinCreate();
+        output.setTwinEntity(new TwinEntity());
+        return new FactoryItem().setOutput(output).setContextFactoryItemList(List.of(contextItem));
+    }
+
+    private TwinLinkEntity link(UUID linkId, TwinEntity dstTwin) {
+        return new TwinLinkEntity()
+                .setId(UUID.randomUUID()) // Kit keys links by their own id and rejects null keys
+                .setLinkId(linkId)
+                .setDstTwin(dstTwin)
+                .setDstTwinId(dstTwin.getId());
+    }
+
+    /** Simulates the bulk load the real TwinLinkService performs: marks twins as loaded and fills their forward links. */
+    @SuppressWarnings("unchecked")
+    private void plantForwardLinks(TwinLinkEntity... links) throws ServiceException {
+        doAnswer(inv -> {
+            for (TwinEntity twin : (Collection<TwinEntity>) inv.getArgument(0)) {
+                var result = new TwinLinkService.FindTwinLinksResult().setTwinId(twin.getId());
+                for (TwinLinkEntity link : links)
+                    result.getForwardLinks().add(link);
+                twin.setTwinLinks(result);
             }
-        }
-        return new KitGrouped<>(
-                List.of(items),
-                TwinLinkEntity::getId,
-                TwinLinkEntity::getLinkId);
+            return null;
+        }).when(twinLinkService).loadTwinLinks(anyCollection());
+    }
+
+    /** Variant for the hierarchy walk: only the target twin gets links, every other loaded twin stays empty. */
+    @SuppressWarnings("unchecked")
+    private void plantForwardLinksOn(TwinEntity target, TwinLinkEntity... links) throws ServiceException {
+        doAnswer(inv -> {
+            for (TwinEntity twin : (Collection<TwinEntity>) inv.getArgument(0)) {
+                var result = new TwinLinkService.FindTwinLinksResult().setTwinId(twin.getId());
+                if (twin == target)
+                    for (TwinLinkEntity link : links)
+                        result.getForwardLinks().add(link);
+                twin.setTwinLinks(result);
+            }
+            return null;
+        }).when(twinLinkService).loadTwinLinks(anyCollection());
     }
 
     @Nested
@@ -108,20 +148,15 @@ class FillerForwardLinkFromContextTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = buildFactoryItem(contextTwin);
             var dstTwin = new TwinEntity().setId(DST_TWIN_ID);
-            var matchedLink = new TwinLinkEntity()
-                    .setLinkId(HEAD_HUNTER_LINK_ID)
-                    .setDstTwin(dstTwin)
-                    .setDstTwinId(DST_TWIN_ID);
-            when(twinLinkService.findTwinForwardLinks(contextTwin)).thenReturn(kitGrouped(matchedLink));
+            // loadHead mutates dstTwin.headTwin in prod; the mock is a no-op, so seed the field
+            // that the distribution reads back via dstTwin.getHeadTwin().
             var headTwin = new TwinEntity().setId(HEAD_TWIN_ID);
-            // loadHead mutates dstTwin.headTwin in prod; the mock only returns, so seed the field
-            // that prod reads back via dstTwin.getHeadTwin().
             dstTwin.setHeadTwin(headTwin);
-            when(twinService.loadHead(dstTwin)).thenReturn(headTwin);
+            plantForwardLinks(link(HEAD_HUNTER_LINK_ID, dstTwin));
             var newLinkEntity = new LinkEntity().setId(NEW_LINK_ID);
             when(linkService.findEntitySafe(NEW_LINK_ID)).thenReturn(newLinkEntity);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -132,14 +167,33 @@ class FillerForwardLinkFromContextTwinLinkDstTwinHeadTest extends BaseUnitTest {
         }
 
         @Test
+        void fill_linkNotFoundAtLevel0_foundOneLevelUp_theWalkDescends() throws ServiceException {
+            // the old lookupLink recursion: level 0 has no matching link -> walk up the context chain
+            var contextTwin = new TwinEntity().setId(UUID.randomUUID()); // level 0 — no links
+            var grandContextTwin = new TwinEntity().setId(UUID.randomUUID()); // level 1 — has the link
+            var factoryItem = buildFactoryItem(contextTwin, grandContextTwin);
+            var dstTwin = new TwinEntity().setId(DST_TWIN_ID);
+            dstTwin.setHeadTwin(new TwinEntity().setId(HEAD_TWIN_ID));
+            plantForwardLinksOn(grandContextTwin, link(HEAD_HUNTER_LINK_ID, dstTwin));
+            when(linkService.findEntitySafe(NEW_LINK_ID)).thenReturn(new LinkEntity().setId(NEW_LINK_ID));
+
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
+
+            var create = (TwinCreate) factoryItem.getOutput();
+            assertNotNull(create.getLinksEntityList());
+            assertEquals(1, create.getLinksEntityList().size());
+            assertEquals(HEAD_TWIN_ID, create.getLinksEntityList().get(0).getDstTwinId());
+        }
+
+        @Test
         void fill_noMatchingLinks_throwsStepError() throws ServiceException {
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = buildFactoryItem(contextTwin);
-            when(twinLinkService.findTwinForwardLinks(contextTwin))
-                    .thenReturn(new KitGrouped<>(List.of(), TwinLinkEntity::getId, TwinLinkEntity::getLinkId));
+            plantForwardLinks(); // loaded, but no forward links; the walk cannot descend further
+            // (the context item has no own context -> checkSingleContextItem fails the item)
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -149,13 +203,10 @@ class FillerForwardLinkFromContextTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(contextTwin);
             var dst1 = new TwinEntity().setId(UUID.randomUUID());
             var dst2 = new TwinEntity().setId(UUID.randomUUID());
-            when(twinLinkService.findTwinForwardLinks(contextTwin)).thenReturn(kitGrouped(
-                    new TwinLinkEntity().setLinkId(HEAD_HUNTER_LINK_ID).setDstTwin(dst1).setDstTwinId(dst1.getId()),
-                    new TwinLinkEntity().setLinkId(HEAD_HUNTER_LINK_ID).setDstTwin(dst2).setDstTwinId(dst2.getId())
-            ));
+            plantForwardLinks(link(HEAD_HUNTER_LINK_ID, dst1), link(HEAD_HUNTER_LINK_ID, dst2));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }
