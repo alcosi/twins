@@ -31,8 +31,6 @@ import org.twins.core.domain.LinkUpdate;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -118,18 +116,12 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 .setForwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_FORWARD_NAME, forwardNameI18n).getId())
                 .setBackwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_BACKWARD_NAME, backwardNameI18n).getId())
                 .setCreatedByUserId(apiUser.getUserId());
-        if (linkEntity.getLinkerFeaturerId() == null) {
-            linkEntity
-                    .setLinkerFeaturerId(FeaturerTwins.ID_3001)
-                    .setLinkerParams(null);
-        }
         if (linkEntity.getSrcTwinClassInheritable() == null) {
             linkEntity.setSrcTwinClassInheritable(true);
         }
         if (linkEntity.getDstTwinClassInheritable() == null) {
             linkEntity.setDstTwinClassInheritable(true);
         }
-        //todo validate linker params
         linkEntity = saveSafe(linkEntity);
         loadTwinClasses(linkEntity);
         linkEntity.getSrcTwinClass().invalidateLinksKit();
@@ -153,11 +145,6 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 LinkEntity::getType, LinkEntity::setType, LinkEntity.Fields.type, changesHelper);
         updateEntityFieldByValue(linkUpdate.getLinkStrengthId(), dbLinkEntity,
                 LinkEntity::getLinkStrengthId, LinkEntity::setLinkStrengthId, LinkEntity.Fields.linkStrengthId, changesHelper);
-        updateEntityFeaturerField(dbLinkEntity, linkUpdate.getLinkerFeaturerId(), linkUpdate.getLinkerParams(),
-                LinkEntity::getLinkerFeaturerId, LinkEntity::setLinkerFeaturerId,
-                LinkEntity::getLinkerParams, LinkEntity::setLinkerParams,
-                LinkEntity.Fields.linkerFeaturerId, LinkEntity.Fields.linkerParams,
-                Linker.class, changesHelper);
         updateEntityFieldByValue(linkUpdate.getRelationTwinClassId(), dbLinkEntity,
                 LinkEntity::getRelationTwinClassId, LinkEntity::setRelationTwinClassId, LinkEntity.Fields.relationTwinClassId, changesHelper);
         updateEntityFieldByValue(linkUpdate.getSrcTwinClassInheritable(), dbLinkEntity,

@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.link.LinkValidatorRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkRepository;
@@ -63,6 +64,8 @@ class TwinLinkServiceRelationTwinTest {
     private TwinClassService twinClassService;
     @Mock
     private TwinLinkRepository twinLinkRepository;
+    @Mock
+    private LinkValidatorRepository linkValidatorRepository; // no stubs — default empty list skips validateLinkByLinkers
     @Mock
     private TwinService twinService;
     @Mock

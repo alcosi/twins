@@ -24,11 +24,25 @@ public abstract class Linker extends FeaturerTwins {
 
     protected abstract void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException;
 
-    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+    /** Valid-twins picker: the linker narrows the user-facing search (filter). */
+    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
-        expandValidLinkedTwinSearch(properties, twinEntity, basicSearch);
+
+        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch, true);
     }
 
-    public abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, BasicSearch basicSearch);
+    /** twin_link validation: the linker rules the candidate in/out (empty result rejects the link). */
+    public void validateLink(HashMap<String, String> linkerParams, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, linkerParams);
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "].validateLink with params: " + properties.toString());
+
+        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch, false);
+    }
+
+    /**
+     * @param searchElseValidate true — valid-twins picker (narrow the user-facing search);
+     *                           false — twin_link validation (empty result = link rejected)
+     */
+    public abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch, boolean searchElseValidate);
 }

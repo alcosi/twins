@@ -82,12 +82,16 @@ public class TwinSearchService {
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
+        if (basicSearch.isEmptyResult())
+            return Collections.emptyList();
         List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sortType(false, TwinEntity.Fields.createdAt));
         //todo someone's responsibility for checking if we previously checked the user's domain and business account. Purely a log for control if something slips through?
         return ret;
     }
 
     public <T> List<T> findTwins(BasicSearch basicSearch, Class<T> projection) throws ServiceException {
+        if (basicSearch.isEmptyResult())
+            return Collections.emptyList();
         //https://github.com/spring-projects/spring-data-jpa/pull/430
         return twinRepository.findBy(createTwinEntitySearchSpecification(basicSearch), t -> t.as(projection).all());
     }
@@ -101,6 +105,15 @@ public class TwinSearchService {
     //***********************************************************************//
 
     public PaginationResult<TwinEntity> findTwins(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
+        if (basicSearch.isEmptyResult()) {
+            PaginationResult<TwinEntity> result = new PaginationResult<>();
+            result
+                    .setList(Collections.emptyList())
+                    .setTotal(0)
+                    .setOffset(pagination.getOffset())
+                    .setLimit(pagination.getLimit());
+            return result;
+        }
         twinSearchServiceV2.detectSystemClassSearchCheck(basicSearch);
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
         spec = addSorting(basicSearch, pagination, spec);
@@ -140,6 +153,8 @@ public class TwinSearchService {
     }
 
     public Long count(BasicSearch basicSearch) throws ServiceException {
+        if (basicSearch.isEmptyResult())
+            return 0L;
         return count(createTwinEntitySearchSpecification(basicSearch));
     }
 

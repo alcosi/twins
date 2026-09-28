@@ -8,7 +8,6 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.featurer.linker.LinkerByStatus;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -85,7 +84,8 @@ class LinkerByStatusTest extends BaseUnitTest {
             linker.expandValidLinkedTwinSearch(
                     props(statusId1 + "," + statusId2, false),
                     new TwinEntity(),
-                    search
+                    true,
+                    search, true
             );
 
             assertNull(search.getStatusIdExcludeList());
@@ -100,8 +100,8 @@ class LinkerByStatusTest extends BaseUnitTest {
 
             linker.expandValidLinkedTwinSearch(
                     props(statusId1 + "," + statusId2, true),
-                    new TwinEntity(),
-                    search
+                    new TwinEntity(), true,
+                    search, true
             );
 
             assertNull(search.getStatusIdList());
