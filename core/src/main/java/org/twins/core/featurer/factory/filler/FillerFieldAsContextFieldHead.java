@@ -73,11 +73,15 @@ public class FillerFieldAsContextFieldHead extends Filler {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         for (var entry : linkedTwins.entrySet()) {
             FactoryItem factoryItem = entry.getKey();
-            TwinEntity linkedTwin = entry.getValue();
-            var detectedHeadTwin = linkedTwin.getHeadTwin();
-            if (detectedHeadTwin == null)
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for " + linkedTwin.logDetailed());
-            factoryItem.getOutput().addField(twinService.createFieldValue(dstFieldId, detectedHeadTwin));
+            try {
+                TwinEntity linkedTwin = entry.getValue();
+                var detectedHeadTwin = linkedTwin.getHeadTwin();
+                if (detectedHeadTwin == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for " + linkedTwin.logDetailed());
+                factoryItem.getOutput().addField(twinService.createFieldValue(dstFieldId, detectedHeadTwin));
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
         }
     }
 }

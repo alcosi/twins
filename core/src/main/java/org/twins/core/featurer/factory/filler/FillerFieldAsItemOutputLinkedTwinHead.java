@@ -71,12 +71,16 @@ public class FillerFieldAsItemOutputLinkedTwinHead extends Filler {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         for (var entry : linkedTwins.entrySet()) {
             FactoryItem factoryItem = entry.getKey();
-            TwinEntity linkedTwin = entry.getValue();
-            var detectedHeadTwin = linkedTwin.getHeadTwin();
-            if (detectedHeadTwin == null) {
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "{} does not contain a head twin", linkedTwin.logShort());
+            try {
+                TwinEntity linkedTwin = entry.getValue();
+                var detectedHeadTwin = linkedTwin.getHeadTwin();
+                if (detectedHeadTwin == null) {
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "{} does not contain a head twin", linkedTwin.logShort());
+                }
+                factoryItem.getOutput().addField(twinService.createFieldValue(dstFieldId, detectedHeadTwin));
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
             }
-            factoryItem.getOutput().addField(twinService.createFieldValue(dstFieldId, detectedHeadTwin));
         }
     }
 }

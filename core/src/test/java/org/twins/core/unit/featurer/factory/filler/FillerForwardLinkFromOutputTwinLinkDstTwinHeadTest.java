@@ -10,6 +10,7 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerForwardLinkFromOutputTwinLinkDstTwinHead;
@@ -18,10 +19,13 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.lang.reflect.Field;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
 class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
@@ -97,11 +101,16 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
                     .setDstTwinId(DST_TWIN_ID);
             var factoryItem = buildFactoryItem(outputLink);
             var headTwin = new TwinEntity().setId(HEAD_TWIN_ID);
-            when(twinService.loadHead(dstTwin)).thenReturn(headTwin);
+            // simulate the bulk head load the real TwinService performs
+            doAnswer(inv -> {
+                for (TwinEntity twin : (Collection<TwinEntity>) inv.getArgument(0))
+                    twin.setHeadTwin(headTwin);
+                return null;
+            }).when(twinService).loadHead(anyCollection());
             var newLinkEntity = new LinkEntity().setId(NEW_LINK_ID);
             when(linkService.findEntitySafe(NEW_LINK_ID)).thenReturn(newLinkEntity);
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             var create = (TwinCreate) factoryItem.getOutput();
             assertNotNull(create.getLinksEntityList());
@@ -117,7 +126,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -127,7 +136,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem(otherLink);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -142,7 +151,7 @@ class FillerForwardLinkFromOutputTwinLinkDstTwinHeadTest extends BaseUnitTest {
             var factoryItem = new FactoryItem().setOutput(output);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }
