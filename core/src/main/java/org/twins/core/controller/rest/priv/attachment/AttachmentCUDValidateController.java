@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -59,7 +58,7 @@ public class AttachmentCUDValidateController extends ApiController {
     @PostMapping(value = "/private/attachment/validate_cud/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> attachmentValidateV1(
             @MapperContextBinding(roots = AttachmentCUDValidateRestDTOMapper.class, response = AttachmentCUDValidateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody @Valid AttachmentCUDValidateRqDTOv1 request) {
+            @RequestBody AttachmentCUDValidateRqDTOv1 request) {
         return processValidate(mapperContext, request, Collections.emptyMap());
     }
 

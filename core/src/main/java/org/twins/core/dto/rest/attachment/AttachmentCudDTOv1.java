@@ -18,6 +18,7 @@ public class AttachmentCudDTOv1 {
     @Schema(description = "Attachments for adding")
     public List<AttachmentCreateDTOv1> create;
 
+    @Valid
     @Schema(description = "Attachments for updating")
     public List<AttachmentUpdateDTOv1> update;
 

@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
@@ -63,7 +62,7 @@ public class AttachmentCreateValidateController extends ApiController {
     @PostMapping(value = "/private/attachment/validate_create/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> attachmentValidateV1(
             @MapperContextBinding(roots = AttachmentCreateValidateRestDTOMapper.class, response = AttachmentCreateValidateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody @Valid AttachmentCreateValidateRqDTOv1 request) {
+            @RequestBody AttachmentCreateValidateRqDTOv1 request) {
         return createAttachment(mapperContext, request, Collections.emptyMap());
     }
 

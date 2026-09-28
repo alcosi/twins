@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinBatchUpdateRqV1")
 public class TwinBatchUpdateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "twin lust")
     public List<TwinUpdateRqDTOv1> twins;
 }

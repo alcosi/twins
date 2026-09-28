@@ -86,6 +86,25 @@ Rules:
 * Update DTOs carry no required-constraints except `id` — update is partial, `null` field = do not change
 * Nested value structures (e.g. `I18nSaveDTOv1`) are shared value objects, not operation DTOs — this rule does not apply to them
 
+### 2.3 Bean Validation Rules
+
+* DTO constraints express **structural** requiredness only (missing id, missing parent reference, blank key). Domain validation (uniqueness, existence, business rules, field-type checks) stays in the service layer and keeps returning domain `ErrorCode`s
+* `@Valid` on `@RequestBody` validates only the top-level object. Every nested object or collection field that contains constrained DTOs **must** carry `@Valid` on the field itself, otherwise the constraints are silently not enforced (e.g. `List<TwinCreateDTOv1> twins` in a batch Rq wrapper)
+* **Validate endpoints do not get `@Valid`**. Endpoints like `/private/twin/validate/v1` or `/private/attachment/validate_cud/v1` exist to report validation problems in the response body with HTTP 200 — a `@Valid` on the request would reject the request with 400 before the validating logic runs, defeating their purpose
+* Multipart endpoints that read the DTO via `ApiController.mapRequest(bytes, clazz)` bypass bean validation entirely — validation for those paths must be added programmatically (`Validator.validate`) or left to the service layer
+
+### 2.4 Legacy "Save" Naming in v1 API
+
+There are **no shared `SaveDTO` base classes left** — the last one (`I18nTranslationUpdateDTOv1 extends I18nTranslationSaveDTOv1`) was migrated to a self-contained DTO.
+
+What remains is legacy **naming only**: several v1 request/response classes still carry `Save` in the class name (`TwinClassSaveRqDTOv1`, `DataListSaveRqDTOv1`, `FactorySaveRqDTOv1`, `FactoryBranchSaveRqDTOv1`, `PermissionSaveRqDTOv1`, `TwinflowSaveRqDTOv1`, `TwinStatusSaveRqDTOv1`, `DataListOptionSaveRqDTOv1`, `TwinClassFieldSaveRqDTOv1`, `*SaveRsDTOv1` responses). These classes are self-contained — they extend only `Request`/`Response` and declare their own fields.
+
+Rules:
+
+* Renaming them changes OpenAPI schema names — a contract change for codegen consumers of v1 API. Most of these v1 endpoints are **not** `@Deprecated` (datalist, factory, permission, twinflow, twin status), so renames must be done as a dedicated cleanup, after confirming that no client generates code from v1 schemas. Do not rename them silently alongside feature work
+* Nested value objects (`I18nSaveDTOv1`, `DataListAttributeSaveDTOv1`) follow rule 2.2 — the `Save` in their names is legacy too; same cleanup applies
+* New DTOs **must not** use `Save` in operation DTO names — only `Create`/`Update` suffixes
+
 ---
 
 ## 3. Request DTOs

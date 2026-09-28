@@ -2,6 +2,7 @@ package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -55,6 +56,7 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "TwinTags for updating")
     public TwinTagManageDTOv1 tagsUpdate;
 
+    @NotNull
     @Schema(description = "twin id")
     public UUID twinId;
 

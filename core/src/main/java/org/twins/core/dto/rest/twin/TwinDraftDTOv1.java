@@ -46,9 +46,11 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "fields")
     public Map<String, String> fields;
 
+    @Valid
     @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;
 
+    @Valid
     @Schema(description = "links list (with temporalId support)")
     public List<TwinLinkAddDTOv2> links;
 
