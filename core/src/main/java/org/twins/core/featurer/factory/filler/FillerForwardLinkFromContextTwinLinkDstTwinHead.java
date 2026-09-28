@@ -64,7 +64,7 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
                 handleItemError(factoryItem, optionalStep, ex);
             }
         }
-        var resolvedLinksByItem = new HashMap<FactoryItem, List<TwinLinkEntity>>();
+        var resolvedLinkByItem = new LinkedHashMap<FactoryItem, TwinLinkEntity>(); // item -> its single matched link
         int deep = 5;
         while (!pendingItems.isEmpty() && deep >= 0) {
             var failedItems = new ArrayList<FactoryItem>();
@@ -89,8 +89,10 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
                     List<TwinLinkEntity> matchedLinks = currentItem.checkSingleContextTwin().getTwinLinks().getForwardLinks().getGrouped(headHunterLinkId);
                     if (CollectionUtils.isEmpty(matchedLinks))
                         nextPending.put(originalItem, currentItem.checkSingleContextItem()); // descend, validated — same as the old recursion
+                    else if (matchedLinks.size() != 1)
+                        throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLinkId + "] configured from " + contextTwinByItem.get(originalItem).logShort());
                     else
-                        resolvedLinksByItem.put(originalItem, matchedLinks);
+                        resolvedLinkByItem.put(originalItem, matchedLinks.getFirst());
                 } catch (Exception ex) {
                     handleItemError(originalItem, optionalStep, ex);
                 }
@@ -105,21 +107,16 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
                     "No links[" + headHunterLinkId + "] configured from " + contextTwinByItem.get(originalItem).logShort()));
             iterator.remove();
         }
-        var allMatchedLinks = new ArrayList<TwinLinkEntity>();
-        for (List<TwinLinkEntity> matchedLinks : resolvedLinksByItem.values())
-            allMatchedLinks.addAll(matchedLinks);
-        twinLinkService.loadDstTwin(allMatchedLinks); // one query for the whole batch
-        var dstTwins = new ArrayList<TwinEntity>(allMatchedLinks.size());
-        for (TwinLinkEntity matchedLink : allMatchedLinks)
+        var matchedLinks = new ArrayList<TwinLinkEntity>(resolvedLinkByItem.values());
+        twinLinkService.loadDstTwin(matchedLinks); // one query for the whole batch
+        var dstTwins = new ArrayList<TwinEntity>(matchedLinks.size());
+        for (TwinLinkEntity matchedLink : matchedLinks)
             dstTwins.add(matchedLink.getDstTwin());
         twinService.loadHead(dstTwins); // one query for the whole batch
-        for (Map.Entry<FactoryItem, List<TwinLinkEntity>> entry : resolvedLinksByItem.entrySet()) {
+        for (var entry : resolvedLinkByItem.entrySet()) {
             FactoryItem factoryItem = entry.getKey();
             try {
-                List<TwinLinkEntity> matchedLinks = entry.getValue();
-                if (matchedLinks.size() != 1)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLinkId + "] configured from " + contextTwinByItem.get(factoryItem).logShort());
-                TwinEntity detectedHead = matchedLinks.getFirst().getDstTwin().getHeadTwin();
+                TwinEntity detectedHead = entry.getValue().getDstTwin().getHeadTwin();
                 TwinLinkEntity newLink = new TwinLinkEntity()
                         .setLink(link)
                         .setLinkId(link.getId())
