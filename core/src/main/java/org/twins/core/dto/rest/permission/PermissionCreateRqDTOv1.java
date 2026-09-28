@@ -30,6 +30,7 @@ public class PermissionCreateRqDTOv1 extends Request {
     @Schema(description = "key", example = DTOExamples.PERMISSION_KEY)
     public String key;
 
+    @NotNull
     @Schema(description = "group id", example = DTOExamples.PERMISSION_GROUP_ID)
     public UUID groupId;
 }

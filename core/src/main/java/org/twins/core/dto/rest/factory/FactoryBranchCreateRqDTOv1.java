@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -23,6 +24,7 @@ public class FactoryBranchCreateRqDTOv1 extends Request {
     @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
     public Boolean active;
 
+    @NotNull
     @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
     public UUID nextFactoryId;
 
