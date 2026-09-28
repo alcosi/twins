@@ -336,17 +336,17 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     }
 
     private <T> ResponseEntity<T> exchangeWithRetry(String what, Supplier<ResponseEntity<T>> exchangeCall) {
-        var maxRetries = 3;
+        var maxAttempts = 4;
 
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 return exchangeCall.get();
             } catch (HttpServerErrorException.NotImplemented | HttpServerErrorException.ServiceUnavailable e) {
                 throw e;
             } catch (ResourceAccessException | HttpClientErrorException.TooManyRequests | HttpServerErrorException e) {
-                log.warn("{}: attempt {}/{} failed: {}", what, attempt, maxRetries, e.getMessage());
+                log.warn("{}: attempt {}/{} failed: {}", what, attempt, maxAttempts, e.getMessage());
 
-                if (attempt == maxRetries) {
+                if (attempt == maxAttempts) {
                     throw e;
                 }
 
