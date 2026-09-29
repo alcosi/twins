@@ -61,8 +61,7 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             var factoryItem = itemWithTwin(twin);
             // twin carries no head -> pass 1 fails the item
 
-            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId,
-                    new TwinClassFieldEntity().setId(lookupFieldId));
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), result.failures().get(factoryItem).getErrorCode());
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(TwinClassFieldEntity.class));
@@ -74,6 +73,7 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             var lookupFieldId = UUID.randomUUID();
             var linkFieldEntity = new TwinClassFieldEntity().setId(linkFieldId);
             var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var headTwin = new TwinEntity().setId(UUID.randomUUID());
             var dstTwin = new TwinEntity().setId(UUID.randomUUID());
@@ -86,7 +86,7 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             var expected = fieldValue(lookupFieldEntity, "dst-val");
             when(twinService.getTwinFieldValue(dstTwin, lookupFieldEntity)).thenReturn(expected);
 
-            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldEntity);
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
             assertSame(expected, result.value(factoryItem));
             verify(twinService).getTwinFieldValue(headTwin, linkFieldEntity);
@@ -106,8 +106,9 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             when(twinClassFieldService.findEntitySafe(linkFieldId)).thenReturn(linkFieldEntity); // navigation resolves the linkedBy UUID -> entity
             when(twinService.getTwinFieldValue(headTwin, linkFieldEntity)).thenReturn(fieldValue(linkFieldEntity, "text"));
 
-            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId,
-                    new TwinClassFieldEntity().setId(UUID.randomUUID()));
+            var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), result.failures().get(factoryItem).getErrorCode());
         }
@@ -128,8 +129,9 @@ class FieldLookuperFromItemOutputHeadTwinLinkedTwinFieldsTest extends BaseUnitTe
             when(twinClassFieldService.findEntitySafe(linkFieldId)).thenReturn(linkFieldEntity); // navigation resolves the linkedBy UUID -> entity
             when(twinService.getTwinFieldValue(headTwin, linkFieldEntity)).thenReturn(multiLink);
 
-            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId,
-                    new TwinClassFieldEntity().setId(UUID.randomUUID()));
+            var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), result.failures().get(factoryItem).getErrorCode());
         }

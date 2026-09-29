@@ -58,6 +58,7 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             var lookupFieldId = UUID.randomUUID();
             var linkFieldEntity = new TwinClassFieldEntity().setId(linkFieldId);
             var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var dstTwin = new TwinEntity().setId(UUID.randomUUID());
             var dstHeadTwin = new TwinEntity().setId(UUID.randomUUID());
@@ -70,7 +71,7 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             var expected = fieldValue(lookupFieldEntity, "dst-head-val");
             when(twinService.getTwinFieldValue(dstHeadTwin, lookupFieldEntity)).thenReturn(expected);
 
-            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldEntity);
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
             assertSame(expected, result.value(factoryItem));
             verify(twinService).getTwinFieldValue(dstHeadTwin, lookupFieldEntity);
@@ -84,6 +85,7 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             var lookupFieldId = UUID.randomUUID();
             var linkFieldEntity = new TwinClassFieldEntity().setId(linkFieldId);
             var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var dstTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
@@ -93,7 +95,7 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             when(twinService.getTwinFieldValue(twin, linkFieldEntity)).thenReturn(linkField);
             // dstTwin carries no head -> readSource fails the item
 
-            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldEntity);
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), result.failures().get(factoryItem).getErrorCode());
             verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), eq(lookupFieldEntity));
@@ -113,8 +115,9 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
             when(twinClassFieldService.findEntitySafe(linkFieldId)).thenReturn(linkFieldEntity);
             when(twinService.getTwinFieldValue(twin, linkFieldEntity)).thenReturn(multiLink);
 
-            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId,
-                    new TwinClassFieldEntity().setId(UUID.randomUUID()));
+            var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
             assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), result.failures().get(factoryItem).getErrorCode());
         }
