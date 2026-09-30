@@ -2,10 +2,10 @@ package org.twins.core.mappers.rest.attachment;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.MultipartFileUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
@@ -17,7 +17,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import java.util.List;
 import java.util.Map;
 
-import static org.twins.core.exception.ErrorCodeTwins.BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED;
 
 
 @Component
@@ -44,21 +43,11 @@ public class AttachmentCreateRestDTOReverseMapper extends RestSimpleDTOMapper<At
         boolean isMultipart = haveLink && att.storageLink.toLowerCase().startsWith("multipart://");
         att.setExternalLink(!isMultipart);
         if (haveLink && isMultipart) {
-            String fileKey = att.storageLink.replaceFirst("multipart://", "");
-            MultipartFile file = files.get(fileKey);
-            if (file == null) {
-                throw new ServiceException(BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED, "File not found " + fileKey);
-            }
-            try {
-                FileData domainFile = new FileData(file.getInputStream(), file.getOriginalFilename(), file.getSize());
-                att.setDomainFile(domainFile);
-                att.fileChanged = true;
-                if (att.size == null || att.size < 1) {
-                    att.size = domainFile.fileSize();
-                }
-            } catch (Throwable t) {
-                log.error("Error while processing multipart link {}", att.storageLink, t);
-                throw new ServiceException(BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED, "Error while processing multipart link " + att.storageLink + " ." + t.getClass().getSimpleName());
+            FileData domainFile = MultipartFileUtils.resolveMultipartFile(att.storageLink, files);
+            att.setDomainFile(domainFile);
+            att.fileChanged = true;
+            if (att.size == null || att.size < 1) {
+                att.size = domainFile.fileSize();
             }
         }
     }

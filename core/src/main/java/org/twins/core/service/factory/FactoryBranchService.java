@@ -19,10 +19,7 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -42,6 +39,14 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
     }
 
     @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryBranchEntity> createFactoryBranches(List<TwinFactoryBranchEntity> branchEntities) throws ServiceException {
+        List<TwinFactoryBranchEntity> created = new ArrayList<>(branchEntities.size());
+        for (TwinFactoryBranchEntity branchEntity : branchEntities)
+            created.add(createFactoryBranch(branchEntity));
+        return created;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
     public TwinFactoryBranchEntity updateFactoryBranch(TwinFactoryBranchEntity branchUpdate) throws ServiceException {
         TwinFactoryBranchEntity dbFactoryBranchEntity = findEntitySafe(branchUpdate.getId());
         branchUpdate.setTwinFactoryId(dbFactoryBranchEntity.getTwinFactoryId());
@@ -52,6 +57,14 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         updateFactoryBranchNextFactoryId(dbFactoryBranchEntity, branchUpdate.getNextTwinFactoryId(), changesHelper);
         updateFactoryBranchDescription(dbFactoryBranchEntity, branchUpdate.getDescription(), changesHelper);
         return updateSafe(dbFactoryBranchEntity, changesHelper);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryBranchEntity> updateFactoryBranches(List<TwinFactoryBranchEntity> branchEntities) throws ServiceException {
+        List<TwinFactoryBranchEntity> updated = new ArrayList<>(branchEntities.size());
+        for (TwinFactoryBranchEntity branchEntity : branchEntities)
+            updated.add(updateFactoryBranch(branchEntity));
+        return updated;
     }
 
     private void updateFactoryBranchConditionSetId(TwinFactoryBranchEntity dbFactoryBranchEntity, UUID twinFactoryConditionSetId, ChangesHelper changesHelper) {

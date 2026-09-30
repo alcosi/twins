@@ -3,20 +3,20 @@ package org.twins.core.mappers.rest.datalist;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.datalist.DataListCreate;
-import org.twins.core.dto.rest.datalist.DataListCreateRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListCreateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class DataListCreateDTOReverseMapper extends RestSimpleDTOMapper<DataListCreateRqDTOv1, DataListCreate> {
+public class DataListCreateDTOReverseMapper extends RestSimpleDTOMapper<DataListCreateDTOv1, DataListCreate> {
 
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final DataListAttributeRestDTOReverseMapper dataListAttributeRestDTOReverseMapper;
 
     @Override
-    public void map(DataListCreateRqDTOv1 src, DataListCreate dst, MapperContext mapperContext) throws Exception {
+    public void map(DataListCreateDTOv1 src, DataListCreate dst, MapperContext mapperContext) throws Exception {
         dst
                 .setKey(src.getKey())
                 .setNameI18n(i18NSaveRestDTOReverseMapper.convert(src.getNameI18n(), mapperContext))

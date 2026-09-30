@@ -159,7 +159,6 @@ public enum ErrorCodeTwins implements ErrorCode {
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
     ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),
-    BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED(12504, "multipart file is not presented", HttpStatus.BAD_REQUEST),
     POINTER_NON_SINGLE(12601, "twin pointer is not single"),
     POINTER_ON_NULL(12602, "twin pointer is null"),
     POINTER_UPDATE_RESTRICTED(12603, "twin pointer can not be updated"),

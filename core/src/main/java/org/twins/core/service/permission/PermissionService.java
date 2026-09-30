@@ -295,6 +295,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionRepository.save(createEntity);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<PermissionEntity> createPermissions(List<PermissionEntity> createEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<PermissionEntity> created = new ArrayList<>(createEntities.size());
+        for (int i = 0; i < createEntities.size(); i++)
+            created.add(createPermission(createEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return created;
+    }
+
     public Map<DefaultClassPermissionsPrefix, PermissionEntity> createDefaultPermissionsForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
         List<PermissionEntity> permissionsForSave = new ArrayList<>();
         PermissionGroupEntity permissionGroup = permissionGroupService.createDefaultPermissionGroupForNewInDomainClass(twinClassEntity);
@@ -335,6 +343,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         i18nService.updateI18nFieldForEntity(nameI18n, I18nType.PERMISSION_NAME, dbEntity, PermissionEntity::getNameI18NId, PermissionEntity::setNameI18NId, PermissionEntity.Fields.nameI18NId, changesHelper);
         i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.PERMISSION_DESCRIPTION, dbEntity, PermissionEntity::getDescriptionI18NId, PermissionEntity::setDescriptionI18NId, PermissionEntity.Fields.descriptionI18NId, changesHelper);
         return updateSafe(dbEntity, changesHelper);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<PermissionEntity> updatePermissions(List<PermissionEntity> updateEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<PermissionEntity> updated = new ArrayList<>(updateEntities.size());
+        for (int i = 0; i < updateEntities.size(); i++)
+            updated.add(updatePermission(updateEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return updated;
     }
 
     private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {

@@ -123,6 +123,22 @@ public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntit
     }
 
     @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryEntity> createFactories(List<TwinFactoryEntity> factories, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<TwinFactoryEntity> created = new ArrayList<>(factories.size());
+        for (int i = 0; i < factories.size(); i++)
+            created.add(createFactory(factories.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return created;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryEntity> updateFactories(List<TwinFactoryEntity> factories, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<TwinFactoryEntity> updated = new ArrayList<>(factories.size());
+        for (int i = 0; i < factories.size(); i++)
+            updated.add(updateFactory(factories.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return updated;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
     public TwinFactoryEntity updateFactory(TwinFactoryEntity factoryEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinFactoryEntity dbEntity = findEntitySafe(factoryEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();

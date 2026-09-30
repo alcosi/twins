@@ -1,17 +1,20 @@
 package org.twins.core.controller.rest.priv.factory;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -19,8 +22,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.factory.FactoryRsDTOv1;
+import org.twins.core.dto.rest.factory.FactoryListRsDTOv1;
+import org.twins.core.dto.rest.factory.FactoryUpdateDTOv1;
 import org.twins.core.dto.rest.factory.FactoryUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryUpdateDTOReverseMapper;
@@ -30,7 +33,8 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryService;
 import org.twins.core.service.permission.Permissions;
 
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 @Tag(name = ApiTag.FACTORY)
 @RestController
@@ -45,26 +49,28 @@ public class FactoryUpdateController extends ApiController {
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "factoryUpdateV1", summary = "Factory update")
+    @Operation(operationId = "factoryUpdateV1", summary = "Factory batch update")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory data update", content = {
+            @ApiResponse(responseCode = "200", description = "Factory batch update", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FactoryRsDTOv1.class))}),
+                    @Schema(implementation = FactoryListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/factory/{factoryId}/v1")
+    @PutMapping(value = "/private/factory/v1")
     public ResponseEntity<?> factoryUpdateV1(
-            @MapperContextBinding(roots = FactoryRestDTOMapper.class, response = FactoryRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
-            @RequestBody FactoryUpdateRqDTOv1 request) {
-        FactoryRsDTOv1 rs = new FactoryRsDTOv1();
+            @MapperContextBinding(roots = FactoryRestDTOMapper.class, response = FactoryListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody @Valid FactoryUpdateRqDTOv1 request) {
+        FactoryListRsDTOv1 rs = new FactoryListRsDTOv1();
         try {
-            TwinFactoryEntity factoryEntity = factoryUpdateDTOReverseMapper.convert(request);
-            factoryEntity.setId(factoryId);
-            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
-            factoryEntity = factoryService.updateFactory(factoryEntity, nameI18n, descriptionI18n);
+            List<I18nEntity> namesI18n = new ArrayList<>(request.getFactories().size());
+            List<I18nEntity> descriptionsI18n = new ArrayList<>(request.getFactories().size());
+            for (FactoryUpdateDTOv1 factory : request.getFactories()) {
+                namesI18n.add(i18NSaveRestDTOReverseMapper.convert(factory.getNameI18n()));
+                descriptionsI18n.add(i18NSaveRestDTOReverseMapper.convert(factory.getDescriptionI18n()));
+            }
+            List<TwinFactoryEntity> factoryEntities = factoryService.updateFactories(
+                    factoryUpdateDTOReverseMapper.convertCollection(request.getFactories()), namesI18n, descriptionsI18n);
             rs
-                    .setFactory(factoryRestDTOMapper.convert(factoryEntity, mapperContext))
+                    .setFactoryList(factoryRestDTOMapper.convertCollection(factoryEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

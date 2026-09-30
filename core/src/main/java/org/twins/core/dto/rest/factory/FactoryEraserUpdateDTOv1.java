@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
@@ -12,6 +13,10 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "FactoryEraserUpdateV1")
 public class FactoryEraserUpdateDTOv1 {
+
+    @NotNull
+    @Schema(description = "factory eraser id", example = DTOExamples.FACTORY_ERASER_ID)
+    public UUID id;
 
     @Schema(description = "input twin class id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID inputTwinClassId;

@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
@@ -12,6 +13,10 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "FactoryPipelineStepUpdateV1")
 public class FactoryPipelineStepUpdateDTOv1 {
+
+    @NotNull
+    @Schema(description = "factory pipeline step id", example = DTOExamples.FACTORY_PIPELINE_STEP_ID)
+    public UUID id;
 
     @Schema(description = "factory pipeline id", example = DTOExamples.FACTORY_PIPELINE_ID)
     public UUID factoryPipelineId;

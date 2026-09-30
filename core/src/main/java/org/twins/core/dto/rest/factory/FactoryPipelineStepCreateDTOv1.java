@@ -14,6 +14,7 @@ import java.util.UUID;
 @Schema(name = "FactoryPipelineStepCreateV1")
 public class FactoryPipelineStepCreateDTOv1 {
 
+    @NotNull
     @Schema(description = "factory pipeline id", example = DTOExamples.FACTORY_PIPELINE_ID)
     public UUID factoryPipelineId;
 

@@ -1,31 +1,24 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
-import java.util.UUID;
+import java.util.List;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryBranchUpdateRqv1")
+@Schema(name = "FactoryBranchUpdateRqV1")
 public class FactoryBranchUpdateRqDTOv1 extends Request {
-    @Schema(description = "factory condition set id", example = DTOExamples.FACTORY_CONDITION_SET_ID)
-    public UUID factoryConditionSetId;
-
-    @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
-    public Boolean factoryConditionSetInvert;
-
-    @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
-    public Boolean active;
-
-    @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
-    public UUID nextFactoryId;
-
-    @Schema(description = "description", example = DTOExamples.DESCRIPTION)
-    public String description;
+    @Valid
+    @NotEmpty
+    @Size(max = 50)
+    @Schema(description = "factory branch update list")
+    public List<FactoryBranchUpdateDTOv1> factoryBranches;
 }

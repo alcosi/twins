@@ -12,6 +12,7 @@ public class FactoryMultiplierCreateDTOReverseMapper extends RestSimpleDTOMapper
     @Override
     public void map(FactoryMultiplierCreateDTOv1 src, TwinFactoryMultiplierEntity dst, MapperContext mapperContext) throws Exception {
         dst
+                .setTwinFactoryId(src.getFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setMultiplierFeaturerId(src.getMultiplierFeaturerId())
                 .setMultiplierParams(src.getMultiplierParams())
