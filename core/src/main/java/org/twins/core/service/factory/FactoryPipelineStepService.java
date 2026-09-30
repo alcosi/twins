@@ -75,6 +75,22 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
         return saveSafe(entity);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryPipelineStepEntity> createFactoryPipelineSteps(List<TwinFactoryPipelineStepEntity> entities) throws ServiceException {
+        List<TwinFactoryPipelineStepEntity> created = new ArrayList<>(entities.size());
+        for (TwinFactoryPipelineStepEntity entity : entities)
+            created.add(createFactoryPipelineStep(entity));
+        return created;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryPipelineStepEntity> updateFactoryPipelineSteps(List<TwinFactoryPipelineStepEntity> entities) throws ServiceException {
+        List<TwinFactoryPipelineStepEntity> updated = new ArrayList<>(entities.size());
+        for (TwinFactoryPipelineStepEntity entity : entities)
+            updated.add(updateFactoryPipelineStep(entity));
+        return updated;
+    }
+
     public TwinFactoryPipelineStepEntity updateFactoryPipelineStep(TwinFactoryPipelineStepEntity entity) throws ServiceException {
         TwinFactoryPipelineStepEntity dbEntity = findEntitySafe(entity.getId());
         ChangesHelper changesHelper = new ChangesHelper();

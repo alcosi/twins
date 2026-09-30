@@ -126,6 +126,14 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         return dataListEntity;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<DataListEntity> createDataLists(List<DataListCreate> dataListCreates) throws ServiceException {
+        List<DataListEntity> created = new ArrayList<>(dataListCreates.size());
+        for (DataListCreate dataListCreate : dataListCreates)
+            created.add(createDataList(dataListCreate));
+        return created;
+    }
+
     public void loadUser(DataListEntity src) throws ServiceException {
         loadUser(Collections.singletonList(src));
     }
@@ -167,6 +175,14 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         updateEntityFieldByValue(dataListUpdate.getDefaultOptionId(), dbDataListEntity, DataListEntity::getDefaultDataListOptionId, DataListEntity::setDefaultDataListOptionId, DataListEntity.Fields.defaultDataListOptionId, changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
         return updateSafe(dbDataListEntity, changesHelper);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<DataListEntity> updateDataLists(List<DataListUpdate> dataListUpdates) throws ServiceException {
+        List<DataListEntity> updated = new ArrayList<>(dataListUpdates.size());
+        for (DataListUpdate dataListUpdate : dataListUpdates)
+            updated.add(updateDataList(dataListUpdate));
+        return updated;
     }
 
     public void updateExternalId(DataListEntity dbDataListEntity, String newExternalId, ChangesHelper changesHelper) {

@@ -7,13 +7,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "FactoryPipelineStepUpdateRqV1")
 public class FactoryPipelineStepUpdateRqDTOv1 extends Request {
     @Valid
-    @Schema(description = "factory pipeline step update")
-    public FactoryPipelineStepUpdateDTOv1 factoryPipelineStep;
+    @Schema(description = "factory pipeline step update list")
+    public List<FactoryPipelineStepUpdateDTOv1> factoryPipelineSteps;
 }
-

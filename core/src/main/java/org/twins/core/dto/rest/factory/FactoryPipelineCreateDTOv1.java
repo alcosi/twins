@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.factory;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -14,7 +13,8 @@ import java.util.UUID;
 @Schema(name = "FactoryPipelineCreateV1")
 public class FactoryPipelineCreateDTOv1 {
 
-    @JsonIgnore
+    @NotNull
+    @Schema(description = "factory id", example = DTOExamples.FACTORY_ID)
     public UUID factoryId;
 
     @NotNull

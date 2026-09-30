@@ -15,6 +15,10 @@ import java.util.UUID;
 public class FactoryMultiplierCreateDTOv1 {
 
     @NotNull
+    @Schema(description = "factory id", example = DTOExamples.FACTORY_ID)
+    public UUID factoryId;
+
+    @NotNull
     @Schema(description = "input twin class id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID inputTwinClassId;
 

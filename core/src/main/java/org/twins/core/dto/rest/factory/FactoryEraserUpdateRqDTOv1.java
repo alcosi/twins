@@ -7,12 +7,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "FactoryEraserUpdateRqV1")
 public class FactoryEraserUpdateRqDTOv1 extends Request {
     @Valid
-    @Schema(description = "factory eraser update")
-    public FactoryEraserUpdateDTOv1 eraser;
+    @Schema(description = "factory eraser update list")
+    public List<FactoryEraserUpdateDTOv1> erasers;
 }

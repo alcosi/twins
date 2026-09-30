@@ -7,12 +7,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TierCreateRqV1")
 public class TierCreateRqDTOv1 extends Request {
     @Valid
-    @Schema(description = "tier create")
-    public TierCreateDTOv1 tier;
+    @Schema(description = "tier create list")
+    public List<TierCreateDTOv1> tiers;
 }

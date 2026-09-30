@@ -1,12 +1,12 @@
 package org.twins.core.controller.rest.priv.twinstatus;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -21,20 +21,21 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.twinstatus.TwinStatusListRsDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusUpdateDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusUpdateRqDTOv1;
-import org.twins.core.dto.rest.twinstatus.TwinStatusUpdateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusUpdateRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.io.IOException;
-import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.cambium.common.util.MultipartFileUtils.convert;
 
@@ -45,37 +46,35 @@ import static org.cambium.common.util.MultipartFileUtils.convert;
 @ProtectedBy(Permissions.TWIN_STATUS_UPDATE)
 public class TwinStatusUpdateController extends ApiController {
     private final TwinStatusService twinStatusService;
-    private final TwinStatusRestDTOReverseMapper twinStatusRestDTOReverseMapper;
+    private final TwinStatusUpdateRestDTOReverseMapper twinStatusUpdateRestDTOReverseMapper;
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     private final I18nSaveRestDTOReverseMapper i18NSaveRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinStatusUpdateV1", summary = "Update twin status")
+    @Operation(operationId = "twinStatusUpdateV1", summary = "Update twin statuses")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin status data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStatusUpdateRsDTOv1.class))}),
+                    @Schema(implementation = TwinStatusListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/twin_status/{twinStatusId}/v1")
+    @PutMapping(value = "/private/twin_status/v1")
     public ResponseEntity<?> twinStatusUpdateV1(
-            @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_STATUS_ID) @PathVariable UUID twinStatusId,
-            @RequestBody TwinStatusUpdateRqDTOv1 request) {
-        return processUpdate(mapperContext, twinStatusId, request, null, null);
+            @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody @Valid TwinStatusUpdateRqDTOv1 request) {
+        return processUpdate(mapperContext, request, null, null);
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinStatusUpdateV2", summary = "Update twin status with icons")
+    @Operation(operationId = "twinStatusUpdateV2", summary = "Update twin statuses with icons")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin status data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStatusUpdateRsDTOv1.class))}),
+                    @Schema(implementation = TwinStatusListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(path = "/private/twin_status/{twinStatusId}/v2", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PutMapping(path = "/private/twin_status/v2", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<?> twinStatusUpdateV2(
-            @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusUpdateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_STATUS_ID) @PathVariable UUID twinStatusId,
+            @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Schema(implementation = TwinStatusUpdateRqDTOv1.class, requiredMode = Schema.RequiredMode.REQUIRED, description = "request json")
             @RequestPart("request") byte[] requestBytes,
             @Schema(implementation = MultipartFile.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Dark icon")
@@ -83,18 +82,22 @@ public class TwinStatusUpdateController extends ApiController {
             @Schema(implementation = MultipartFile.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Light icon")
             @RequestPart(required = false) MultipartFile iconLight) throws IOException {
         var request = objectMapper.readValue(requestBytes, TwinStatusUpdateRqDTOv1.class);
-        return processUpdate(mapperContext, twinStatusId, request, iconDark, iconLight);
+        return processUpdate(mapperContext, request, iconDark, iconLight);
     }
 
-    protected ResponseEntity<? extends Response> processUpdate(MapperContext mapperContext, UUID twinStatusId, TwinStatusUpdateRqDTOv1 request, MultipartFile iconDark, MultipartFile iconLight) {
-        TwinStatusUpdateRsDTOv1 rs = new TwinStatusUpdateRsDTOv1();
+    protected ResponseEntity<? extends Response> processUpdate(MapperContext mapperContext, TwinStatusUpdateRqDTOv1 request, MultipartFile iconDark, MultipartFile iconLight) {
+        TwinStatusListRsDTOv1 rs = new TwinStatusListRsDTOv1();
         try {
-            I18nEntity nameI18n = i18NSaveRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionI18n = i18NSaveRestDTOReverseMapper.convert(request.getDescriptionI18n());
-            TwinStatusEntity twinStatusEntity = twinStatusService
-                    .updateStatus(twinStatusRestDTOReverseMapper.convert(request.setId(twinStatusId)), nameI18n, descriptionI18n, convert(iconLight), convert(iconDark));
+            List<I18nEntity> namesI18n = new ArrayList<>(request.getStatuses().size());
+            List<I18nEntity> descriptionsI18n = new ArrayList<>(request.getStatuses().size());
+            for (TwinStatusUpdateDTOv1 status : request.getStatuses()) {
+                namesI18n.add(i18NSaveRestDTOReverseMapper.convert(status.getNameI18n()));
+                descriptionsI18n.add(i18NSaveRestDTOReverseMapper.convert(status.getDescriptionI18n()));
+            }
+            List<TwinStatusEntity> updatedStatuses = twinStatusService.updateStatuses(
+                    twinStatusUpdateRestDTOReverseMapper.convertCollection(request.getStatuses()), namesI18n, descriptionsI18n, convert(iconLight), convert(iconDark));
             rs
-                    .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext))
+                    .setStatuses(twinStatusRestDTOMapper.convertCollection(updatedStatuses, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

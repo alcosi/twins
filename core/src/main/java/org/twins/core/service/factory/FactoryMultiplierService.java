@@ -76,6 +76,22 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     }
 
     @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryMultiplierEntity> createFactoryMultipliers(List<TwinFactoryMultiplierEntity> entities) throws ServiceException {
+        List<TwinFactoryMultiplierEntity> created = new ArrayList<>(entities.size());
+        for (TwinFactoryMultiplierEntity entity : entities)
+            created.add(createFactoryMultiplier(entity));
+        return created;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryMultiplierEntity> updateFactoryMultipliers(List<TwinFactoryMultiplierEntity> multiplierUpdates) throws ServiceException {
+        List<TwinFactoryMultiplierEntity> updated = new ArrayList<>(multiplierUpdates.size());
+        for (TwinFactoryMultiplierEntity multiplierUpdate : multiplierUpdates)
+            updated.add(updateFactoryMultiplier(multiplierUpdate));
+        return updated;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
     public TwinFactoryMultiplierEntity updateFactoryMultiplier(TwinFactoryMultiplierEntity multiplierUpdate) throws ServiceException {
         TwinFactoryMultiplierEntity dbMultiplierEntity = findEntitySafe(multiplierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();

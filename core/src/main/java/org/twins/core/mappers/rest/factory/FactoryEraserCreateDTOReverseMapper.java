@@ -12,6 +12,7 @@ public class FactoryEraserCreateDTOReverseMapper extends RestSimpleDTOMapper<Fac
     @Override
     public void map(FactoryEraserCreateDTOv1 src, TwinFactoryEraserEntity dst, MapperContext mapperContext) throws Exception {
         dst
+                .setTwinFactoryId(src.getFactoryId())
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setTwinFactoryConditionSetId(src.getTwinFactoryConditionSetId())
                 .setTwinFactoryConditionInvert(src.getTwinFactoryConditionInvert())

@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.tier;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
@@ -11,6 +12,10 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TierUpdateV1")
 public class TierUpdateDTOv1 {
+
+    @NotNull
+    @Schema(description = "tier id", example = DTOExamples.TIER_ID)
+    public UUID id;
 
     @Schema(description = "name", example = DTOExamples.NAME)
     public String name;

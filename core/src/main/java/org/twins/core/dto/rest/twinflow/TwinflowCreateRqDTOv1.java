@@ -1,16 +1,13 @@
 package org.twins.core.dto.rest.twinflow;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.i18n.I18nHasTranslation;
-import org.twins.core.dto.rest.i18n.I18nSaveDTOv1;
 
-import java.util.UUID;
+import java.util.List;
 
 @Data
 @Accessors(chain = true)
@@ -18,21 +15,7 @@ import java.util.UUID;
 @Schema(name = "TwinflowCreateRqV1")
 public class TwinflowCreateRqDTOv1 extends Request {
 
-    @NotNull
-    @I18nHasTranslation
-    @Schema(description = "I18n name", example = "")
-    public I18nSaveDTOv1 nameI18n;
-
-    @Schema(description = "I18n description", example = "")
-    public I18nSaveDTOv1 descriptionI18n;
-
-    @NotNull
-    @Schema(description = "initial status id", example = DTOExamples.TWIN_STATUS_ID)
-    public UUID initialStatusId;
-
-    @Schema(description = "initial sketch status id", example = DTOExamples.TWIN_STATUS_ID)
-    public UUID initialSketchStatusId;
-
-    @Schema(description = "inheritable")
-    public Boolean inheritable;
+    @Valid
+    @Schema(description = "twinflow create list")
+    public List<TwinflowCreateDTOv1> twinflows;
 }

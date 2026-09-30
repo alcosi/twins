@@ -7,12 +7,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "FactoryMultiplierUpdateRqV1")
 public class FactoryMultiplierUpdateRqDTOv1 extends Request {
     @Valid
-    @Schema(description = "factory multiplier update")
-    public FactoryMultiplierUpdateDTOv1 factoryMultiplier;
+    @Schema(description = "factory multiplier update list")
+    public List<FactoryMultiplierUpdateDTOv1> factoryMultipliers;
 }

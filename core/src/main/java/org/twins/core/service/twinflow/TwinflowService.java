@@ -262,6 +262,14 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return saveSafe(twinflowEntity);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinflowEntity> createTwinflows(List<TwinflowEntity> twinflowEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<TwinflowEntity> created = new ArrayList<>(twinflowEntities.size());
+        for (int i = 0; i < twinflowEntities.size(); i++)
+            created.add(createTwinflow(twinflowEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return created;
+    }
+
     @Transactional
     public TwinflowSchemaMapEntity registerTwinflow(TwinflowEntity twinflowEntity, DomainEntity domainEntity, TwinClassEntity twinClassEntity) throws ServiceException {
         TwinflowSchemaMapEntity twinflowSchemaMapEntity = new TwinflowSchemaMapEntity()
@@ -290,6 +298,14 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             CacheUtils.evictCache(cacheManager, cacheEvictCollector);
         }
         return dbTwinflowEntity;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinflowEntity> updateTwinflows(List<TwinflowEntity> twinflowEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<TwinflowEntity> updated = new ArrayList<>(twinflowEntities.size());
+        for (int i = 0; i < twinflowEntities.size(); i++)
+            updated.add(updateTwinflow(twinflowEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return updated;
     }
 
     public void updateTwinflowInitStatus(TwinflowEntity dbTwinflowEntity, UUID initStatusId, ChangesHelper changesHelper) throws ServiceException {

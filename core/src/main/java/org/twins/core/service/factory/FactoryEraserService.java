@@ -19,10 +19,7 @@ import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -74,6 +71,22 @@ public class FactoryEraserService extends EntitySecureFindServiceImpl<TwinFactor
     @Transactional(rollbackFor = Throwable.class)
     public TwinFactoryEraserEntity createEraser(TwinFactoryEraserEntity createEntity) throws ServiceException {
         return saveSafe(createEntity);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryEraserEntity> createErasers(List<TwinFactoryEraserEntity> createEntities) throws ServiceException {
+        List<TwinFactoryEraserEntity> created = new ArrayList<>(createEntities.size());
+        for (TwinFactoryEraserEntity createEntity : createEntities)
+            created.add(createEraser(createEntity));
+        return created;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryEraserEntity> updateErasers(List<TwinFactoryEraserEntity> updateEntities) throws ServiceException {
+        List<TwinFactoryEraserEntity> updated = new ArrayList<>(updateEntities.size());
+        for (TwinFactoryEraserEntity updateEntity : updateEntities)
+            updated.add(updateEraser(updateEntity));
+        return updated;
     }
 
     @Transactional(rollbackFor = Throwable.class)

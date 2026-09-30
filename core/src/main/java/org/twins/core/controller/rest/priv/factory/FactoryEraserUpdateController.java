@@ -1,7 +1,6 @@
 package org.twins.core.controller.rest.priv.factory;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,15 +11,17 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
-import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.factory.FactoryEraserSaveRsDTOv1;
+import org.twins.core.dto.rest.factory.FactoryEraserListRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryEraserUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryEraserUpdateDTOReverseMapper;
@@ -29,7 +30,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryEraserService;
 import org.twins.core.service.permission.Permissions;
 
-import java.util.UUID;
+import java.util.List;
 
 @Tag(description = "", name = ApiTag.FACTORY)
 @RestController
@@ -43,23 +44,22 @@ public class FactoryEraserUpdateController extends ApiController {
     private final FactoryEraserRestDTOMapper factoryEraserRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "factoryEraserUpdateV1", summary = "Update factory eraser")
+    @Operation(operationId = "factoryEraserUpdateV1", summary = "Update factory eraser batch")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory eraser was updated successfully", content = {
+            @ApiResponse(responseCode = "200", description = "Factory eraser batch was updated successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FactoryEraserSaveRsDTOv1.class))}),
+                    @Schema(implementation = FactoryEraserListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/factory/factory_eraser/{factoryEraserId}/v1")
+    @PutMapping(value = "/private/factory/factory_eraser/v1")
     public ResponseEntity<?> factoryEraserUpdateV1(
-            @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable UUID factoryEraserId,
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody @Valid FactoryEraserUpdateRqDTOv1 request) {
-        FactoryEraserSaveRsDTOv1 rs = new FactoryEraserSaveRsDTOv1();
+        FactoryEraserListRsDTOv1 rs = new FactoryEraserListRsDTOv1();
         try {
-            TwinFactoryEraserEntity entity = factoryEraserUpdateDTOReverseMapper.convert(request.getEraser());
-            entity = factoryEraserService.updateEraser(entity.setId(factoryEraserId));
+            List<TwinFactoryEraserEntity> entities = factoryEraserService.updateErasers(
+                    factoryEraserUpdateDTOReverseMapper.convertCollection(request.getErasers()));
             rs
-                    .setEraser(factoryEraserRestDTOMapper.convert(entity, mapperContext))
+                    .setFactoryEraserList(factoryEraserRestDTOMapper.convertCollection(entities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

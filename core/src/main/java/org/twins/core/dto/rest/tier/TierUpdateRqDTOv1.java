@@ -7,12 +7,14 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TierUpdateRqV1")
 public class TierUpdateRqDTOv1 extends Request {
     @Valid
-    @Schema(description = "tier update")
-    public TierUpdateDTOv1 tier;
+    @Schema(description = "tier update list")
+    public List<TierUpdateDTOv1> tiers;
 }
