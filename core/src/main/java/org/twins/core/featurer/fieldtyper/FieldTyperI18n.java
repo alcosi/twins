@@ -100,22 +100,16 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
 
 
     @Override
-    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueI18n value) throws ServiceException {
-        if (value.isUndefined() || value.isCleared())
-            return false;
-        if (twin.getTwinFieldI18nKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
-            return false;
-        if (twin.getTwinFieldI18nKit() == null)
-            return false;
-        Map<Locale, TwinFieldI18nEntity> stored = getStoredFieldsForTwinAndField(twin, value.getTwinClassField());
-        for (Map.Entry<Locale, String> entry : value.getTranslations().entrySet()) {
+    public boolean checkIsChanged(TwinEntity twin, FieldValueI18n oldValue, FieldValueI18n newValue, Properties properties) {
+        if (oldValue == null)
+            return true;
+        for (Map.Entry<Locale, String> entry : newValue.getTranslations().entrySet()) {
             if (UuidUtils.NULLIFY_MARKER.toString().equals(entry.getValue()))
-                return false;
-            TwinFieldI18nEntity storedField = stored.get(entry.getKey());
-            if (storedField == null || !Objects.equals(storedField.getTranslation(), entry.getValue()))
-                return false;
+                return true;
+            if (!Objects.equals(oldValue.getTranslations().get(entry.getKey()), entry.getValue()))
+                return true;
         }
-        return true;
+        return false;
     }
 
     @Override

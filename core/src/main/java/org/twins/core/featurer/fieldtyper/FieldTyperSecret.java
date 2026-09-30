@@ -36,10 +36,10 @@ public class FieldTyperSecret
     private StandardPBEStringEncryptor secretEncryptor;
 
     @Override
-    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueText value) {
+    public boolean checkIsChanged(TwinEntity twin, FieldValueText oldValue, FieldValueText newValue, Properties properties) {
         // Encryption is not deterministic: the same plaintext becomes a new ciphertext on write.
         // Repeating the secret is still a change, so the field permission check stays in place.
-        return false;
+        return true;
     }
 
     @Override

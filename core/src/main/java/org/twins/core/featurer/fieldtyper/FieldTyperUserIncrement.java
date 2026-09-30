@@ -27,7 +27,6 @@ import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.user.UserFilterService;
 import org.twins.core.service.user.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -87,27 +86,10 @@ public class FieldTyperUserIncrement extends FieldTyper<FieldDescriptorUser, Fie
     }
 
     @Override
-    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueUser value) throws ServiceException {
-        if (value.isUndefined() || value.isCleared())
-            return false;
-        List<UUID> incoming = new ArrayList<>();
-        for (UserEntity user : value.getItems()) {
-            if (user == null || user.getId() == null)
-                return false;
-            incoming.add(user.getId());
-        }
-        if (twin.getTwinFieldUserKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
-            return false;
-        if (twin.getTwinFieldUserKit() == null)
-            return false;
-        List<UUID> stored = new ArrayList<>();
-        for (TwinFieldUserEntity row : twin.getTwinFieldUserKit().getGrouped(value.getTwinClassFieldId())) {
-            if (row.getUserId() == null)
-                return false;
-            stored.add(row.getUserId());
-        }
+    public boolean checkIsChanged(TwinEntity twin, FieldValueUser oldValue, FieldValueUser newValue, Properties properties) {
         // Append-only: users already stored are not written again, and nothing is deleted.
-        return FieldValueChangeHelper.containsAllIds(stored, incoming);
+        return oldValue == null
+                || !FieldValueChangeHelper.containsAllIds(oldValue.getItems(), newValue.getItems(), UserEntity::getId);
     }
 
     public UUID checkUserAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, UserEntity userEntity) throws ServiceException {

@@ -91,22 +91,10 @@ public class FieldTyperBoolean extends FieldTyperSingleValue<
     }
 
     @Override
-    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueBoolean value) throws ServiceException {
-        if (value.isUndefined() || value.isCleared())
-            return false;
-        if (getFieldKit(twin) == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
-            return false;
-        var kit = getFieldKit(twin);
-        if (kit == null)
-            return false;
-        TwinFieldBooleanEntity entity = kit.get(value.getTwinClassFieldId());
-        if (entity != null)
-            return Objects.equals(entity.getValue(), value.getValue());
-        if (featurerService == null)
-            return false;
-        // No stored row still reads as the configured default. Resending that default is not an edit.
-        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
-        return Objects.equals(defaultValue.extract(properties), value.getValue());
+    public boolean checkIsChanged(TwinEntity twin, FieldValueBoolean oldValue, FieldValueBoolean newValue, Properties properties) throws ServiceException {
+        if (oldValue != null)
+            return !Objects.equals(oldValue.getValue(), newValue.getValue());
+        return !Objects.equals(defaultValue.extract(properties), newValue.getValue());
     }
 
     @Override
@@ -118,16 +106,16 @@ public class FieldTyperBoolean extends FieldTyperSingleValue<
     @Override
     protected void onCleared(Properties properties, TwinFieldBooleanEntity twinFieldBooleanEntity, TwinChangesCollector twinChangesCollector) {
         // Boolean clears to its configured default value (not delete / not null) — keeps a concrete value
-        detectValueChange(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
+        collectChangedValue(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
     }
 
     @Override
     protected void onClearedNoRow(Properties properties, TwinEntity twin, TwinClassFieldEntity twinClassField, TwinChangesCollector twinChangesCollector) throws ServiceException {
         // A clear on a phantom boolean (no stored row) materializes a row with the default value,
         // preserving the "boolean always has a concrete value" invariant — same as the former
-        // FieldTyperBooleanV1 behavior (create + collector.add + detectValueChange(defaultValue)).
+        // FieldTyperBooleanV1 behavior (create + collector.add + collectChangedValue(defaultValue)).
         TwinFieldBooleanEntity twinFieldBooleanEntity = createTwinFieldEntity(twin, twinClassField);
-        detectValueChange(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
+        collectChangedValue(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
     }
 
     @Override

@@ -124,7 +124,7 @@ class FieldTyperBooleanTest extends BaseUnitTest {
 
         @Test
         void serializeValue_sameValue_doesNotMutateEntity() throws ServiceException {
-            // Intended: when newValue equals oldValue, detectValueChange reports no change and the entity is untouched.
+            // Intended: when newValue equals oldValue, collectChangedValue reports no change and the entity is untouched.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = twinWithKit(classField, true);
             var value = new FieldValueBoolean(classField).setValue(true);

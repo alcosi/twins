@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.featurer.Featurer;
 import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -18,16 +19,14 @@ import org.twins.core.service.twin.TwinService;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.*;
 
 class FieldTyperDecimalTest extends BaseUnitTest {
 
@@ -46,7 +45,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         setField(fieldTyper, "featurerService", featurerService);
         // lenient: only deserializeValue calls loadTwinFields; validate/getFieldDescriptor do not.
         lenient().doNothing().when(twinService).loadTwinFields(any(TwinEntity.class));
-        lenient().when(featurerService.extractProperties(any(), org.mockito.ArgumentMatchers.nullable(java.util.HashMap.class))).thenReturn(properties());
+        lenient().when(featurerService.extractProperties(any(Featurer.class), nullable(HashMap.class))).thenReturn(properties());
     }
 
     private void setField(Object target, String fieldName, Object value) throws Exception {
@@ -431,6 +430,51 @@ class FieldTyperDecimalTest extends BaseUnitTest {
     }
 
     @Nested
+    class IsChanged {
+
+        @Test
+        void exactEcho_isUnchanged() throws ServiceException {
+            // Intended: resending the stored text verbatim is not an edit.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = twinWithDecimalField(classField, new BigDecimal("10.00"));
+            var value = new FieldValueText(classField).setValue("10.00");
+
+            assertFalse(fieldTyper.isChanged(twin, null, value));
+        }
+
+        @Test
+        void reformattedEcho_isUnchanged() throws ServiceException {
+            // Intended: the reason isChanged is overridden in FieldTyperDecimal — comparison goes
+            // through processValue, so a reformatted number ("15.5" vs stored "15.50") is an echo.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = twinWithDecimalField(classField, new BigDecimal("15.50"));
+            var value = new FieldValueText(classField).setValue("15.5");
+
+            assertFalse(fieldTyper.isChanged(twin, null, value));
+        }
+
+        @Test
+        void incrementDelta_isChanged() throws ServiceException {
+            // Intended: a +/- delta folds into the stored value and is always an edit.
+            when(featurerService.extractProperties(any(Featurer.class), nullable(HashMap.class))).thenReturn(propertiesWithIncrement());
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = twinWithDecimalField(classField, new BigDecimal("10.00"));
+            var value = new FieldValueText(classField).setValue("+5");
+
+            assertTrue(fieldTyper.isChanged(twin, null, value));
+        }
+
+        @Test
+        void noStoredRow_isChanged() throws ServiceException {
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = twinWithoutDecimalField(classField);
+            var value = new FieldValueText(classField).setValue("10");
+
+            assertTrue(fieldTyper.isChanged(twin, null, value));
+        }
+    }
+
+    @Nested
     class UpdateRestricted {
 
         @Test
@@ -480,14 +524,16 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         }
 
         @Test
-        void updateSameStoredValue_isNotRestricted() throws ServiceException {
-            // Intended: resending the stored value is not an edit, even when the field cannot be edited.
+        void updateSameStoredValue_stillChecksImmutability() throws ServiceException {
+            // Intended: updateRestricted is a pure permission gate; echo filtering (a resent value
+            // equal to storage) is TwinService.dropUnchangedFields' job, done before validation.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = twinWithDecimalField(classField, new BigDecimal("10.00")).setCreateElseUpdate(false);
             var value = new FieldValueText(classField).setValue("10.00");
+            when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
 
-            assertFalse(fieldTyper.updateRestricted(twin, value));
-            verify(twinService, never()).isFieldImmutable(any(), any());
+            assertTrue(fieldTyper.updateRestricted(twin, value));
+            verify(twinService).isFieldImmutable(twin, classField);
         }
 
         @Test

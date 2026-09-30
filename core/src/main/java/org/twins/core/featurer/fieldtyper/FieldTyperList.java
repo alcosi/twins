@@ -128,29 +128,6 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     }
 
     @Override
-    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueSelect value) throws ServiceException {
-        if (value.isUndefined() || value.isCleared())
-            return false;
-        List<UUID> incoming = new ArrayList<>();
-        for (DataListOptionEntity option : value.getItemsOrEmpty()) {
-            if (option == null || option.getId() == null)
-                return false;
-            incoming.add(option.getId());
-        }
-        if (twin.getTwinFieldDatalistKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
-            return false;
-        if (twin.getTwinFieldDatalistKit() == null)
-            return false;
-        List<UUID> stored = new ArrayList<>();
-        for (TwinFieldDataListEntity row : twin.getTwinFieldDatalistKit().getGrouped(value.getTwinClassFieldId())) {
-            if (row.getDataListOptionId() == null)
-                return false;
-            stored.add(row.getDataListOptionId());
-        }
-        return FieldValueChangeHelper.sameIdMultiset(incoming, stored);
-    }
-
-    @Override
     protected ValidationResult validate(Properties properties, TwinEntity twin, FieldValueSelect fieldValue) throws ServiceException {
         //todo - check that additional option conditions are met
         if (fieldValue.size() > 1 && !allowMultiply(properties)) {

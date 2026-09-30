@@ -13,7 +13,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.recompute.FieldRecomputeRequest;
@@ -90,8 +89,7 @@ public class RecomputerFieldDateShiftByDuration extends Recomputer {
 
         String pattern = twinClassFieldService.getDateFieldPattern(targetField);
         FieldValueDate value = new FieldValueDate(targetField, pattern).setDate(result);
-        FieldTyper fieldTyper = featurerService.getFeaturer(targetField.getFieldTyperFeaturerId(), FieldTyper.class);
-        fieldTyper.serializeValue(twin, value, collector);
+        twinService.serializeFieldValue(twin, value, collector);
         log.info("Recomputed twinClassField[{}] = {} from source[{}] duration[{}]", targetField.getId(), result, sourceFieldId, durationFieldId);
     }
 }

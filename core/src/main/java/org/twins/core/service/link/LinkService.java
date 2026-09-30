@@ -77,7 +77,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
      */
     @Override
     public CacheSupportType getCacheSupportType() {
-        return CacheSupportType.REQUEST;
+        return CacheSupportType.GLOBAL;
     }
 
     @Override

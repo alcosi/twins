@@ -22,7 +22,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueTwinClassList;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,9 +45,6 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueTwinClassList value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (!twin.isCreateElseUpdate() && isUnchangedUpdate(twin, value))
-            return;
-
         List<TwinClassEntity> selectedTwinClassEntities = twinClassService.findEntitiesSafe(
                         value.getItems().stream()
                                 .map(TwinClassEntity::getId)
@@ -113,29 +109,6 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
         }
         if (twinChangesCollector.isHistoryCollectorEnabled() && historyItem.getContext().notEmpty())
             twinChangesCollector.getHistoryCollector(twin).add(historyItem);
-    }
-
-    @Override
-    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueTwinClassList value) throws ServiceException {
-        if (value.isUndefined() || value.isCleared())
-            return false;
-        List<UUID> incoming = new ArrayList<>();
-        for (TwinClassEntity twinClass : value.getItems()) {
-            if (twinClass == null || twinClass.getId() == null)
-                return false;
-            incoming.add(twinClass.getId());
-        }
-        if (twin.getTwinFieldTwinClassKit() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
-            return false;
-        if (twin.getTwinFieldTwinClassKit() == null)
-            return false;
-        List<UUID> stored = new ArrayList<>();
-        for (TwinFieldTwinClassEntity row : twin.getTwinFieldTwinClassKit().getGrouped(value.getTwinClassFieldId())) {
-            if (row.getTwinClassId() == null)
-                return false;
-            stored.add(row.getTwinClassId());
-        }
-        return FieldValueChangeHelper.sameIdMultiset(incoming, stored);
     }
 
     @Override

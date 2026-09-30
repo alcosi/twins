@@ -1,6 +1,8 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.Featurer;
+import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,13 +18,15 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
-import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.CREATOR_USER_ID;
-import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.OWNER_USER_ID;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.when;
+import static org.twins.core.enums.consts.SystemIds.TwinClassField.Base.*;
 
 class FieldTyperBaseUserFieldTest extends BaseUnitTest {
 
@@ -31,9 +35,13 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private FeaturerService featurerService;
+
     @BeforeEach
     void setUp() throws Exception {
         setField(fieldTyper, "twinService", twinService);
+        setField(fieldTyper, "featurerService", featurerService);
     }
 
     private static void setField(Object target, String name, Object value) throws Exception {
@@ -158,13 +166,17 @@ class FieldTyperBaseUserFieldTest extends BaseUnitTest {
 
         @Test
         void serializeValue_creatorSameUser_isNoOp() throws ServiceException {
-            // Intended: resending the stored creator is not a change and must not be rejected.
+            // Intended: resending the stored creator is not an edit; the unchanged guard in the base
+            // FieldTyper.serializeValue skips it before validation and the immutable throw.
             UUID userId = UUID.randomUUID();
             var twin = new TwinEntity().setId(UUID.randomUUID()).setCreatedByUserId(userId);
             var classField = new TwinClassFieldEntity().setId(CREATOR_USER_ID);
             var value = new FieldValueUserSingle(classField).setValue(new UserEntity().setId(userId));
+            when(featurerService.extractProperties(any(Featurer.class), nullable(HashMap.class))).thenReturn(new Properties());
+            when(twinService.getTwinFieldValue(twin, classField))
+                    .thenReturn(new FieldValueUserSingle(classField).setValue(new UserEntity().setId(userId)));
 
-            fieldTyper.serializeValue(new Properties(), twin, value, new TwinChangesCollector());
+            fieldTyper.serializeValue(twin, value, new TwinChangesCollector());
 
             assertEquals(userId, twin.getCreatedByUserId());
         }

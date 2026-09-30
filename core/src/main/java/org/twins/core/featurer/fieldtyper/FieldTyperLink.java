@@ -78,42 +78,6 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         return linkEntity.getType().isMany() && linkService.isBackwardLink(linkEntity, twinClassFieldEntity.getTwinClass());
     }
 
-    @Override
-    public boolean isUnchangedUpdate(TwinEntity twin, FieldValueLink value) throws ServiceException {
-        if (value.isUndefined() || value.isCleared() || twin.getTwinClass() == null || featurerService == null)
-            return false;
-        List<UUID> incoming = new ArrayList<>();
-        for (TwinEntity farTwin : value.getItemsOrEmpty()) {
-            if (farTwin == null || farTwin.getId() == null)
-                return false;
-            incoming.add(farTwin.getId());
-        }
-        Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
-        LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
-        LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twin.getTwinClass());
-        if (twin.getTwinLinks() == null && !ensureFieldStorageLoaded(twin, value.getTwinClassField()))
-            return false;
-        if (twin.getTwinLinks() == null)
-            return false;
-        List<TwinLinkEntity> storedLinks;
-        if (linkDirection == LinkService.LinkDirection.forward)
-            storedLinks = twin.getTwinLinks().getForwardLinks().getGrouped(linkEntity.getId());
-        else if (linkDirection == LinkService.LinkDirection.backward)
-            storedLinks = twin.getTwinLinks().getBackwardLinks().getGrouped(linkEntity.getId());
-        else
-            return false;
-        List<UUID> stored = new ArrayList<>();
-        for (TwinLinkEntity storedLink : storedLinks) {
-            UUID farTwinId = linkDirection == LinkService.LinkDirection.forward
-                    ? storedLink.getDstTwinId()
-                    : storedLink.getSrcTwinId();
-            if (farTwinId == null)
-                return false;
-            stored.add(farTwinId);
-        }
-        return FieldValueChangeHelper.sameIdMultiset(incoming, stored);
-    }
-
     //todo check if this method works correctly for fields that display backward links
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueLink value, TwinChangesCollector twinChangesCollector) throws ServiceException {

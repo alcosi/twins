@@ -111,10 +111,16 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     protected abstract D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException;
 
-    public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public final void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams());
         if (value.isUndefined()) {
             log.info("{} is undefined, serialization will be skipped", value.getTwinClassField().logNormal());
+            return;
+        }
+        // The same clients resend every field, changed or not; a value equal to storage is not an edit.
+        // Validation, permission and serialization then see only real edits.
+        if (!twin.isCreateElseUpdate() && !isChanged(twin, value)) {
+            log.debug("{} is unchanged, serialization will be skipped", value.getTwinClassField().logNormal());
             return;
         }
         if (!validate(twin, value).isValid()) {
@@ -142,7 +148,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return true;
     }
 
-    public T deserializeValue(TwinField twinField) throws ServiceException {
+    public final T deserializeValue(TwinField twinField) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams());
         var storage = getStorage(twinField.getTwinClassField());
         if (!storage.isLoaded(twinField.getTwin())) {
@@ -228,41 +234,35 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         // null/cleared is not "set this value". Clients often send the full field map, including
         // keys the user cannot fill. Skip permission for those. A non-empty value stays gated.
         // On update, mutable fields still clear in serializeValue; immutable clears are skipped there.
+        // Echo filtering (a resent value equal to storage) is not done here:
+        // TwinService.dropUnchangedFields removes those values before validation.
         if (value.isCleared()) {
             return false;
         }
         if (!value.isDefined() || value.isSystemInitialized()) {
             return false;
         }
-        // The same clients resend every field, changed or not. A value equal to storage is not an edit.
-        if (!twin.isCreateElseUpdate() && isUnchangedUpdate(twin, value)) {
-            return false;
-        }
         return twinService.isFieldImmutable(twin, value.getTwinClassField());
     }
 
-    /**
-     * True when an update repeats the value already stored.
-     * Field permission applies only to real edits; a full form resends unchanged fields too.
-     * Create is never an echo. The default stays false so an unknown typer remains permission-gated.
-     */
-    public boolean isUnchangedUpdate(TwinEntity twin, T value) throws ServiceException {
-        return false;
+    public final boolean isChanged(TwinEntity twin, T newValue) throws ServiceException {
+        return isChanged(twin, (T) twinService.getTwinFieldValue(twin, newValue.getTwinClassField()), newValue);
+    }
+
+    public final boolean isChanged(TwinEntity twin, T oldValue, T newValue) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, newValue.getTwinClassField().getFieldTyperParams());
+        return checkIsChanged(twin, oldValue, newValue, properties);
     }
 
     /**
-     * @return false when storage cannot be resolved, so the caller treats the value as a change
+     * True when the incoming newValue really changes the field, i.e. it differs from the stored oldValue.
+     * Field permission and validation apply only to real edits; a full form resends unchanged fields too.
+     * Create has nothing stored yet, so the caller checks twin.isCreateElseUpdate() first.
+     * The stored value comes batch-preloaded (TwinService.loadFieldsValues + getTwinFieldValue).
+     * A null oldValue or an incomparable pair reads as changed, so an unknown typer stays permission-gated.
      */
-    protected boolean ensureFieldStorageLoaded(TwinEntity twin, TwinClassFieldEntity twinClassField) throws ServiceException {
-        TwinFieldStorage storage = twinClassField.getFieldStorage();
-        if (storage == null) {
-            if (fieldStorageService == null)
-                return false;
-            storage = getStorage(twinClassField);
-        }
-        if (!storage.isLoaded(twin))
-            storage.load(Kit.singleton(twin, TwinEntity::getId));
-        return storage.isLoaded(twin);
+    public boolean checkIsChanged(TwinEntity twin, T oldValue, T newValue, Properties properties) throws ServiceException {
+        return oldValue == null || !FieldValueChangeHelper.sameContents(oldValue, newValue);
     }
 
     //If field is already initiated this will be checked later.

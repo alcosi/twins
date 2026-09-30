@@ -51,6 +51,6 @@ public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends Fiel
      */
     @Override
     protected void onCleared(Properties properties, TwinFieldSimpleEntity twinFieldEntity, TwinChangesCollector twinChangesCollector) {
-        detectValueChange(twinFieldEntity, twinChangesCollector, null);
+        collectChangedValue(twinFieldEntity, twinChangesCollector, null);
     }
 }

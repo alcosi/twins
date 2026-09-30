@@ -66,7 +66,7 @@ public class FieldTyperCalcSumMater extends FieldTyperDecimalBase<FieldDescripto
             twinFieldEntity = TwinFieldDecimalEntity.of(twin, value.getTwinClassField());
             twinChangesCollector.add(twinFieldEntity);
         }
-        detectValueChange(twinFieldEntity, twinChangesCollector, calcSum(properties, twin));
+        collectChangedValue(twinFieldEntity, twinChangesCollector, calcSum(properties, twin));
     }
 
     @Override
