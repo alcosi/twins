@@ -2,6 +2,8 @@ package org.twins.core.dto.rest.datalist;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -16,6 +18,8 @@ import java.util.List;
 public class DataListUpdateRqDTOv1 extends Request {
 
     @Valid
+    @NotEmpty
+    @Size(max = 50)
     @Schema(description = "data list update list")
     public List<DataListUpdateDTOv1> dataLists;
 }

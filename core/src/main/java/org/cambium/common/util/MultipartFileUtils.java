@@ -5,8 +5,10 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.file.FileData;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
@@ -17,6 +19,17 @@ public class MultipartFileUtils {
         var originalFileName = multipartFile.getOriginalFilename();
         var fileSize = multipartFile.getSize() > 0 ? multipartFile.getSize() : null;
         return new FileData(inputStream, originalFileName, fileSize);
+    }
+
+    /**
+     * Collects all file parts of a multipart request into a name -> file map (last part wins on duplicate names).
+     * The resulting map is used to resolve {@code multipart://<part_name>} links of the same request.
+     */
+    public static Map<String, MultipartFile> collectFiles(MultipartHttpServletRequest request) {
+        Map<String, MultipartFile> filesMap = new HashMap<>();
+        request.getFileNames().forEachRemaining(fileName ->
+                request.getFiles(fileName).forEach(file -> filesMap.put(fileName, file)));
+        return filesMap;
     }
 
     /**

@@ -38,7 +38,10 @@ import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinstatus.TwinStatusService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 
 @Tag(description = "", name = ApiTag.TWIN_STATUS)
@@ -83,11 +86,11 @@ public class TwinStatusCreateController extends ApiController {
             @Schema(implementation = TwinStatusCreateRqDTOv1.class, requiredMode = Schema.RequiredMode.REQUIRED, description = "request json")
             @RequestPart("request") byte[] requestBytes) {
 
-        Map<String, MultipartFile> filesMap = new HashMap<>();
-        request.getFileNames().forEachRemaining(fileName ->
-                request.getFiles(fileName).forEach(file -> filesMap.put(fileName, file)));
-        log.info("Came create twin status /private/twin_status/v2 : {}", new String(requestBytes));
-        return processCreationRequest(mapRequest(requestBytes, TwinStatusCreateRqDTOv1.class), mapperContext, filesMap);
+        Map<String, MultipartFile> filesMap = MultipartFileUtils.collectFiles(request);
+        TwinStatusCreateRqDTOv1 rq = mapRequest(requestBytes, TwinStatusCreateRqDTOv1.class);
+        log.info("Came create twin status /private/twin_status/v2 : {} bytes, {} statuses",
+                requestBytes.length, rq.getStatuses() == null ? -1 : rq.getStatuses().size());
+        return processCreationRequest(rq, mapperContext, filesMap);
     }
 
 

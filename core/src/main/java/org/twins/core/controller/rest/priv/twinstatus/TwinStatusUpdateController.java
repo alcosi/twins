@@ -8,14 +8,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
+import org.cambium.common.util.MultipartFileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
@@ -33,12 +38,12 @@ import org.twins.core.mappers.rest.twinstatus.TwinStatusUpdateRestDTOReverseMapp
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinstatus.TwinStatusService;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import static org.cambium.common.util.MultipartFileUtils.convert;
-
+@Slf4j
 @Tag(description = "", name = ApiTag.TWIN_STATUS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -62,7 +67,7 @@ public class TwinStatusUpdateController extends ApiController {
     public ResponseEntity<?> twinStatusUpdateV1(
             @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody @Valid TwinStatusUpdateRqDTOv1 request) {
-        return processUpdate(mapperContext, request, null, null);
+        return processUpdate(mapperContext, request, Collections.emptyMap());
     }
 
     @ParametersApiUserHeaders
@@ -73,29 +78,34 @@ public class TwinStatusUpdateController extends ApiController {
                     @Schema(implementation = TwinStatusListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(path = "/private/twin_status/v2", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @Loggable(value = false, rqBodyThreshold = 0)
     public ResponseEntity<?> twinStatusUpdateV2(
             @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinStatusUpdateRqDTOv1.class, requiredMode = Schema.RequiredMode.REQUIRED, description = "request json")
-            @RequestPart("request") byte[] requestBytes,
-            @Schema(implementation = MultipartFile.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Dark icon")
-            @RequestPart(required = false) MultipartFile iconDark,
-            @Schema(implementation = MultipartFile.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Light icon")
-            @RequestPart(required = false) MultipartFile iconLight) throws IOException {
-        var request = objectMapper.readValue(requestBytes, TwinStatusUpdateRqDTOv1.class);
-        return processUpdate(mapperContext, request, iconDark, iconLight);
+            @RequestPart("request") byte[] requestBytes) {
+        Map<String, MultipartFile> filesMap = MultipartFileUtils.collectFiles(request);
+        TwinStatusUpdateRqDTOv1 rq = mapRequest(requestBytes, TwinStatusUpdateRqDTOv1.class);
+        log.info("Came update twin status /private/twin_status/v2 : {} bytes, {} statuses",
+                requestBytes.length, rq.getStatuses() == null ? -1 : rq.getStatuses().size());
+        return processUpdate(mapperContext, rq, filesMap);
     }
 
-    protected ResponseEntity<? extends Response> processUpdate(MapperContext mapperContext, TwinStatusUpdateRqDTOv1 request, MultipartFile iconDark, MultipartFile iconLight) {
+    protected ResponseEntity<? extends Response> processUpdate(MapperContext mapperContext, TwinStatusUpdateRqDTOv1 request, Map<String, MultipartFile> filesMap) {
         TwinStatusListRsDTOv1 rs = new TwinStatusListRsDTOv1();
         try {
             List<I18nEntity> namesI18n = new ArrayList<>(request.getStatuses().size());
             List<I18nEntity> descriptionsI18n = new ArrayList<>(request.getStatuses().size());
+            List<FileData> lightIcons = new ArrayList<>(request.getStatuses().size());
+            List<FileData> darkIcons = new ArrayList<>(request.getStatuses().size());
             for (TwinStatusUpdateDTOv1 status : request.getStatuses()) {
                 namesI18n.add(i18NSaveRestDTOReverseMapper.convert(status.getNameI18n()));
                 descriptionsI18n.add(i18NSaveRestDTOReverseMapper.convert(status.getDescriptionI18n()));
+                lightIcons.add(MultipartFileUtils.resolveMultipartFile(status.getIconLightLink(), filesMap));
+                darkIcons.add(MultipartFileUtils.resolveMultipartFile(status.getIconDarkLink(), filesMap));
             }
             List<TwinStatusEntity> updatedStatuses = twinStatusService.updateStatuses(
-                    twinStatusUpdateRestDTOReverseMapper.convertCollection(request.getStatuses()), namesI18n, descriptionsI18n, convert(iconLight), convert(iconDark));
+                    twinStatusUpdateRestDTOReverseMapper.convertCollection(request.getStatuses()), namesI18n, descriptionsI18n, lightIcons, darkIcons);
             rs
                     .setStatuses(twinStatusRestDTOMapper.convertCollection(updatedStatuses, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

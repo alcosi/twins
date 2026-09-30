@@ -39,4 +39,10 @@ public class TwinStatusUpdateDTOv1 {
 
     @Schema(description = "[optional] inheritable")
     public Boolean inheritable;
+
+    @Schema(description = "[optional] light icon multipart link. Use multipart://<part_name> to reference a file from the same multipart request")
+    public String iconLightLink;
+
+    @Schema(description = "[optional] dark icon multipart link. Use multipart://<part_name> to reference a file from the same multipart request")
+    public String iconDarkLink;
 }
