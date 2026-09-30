@@ -10,11 +10,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.file.FileData;
+import org.cambium.common.util.MultipartFileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
@@ -35,11 +38,8 @@ import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinstatus.TwinStatusService;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-import static org.cambium.common.util.MultipartFileUtils.convert;
 
 @Tag(description = "", name = ApiTag.TWIN_STATUS)
 @RestController
@@ -65,7 +65,7 @@ public class TwinStatusCreateController extends ApiController {
     public ResponseEntity<?> twinStatusCreateV1(
             @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @RequestBody @Valid TwinStatusCreateRqDTOv1 request) {
-        return processCreationRequest(request, mapperContext, null, null);
+        return processCreationRequest(request, mapperContext, Collections.emptyMap());
     }
 
     @ParametersApiUserHeaders
@@ -79,30 +79,33 @@ public class TwinStatusCreateController extends ApiController {
     @Loggable(value = false, rqBodyThreshold = 0)
     public ResponseEntity<?> twinStatusCreateV2(
             @MapperContextBinding(roots = TwinStatusRestDTOMapper.class, response = TwinStatusListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = TwinStatusCreateRqDTOv1.class, requiredMode = Schema.RequiredMode.REQUIRED, description = "request json")
-            @RequestPart("request") byte[] requestBytes,
-            @Schema(implementation = MultipartFile.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Dark icon")
-            @RequestPart(required = false) MultipartFile iconDark,
-            @Schema(implementation = MultipartFile.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Light icon")
-            @RequestPart(required = false) MultipartFile iconLight) throws IOException {
+            @RequestPart("request") byte[] requestBytes) {
 
-        var request = objectMapper.readValue(requestBytes, TwinStatusCreateRqDTOv1.class);
+        Map<String, MultipartFile> filesMap = new HashMap<>();
+        request.getFileNames().forEachRemaining(fileName ->
+                request.getFiles(fileName).forEach(file -> filesMap.put(fileName, file)));
         log.info("Came create twin status /private/twin_status/v2 : {}", new String(requestBytes));
-        return processCreationRequest(request, mapperContext, iconDark, iconLight);
+        return processCreationRequest(mapRequest(requestBytes, TwinStatusCreateRqDTOv1.class), mapperContext, filesMap);
     }
 
 
-    protected ResponseEntity<? extends Response> processCreationRequest(TwinStatusCreateRqDTOv1 request, MapperContext mapperContext, MultipartFile iconDark, MultipartFile iconLight) {
+    protected ResponseEntity<? extends Response> processCreationRequest(TwinStatusCreateRqDTOv1 request, MapperContext mapperContext, Map<String, MultipartFile> filesMap) {
         TwinStatusListRsDTOv1 rs = new TwinStatusListRsDTOv1();
         try {
             List<I18nEntity> namesI18n = new ArrayList<>(request.getStatuses().size());
             List<I18nEntity> descriptionsI18n = new ArrayList<>(request.getStatuses().size());
+            List<FileData> lightIcons = new ArrayList<>(request.getStatuses().size());
+            List<FileData> darkIcons = new ArrayList<>(request.getStatuses().size());
             for (TwinStatusCreateDTOv1 status : request.getStatuses()) {
                 namesI18n.add(i18NSaveRestDTOReverseMapper.convert(status.getNameI18n()));
                 descriptionsI18n.add(i18NSaveRestDTOReverseMapper.convert(status.getDescriptionI18n()));
+                lightIcons.add(MultipartFileUtils.resolveMultipartFile(status.getIconLightLink(), filesMap));
+                darkIcons.add(MultipartFileUtils.resolveMultipartFile(status.getIconDarkLink(), filesMap));
             }
             List<TwinStatusEntity> twinStatusEntities = twinStatusCreateRestDTOReverseMapper.convertCollection(request.getStatuses());
-            List<TwinStatusEntity> createdStatuses = twinStatusService.createStatuses(twinStatusEntities, namesI18n, descriptionsI18n, convert(iconLight), convert(iconDark));
+            List<TwinStatusEntity> createdStatuses = twinStatusService.createStatuses(twinStatusEntities, namesI18n, descriptionsI18n, lightIcons, darkIcons);
             rs
                     .setStatuses(twinStatusRestDTOMapper.convertCollection(createdStatuses, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -113,4 +116,5 @@ public class TwinStatusCreateController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
+
 }

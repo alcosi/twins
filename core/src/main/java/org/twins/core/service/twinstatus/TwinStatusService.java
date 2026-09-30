@@ -170,10 +170,11 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public List<TwinStatusEntity> createStatuses(List<TwinStatusEntity> twinStatusEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n, FileData lightIcon, FileData darkIcon) throws ServiceException {
+    public List<TwinStatusEntity> createStatuses(List<TwinStatusEntity> twinStatusEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n, List<FileData> lightIcons, List<FileData> darkIcons) throws ServiceException {
         List<TwinStatusEntity> created = new ArrayList<>(twinStatusEntities.size());
         for (int i = 0; i < twinStatusEntities.size(); i++)
-            created.add(createStatus(twinStatusEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i), lightIcon, darkIcon));
+            created.add(createStatus(twinStatusEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i),
+                    lightIcons.get(i), darkIcons.get(i)));
         return created;
     }
 
