@@ -71,9 +71,11 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
 
     /**
      * Link definitions are read several times per request (twin update reads them in the unchanged-check,
-     * validate and serialize for every link field). Request-scope dedupes those reads into one SELECT;
-     * the cache dies with the request, so no explicit eviction is needed. Same pattern as
-     * {@link org.twins.core.service.twinstatus.TwinStatusService}.
+     * validate and serialize for every link field). GLOBAL caching (JVM-wide Caffeine, 5 min write TTL)
+     * dedupes those reads across requests. Entries live under {@code LinkEntity.class.getSimpleName()}
+     * (see {@link org.cambium.service.EntitySecureFindServiceImpl#getCachedEntity}) and must be evicted
+     * on every link mutation — {@link #updateLink} evicts them together with the @Cacheable
+     * {@link #CACHE_LINK}. Same pattern as {@link org.twins.core.service.twinclass.TwinClassService}.
      */
     @Override
     public CacheSupportType getCacheSupportType() {
@@ -186,7 +188,10 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 dbLinkEntity.getSrcTwinClass().invalidateLinksKit();
                 linkUpdate.getSrcTwinClass().invalidateLinksKit();
             }
-            CacheUtils.evictCache(cacheManager,CACHE_LINK, dbLinkEntity.getId());
+            CacheUtils.evictCache(cacheManager, CACHE_LINK, dbLinkEntity.getId());
+            // The GLOBAL EntitySecureFindServiceImpl cache lives under the entity class simple name —
+            // a different cache than CACHE_LINK above; both must be evicted (same as TwinClassService.updateTwinClass).
+            CacheUtils.evictCache(cacheManager, LinkEntity.class.getSimpleName(), dbLinkEntity.getId());
         }
         return dbLinkEntity;
     }
