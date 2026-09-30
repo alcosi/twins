@@ -23,7 +23,14 @@ public abstract class FieldTyperSingleValue<
         V,
         S extends TwinFieldStorageMater<E>,
         A extends TwinFieldValueSearch> extends FieldTyper<D, T, S, A> {
-    protected void detectValueChange(E twinFieldEntity, TwinChangesCollector twinChangesCollector, V newValue) {
+
+    /**
+     * Applies the processed value: registers the change in the collector (this is what makes
+     * the entity persisted), adds the history entry and sets the in-memory value. The collectIf*
+     * comparison inside is the authoritative write-time diff — the isChanged guard does not run
+     * on create and errs towards "changed" for incomparable values, so this check stays.
+     */
+    protected void collectChangedValue(E twinFieldEntity, TwinChangesCollector twinChangesCollector, V newValue) {
         var oldValue = getEntityValue(twinFieldEntity);
         if (twinChangesCollector.collectIfChangedWithNullifySupport(twinFieldEntity, "field[" + twinFieldEntity.getTwinClassField().getKey() + "]", oldValue, newValue)) {
             addHistoryContext(twinChangesCollector, twinFieldEntity, newValue);
@@ -56,7 +63,7 @@ public abstract class FieldTyperSingleValue<
             if (twinFieldEntity == null) {
                 twinFieldEntity = reviveDeletedOrCreate(twin, twinClassField, twinChangesCollector);
             }
-            detectValueChange(twinFieldEntity, twinChangesCollector, processValue(properties, twinFieldEntity, value));
+            collectChangedValue(twinFieldEntity, twinChangesCollector, processValue(properties, twinFieldEntity, value));
         }
     }
 

@@ -14,7 +14,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.recompute.FieldRecomputeRequest;
@@ -85,8 +84,7 @@ public class RecomputerFieldDurationBetweenDates extends Recomputer {
 
         FieldValueText value = new FieldValueText(durationField)
                 .setValue(BigDecimalUtil.getProcessedString(BigDecimal.valueOf(days)));
-        FieldTyper fieldTyper = featurerService.getFeaturer(durationField.getFieldTyperFeaturerId(), FieldTyper.class);
-        fieldTyper.serializeValue(twin, value, collector);
+        twinService.serializeFieldValue(twin, value, collector);
         log.info("Recomputed duration twinClassField[{}] = {}", durationField.getId(), days);
     }
 }

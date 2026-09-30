@@ -48,6 +48,6 @@ public abstract class FieldTyperSimpleNonIndexed<D extends FieldDescriptor, T ex
      */
     @Override
     protected void onCleared(Properties properties, TwinFieldSimpleNonIndexedEntity twinFieldEntity, TwinChangesCollector twinChangesCollector) {
-        detectValueChange(twinFieldEntity, twinChangesCollector, null);
+        collectChangedValue(twinFieldEntity, twinChangesCollector, null);
     }
 }
