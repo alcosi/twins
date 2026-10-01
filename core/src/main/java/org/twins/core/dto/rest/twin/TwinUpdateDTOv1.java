@@ -56,7 +56,8 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "TwinTags for updating")
     public TwinTagManageDTOv1 tagsUpdate;
 
-    @NotNull
+    //todo uncommit when the GW switches to batch updates
+    //@NotNull
     @Schema(description = "twin id")
     public UUID twinId;
 

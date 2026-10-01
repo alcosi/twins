@@ -56,8 +56,12 @@ public class TwinUpdateController extends ApiController {
     private final AttachmentCUDRestDTOReverseMapper twinAttachmentCUDRestDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
+    /**
+     * @deprecated Удалить после 2026-11-01.
+     */
+    @Deprecated
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinUpdateV1", summary = "Update twin")
+    @Operation(operationId = "twinUpdateV1", summary = "Update twin", deprecated = true)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
@@ -76,9 +80,12 @@ public class TwinUpdateController extends ApiController {
      * Endpoint for updating a twin from a multipart/form-data request.
      * The DTO is expected as a JSON string in the 'request' part.
      * You could also add other parts, e.g., @RequestPart("file") MultipartFile file.
+     *
+     * @deprecated Удалить после 2026-11-01.
      */
+    @Deprecated
     @SneakyThrows
-    @Operation(summary = "twinUpdateV1", description = "Updates a twin using a multipart form. The twin data should be a JSON string in the 'request' form field.")
+    @Operation(summary = "twinUpdateV1", description = "Updates a twin using a multipart form. The twin data should be a JSON string in the 'request' form field.", deprecated = true)
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = TwinSaveRsV1.class))
