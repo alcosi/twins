@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinField;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -16,6 +15,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFi
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -29,12 +29,16 @@ class FieldLookuperFromContextTwinDbFieldsTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldLookuperFromContextTwinDbFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromContextTwinDbFields();
         setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
     }
 
     // contract: resolve the field value from the SINGLE context twin's DB fields,
@@ -50,38 +54,37 @@ class FieldLookuperFromContextTwinDbFieldsTest extends BaseUnitTest {
         void lookupFieldValue_fieldPresentInContextTwinDb_returnsValueAndQueriesContextTwin() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = factoryItemWithSingleContext(contextTwin);
-            var wrapped = new TwinField(contextTwin, field);
             var expected = filledValue(fieldId, "db-val");
 
-            when(twinService.wrapField(eq(contextTwin), eq(field))).thenReturn(wrapped);
-            when(twinService.getTwinFieldValue(wrapped)).thenReturn(expected);
+            when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(expected);
 
-            var result = lookuper.lookupFieldValue(factoryItem, field);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(expected, result);
-            // wrapField invoked WITH the context twin and the requested field (no other twin).
-            verify(twinService).wrapField(eq(contextTwin), eq(field));
-            verify(twinService).getTwinFieldValue(wrapped);
+            // read hits the context twin and the requested field (no other twin).
+            verify(twinService).getTwinFieldValue(contextTwin, field);
         }
 
         @Test
-        void lookupFieldValue_fieldAbsentInContextTwinDb_returnsNull() throws ServiceException {
+        void lookupFieldValue_fieldAbsentInContextTwinDb_returnsUndefinedValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = factoryItemWithSingleContext(contextTwin);
-            var wrapped = new TwinField(contextTwin, field);
 
-            when(twinService.wrapField(eq(contextTwin), eq(field))).thenReturn(wrapped);
-            when(twinService.getTwinFieldValue(wrapped)).thenReturn(null);
+            when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
 
-            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            var undefined = new FieldValueText(field); // no value set -> isUndefined()
+            when(twinService.createFieldValue(field)).thenReturn(undefined);
+            assertSame(undefined, lookuper.lookupFieldValue(factoryItem, field.getId())); // the per-item entry converts a not-found lookup into an undefined value
         }
 
         @Test
-        void lookupFieldValue_multipleContextTwins_throwsFactoryPipelineError() {
+        void lookupFieldValue_multipleContextTwins_throwsFactoryPipelineError() throws ServiceException {
             var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var factoryItem = new FactoryItem();
             // two context items -> checkSingleContextTwin fails before TwinService is touched.
@@ -90,19 +93,19 @@ class FieldLookuperFromContextTwinDbFieldsTest extends BaseUnitTest {
                     new FactoryItem()));
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
+                    () -> lookuper.lookupFieldValue(factoryItem, field.getId()));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);
         }
 
         @Test
-        void lookupFieldValue_zeroContextTwins_throwsFactoryPipelineError() {
+        void lookupFieldValue_zeroContextTwins_throwsFactoryPipelineError() throws ServiceException {
             var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var factoryItem = new FactoryItem(); // empty context list
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, field));
+                    () -> lookuper.lookupFieldValue(factoryItem, field.getId()));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
             verifyNoInteractions(twinService);

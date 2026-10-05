@@ -10,27 +10,48 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import java.util.*;
 
 /**
- * Batch twin navigation driven by a CHAIN OF STAGES — see ai/plans/lookuper-navigation-stages.md.
- * Every navigation goes in stages ({@link NavigationStage}); the engine bulk-loads each stage for
- * the whole frontier, transitions the items in memory (isolated per item), then bulk-loads the
- * lookup field for the final frontier and reads it per item (null becomes an UNDEFINED value — the
- * not-found contract of the lookuper family). A failure at ANY point of the chain fails only its
- * item and lands in {@link LookupResult#failures()}.
+ * Batch twin NAVIGATION driven by a chain of stages — the linked family only; the nearest family
+ * (no navigation, just a per-item read) lives in {@link FieldLookuperNearest}. See
+ * ai/plans/lookuper-navigation-stages.md. The engine runs four phases:
+ * <ol>
+ *   <li>{@code start}: resolve each item's entry twin ({@link #startTwin}, isolated per item),</li>
+ *   <li>{@code stages}: per stage ONE bulk load for the whole frontier
+ *       ({@link NavigationStage#load}) + an isolated per-item in-memory transition
+ *       ({@link NavigationStage#next}),</li>
+ *   <li>{@link #beforeRead}: ONE bulk for the read sources — by default the lookup field itself,</li>
+ *   <li>{@code read}: the isolated per-item {@link #read}; a null value becomes an UNDEFINED value.</li>
+ * </ol>
+ * A failure at ANY phase fails only its item and lands in {@link LookupResult#failures()}.
  */
 public abstract class FieldLookuperNavigated extends FieldLookuper {
 
-    /** Entry twin of the navigation chain for the item; the hook may throw to fail the item. */
+    /** Entry twin of the navigation chain for the item; may throw to fail the item. */
     protected abstract TwinEntity startTwin(FactoryItem factoryItem) throws ServiceException;
 
     /**
      * Final field read from the last stage's output twin; null = not found (the engine turns it into
      * an undefined value). Default: the freshest value (uncommitted output -> output links -> db).
+     * <p>
+     * PAIRED with {@link #beforeRead}: a read that hits the twin field store
+     * ({@code getTwinFieldValue} / the freshest db fallback) lazily loads PER ITEM unless the sources
+     * are preloaded — so a read and its preload are overridden TOGETHER.
      */
     protected FieldValue read(FactoryItem factoryItem, TwinEntity readSource, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         return getFreshestValue(readSource, lookupTwinClassField, factoryItem.getFactoryContext());
     }
 
-    /** The navigation engine: start -> stage chain -> terminal field bulk -> isolated read. */
+    /**
+     * ONE bulk for the whole read phase, right before {@link #read}. Default: preload the lookup
+     * field for the read sources (the default freshest/db reads need it). Override TOGETHER with
+     * {@code read}: a read that does not touch the twin field store overrides this to a no-op (or
+     * to its own bulk).
+     */
+    protected void beforeRead(Collection<TwinEntity> readSources, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+        if (!readSources.isEmpty())
+            twinService.loadTwinFields(readSources, lookupTwinClassField);
+    }
+
+    /** The navigation engine: start -> stage chain -> read bulk -> isolated read. */
     protected LookupResult navigate(FactoryItemsBatch batch, UUID lookupTwinClassFieldId, List<NavigationStage> stages) throws ServiceException {
         return navigate(batch, twinClassFieldService.findEntitySafe(lookupTwinClassFieldId), stages);
     }
@@ -38,6 +59,16 @@ public abstract class FieldLookuperNavigated extends FieldLookuper {
     /** Entity variant — the field entity is resolved by the caller (once per batch). */
     protected LookupResult navigate(FactoryItemsBatch batch, TwinClassFieldEntity lookupTwinClassField, List<NavigationStage> stages) throws ServiceException {
         var ret = LookupResult.empty(batch.size());
+        var frontier = collectStarts(batch, ret);
+        for (NavigationStage stage : stages)
+            frontier = advanceStage(stage, frontier, ret);
+        beforeRead(nonNull(frontier.values()), lookupTwinClassField);
+        readEach(frontier, lookupTwinClassField, ret);
+        return ret;
+    }
+
+    /** Phase 1: per-item start twins, isolated — a failing start fails only its item. */
+    private LinkedHashMap<FactoryItem, TwinEntity> collectStarts(FactoryItemsBatch batch, LookupResult ret) throws ServiceException {
         var frontier = new LinkedHashMap<FactoryItem, TwinEntity>();
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
@@ -46,30 +77,30 @@ public abstract class FieldLookuperNavigated extends FieldLookuper {
                 ret.failures().put(factoryItem, ex);
             }
         }
-        for (NavigationStage stage : stages) {
-            var loaded = nonNull(frontier.values());
-            if (!loaded.isEmpty())
-                stage.load(this, loaded); // ONE bulk query for the whole frontier
-            var next = new LinkedHashMap<FactoryItem, TwinEntity>();
-            for (var entry : frontier.entrySet()) {
-                if (entry.getValue() == null) { // no navigation twin (map-based read) — carried over as is
-                    next.put(entry.getKey(), null);
-                    continue;
-                }
-                try {
-                    next.put(entry.getKey(), stage.next(this, entry.getValue(), entry.getKey().getFactoryContext()));
-                } catch (ServiceException ex) {
-                    ret.failures().put(entry.getKey(), ex);
-                }
-            }
-            frontier = next;
-        }
-        var readSources = nonNull(frontier.values());
-        if (!readSources.isEmpty())
-            twinService.loadTwinFields(readSources, lookupTwinClassField); // the terminal bulk — the read always hits a preloaded twin
+        return frontier;
+    }
+
+    /** Phase 2: ONE stage bulk for the frontier, then the isolated per-item in-memory transition. */
+    private LinkedHashMap<FactoryItem, TwinEntity> advanceStage(NavigationStage stage, LinkedHashMap<FactoryItem, TwinEntity> frontier, LookupResult ret) throws ServiceException {
+        var loaded = nonNull(frontier.values());
+        if (!loaded.isEmpty())
+            stage.load(this, loaded); // ONE bulk query for the whole frontier
+        var next = new LinkedHashMap<FactoryItem, TwinEntity>();
         for (var entry : frontier.entrySet()) {
-            if (entry.getValue() == null || ret.failures().containsKey(entry.getKey()))
-                continue;
+            try {
+                next.put(entry.getKey(), stage.next(this, entry.getValue(), entry.getKey().getFactoryContext()));
+            } catch (ServiceException ex) {
+                ret.failures().put(entry.getKey(), ex);
+            }
+        }
+        return next;
+    }
+
+    /** Phase 4: the isolated per-item read; a null value becomes an UNDEFINED value. */
+    private void readEach(LinkedHashMap<FactoryItem, TwinEntity> frontier, TwinClassFieldEntity lookupTwinClassField, LookupResult ret) throws ServiceException {
+        for (var entry : frontier.entrySet()) {
+            if (ret.failures().containsKey(entry.getKey()))
+                continue; // the item already failed somewhere along the chain
             try {
                 var value = read(entry.getKey(), entry.getValue(), lookupTwinClassField);
                 ret.values().put(entry.getKey(), value == null ? twinService.createFieldValue(lookupTwinClassField) : value); //create field as undefined
@@ -77,7 +108,6 @@ public abstract class FieldLookuperNavigated extends FieldLookuper {
                 ret.failures().put(entry.getKey(), ex);
             }
         }
-        return ret;
     }
 
     private static List<TwinEntity> nonNull(Collection<TwinEntity> twins) {

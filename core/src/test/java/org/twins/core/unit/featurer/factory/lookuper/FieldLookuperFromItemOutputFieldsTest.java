@@ -15,12 +15,12 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputField
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.Hashtable;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
@@ -29,12 +29,16 @@ class FieldLookuperFromItemOutputFieldsTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldLookuperFromItemOutputFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromItemOutputFields();
         setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
     }
 
     // contract: getFreshestValue — first try the uncommitted output field for twinEntity.id
@@ -51,23 +55,25 @@ class FieldLookuperFromItemOutputFieldsTest extends BaseUnitTest {
         void lookupFieldValue_presentAsUncommittedOutput_returnsUncommittedValueAndSkipsDb() throws Exception {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var factoryContext = new FactoryContext(null, null);
             var factoryItem = itemWithTwinAndContext(twin, factoryContext);
             var uncommitted = fieldValue(fieldId, "uncommitted-val");
             registerOutputFieldInContext(factoryContext, twin.getId(), uncommitted);
 
-            var result = lookuper.lookupFieldValue(factoryItem, field);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(uncommitted, result);
             // DB must not be consulted when uncommitted output has the value.
-            verifyNoInteractions(twinService);
+            verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(TwinClassFieldEntity.class)); // no db read happened
         }
 
         @Test
         void lookupFieldValue_notInUncommitted_fallsBackToDb() throws Exception {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var factoryContext = new FactoryContext(null, null);
             var factoryItem = itemWithTwinAndContext(twin, factoryContext);
@@ -76,23 +82,26 @@ class FieldLookuperFromItemOutputFieldsTest extends BaseUnitTest {
             // factoryContext.getFactoryItem returns null -> straight to DB fallback.
             when(twinService.getTwinFieldValue(twin, field)).thenReturn(dbValue);
 
-            var result = lookuper.lookupFieldValue(factoryItem, field);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(dbValue, result);
             verify(twinService).getTwinFieldValue(twin, field);
         }
 
         @Test
-        void lookupFieldValue_nowhere_returnsNull() throws ServiceException {
+        void lookupFieldValue_nowhere_returnsUndefinedValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var factoryContext = new FactoryContext(null, null);
             var factoryItem = itemWithTwinAndContext(twin, factoryContext);
 
             when(twinService.getTwinFieldValue(twin, field)).thenReturn(null);
 
-            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            var undefined = new FieldValueText(field); // no value set -> isUndefined()
+            when(twinService.createFieldValue(field)).thenReturn(undefined);
+            assertSame(undefined, lookuper.lookupFieldValue(factoryItem, field.getId())); // the per-item entry converts a not-found lookup into an undefined value
         }
     }
 

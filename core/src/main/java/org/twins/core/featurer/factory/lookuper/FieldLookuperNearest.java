@@ -8,7 +8,17 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.UUID;
 
+/**
+ * The two-hook read contract of the nearest family — see ai/plans/lookuper-navigation-stages.md.
+ * A concrete lookuper is ONE obvious method ({@link #lookupFieldValueOrNull}: the whole per-item
+ * logic) plus an optional {@link #beforeLookup} bulk for the batch. The template around them
+ * provides the shared contract: per-item isolation (a failure fails only its item and lands in
+ * {@link LookupResult#failures()}) and the not-found conversion (a null value becomes an UNDEFINED
+ * value). True navigation (start -> hops -> read) lives in {@link FieldLookuperNavigated} — the
+ * linked family only.
+ */
 public abstract class FieldLookuperNearest extends FieldLookuper {
+
     public LookupResult lookupFieldValue(FactoryItemsBatch factoryItemsBatch, UUID lookupTwinClassFieldId) throws ServiceException {
         return lookupFieldValue(factoryItemsBatch, twinClassFieldService.findEntitySafe(lookupTwinClassFieldId));
     }
@@ -19,8 +29,7 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
             beforeLookup(factoryItemsBatch, twinClassField);
         for (var factoryItem : factoryItemsBatch.getFactoryItems()) {
             try {
-                var value = lookupFieldValue(factoryItem, twinClassField);
-                ret.values().put(factoryItem, value);
+                ret.values().put(factoryItem, lookupFieldValue(factoryItem, twinClassField));
             } catch (ServiceException ex) {
                 ret.failures().put(factoryItem, ex); // per-item isolation — the caller re-throws per item
             }
@@ -37,14 +46,6 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
         return lookupFieldValue(factoryItem, twinClassFieldService.findEntitySafe(lookupTwinClassFieldId));
     }
 
-    /**
-     * Override to bulk-load relations needed by the per-item lookup across the whole batch — use the
-     * pre-derived views ({@link FactoryItemsBatch#getTwins()}, {@link FactoryItemsBatch#getContextTwins()})
-     * instead of re-collecting them from the items. Default: no-op.
-     */
-    protected void beforeLookup(FactoryItemsBatch batch, TwinClassFieldEntity twinClassField) throws ServiceException {
-    }
-
     public FieldValue lookupFieldValue(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
         var value = lookupFieldValueOrNull(factoryItem, lookupTwinClassField);
         if (value == null) {
@@ -53,5 +54,13 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
         return value;
     }
 
+    /**
+     * Optional bulk for the whole batch right before the per-item loop — preload what the per-item
+     * reads lazily need (e.g. {@code loadTwinFields(batch.getContextTwins(), field)}). Default: no-op.
+     */
+    protected void beforeLookup(FactoryItemsBatch batch, TwinClassFieldEntity twinClassField) throws ServiceException {
+    }
+
+    /** The whole per-item logic of the lookuper; null = not found (becomes an undefined value). */
     public abstract FieldValue lookupFieldValueOrNull(FactoryItem factoryItem, TwinClassFieldEntity lookupTwinClassField) throws ServiceException;
 }

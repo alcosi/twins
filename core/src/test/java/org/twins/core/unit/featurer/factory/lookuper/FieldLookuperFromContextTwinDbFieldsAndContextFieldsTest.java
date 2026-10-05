@@ -15,12 +15,12 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFi
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
@@ -29,12 +29,16 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldLookuperFromContextTwinDbFieldsAndContextFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromContextTwinDbFieldsAndContextFields();
         setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
     }
 
     // contract: prefer the context twin's DB fields; if not filled, descend one level and try
@@ -49,6 +53,7 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
         void lookupFieldValue_presentInContextTwinDb_returnsContextTwinValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var deeperTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithContextAndContext(contextTwin, deeperTwin);
@@ -58,7 +63,7 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
 
             when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(dbValue);
 
-            var result = lookuper.lookupFieldValue(factoryItem, field);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(dbValue, result);
             verify(twinService).getTwinFieldValue(contextTwin, field);
@@ -69,6 +74,7 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
         void lookupFieldValue_absentInContextTwinButInDeeperContextTwinDb_returnsDeeperValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var deeperTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithContextAndContext(contextTwin, deeperTwin);
@@ -77,7 +83,7 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
             when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
             when(twinService.getTwinFieldValue(deeperTwin, field)).thenReturn(deeperValue);
 
-            var result = lookuper.lookupFieldValue(factoryItem, field);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(deeperValue, result);
         }
@@ -86,6 +92,7 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
         void lookupFieldValue_absentInAllTwinsButInContextFields_returnsContextFieldValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var deeperTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithContextAndContext(contextTwin, deeperTwin);
@@ -95,15 +102,16 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
             when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
             when(twinService.getTwinFieldValue(deeperTwin, field)).thenReturn(null);
 
-            var result = lookuper.lookupFieldValue(factoryItem, field);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(ctxValue, result);
         }
 
         @Test
-        void lookupFieldValue_absentEverywhere_returnsNull() throws ServiceException {
+        void lookupFieldValue_absentEverywhere_returnsUndefinedValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
             var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var deeperTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithContextAndContext(contextTwin, deeperTwin);
@@ -111,7 +119,9 @@ class FieldLookuperFromContextTwinDbFieldsAndContextFieldsTest extends BaseUnitT
             when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
             when(twinService.getTwinFieldValue(deeperTwin, field)).thenReturn(null);
 
-            assertNull(lookuper.lookupFieldValueOrNull(factoryItem, field)); // not-found is the caller's decision (undefined value at the batch boundary)
+            var undefined = new FieldValueText(field); // no value set -> isUndefined()
+            when(twinService.createFieldValue(field)).thenReturn(undefined);
+            assertSame(undefined, lookuper.lookupFieldValue(factoryItem, field.getId())); // the per-item entry converts a not-found lookup into an undefined value
         }
     }
 
