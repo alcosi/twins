@@ -85,6 +85,13 @@ public class FieldTyperUserIncrement extends FieldTyper<FieldDescriptorUser, Fie
             twinChangesCollector.getHistoryCollector(twin).add(historyItem);
     }
 
+    @Override
+    public boolean checkIsChanged(TwinEntity twin, FieldValueUser oldValue, FieldValueUser newValue, Properties properties) {
+        // Append-only: users already stored are not written again, and nothing is deleted.
+        return oldValue == null
+                || !FieldValueChangeHelper.containsAllIds(oldValue.getItems(), newValue.getItems(), UserEntity::getId);
+    }
+
     public UUID checkUserAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, UserEntity userEntity) throws ServiceException {
         return userEntity.getId(); // can be overridden in case if value must be shared between twins
     }

@@ -159,7 +159,6 @@ public enum ErrorCodeTwins implements ErrorCode {
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
     ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),
-    BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED(12504, "multipart file is not presented", HttpStatus.BAD_REQUEST),
     POINTER_NON_SINGLE(12601, "twin pointer is not single"),
     POINTER_ON_NULL(12602, "twin pointer is null"),
     POINTER_UPDATE_RESTRICTED(12603, "twin pointer can not be updated"),
@@ -207,7 +206,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     DUPLICATE_TEMPORAL_ID(13602, "duplicate temporal id in batch request"),
     CYCLIC_DEPENDENCY(13603, "cyclic dependency detected in temporal references"),
     INVALID_TEMPORAL_REFERENCE(13604, "invalid temporal reference format"),
-    TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account");
+    TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account"),
+    VALIDATION_DTO_FAILED(13701, "dto bean validation failed"),
+    MALFORMED_REQUEST_BODY(13702, "request body is malformed");
 
     private final int code;
     private final String message;

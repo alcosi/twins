@@ -45,7 +45,6 @@ public class FieldTyperTwinClass extends FieldTyper<FieldDescriptorTwinClassList
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueTwinClassList value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-
         List<TwinClassEntity> selectedTwinClassEntities = twinClassService.findEntitiesSafe(
                         value.getItems().stream()
                                 .map(TwinClassEntity::getId)

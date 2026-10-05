@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -20,8 +21,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
-import org.twins.core.dto.rest.notification.HistoryNotificationRecipientListRsDTOv1;
 import org.twins.core.domain.notification.HistoryNotificationRecipientUpdate;
+import org.twins.core.dto.rest.notification.HistoryNotificationRecipientListRsDTOv1;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientUpdateRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
@@ -53,7 +54,7 @@ public class HistoryNotificationRecipientUpdateController extends ApiController 
     @PutMapping(value = "/private/history_notification_recipient/v1")
     public ResponseEntity<?> historyNotificationRecipientUpdateV1(
             @MapperContextBinding(roots = HistoryNotificationRecipientDTOMapperV1.class, response = HistoryNotificationRecipientListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody HistoryNotificationRecipientUpdateRqDTOv1 request) {
+            @RequestBody @Valid HistoryNotificationRecipientUpdateRqDTOv1 request) {
         HistoryNotificationRecipientListRsDTOv1 rs = new HistoryNotificationRecipientListRsDTOv1();
         try {
             List<HistoryNotificationRecipientUpdate> updateList = historyNotificationRecipientUpdateDTOReverseMapper.convertCollection(request.getRecipients());

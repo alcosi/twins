@@ -36,7 +36,7 @@ public class TwinflowTransitionTriggerSearchService {
 
     private Specification<TwinflowTransitionTriggerEntity> createTransitionTriggerSearchSpecification(TransitionTriggerSearch search) throws ServiceException {
         return Specification.allOf(
-                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowTransitionTriggerEntity.Fields.twinTrigger, TwinTriggerEntity.Fields.domainId),
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowTransitionTriggerEntity.Fields.twinTriggerSpecOnly, TwinTriggerEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionTriggerEntity.Fields.id),
                 checkUuidIn(search.getTwinflowTransitionIdList(), false, false, TwinflowTransitionTriggerEntity.Fields.twinflowTransitionId),

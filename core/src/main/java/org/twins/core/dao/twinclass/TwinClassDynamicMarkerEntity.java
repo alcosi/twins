@@ -1,8 +1,7 @@
 package org.twins.core.dao.twinclass;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -41,12 +40,30 @@ public class TwinClassDynamicMarkerEntity implements ContainsTwinValidatorSet, E
     @Column(name = "marker_data_list_option_id")
     private UUID markerDataListOptionId;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "marker_data_list_option_id", insertable = false, updatable = false)
+    private DataListOptionEntity markerDataListOptionSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private DataListOptionEntity markerDataListOption;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity twinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity twinClass;
 
     @Transient

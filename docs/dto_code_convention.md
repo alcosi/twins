@@ -29,28 +29,38 @@ The DTO hierarchy is built around an abstract business entity (for example, `Res
 
 ### 2.1 Base DTOs
 
-| DTO                 | Purpose                                         |
-| ------------------- | ----------------------------------------------- |
-| `ResourceDTO`       | Resource representation                         |
-| `ResourceSaveDTO`   | Abstract class for create and update operations |
-| `ResourceCreateDTO` | Creating a new resource                         |
-| `ResourceUpdateDTO` | Updating an existing resource                   |
-| `ResourceSearchDTO` | Search parameters                               |
-| `ResourceCountDTO`  | Count result with groupable fields              |
+| DTO                 | Purpose                                        |
+| ------------------- | ---------------------------------------------- |
+| `ResourceDTO`       | Resource representation                        |
+| `ResourceCreateDTO` | Creating a new resource (self-contained)       |
+| `ResourceUpdateDTO` | Updating an existing resource (self-contained) |
+| `ResourceSearchDTO` | Search parameters                              |
+| `ResourceCountDTO`  | Count result with groupable fields             |
 
 ---
 
 ### 2.2 DTOs for Create and Update Operations
 
-All DTOs used for adding and updating data **must inherit** from `ResourceSaveDTO`.
+Create and update DTOs are **self-contained**: each declares all of its own fields. There is **no shared `SaveDTO` base class**.
 
-`ResourceSaveDTO` contains fields common to create and update operations.
+Rationale: required-ness diverges between the two operations. A field that is mandatory at create (a parent reference, a business key) is usually optional at update (`null` = do not change, PATCH semantics). A shared base class cannot express this — validation constraints on shared fields leak into both operations. Duplicating field declarations in `ResourceCreateDTO` and `ResourceUpdateDTO` is deliberate and accepted.
 
 #### Create
 
 ```java
 @Schema(name = "ResourceCreate")
-public class ResourceCreateDTO extends ResourceSaveDTO {
+public class ResourceCreateDTO {
+
+    @NotNull
+    @Schema(description = "Parent resource id. Immutable after creation")
+    public UUID parentResourceId;      // required at create only
+
+    @NotBlank
+    @Schema(description = "Unique business key")
+    public String key;                 // required at create only
+
+    @Schema(description = "Name translations")
+    public I18nSaveDTOv1 nameI18n;     // optional
 }
 ```
 
@@ -58,14 +68,45 @@ public class ResourceCreateDTO extends ResourceSaveDTO {
 
 ```java
 @Schema(name = "ResourceUpdate")
-public class ResourceUpdateDTO extends ResourceSaveDTO {
+public class ResourceUpdateDTO {
 
-    @Schema
-    private UUID id;
+    @NotNull
+    @Schema(description = "Resource id")
+    public UUID id;                    // always required
+
+    @Schema(description = "Business key. null = do not change")
+    public String key;                 // optional (PATCH semantics)
 }
 ```
 
-> ⚠️ The identifier (`id`) **must** be present only in update DTOs.
+Rules:
+
+* The identifier (`id`) **must** be present only in update DTOs, annotated `@NotNull`
+* Bean validation on required create fields: `@NotNull` (UUID, enum, object), `@NotBlank` (String that must not be empty), `@NotEmpty` (collection)
+* Update DTOs carry no required-constraints except `id` — update is partial, `null` field = do not change
+* Nested value structures (e.g. `I18nSaveDTOv1`) are shared value objects, not operation DTOs — this rule does not apply to them
+
+### 2.3 Bean Validation Rules
+
+* DTO constraints express **structural** requiredness only (missing id, missing parent reference, blank key). Domain validation (uniqueness, existence, business rules, field-type checks) stays in the service layer and keeps returning domain `ErrorCode`s
+* `@Valid` on `@RequestBody` validates only the top-level object. Every nested object or collection field that contains constrained DTOs **must** carry `@Valid` on the field itself, otherwise the constraints are silently not enforced (e.g. `List<TwinCreateDTOv1> twins` in a batch Rq wrapper)
+* **Validate endpoints do not get `@Valid`**. Endpoints like `/private/twin/validate/v1` or `/private/attachment/validate_cud/v1` exist to report validation problems in the response body with HTTP 200 — a `@Valid` on the request would reject the request with 400 before the validating logic runs, defeating their purpose
+* Multipart endpoints that read the DTO via `ApiController.mapRequest(bytes, clazz)` bypass bean validation entirely — validation for those paths must be added programmatically (`Validator.validate`) or left to the service layer
+* Mandatory `nameI18n` fields in Create DTOs are annotated `@NotNull @I18nHasTranslation` (custom constraint, `org.twins.core.dto.rest.i18n`): the object must be present **and** carry at least one non-blank translation (`translationInCurrentLocale` or a non-blank value in `translations`). `descriptionI18n` stays fully optional — do not put `@Valid`/constraints on it
+
+### 2.4 Legacy "Save" Naming in v1 API
+
+All former `*SaveRqDTOv1` base classes (`Permission`, `TwinClass`, `TwinClassField`, `Twinflow`, `TwinStatus`, `DataList`, `DataListOption`, `Factory`, `FactoryBranch` families) have been **migrated to self-contained Create/Update Rq DTOs** and deleted, together with their `*SaveDTOReverseMapper`s. All nine v1 create endpoints (live and `@Deprecated`) received `@Valid` + create-only constraints (`key @NotBlank`, `nameI18n`/`optionI18n` `@NotNull @I18nHasTranslation`); update endpoints stay constraint-free (PATCH semantics, ids from path).
+
+What remains is legacy **naming only**:
+
+* `*SaveRsDTOv1` response classes (`TwinSaveRsV1`, `PermissionSaveRsDTOv1`, `TierSaveRsDTOv1`, etc.) — responses named after the "save" operation; renaming them changes OpenAPI schema names, do it as a dedicated cleanup after confirming no client generates code from v1 schemas
+* Nested value objects (`I18nSaveDTOv1`, `DataListAttributeSaveDTOv1`) follow rule 2.2 — their `Save` naming is legacy too; same cleanup applies
+
+Rules:
+
+* Renaming a schema (request or response) is a contract change for codegen consumers of the v1 API — never do it silently alongside feature work
+* New DTOs **must not** use `Save` in operation DTO names — only `Create`/`Update` suffixes
 
 ---
 

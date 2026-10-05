@@ -61,10 +61,17 @@ public class TwinflowEntity implements EasyLoggable, Identifiable<UUID> {
     @Column(name = "initial_sketch_twin_status_id")
     private UUID initialSketchTwinStatusId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
+    private TwinClassEntity twinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity twinClass;
 
     @Deprecated // for specification only
@@ -119,16 +126,30 @@ public class TwinflowEntity implements EasyLoggable, Identifiable<UUID> {
         // NOOP
     }
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity initialTwinStatusSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity initialTwinStatus;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initial_sketch_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity initialSketchTwinStatusSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity initialSketchTwinStatus;
 
     @Deprecated // for specification only

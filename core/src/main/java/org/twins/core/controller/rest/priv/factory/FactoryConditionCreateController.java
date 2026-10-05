@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
-import org.twins.core.dto.rest.factory.*;
+import org.twins.core.dto.rest.factory.FactoryConditionCreateRqDTOv1;
+import org.twins.core.dto.rest.factory.FactoryConditionListRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryConditionCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.factory.FactoryConditionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -56,7 +58,7 @@ public class FactoryConditionCreateController extends ApiController {
     public ResponseEntity<?> factoryConditionCreateV1(
             @MapperContextBinding(roots = FactoryConditionRestDTOMapper.class, response = FactoryConditionListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryConditionCreateRqDTOv1 request) {
+            @RequestBody @Valid FactoryConditionCreateRqDTOv1 request) {
 
         FactoryConditionListRsDTOv1 rs = new FactoryConditionListRsDTOv1();
         try {

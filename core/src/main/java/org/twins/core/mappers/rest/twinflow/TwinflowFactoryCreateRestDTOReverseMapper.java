@@ -11,10 +11,11 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @RequiredArgsConstructor
 public class TwinflowFactoryCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinflowFactoryCreateDTOv1, TwinflowFactoryEntity> {
 
-    private final TwinflowFactorySaveRestDTOReverseMapper twinflowFactorySaveRestDTOReverseMapper;
-
     @Override
     public void map(TwinflowFactoryCreateDTOv1 src, TwinflowFactoryEntity dst, MapperContext mapperContext) throws Exception {
-        twinflowFactorySaveRestDTOReverseMapper.map(src, dst, mapperContext);
+        dst
+                .setTwinflowId(src.getTwinflowId())
+                .setTwinFactoryId(src.getFactoryId())
+                .setTwinFactoryLauncher(src.getTwinFactoryLauncherId());
     }
 }

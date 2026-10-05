@@ -65,6 +65,7 @@ import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.recompute.TwinRecomputeService;
+import org.twins.core.service.twinclass.TwinClassFreezeService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinclassfield.TwinClassFieldValidatorService;
@@ -122,6 +123,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinflowService twinflowService;
     private final TwinStatusTriggerService twinStatusTriggerService;
     private final TwinClassService twinClassService;
+    private final TwinClassFreezeService twinClassFreezeService;
     @Lazy
     private final PermissionService permissionService;
     @Lazy
@@ -680,6 +682,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     private void setInitStatus(TwinEntity twinEntity) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
+        twinflowService.loadInitialTwinStatus(twinflowEntity);
         twinEntity
                 .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
                 .setTwinStatus(twinflowEntity.getInitialTwinStatus());
@@ -935,11 +938,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    private void serializeFieldValue(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinChangesCollector twinChangesCollector, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+    public void serializeFieldValue(TwinEntity twinEntity, Map<UUID, FieldValue> fields, TwinChangesCollector twinChangesCollector, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         var fieldValue = getFieldValueSafe(fields, twinClassFieldEntity);
-        if (fieldValue == null || fieldValue.isUndefined()) //hope all fields are alreafy initatied
+        serializeFieldValue(twinEntity, fieldValue, twinChangesCollector);
+    }
+
+    public void serializeFieldValue(TwinEntity twinEntity, FieldValue fieldValue, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (fieldValue == null || fieldValue.isUndefined()) //hope all fields are already initiated
             return;
-        var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
+        var fieldTyper = featurerService.getFeaturer(fieldValue.getTwinClassField().getFieldTyperFeaturerId(), FieldTyper.class);
         fieldTyper.serializeValue(twinEntity, fieldValue, twinChangesCollector);
     }
 
@@ -953,8 +960,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinField twinField;
         for (FieldValue fieldValue : values) {
             twinField = wrapField(twinEntity, fieldValue.getTwinClassField());
-            var fieldTyper = featurerService.getFeaturer(twinField.getTwinClassField().getFieldTyperFeaturerId(), FieldTyper.class);
-            fieldTyper.serializeValue(twinEntity, fieldValue, twinChangesCollector);
+            serializeFieldValue(twinEntity, fieldValue, twinChangesCollector);
         }
     }
 
@@ -973,6 +979,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinBatchFieldValidationException batchFieldValidationException = null;
         var twinUpdatesWithFields = twinUpdates.stream().filter(twinUpdate -> MapUtils.isNotEmpty(twinUpdate.getFields())).map(TwinUpdate::getDbTwinEntity).toList();
         loadFieldEditability(twinUpdatesWithFields);
+        // Preload all field storages for the whole batch in one query per storage type;
+        // per-twin singleton loads in validate/dropUnchangedFields then become no-ops.
+        loadFieldsValues(twinUpdatesWithFields);
         checkUpdatePermissionBatch(twinUpdates);
         for (TwinUpdate twinUpdate : twinUpdates) {
             if (!twinUpdate.isChanged()) continue;
@@ -1343,9 +1352,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void updateField(TwinField twinField, FieldValue fieldValue) throws ServiceException {
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinField.getTwinClassField().getFieldTyperFeaturerId(), FieldTyper.class);
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        fieldTyper.serializeValue(twinField.getTwin(), fieldValue, twinChangesCollector);
+        serializeFieldValue(twinField.getTwin(), fieldValue, twinChangesCollector);
         twinChangesService.applyChanges(twinChangesCollector);
     }
 
@@ -1541,14 +1549,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     /**
      * Parses a string field value WITHOUT loading the referenced entities: reference types (link, user, twin
-     * class list) come back as {@link FieldValueReference} — a pure id carrier with no entity accessors.
-     * Simple types are returned fully parsed — there is nothing to load for them. Callers iterating a batch
-     * must finish with {@link #materializeFieldValues} over the whole batch before using the values.
+     * class list) with ids come back as {@link FieldValueReference} — a pure id carrier with no entity accessors.
+     * A null or empty reference is born already cleared: there are no ids to load, and a carrier left in place
+     * survives materialize and fails the serialize cast. Simple types are returned fully parsed. Callers
+     * iterating a batch must finish with {@link #materializeFieldValues} over the whole batch before using the values.
      */
     public FieldValue parseFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
         Class<? extends FieldValue> valueType = fieldValueType(twinClassFieldEntity);
-        if (REFERENCE_VALUE_TYPES.contains(valueType))
-            return new FieldValueReference(twinClassFieldEntity, valueType, parseReferenceUuidList(twinClassFieldEntity, value));
+        if (REFERENCE_VALUE_TYPES.contains(valueType)) {
+            List<UUID> ids = parseReferenceUuidList(twinClassFieldEntity, value);
+            if (ids.isEmpty())
+                return createFieldValue(twinClassFieldEntity).clear();
+            return new FieldValueReference(twinClassFieldEntity, valueType, ids);
+        }
         var fieldValue = createFieldValue(twinClassFieldEntity);
         setFieldValue(fieldValue, value);
         return fieldValue;
@@ -1960,6 +1973,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinStatusEntity getStatusOrFreeze(TwinEntity src) throws ServiceException {
         if (src.getTwinClass().getTwinClassFreezeId() != null) {
             twinClassService.loadFreeze(src.getTwinClass());
+            twinClassFreezeService.loadTwinStatus(src.getTwinClass().getTwinClassFreeze());
             return src.getTwinClass().getTwinClassFreeze().getTwinStatus();
         }
         return src.getTwinStatus();
@@ -2436,7 +2450,35 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    /**
+     * Drops fields whose incoming value equals storage. Field permission and validation
+     * then see only real edits. Full-form clients resend every field.
+     * Stored values come batch-preloaded by loadFieldsValues (fieldValuesKit).
+     */
+    private void dropUnchangedFields(TwinUpdate twinUpdate) throws ServiceException {
+        Map<UUID, FieldValue> fields = twinUpdate.getFields();
+        if (MapUtils.isEmpty(fields))
+            return;
+        TwinEntity twin = twinUpdate.getDbTwinEntity();
+        if (twin == null || twin.isCreateElseUpdate())
+            return;
+        var iterator = fields.entrySet().iterator();
+        loadFieldsValues(twin);
+        while (iterator.hasNext()) {
+            FieldValue newValue = iterator.next().getValue();
+            if (newValue == null || newValue.isUndefined() || newValue.isCleared() || newValue.isSystemInitialized())
+                continue;
+            var oldValue = twin.getFieldValuesKit().get(newValue.getTwinClassFieldId());
+            FieldTyper fieldTyper = featurerService.getFeaturer(newValue.getTwinClassField().getFieldTyperFeaturerId(), FieldTyper.class);
+            if (!fieldTyper.isChanged(twin, oldValue, newValue)) {
+                log.debug("{} is unchanged, field permission check will be skipped", newValue.getTwinClassField().logNormal());
+                iterator.remove();
+            }
+        }
+    }
+
     public void validateFieldsOnUpdate(TwinUpdate twinUpdate) throws ServiceException {
+        dropUnchangedFields(twinUpdate);
         TwinEntity twinEntity = twinUpdate.getDbTwinEntity();
         Map<UUID, FieldValue> fields = twinUpdate.getFields();
         loadClass(twinEntity);

@@ -74,6 +74,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     }
 
     protected boolean allowMultiply(LinkEntity linkEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        twinClassFieldService.loadTwinClass(twinClassFieldEntity);
         return linkEntity.getType().isMany() && linkService.isBackwardLink(linkEntity, twinClassFieldEntity.getTwinClass());
     }
 

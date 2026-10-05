@@ -17,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueReference;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.twin.TemporalIdContext;
 import org.twins.core.service.twin.TwinService;
 
@@ -178,15 +179,13 @@ class TwinServiceResolveTwinReferencesTest extends BaseUnitTest {
         }
 
         @Test
-        void nullValue_parsesAsCleared() throws ServiceException {
-            var field = fieldTypedAs(FieldValueLink.class);
+        void nullValue_parsesAsClearedConcreteValue() throws ServiceException {
+            var field = fieldTypedAs(FieldValueUser.class);
 
             FieldValue parsed = twinService.parseFieldValue(field, null);
 
-            assertInstanceOf(FieldValueReference.class, parsed);
-            var ids = ((FieldValueReference) parsed).getIds();
-            assertNotNull(ids); // empty list = CLEARED, not UNDEFINED
-            assertTrue(ids.isEmpty());
+            assertInstanceOf(FieldValueUser.class, parsed);
+            assertTrue(parsed.isCleared());
         }
 
         @Test
@@ -195,8 +194,8 @@ class TwinServiceResolveTwinReferencesTest extends BaseUnitTest {
 
             FieldValue parsed = twinService.parseFieldValue(field, UuidUtils.NULLIFY_MARKER.toString());
 
-            assertInstanceOf(FieldValueReference.class, parsed);
-            assertTrue(((FieldValueReference) parsed).getIds().isEmpty());
+            assertInstanceOf(FieldValueLink.class, parsed);
+            assertTrue(parsed.isCleared());
         }
 
         @Test

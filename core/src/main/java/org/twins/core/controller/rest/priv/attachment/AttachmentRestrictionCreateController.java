@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class AttachmentRestrictionCreateController extends ApiController {
     @PostMapping(value = "/private/attachment_restriction/v1")
     public ResponseEntity<?> attachmentRestrictionCreateV1(
             @MapperContextBinding(roots = AttachmentRestrictionRestDTOMapper.class, response = AttachmentRestrictionListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody AttachmentRestrictionCreateRqDTOv1 request) {
+            @RequestBody @Valid AttachmentRestrictionCreateRqDTOv1 request) {
         AttachmentRestrictionListRsDTOv1 rs = new AttachmentRestrictionListRsDTOv1();
         try {
             List<TwinAttachmentRestrictionEntity> entities = attachmentRestrictionService.createAttachmentRestrictions(attachmentRestrictionCreateDTOReverseMapper.convertCollection(request.getAttachmentRestrictions()));

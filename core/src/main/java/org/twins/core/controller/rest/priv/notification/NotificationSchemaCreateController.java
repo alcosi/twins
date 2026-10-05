@@ -6,11 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -51,7 +55,7 @@ public class NotificationSchemaCreateController extends ApiController {
     @PostMapping(value = "/private/notification_schema/v1")
     public ResponseEntity<?> notificationSchemaCreateV1(
             @MapperContextBinding(roots = NotificationSchemaRestDTOMapper.class, response = NotificationSchemaListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody NotificationSchemaCreateRqDTOv1 request) {
+            @RequestBody @Valid NotificationSchemaCreateRqDTOv1 request) {
         NotificationSchemaListRsDTOv1 rs = new NotificationSchemaListRsDTOv1();
         try {
             List<NotificationSchemaCreate> notificationSchemaCreates = notificationSchemaCreateRestDTOReverseMapper.convertCollection(request.getNotificationSchemas(), mapperContext);

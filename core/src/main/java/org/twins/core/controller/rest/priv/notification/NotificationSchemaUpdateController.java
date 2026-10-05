@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -54,7 +55,7 @@ public class NotificationSchemaUpdateController extends ApiController {
     @PutMapping(value = "/private/notification_schema/v1")
     public ResponseEntity<?> notificationSchemaUpdateV1(
             @MapperContextBinding(roots = NotificationSchemaRestDTOMapper.class, response = NotificationSchemaListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody NotificationSchemaUpdateRqDTOv1 request) {
+            @RequestBody @Valid NotificationSchemaUpdateRqDTOv1 request) {
         NotificationSchemaListRsDTOv1 rs = new NotificationSchemaListRsDTOv1();
         try {
             List<NotificationSchemaUpdate> notificationSchemaUpdates = notificationSchemaUpdateRestDTOReverseMapper.convertCollection(request.getNotificationSchemas(), mapperContext);

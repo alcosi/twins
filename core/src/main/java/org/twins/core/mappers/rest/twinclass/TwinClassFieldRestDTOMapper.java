@@ -142,6 +142,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassField2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
+            twinClassFieldService.loadTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
@@ -154,6 +155,11 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     @Override
     public void beforeCollectionConversion(Collection<TwinClassFieldEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassField2TwinClassMode.HIDE)) {
+            twinClassFieldService.loadTwinClass(srcCollection);
+        }
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
             twinClassFieldRuleMapService.loadRules(srcCollection, false);
         }

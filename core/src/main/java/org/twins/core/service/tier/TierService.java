@@ -23,6 +23,8 @@ import org.twins.core.service.twinflow.TwinflowSchemaService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -100,6 +102,14 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
+    public List<TierEntity> createTiers(List<TierEntity> tierCreates) throws ServiceException {
+        List<TierEntity> created = new ArrayList<>(tierCreates.size());
+        for (TierEntity tierCreate : tierCreates)
+            created.add(createTier(tierCreate));
+        return created;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
     public TierEntity updateTier(TierEntity tierUpdate) throws ServiceException {
         TierEntity dbTierEntity = findEntitySafe(tierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
@@ -126,6 +136,14 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         dbTierEntity.setUpdatedAt(Timestamp.from(Instant.now()));
 
         return updateSafe(dbTierEntity, changesHelper);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TierEntity> updateTiers(List<TierEntity> tierUpdates) throws ServiceException {
+        List<TierEntity> updated = new ArrayList<>(tierUpdates.size());
+        for (TierEntity tierUpdate : tierUpdates)
+            updated.add(updateTier(tierUpdate));
+        return updated;
     }
 
     @Transactional

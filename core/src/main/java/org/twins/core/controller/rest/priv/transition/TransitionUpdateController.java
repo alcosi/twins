@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,7 @@ public class TransitionUpdateController extends ApiController {
     @PutMapping(value = "/private/transition/v1")
     public ResponseEntity<?> transitionUpdateV1(
             @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TransitionUpdateRqDTOv1 request) {
+            @RequestBody @Valid TransitionUpdateRqDTOv1 request) {
         TransitionListRsDTOv1 rs = new TransitionListRsDTOv1();
         try {
             List<TransitionUpdate> transitionSaves = transitionUpdateRestDTOReverseMapper.convertCollection(request.getTransitions());

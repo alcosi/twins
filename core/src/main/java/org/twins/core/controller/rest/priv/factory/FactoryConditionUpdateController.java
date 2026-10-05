@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -58,7 +59,7 @@ public class FactoryConditionUpdateController extends ApiController {
     public ResponseEntity<?> factoryConditionUpdateV1(
             @MapperContextBinding(roots = FactoryConditionRestDTOMapper.class, response = FactoryConditionListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryConditionUpdateRqDTOv1 request) {
+            @RequestBody @Valid FactoryConditionUpdateRqDTOv1 request) {
 
         FactoryConditionListRsDTOv1 rs = new FactoryConditionListRsDTOv1();
         try {

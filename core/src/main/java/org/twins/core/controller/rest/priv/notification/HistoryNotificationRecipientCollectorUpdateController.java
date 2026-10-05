@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,6 @@ import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorEnti
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorUpdate;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientCollectorListRsDTOv1;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientCollectorUpdateRqDTOv1;
-import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientCollectorDTOMapperV1;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientCollectorUpdateDTOReverseMapper;
@@ -54,7 +54,7 @@ public class HistoryNotificationRecipientCollectorUpdateController extends ApiCo
     @PutMapping(value = "/private/history_notification_recipient_collector/v1")
     public ResponseEntity<?> historyNotificationRecipientCollectorUpdateV1(
             @MapperContextBinding(roots = HistoryNotificationRecipientCollectorDTOMapperV1.class, response = HistoryNotificationRecipientCollectorListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody HistoryNotificationRecipientCollectorUpdateRqDTOv1 request) {
+            @RequestBody @Valid HistoryNotificationRecipientCollectorUpdateRqDTOv1 request) {
         HistoryNotificationRecipientCollectorListRsDTOv1 rs = new HistoryNotificationRecipientCollectorListRsDTOv1();
         try {
             List<HistoryNotificationRecipientCollectorUpdate> updateList = historyNotificationRecipientCollectorUpdateDTOReverseMapper.convertCollection(request.getHistoryNotificationRecipients());

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class PermissionGrantUserGroupUpdateController extends ApiController {
     public ResponseEntity<?> permissionGrantUserGroupUpdateV1(
             @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapper.class, response = PermissionGrantUserGroupSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_GROUP_ID) @PathVariable UUID permissionGrantUserGroupId,
-            @RequestBody PermissionGrantUserGroupUpdateRqDTOv1 request) {
+            @RequestBody @Valid PermissionGrantUserGroupUpdateRqDTOv1 request) {
         PermissionGrantUserGroupSaveRsDTOv1 rs = new PermissionGrantUserGroupSaveRsDTOv1();
         try {
             PermissionGrantUserGroupEntity entity = permissionGrantUserGroupUpdateRestReverseDTOMapper.convert(request.getPermissionGrantUserGroup());

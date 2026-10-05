@@ -75,6 +75,25 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
         return TwinFieldDecimalEntity.of(twin, twinClassField);
     }
 
+    /**
+     * Compared through processValue, not by raw text: a reformatted number ("15.5" vs stored "15.50")
+     * is an echo, and a +/- delta is always an edit (it folds into the stored entity value).
+     */
+    @Override
+    public boolean checkIsChanged(TwinEntity twin, FieldValueText oldValue, FieldValueText newValue, Properties properties) throws ServiceException {
+        // the storage kit is loaded by the oldValue resolution (TwinService.getTwinFieldValue)
+        var kit = getFieldKit(twin);
+        TwinFieldDecimalEntity entity = kit != null ? kit.get(newValue.getTwinClassFieldId()) : null;
+        if (entity == null || entity.getValue() == null)
+            return true;
+        try {
+            return processValue(properties, entity, newValue).compareTo(entity.getValue()) != 0;
+        } catch (ServiceException | RuntimeException e) {
+            // A value that cannot be normalized is not an echo of storage. Permission and validation still apply.
+            return true;
+        }
+    }
+
     @Override
     protected BigDecimal processValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value) throws ServiceException {
         var rawValue = value.getValue();
@@ -105,7 +124,7 @@ public class FieldTyperDecimal extends FieldTyperSingleValue<
      * <p>
      * The result runs through {@link FieldTyperNumeric#scaleAndCheckRange} for the same
      * {@code decimalPlaces}/{@code round} and {@code min}/{@code max} checks a plain value gets,
-     * before {@link FieldTyperSingleValue#detectValueChange} persists it.
+     * before {@link FieldTyperSingleValue#collectChangedValue} persists it.
      */
     public BigDecimal processIncrementedValue(Properties properties, TwinFieldDecimalEntity twinFieldEntity, BigDecimal delta) throws ServiceException {
         return foldDelta(properties, twinFieldEntity.getTwinClassField(), twinFieldEntity.getValue(), delta);

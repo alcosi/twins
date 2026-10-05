@@ -11,11 +11,14 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @RequiredArgsConstructor
 public class TransitionTriggerUpdateDTOReverseMapper extends RestSimpleDTOMapper<TransitionTriggerUpdateDTOv1, TwinflowTransitionTriggerEntity> {
 
-    private final TransitionTriggerSaveDTOReverseMapper transitionTriggerSaveDTOReverseMapper;
-
     @Override
     public void map(TransitionTriggerUpdateDTOv1 src, TwinflowTransitionTriggerEntity dst, MapperContext mapperContext) throws Exception {
-        transitionTriggerSaveDTOReverseMapper.map(src, dst, mapperContext);
-        dst.setId(src.getId());
+        dst
+                .setOrder(src.getOrder())
+                .setActive(src.getActive())
+                .setAsync(src.getAsync())
+                .setTwinflowTransitionId(src.getTwinflowTransitionId())
+                .setTwinTriggerId(src.getTwinTriggerId())
+                .setId(src.getId());
     }
 }

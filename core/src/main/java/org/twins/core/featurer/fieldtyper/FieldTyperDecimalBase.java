@@ -10,6 +10,7 @@ import org.twins.core.domain.search.TwinFieldValueSearch;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -25,6 +26,21 @@ import java.util.Properties;
 public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends FieldValue, A extends TwinFieldValueSearch>
         extends FieldTyper<D, T, TwinFieldStorageDecimal, A>
         implements FieldTyperNumeric {
+
+    @Override
+    public boolean checkIsChanged(TwinEntity twin, T oldValue, T newValue, Properties properties) throws ServiceException {
+        if (!(oldValue instanceof FieldValueText stored)
+                || stored.getValue() == null
+                || !(newValue instanceof FieldValueText incomingText))
+            return true;
+        try {
+            BigDecimal incoming = new BigDecimal(processAndFormatValue(properties, incomingText));
+            return incoming.compareTo(new BigDecimal(stored.getValue())) != 0;
+        } catch (ServiceException | RuntimeException e) {
+            // A value that cannot be normalized is not an echo of storage. Permission and validation still apply.
+            return true;
+        }
+    }
 
     protected abstract void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, T value, TwinChangesCollector twinChangesCollector) throws ServiceException;
     protected abstract T deserializeValue(Properties properties, TwinField twinField, TwinFieldDecimalEntity twinFieldDecimalEntity) throws ServiceException;
@@ -45,7 +61,7 @@ public abstract class FieldTyperDecimalBase<D extends FieldDescriptor, T extends
         return twinEntity.getTwinFieldDecimalKit().get(twinClassFieldEntity.getId());
     }
 
-    protected void detectValueChange(TwinFieldDecimalEntity twinFieldDecimalEntity, TwinChangesCollector twinChangesCollector, BigDecimal newValue) {
+    protected void collectChangedValue(TwinFieldDecimalEntity twinFieldDecimalEntity, TwinChangesCollector twinChangesCollector, BigDecimal newValue) {
         if (twinChangesCollector.collectIfChangedWithNullifySupport(twinFieldDecimalEntity, "field[" + twinFieldDecimalEntity.getTwinClassField().getKey() + "]", twinFieldDecimalEntity.getValue(), newValue)) {
             addHistoryContext(twinChangesCollector, twinFieldDecimalEntity, newValue);
             twinFieldDecimalEntity.setValue(newValue);

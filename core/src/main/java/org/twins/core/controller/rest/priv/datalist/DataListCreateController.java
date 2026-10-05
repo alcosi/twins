@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -21,13 +22,15 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListCreateRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListListRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.Permissions;
+
+import java.util.List;
 
 
 @Tag(name = ApiTag.DATA_LIST)
@@ -43,21 +46,21 @@ public class DataListCreateController extends ApiController {
 
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "dataListCreateV1", summary = "Data list add")
+    @Operation(operationId = "dataListCreateV1", summary = "Data list batch add")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Data list add", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListRsDTOv1.class))}),
+                    @Schema(implementation = DataListListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/data_list/v1")
     public ResponseEntity<?> dataListCreateV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DataListCreateRqDTOv1 request) {
-        DataListRsDTOv1 rs = new DataListRsDTOv1();
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
+            @RequestBody @Valid DataListCreateRqDTOv1 request) {
+        DataListListRsDTOv1 rs = new DataListListRsDTOv1();
         try {
-            DataListEntity dataListEntity = dataListService.createDataList(dataListCreateDTOReverseMapper.convert(request));
+            List<DataListEntity> dataListEntities = dataListService.createDataLists(dataListCreateDTOReverseMapper.convertCollection(request.getDataLists()));
             rs
-                    .setDataList(dataListRestDTOMapper.convert(dataListEntity, mapperContext))
+                    .setDataListList(dataListRestDTOMapper.convertCollection(dataListEntities, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

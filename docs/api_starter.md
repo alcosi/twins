@@ -41,9 +41,8 @@ For an entity named `{Entity}`, the following files are required:
 | File | Extends | Purpose |
 |---|---|---|
 | `{Entity}DTOv1` | — | Entity representation (response) |
-| `{Entity}SaveDTOv1` | — | Abstract base for create/update common fields |
-| `{Entity}CreateDTOv1` | `{Entity}SaveDTOv1` | Create-specific fields |
-| `{Entity}UpdateDTOv1` | `{Entity}SaveDTOv1` | Update-specific fields + `UUID id` |
+| `{Entity}CreateDTOv1` | — | Create operation, self-contained, bean validation on required fields |
+| `{Entity}UpdateDTOv1` | — | Update operation, self-contained + `@NotNull UUID id` |
 | `{Entity}SearchDTOv1` | — | Search parameters (no sort fields here) |
 | `{Entity}CountDTOv1` | `CountDTOv1` | Count result with explicit groupable fields |
 
@@ -141,7 +140,7 @@ public class {Entity}CreateController extends ApiController {
     @PostMapping(value = "/private/{entity}/v1")
     public ResponseEntity<?> {entity}CreateV1(
             @MapperContextBinding(roots = {Entity}RestDTOMapper.class, response = {Entity}ListRsDTOv1.class)
-            @RequestBody {Entity}CreateRqDTOv1 request) {
+            @RequestBody @Valid {Entity}CreateRqDTOv1 request) {
         {Entity}ListRsDTOv1 rs = new {Entity}ListRsDTOv1();
         try {
             List<{Entity}Create> createList = {entity}CreateRestDTOReverseMapper.convertCollection(request.get{Entities}());
@@ -564,12 +563,13 @@ For full rules see [dto_code_convention.md](dto_code_convention.md).
 1. **Request DTOs** extend `Request`, suffix `RqDTOv1`
 2. **Response DTOs** extend `Response` or `ResponseCountDTOv1`, suffix `RsDTOv1`
 3. **Entity DTOs** — flat structure, no business logic, no entity dependencies
-4. **Create/Update DTOs** share a common `{Entity}SaveDTOv1` base
-5. **`id` field** only in Update DTOs, never in Create DTOs
-6. **Sort fields** (`sortField`, `sortDirection`) in `SearchRqDTOv1`, not in `SearchDTOv1`
-7. **Count DTOs** extend `CountDTOv1` (not entity DTO), declare groupable fields explicitly
-8. **Count response** extends `ResponseCountDTOv1` (includes `PaginationDTOv1`)
-9. All DTOs annotated with `@Schema` for Swagger documentation
+4. **Create/Update DTOs** are self-contained — no shared `{Entity}SaveDTOv1` base; duplicate shared field declarations deliberately (required-ness differs between create and update)
+5. **`id` field** only in Update DTOs (`@NotNull`), never in Create DTOs
+6. **Bean validation** — required create fields carry `@NotNull` / `@NotBlank` / `@NotEmpty`; update fields are optional (`null` = do not change). Controllers must use `@RequestBody @Valid`, RqDTO lists must carry `@Valid` for cascade
+7. **Sort fields** (`sortField`, `sortDirection`) in `SearchRqDTOv1`, not in `SearchDTOv1`
+8. **Count DTOs** extend `CountDTOv1` (not entity DTO), declare groupable fields explicitly
+9. **Count response** extends `ResponseCountDTOv1` (includes `PaginationDTOv1`)
+10. All DTOs annotated with `@Schema` for Swagger documentation
 
 ---
 

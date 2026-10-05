@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -51,7 +52,7 @@ public class PermissionGrantUserCreateController extends ApiController {
     @PostMapping(value = "/private/permission_grant/user/v1")
     public ResponseEntity<?> permissionGrantUserCreateV1(
             @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = PermissionGrantUserSaveRsDTOV1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody PermissionGrantUserCreateRqDTOv1 request) {
+            @RequestBody @Valid PermissionGrantUserCreateRqDTOv1 request) {
         PermissionGrantUserSaveRsDTOV1 rs = new PermissionGrantUserSaveRsDTOV1();
         try {
             PermissionGrantUserEntity entity = permissionGrantUserCreateDTOReverseMapper.convert(request.getPermissionGrantUser(), mapperContext);

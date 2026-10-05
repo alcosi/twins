@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -14,6 +15,7 @@ import java.util.List;
 @Schema(name = "FactoryConditionSetCreateRqV1")
 public class FactoryConditionSetCreateRqDTOv1 extends Request {
 
+    @Valid
     @Schema(description = "condition set list")
     public List<FactoryConditionSetCreateDTOv1> conditionSets;
 }

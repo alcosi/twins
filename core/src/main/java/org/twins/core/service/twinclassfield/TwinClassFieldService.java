@@ -108,6 +108,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     @Override
     public boolean isEntityReadDenied(TwinClassFieldEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        loadTwinClass(entity);
         if (twinClassService.isOwnerSystemType(entity.getTwinClass()))
             return false;
         if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
@@ -268,6 +269,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 TwinClassFieldRuleMapEntity::getId,
                 TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId
         );
+        twinClassFieldRuleMapService.loadTwinClassField(ruleMaps.getCollection());
 
         if (ruleMaps.isEmpty()) {
             needLoad.forEach(rule -> rule.setFieldKit(Kit.EMPTY));
@@ -582,6 +584,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(TwinClassFieldEntity.Fields.twinClassId, dbTwinClassFieldEntity.getTwinClassId(), newTwinClassId))
             return;
+        loadTwinClass(dbTwinClassFieldEntity);
         if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity) &&
                 !twinClassService.isInstanceOf(dbTwinClassFieldEntity.getTwinClass(), newTwinClassId))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "twin-class of twin-class-field can not be updated, because some twins with fields of given class are already exist, " +
@@ -749,7 +752,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         loadTwinClass(Collections.singletonList(entity));
     }
 
-    public void loadTwinClass(List<TwinClassFieldEntity> entities) throws ServiceException {
+    public void loadTwinClass(Collection<TwinClassFieldEntity> entities) throws ServiceException {
         twinClassService.load(
                 entities,
                 TwinClassFieldEntity::getTwinClassId,
