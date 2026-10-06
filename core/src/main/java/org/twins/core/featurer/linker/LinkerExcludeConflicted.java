@@ -39,23 +39,27 @@ public class LinkerExcludeConflicted extends Linker {
     }
 
     @Override
-    public void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch, boolean searchElseValidate) {
-        UUID extractedConflictedLinkId = conflictedLinkId.extract(properties);
-
-        List<UUID> conflictedTwinLinkIds;
-        if (forwardElseBackward) {
-            conflictedTwinLinkIds = twinLinkRepository.findDstTwinIdsBySrcTwinIdAndLinkId(twinEntity.getId(), extractedConflictedLinkId);
-        } else {
-            conflictedTwinLinkIds = twinLinkRepository.findSrcTwinIdsByDstTwinIdAndLinkId(twinEntity.getId(), extractedConflictedLinkId);
-        }
-
+    protected void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException {
+        List<UUID> conflictedTwinLinkIds = findConflictedTwinLinkIds(properties, twinEntity, forwardElseBackward);
         if (conflictedTwinLinkIds.isEmpty())
             return;
-        if (searchElseValidate) {
-            basicSearch.addTwinId(conflictedTwinLinkIds, true);
-        } else {
-            basicSearch.setEmptyResult(true);
-        }
+        basicSearch.addTwinId(conflictedTwinLinkIds, true); // exclude the already conflicted twins from the search
+    }
 
+    @Override
+    protected void validateLink(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException {
+        List<UUID> conflictedTwinLinkIds = findConflictedTwinLinkIds(properties, twinEntity, forwardElseBackward);
+        if (conflictedTwinLinkIds.isEmpty())
+            return;
+        basicSearch.setEmptyResult(true); // any existing conflicted link rejects the candidate
+    }
+
+    private List<UUID> findConflictedTwinLinkIds(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward) {
+        UUID extractedConflictedLinkId = conflictedLinkId.extract(properties);
+        if (forwardElseBackward) {
+            return twinLinkRepository.findDstTwinIdsBySrcTwinIdAndLinkId(twinEntity.getId(), extractedConflictedLinkId);
+        } else {
+            return twinLinkRepository.findSrcTwinIdsByDstTwinIdAndLinkId(twinEntity.getId(), extractedConflictedLinkId);
+        }
     }
 }

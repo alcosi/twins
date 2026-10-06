@@ -3,7 +3,6 @@ package org.twins.core.unit.service.twinlink;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkValidatorRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkRepository;
@@ -36,6 +34,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.link.LinkValidatorService;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
@@ -65,7 +64,7 @@ class TwinLinkServiceRelationTwinTest {
     @Mock
     private TwinLinkRepository twinLinkRepository;
     @Mock
-    private LinkValidatorRepository linkValidatorRepository; // no stubs — default empty list skips validateLinkByLinkers
+    private LinkValidatorService linkValidatorService; // no stubs — default no-op skips validateLinkByLinkers
     @Mock
     private TwinService twinService;
     @Mock
@@ -80,8 +79,6 @@ class TwinLinkServiceRelationTwinTest {
     private HistoryService historyService;
     @Mock
     private TwinChangesService twinChangesService;
-    @Mock
-    private FeaturerService featurerService;
     @Mock
     private UserService userService;
 

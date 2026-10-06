@@ -28,7 +28,13 @@ public class LinkerByHead extends Linker {
     }
 
     @Override
-    public void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch, boolean searchElseValidate) {
+    protected void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException {
+        basicSearch
+                .addHeadTwinId(twinEntity.getHeadTwinId());
+    }
+
+    @Override
+    protected void validateLink(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException {
         basicSearch
                 .addHeadTwinId(twinEntity.getHeadTwinId());
     }

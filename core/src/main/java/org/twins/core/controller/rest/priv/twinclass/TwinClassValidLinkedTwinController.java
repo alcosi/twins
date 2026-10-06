@@ -29,8 +29,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchSimpleDTOReverseMapper;
+import org.twins.core.service.link.LinkValidatorService;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassValidLinkedTwinController extends ApiController {
-    private final TwinLinkService twinLinkService;
+    private final LinkValidatorService linkValidatorService;
     private final TwinSearchSimpleDTOReverseMapper twinSearchSimpleDTOReverseMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final PaginationMapper paginationMapper;
@@ -63,7 +63,7 @@ public class TwinClassValidLinkedTwinController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             BasicSearch basicSearch = twinSearchSimpleDTOReverseMapper.convert(search);
-            PaginationResult<TwinEntity> validHeads = twinLinkService.findValidDstTwins(twinClassId, linkId, headTwinId, basicSearch, pagination);
+            PaginationResult<TwinEntity> validHeads = linkValidatorService.findValidDstTwins(twinClassId, linkId, headTwinId, basicSearch, pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(validHeads.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(validHeads));

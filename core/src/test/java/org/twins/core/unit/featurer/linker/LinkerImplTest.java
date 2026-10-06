@@ -35,17 +35,36 @@ class LinkerImplTest extends BaseUnitTest {
         }
 
         @Test
-        void expandValidLinkedTwinSearch_withTwinEntity_doesNotModifySearch() {
+        void expandValidLinkedTwinSearch_withTwinEntity_doesNotModifySearch() throws ServiceException {
             var search = new BasicSearch();
 
             linker.expandValidLinkedTwinSearch(
                     new Properties(),
                     new TwinEntity(), true,
-                    search, true
+                    search
             );
 
             assertNull(search.getStatusIdList());
             assertNull(search.getStatusIdExcludeList());
+        }
+    }
+
+    @Nested
+    class ValidateLink {
+
+        @Test
+        void validateLink_doesNotModifySearch() throws ServiceException {
+            var search = new BasicSearch();
+
+            linker.validateLink(
+                    new Properties(),
+                    new TwinEntity(), true,
+                    search
+            );
+
+            assertNull(search.getStatusIdList());
+            assertNull(search.getStatusIdExcludeList());
+            assertFalse(search.isEmptyResult());
         }
     }
 }

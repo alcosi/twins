@@ -1,6 +1,5 @@
 package org.twins.core.dao.link;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
@@ -8,7 +7,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -17,7 +15,6 @@ import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -143,6 +140,11 @@ public class LinkEntity implements EasyLoggable, Identifiable<UUID> {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinClassEntity relationTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<LinkValidatorEntity> linkValidators;
 
     public String easyLog(Level level) {
         return switch (level) {

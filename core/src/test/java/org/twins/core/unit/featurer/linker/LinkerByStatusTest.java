@@ -78,14 +78,14 @@ class LinkerByStatusTest extends BaseUnitTest {
     class ExpandValidLinkedTwinSearchWithTwinEntity {
 
         @Test
-        void expandValidLinkedTwinSearch_excludeFalse_addsToStatusIdList() {
+        void expandValidLinkedTwinSearch_excludeFalse_addsToStatusIdList() throws ServiceException {
             var search = new BasicSearch();
 
             linker.expandValidLinkedTwinSearch(
                     props(statusId1 + "," + statusId2, false),
                     new TwinEntity(),
                     true,
-                    search, true
+                    search
             );
 
             assertNull(search.getStatusIdExcludeList());
@@ -95,16 +95,55 @@ class LinkerByStatusTest extends BaseUnitTest {
         }
 
         @Test
-        void expandValidLinkedTwinSearch_excludeTrue_addsToStatusIdExcludeList() {
+        void expandValidLinkedTwinSearch_excludeTrue_addsToStatusIdExcludeList() throws ServiceException {
             var search = new BasicSearch();
 
             linker.expandValidLinkedTwinSearch(
                     props(statusId1 + "," + statusId2, true),
                     new TwinEntity(), true,
-                    search, true
+                    search
             );
 
             assertNull(search.getStatusIdList());
+            assertEquals(2, search.getStatusIdExcludeList().size());
+            assertTrue(search.getStatusIdExcludeList().contains(statusId1));
+            assertTrue(search.getStatusIdExcludeList().contains(statusId2));
+        }
+    }
+
+    @Nested
+    class ValidateLink {
+
+        @Test
+        void validateLink_excludeFalse_addsToStatusIdList() throws ServiceException {
+            var search = new BasicSearch();
+
+            linker.validateLink(
+                    props(statusId1 + "," + statusId2, false),
+                    new TwinEntity(),
+                    true,
+                    search
+            );
+
+            assertNull(search.getStatusIdExcludeList());
+            assertFalse(search.isEmptyResult());
+            assertEquals(2, search.getStatusIdList().size());
+            assertTrue(search.getStatusIdList().contains(statusId1));
+            assertTrue(search.getStatusIdList().contains(statusId2));
+        }
+
+        @Test
+        void validateLink_excludeTrue_addsToStatusIdExcludeList() throws ServiceException {
+            var search = new BasicSearch();
+
+            linker.validateLink(
+                    props(statusId1 + "," + statusId2, true),
+                    new TwinEntity(), true,
+                    search
+            );
+
+            assertNull(search.getStatusIdList());
+            assertFalse(search.isEmptyResult());
             assertEquals(2, search.getStatusIdExcludeList().size());
             assertTrue(search.getStatusIdExcludeList().contains(statusId1));
             assertTrue(search.getStatusIdExcludeList().contains(statusId2));

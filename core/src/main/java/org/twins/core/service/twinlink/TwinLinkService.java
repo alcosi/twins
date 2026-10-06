@@ -8,15 +8,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -24,15 +20,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.link.LinkValidatorEntity;
-import org.twins.core.dao.link.LinkValidatorRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinlink.TwinLinkCUD;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.domain.twinlink.TwinLinkUpdate;
@@ -43,15 +35,13 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.link.LinkValidatorService;
 import org.twins.core.service.twin.TwinHeadService;
-import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -69,11 +59,9 @@ import static org.twins.core.dao.specifications.link.TwinLinkSpecification.check
 @RequiredArgsConstructor
 public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity> {
     private final LinkService linkService;
-    private final TwinClassService twinClassService;
+    private final LinkValidatorService linkValidatorService;
     private final TwinLinkRepository twinLinkRepository;
-    private final LinkValidatorRepository linkValidatorRepository;
     private final TwinService twinService;
-    private final TwinSearchService twinSearchService;
     @Lazy
     private final TwinHeadService twinHeadService;
     @Lazy
@@ -81,7 +69,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangesService twinChangesService;
-    private final FeaturerService featurerService;
     private final UserService userService;
 
     @Override
@@ -171,7 +158,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created from twinId[" + twinLinkEntity.getSrcTwinId() + "] of twinClass[" + twinLinkEntity.getSrcTwin().getTwinClassId() + "]");
             if (!dstTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created to twinId[" + twinLinkEntity.getDstTwinId() + "] of twinClass[" + twinLinkEntity.getDstTwin().getTwinClassId() + "]");
-            validateLinkByLinkers(twinLinkEntity.getLink(), forwardElseBackward, srcTwinEntity, candidateTwinEntity.getId());
+            linkValidatorService.validateLinkByLinkers(twinLinkEntity.getLink(), forwardElseBackward, srcTwinEntity, candidateTwinEntity.getId());
             twinLinkEntity.setCreatedAt(Timestamp.from(Instant.now()));
             if (twinLinkEntity.getCreatedByUserId() == null)
                 twinLinkEntity
@@ -417,7 +404,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             // validate the NEW linked twin by the link's linker — only when it actually changes, so
             // field-only updates re-sending the same twin do not re-run the validation rules
             if (newLinkedTwinId != null && !newLinkedTwinId.equals(oldLinkedTwinId))
-                validateLinkByLinkers(dbTwinLinkEntity.getLink(), forward, twinEntity, newLinkedTwinId);
+                linkValidatorService.validateLinkByLinkers(dbTwinLinkEntity.getLink(), forward, twinEntity, newLinkedTwinId);
             if (validateEntityAndLog(dbTwinLinkEntity, EntitySmartService.EntityValidateMode.beforeSave)) {
                 updatedTwinLinkEntityList.add(dbTwinLinkEntity);
                 twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(dbTwinLinkEntity, unlinkedTwinEntity, forward));
@@ -524,63 +511,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinChangesCollector.getHistoryCollector().add(historyService.linkDeleted(twinLinkEntity));
             twinChangesCollector.delete(twinLinkEntity);
         }
-    }
-
-    public PaginationResult<TwinEntity> findValidDstTwins(UUID twinClassId, UUID linkId, UUID headTwinId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        LinkEntity linkEntity = linkService.findEntitySafe(linkId);
-        TwinClassEntity srcTwinClassEntity = twinClassService.findEntitySafe(twinClassId);
-        TwinEntity headTwinEntity = null;
-        if (headTwinId != null)
-            headTwinEntity = twinService.findEntitySafe(headTwinId);
-        addClassCheckToValidTwinsForLinkSearch(linkEntity, srcTwinClassEntity, basicSearch);
-        for (LinkValidatorEntity linkValidatorEntity : findLinkValidators(linkId)) {
-            Linker linker = featurerService.getFeaturer(linkValidatorEntity.getLinkerFeaturerId(), Linker.class);
-            linker.expandValidLinkedTwinSearch(linkValidatorEntity.getLinkerParams(), srcTwinClassEntity, headTwinEntity, basicSearch);
-        }
-        return twinSearchService.findTwins(basicSearch, pagination);
-    }
-
-    public PaginationResult<TwinEntity> findValidDstTwins(UUID twinId, UUID linkId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        LinkEntity linkEntity = linkService.findEntitySafe(linkId);
-        TwinEntity twinEntity = twinService.findEntitySafe(twinId);
-        addClassCheckToValidTwinsForLinkSearch(linkEntity, twinEntity.getTwinClass(), basicSearch);
-        for (LinkValidatorEntity linkValidatorEntity : findLinkValidators(linkId)) {
-            Linker linker = featurerService.getFeaturer(linkValidatorEntity.getLinkerFeaturerId(), Linker.class);
-            linker.expandValidLinkedTwinSearch(linkValidatorEntity.getLinkerParams(), false, twinEntity, basicSearch);
-        }
-        return twinSearchService.findTwins(basicSearch, pagination);
-    }
-
-    private List<LinkValidatorEntity> findLinkValidators(UUID linkId) {
-        return linkValidatorRepository.findByLinkIdOrderByOrder(linkId);
-    }
-
-    private void validateLinkByLinkers(LinkEntity linkEntity, boolean forwardElseBackward, TwinEntity twinEntity, UUID candidateTwinId) throws ServiceException {
-        List<LinkValidatorEntity> linkValidatorEntityList = linkValidatorRepository.findByLinkIdOrderByOrder(linkEntity.getId());
-        if (CollectionUtils.isEmpty(linkValidatorEntityList))
-            return;
-        // internal validation, not a user-facing search — the candidate must not be filtered out by the caller's view permission
-        BasicSearch basicSearch = new BasicSearch()
-                .setCheckViewPermission(false);
-        basicSearch.addTwinId(candidateTwinId, false); // narrow the search to the candidate twin only
-        for (LinkValidatorEntity linkValidatorEntity : linkValidatorEntityList) {
-            Linker linker = featurerService.getFeaturer(linkValidatorEntity.getLinkerFeaturerId(), Linker.class);
-            linker.validateLink(linkValidatorEntity.getLinkerParams(), forwardElseBackward, twinEntity, basicSearch);
-        }
-        if (basicSearch.isEmptyResult() || twinSearchService.count(basicSearch) == 0) // existence check only — no twin hydration
-            throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
-                    linkEntity.logNormal() + " twinId[" + candidateTwinId + "] is not a valid dst twin for twinId[" + twinEntity.getId() + "] (linker validation failed)");
-    }
-
-    private void addClassCheckToValidTwinsForLinkSearch(LinkEntity linkEntity, TwinClassEntity srcTwinClass, BasicSearch search) throws ServiceException {
-        if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            twinClassService.loadExtendsHierarchyChildClasses(linkEntity.getDstTwinClass());
-            search.addTwinClassId(linkEntity.getDstTwinClass().getExtendsHierarchyChildClassKit().getIdSet(), false);
-        } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            twinClassService.loadExtendsHierarchyChildClasses(srcTwinClass);
-            search.addTwinClassId(srcTwinClass.getExtendsHierarchyChildClassKit().getIdSet(), false);
-        } else
-            throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "unknown link type");
     }
 
     public Collection<TwinLinkEntity> findTwinLinks(LinkEntity linkEntity, TwinEntity twinEntity, LinkService.LinkDirection linkDirection) throws ServiceException {

@@ -29,7 +29,7 @@ public abstract class Linker extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
 
-        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch, true);
+        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch);
     }
 
     /** twin_link validation: the linker rules the candidate in/out (empty result rejects the link). */
@@ -37,12 +37,12 @@ public abstract class Linker extends FeaturerTwins {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].validateLink with params: " + properties.toString());
 
-        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch, false);
+        validateLink(properties, twinEntity, forwardElseBackward, basicSearch);
     }
 
-    /**
-     * @param searchElseValidate true — valid-twins picker (narrow the user-facing search);
-     *                           false — twin_link validation (empty result = link rejected)
-     */
-    public abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch, boolean searchElseValidate);
+    /** Valid-twins picker: narrow the user-facing search to twins valid for the link. */
+    protected abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException;
+
+    /** twin_link validation: rule the candidate in/out (empty result = link rejected). */
+    protected abstract void validateLink(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException;
 }
