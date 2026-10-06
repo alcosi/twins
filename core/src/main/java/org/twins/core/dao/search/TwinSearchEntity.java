@@ -44,12 +44,12 @@ public class TwinSearchEntity implements EasyLoggable {
     @Column(name = "head_twin_search_id")
     private UUID headTwinSearchId;
 
-    @Column(name = "twin_search_featurer_id")
-    private Integer twinSearchFeaturerId = FeaturerTwins.ID_5701;
+    @Column(name = "twin_search_executor_featurer_id")
+    private Integer twinSearchExecutorFeaturerId = FeaturerTwins.ID_5701;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "twin_search_featurer_params", columnDefinition = "hstore")
-    private HashMap<String, String> twinSearchFeaturerParams;
+    @Column(name = "twin_search_executor_params", columnDefinition = "hstore")
+    private HashMap<String, String> twinSearchExecutorParams;
 
     @Transient
     @EqualsAndHashCode.Exclude

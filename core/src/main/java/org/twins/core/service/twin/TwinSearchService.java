@@ -308,7 +308,7 @@ public class TwinSearchService {
     }
 
     private static int searchFeaturerId(TwinSearchEntity search) {
-        return search.getTwinSearchFeaturerId() == null ? FeaturerTwins.ID_5701 : search.getTwinSearchFeaturerId();
+        return search.getTwinSearchExecutorFeaturerId() == null ? FeaturerTwins.ID_5701 : search.getTwinSearchExecutorFeaturerId();
     }
 
     protected void addPredicates(List<TwinSearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {

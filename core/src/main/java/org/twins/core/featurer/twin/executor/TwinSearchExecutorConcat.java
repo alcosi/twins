@@ -30,17 +30,19 @@ import java.util.UUID;
  * Children run in parameter order, each with its own filter and sort.
  * The page is a window of that concatenation, so the number of children is not fixed.
  * Child searches are executed by their own executor, so a child may itself be a concatenation.
- * Segments are appended, not deduplicated: the same twin returned by two children appears twice.
+ * Child search logic must be pairwise disjoint. Segments are appended without deduplication:
+ * a twin matched by two children appears twice, and the total (the sum of child counts) exceeds
+ * the number of distinct twins.
  */
 @Component
 @RequiredArgsConstructor
 @Featurer(id = FeaturerTwins.ID_5702,
         name = "Concatenate searches",
-        description = "Concatenates child saved searches in parameter order. Each child keeps its own filter and sort. Pagination and total apply to the concatenation")
+        description = "Concatenates child saved searches in order; children must not overlap, else twins duplicate")
 public class TwinSearchExecutorConcat extends TwinSearchExecutor {
 
     @FeaturerParam(name = "Child searches",
-            description = "Ordered saved search ids. The concatenation follows this order",
+            description = "Ordered saved search ids. The concatenation follows this order. Child search logic must not overlap, otherwise the same twin is returned more than once",
             order = 1)
     public static final FeaturerParamUUIDListTwinsTwinSearchId childTwinSearchIds = new FeaturerParamUUIDListTwinsTwinSearchId("childTwinSearchIds");
 

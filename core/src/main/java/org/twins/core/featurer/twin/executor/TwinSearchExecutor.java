@@ -28,11 +28,21 @@ import java.util.UUID;
 public abstract class TwinSearchExecutor extends FeaturerTwins {
 
     public final PaginationResult<TwinEntity> execute(TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination, Set<UUID> stack) throws ServiceException {
-        return guarded(search, stack, () -> doExecute(properties(search), search, namedParams, narrow, pagination, stack));
+        boolean pushed = push(search, stack);
+        try {
+            return doExecute(properties(search), search, namedParams, narrow, pagination, stack);
+        } finally {
+            pop(search, stack, pushed);
+        }
     }
 
     public final long count(TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {
-        return guarded(search, stack, () -> doCount(properties(search), search, namedParams, narrow, stack));
+        boolean pushed = push(search, stack);
+        try {
+            return doCount(properties(search), search, namedParams, narrow, stack);
+        } finally {
+            pop(search, stack, pushed);
+        }
     }
 
     protected abstract PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination, Set<UUID> stack) throws ServiceException;
@@ -40,24 +50,20 @@ public abstract class TwinSearchExecutor extends FeaturerTwins {
     protected abstract long doCount(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException;
 
     private Properties properties(TwinSearchEntity search) throws ServiceException {
-        return featurerService.extractProperties(this, search.getTwinSearchFeaturerParams());
+        return featurerService.extractProperties(this, search.getTwinSearchExecutorParams());
     }
 
-    private <T> T guarded(TwinSearchEntity search, Set<UUID> stack, Step<T> step) throws ServiceException {
+    private boolean push(TwinSearchEntity search, Set<UUID> stack) throws ServiceException {
         UUID id = search.getId();
-        boolean pushed = id != null && stack.add(id);
-        if (id != null && !pushed)
+        if (id == null)
+            return false;
+        if (!stack.add(id))
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "saved search recursion: " + id);
-        try {
-            return step.run();
-        } finally {
-            if (pushed)
-                stack.remove(id);
-        }
+        return true;
     }
 
-    @FunctionalInterface
-    private interface Step<T> {
-        T run() throws ServiceException;
+    private void pop(TwinSearchEntity search, Set<UUID> stack, boolean pushed) {
+        if (pushed)
+            stack.remove(search.getId());
     }
 }
