@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
@@ -141,10 +142,10 @@ public class LinkEntity implements EasyLoggable, Identifiable<UUID> {
     @ToString.Exclude
     private TwinClassEntity relationTwinClass;
 
-    @Transient
+    @Transient // lazy-loaded by LinkValidatorService.loadLinkValidators
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private List<LinkValidatorEntity> linkValidators;
+    private Kit<LinkValidatorEntity, UUID> linkValidators;
 
     public String easyLog(Level level) {
         return switch (level) {

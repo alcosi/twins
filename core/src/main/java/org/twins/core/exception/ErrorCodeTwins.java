@@ -157,6 +157,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TIER_NOT_CONFIGURED_FOR_DOMAIN(12302, "tier is not configured for domain"),
     LINK_DIRECTION_CLASS_NULL(12401, "Src or dst class of link cannot be null. Dont send nullify marker"),
     LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),
+    LINK_VALIDATOR_INCORRECT(12403, "incorrect link validator"),
+    LINK_VALIDATOR_ORDER_CONFLICT(12404, "link validator order is already in use for the link"),
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
     ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),

@@ -2,12 +2,14 @@ package org.twins.core.dao.link;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.Identifiable;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,7 +19,8 @@ import java.util.UUID;
 @Setter
 @Table(name = "link_validator")
 @Accessors(chain = true)
-public class LinkValidatorEntity implements EasyLoggable {
+@FieldNameConstants
+public class LinkValidatorEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -38,6 +41,27 @@ public class LinkValidatorEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "linker_params", columnDefinition = "hstore")
     private HashMap<String, String> linkerParams;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "link_id", insertable = false, updatable = false)
+    private LinkEntity linkSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "linker_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity linkerFeaturerSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private LinkEntity link;
 
     @Override
     public String easyLog(Level level) {
