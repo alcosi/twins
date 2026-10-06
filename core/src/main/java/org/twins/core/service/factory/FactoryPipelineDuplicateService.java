@@ -115,6 +115,7 @@ public class FactoryPipelineDuplicateService extends EntityDuplicateService<Fact
                 .setNextTwinFactoryLimitScope(src.getNextTwinFactoryLimitScope())
                 .setAfterCommitTwinFactoryId(newAfterCommitFactoryId)
                 .setTemplateTwinId(src.getTemplateTwinId())
+                .setName(src.getName())
                 .setDescription(src.getDescription())
                 .setActive(src.getActive());
     }

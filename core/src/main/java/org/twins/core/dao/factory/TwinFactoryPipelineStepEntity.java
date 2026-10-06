@@ -50,6 +50,9 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable, Identifiable
     @Column(name = "filler_featurer_id")
     private Integer fillerFeaturerId;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "description")
     private String description;
 

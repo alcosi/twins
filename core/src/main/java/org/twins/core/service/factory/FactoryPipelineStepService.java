@@ -105,6 +105,8 @@ public class FactoryPipelineStepService extends EntitySecureFindServiceImpl<Twin
                 TwinFactoryPipelineStepEntity::setTwinFactoryConditionInvert, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionInvert, changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getActive,
                 TwinFactoryPipelineStepEntity::setActive, TwinFactoryPipelineStepEntity.Fields.active, changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getName,
+                TwinFactoryPipelineStepEntity::setName, TwinFactoryPipelineStepEntity.Fields.name, changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getDescription,
                 TwinFactoryPipelineStepEntity::setDescription, TwinFactoryPipelineStepEntity.Fields.description, changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineStepEntity::getOptional,

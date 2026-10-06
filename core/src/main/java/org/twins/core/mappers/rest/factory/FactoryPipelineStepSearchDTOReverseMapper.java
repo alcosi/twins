@@ -22,6 +22,8 @@ public class FactoryPipelineStepSearchDTOReverseMapper extends RestSimpleDTOMapp
                 .setFactoryPipelineIdExcludeList(src.getFactoryPipelineIdExcludeList())
                 .setFactoryConditionSetIdList(src.getFactoryConditionSetIdList())
                 .setFactoryConditionSetIdExcludeList(src.getFactoryConditionSetIdExcludeList())
+                .setNameLikeList(src.getNameLikeList())
+                .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
                 .setFillerFeaturerIdList(src.getFillerFeaturerIdList())

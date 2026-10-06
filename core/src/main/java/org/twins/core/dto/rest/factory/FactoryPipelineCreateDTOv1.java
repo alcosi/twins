@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -38,6 +39,10 @@ public class FactoryPipelineCreateDTOv1 {
 
     @Schema(description = "template twin id", example = DTOExamples.TWIN_ID)
     public UUID templateTwinId;
+
+    @NotBlank
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;

@@ -124,6 +124,8 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
                 TwinFactoryPipelineEntity::setNextTwinFactoryId, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId, changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getTemplateTwinId,
                 TwinFactoryPipelineEntity::setTemplateTwinId, TwinFactoryPipelineEntity.Fields.templateTwinId, changesHelper);
+        updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getName,
+                TwinFactoryPipelineEntity::setName, TwinFactoryPipelineEntity.Fields.name, changesHelper);
         updateEntityFieldByEntity(entity, dbEntity, TwinFactoryPipelineEntity::getDescription,
                 TwinFactoryPipelineEntity::setDescription, TwinFactoryPipelineEntity.Fields.description, changesHelper);
 

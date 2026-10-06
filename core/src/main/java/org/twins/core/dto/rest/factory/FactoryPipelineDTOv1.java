@@ -47,6 +47,9 @@ public class FactoryPipelineDTOv1 {
     @Schema(description = "next factory limit scope", example = DTOExamples.BOOLEAN_TRUE)
     public Boolean nextFactoryLimitScope;
 
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
+
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 

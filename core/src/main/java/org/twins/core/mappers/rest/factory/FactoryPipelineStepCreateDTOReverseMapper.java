@@ -19,6 +19,7 @@ public class FactoryPipelineStepCreateDTOReverseMapper extends RestSimpleDTOMapp
                 .setActive(src.getActive())
                 .setFillerFeaturerId(src.getFillerFeaturerId())
                 .setFillerParams(src.getFillerParams())
+                .setName(src.getName())
                 .setDescription(src.getDescription())
                 .setOptional(src.getOptional());
     }

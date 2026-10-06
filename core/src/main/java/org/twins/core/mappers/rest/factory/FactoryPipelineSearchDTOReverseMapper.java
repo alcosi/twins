@@ -28,6 +28,8 @@ public class FactoryPipelineSearchDTOReverseMapper extends RestSimpleDTOMapper<F
                 .setOutputTwinStatusIdExcludeList(src.getOutputTwinStatusIdExcludeList())
                 .setNextFactoryIdList(src.getNextFactoryIdList())
                 .setNextFactoryIdExcludeList(src.getNextFactoryIdExcludeList())
+                .setNameLikeList(src.getNameLikeList())
+                .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
                 .setActive(src.getActive())

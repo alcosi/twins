@@ -46,6 +46,7 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setOptional(src.getOptional())
                         .setFillerFeaturerId(src.getFillerFeaturerId())
                         .setFillerParams(src.getFillerParams())
+                        .setName(src.getName())
                         .setDescription(src.getDescription());
                 break;
             case SHORT:
@@ -53,6 +54,7 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setId(src.getId())
                         .setFactoryPipelineId(src.getTwinFactoryPipelineId())
                         .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                        .setName(src.getName())
                         .setDescription(src.getDescription());
                 break;
         }

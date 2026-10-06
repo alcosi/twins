@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -37,6 +38,10 @@ public class FactoryPipelineStepCreateDTOv1 {
 
     @Schema(description = "filler params", example = DTOExamples.FEATURER_PARAM)
     public HashMap<String, String> fillerParams;
+
+    @NotBlank
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;

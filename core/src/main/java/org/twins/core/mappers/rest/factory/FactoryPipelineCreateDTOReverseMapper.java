@@ -20,6 +20,7 @@ public class FactoryPipelineCreateDTOReverseMapper extends RestSimpleDTOMapper<F
                 .setOutputTwinStatusId(src.getOutputStatusId())
                 .setNextTwinFactoryId(src.getNextFactoryId())
                 .setTemplateTwinId(src.getTemplateTwinId())
+                .setName(src.getName())
                 .setDescription(src.getDescription());
     }
 }

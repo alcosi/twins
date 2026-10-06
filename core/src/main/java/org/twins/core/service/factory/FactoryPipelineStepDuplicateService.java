@@ -108,6 +108,7 @@ public class FactoryPipelineStepDuplicateService extends EntityDuplicateService<
                 .setOptional(src.getOptional())
                 .setFillerFeaturerId(src.getFillerFeaturerId())
                 .setFillerParams(src.getFillerParams())
+                .setName(src.getName())
                 .setDescription(src.getDescription());
     }
 

@@ -50,6 +50,12 @@ public class FactoryPipelineSearchDTOv1 {
     @Schema(description = "next factory id exclude list")
     public Set<UUID> nextFactoryIdExcludeList;
 
+    @Schema(description = "name like list")
+    public Set<String> nameLikeList;
+
+    @Schema(description = "name not like list")
+    public Set<String> nameNotLikeList;
+
     @Schema(description = "description like list")
     public Set<String> descriptionLikeList;
 

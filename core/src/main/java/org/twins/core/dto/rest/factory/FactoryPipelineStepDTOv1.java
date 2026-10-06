@@ -44,6 +44,9 @@ public class FactoryPipelineStepDTOv1 {
     @Schema(description = "filler params", example = DTOExamples.FACTORY_PARAMS_MAP)
     public Map<String, String> fillerParams;
 
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
+
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 }

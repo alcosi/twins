@@ -57,6 +57,9 @@ public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable<UUI
     @Column(name = "template_twin_id")
     private UUID templateTwinId;
 
+    @Column(name = "name")
+    private String name;
+
     @Column(name = "description")
     private String description;
 

@@ -19,6 +19,8 @@ public class FactoryPipelineStepSearch extends EntitySearch<TwinFactoryPipelineS
     private Set<UUID> factoryPipelineIdExcludeList;
     private Set<UUID> factoryConditionSetIdList;
     private Set<UUID> factoryConditionSetIdExcludeList;
+    private Set<String> nameLikeList;
+    private Set<String> nameNotLikeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
     private Set<Integer> fillerFeaturerIdList;

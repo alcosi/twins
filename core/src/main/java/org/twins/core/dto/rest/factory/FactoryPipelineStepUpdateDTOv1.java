@@ -39,6 +39,9 @@ public class FactoryPipelineStepUpdateDTOv1 {
     @Schema(description = "filler params", example = DTOExamples.FEATURER_PARAM)
     public HashMap<String, String> fillerParams;
 
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
+
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 

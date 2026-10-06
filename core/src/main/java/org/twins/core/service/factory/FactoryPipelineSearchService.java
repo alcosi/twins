@@ -58,6 +58,8 @@ public class FactoryPipelineSearchService extends EntitySearchService
     public Specification<TwinFactoryPipelineEntity> createFilterSpecification(FactoryPipelineSearch search, UUID domainId, Locale locale) {
         return Specification.allOf(
                 checkUuid(domainId, false, true, TwinFactoryPipelineEntity.Fields.twinFactorySpecOnly, TwinFactoryEntity.Fields.domainId),
+                checkFieldLikeIn(search.getNameLikeList(), false, true, TwinFactoryPipelineEntity.Fields.name),
+                checkFieldLikeIn(search.getNameNotLikeList(), true, true, TwinFactoryPipelineEntity.Fields.name),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryPipelineEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryPipelineEntity.Fields.id),
@@ -89,6 +91,8 @@ public class FactoryPipelineSearchService extends EntitySearchService
         return switch (sortField) {
             case active ->
                     toSortSpecification(ascending, TwinFactoryPipelineEntity.Fields.active);
+            case name ->
+                    toSortSpecification(ascending, TwinFactoryPipelineEntity.Fields.name);
             case description ->
                     toSortSpecification(ascending, TwinFactoryPipelineEntity.Fields.description);
             case factoryConditionSetInvert ->

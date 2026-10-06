@@ -24,6 +24,8 @@ public class FactoryPipelineSearch extends EntitySearch<TwinFactoryPipelineEntit
     private Set<UUID> outputTwinStatusIdExcludeList;
     private Set<UUID> nextFactoryIdList;
     private Set<UUID> nextFactoryIdExcludeList;
+    private Set<String> nameLikeList;
+    private Set<String> nameNotLikeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
     private Ternary active;

@@ -37,6 +37,12 @@ public class FactoryPipelineStepSearchDTOv1 {
     @Schema(description = "factory condition set id exclude list")
     public Set<UUID> factoryConditionSetIdExcludeList;
 
+    @Schema(description = "name like list")
+    public Set<String> nameLikeList;
+
+    @Schema(description = "name not like list")
+    public Set<String> nameNotLikeList;
+
     @Schema(description = "description like list")
     public Set<String> descriptionLikeList;
 

@@ -38,6 +38,9 @@ public class FactoryPipelineUpdateDTOv1 {
     @Schema(description = "template twin id", example = DTOExamples.TWIN_ID)
     public UUID templateTwinId;
 
+    @Schema(description = "name", example = DTOExamples.NAME)
+    public String name;
+
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
 }
