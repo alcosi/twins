@@ -37,7 +37,6 @@ import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.domain.search.TwinSort;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.twin.detector.SearchDetector;
 import org.twins.core.featurer.twin.executor.TwinSearchExecutor;
 import org.twins.core.featurer.twin.finder.TwinFinder;
@@ -162,7 +161,7 @@ public class TwinSearchService {
         for (Map.Entry<String, SearchByAlias> entry : searchMap.entrySet()) {
             List<TwinSearchEntity> searchEntities = detectSearchesByAlias(entry.getKey());
             if (searchEntities.size() == 1)
-                result.put(entry.getKey(), countSearchExecutor(searchEntities.getFirst(), entry.getValue().getParams(), entry.getValue().getNarrow(), new LinkedHashSet<>()));
+                result.put(entry.getKey(), twinSearchExecutor(searchEntities.getFirst()).count(searchEntities.getFirst(), entry.getValue().getParams(), entry.getValue().getNarrow()));
             else
                 result.put(entry.getKey(), count(getBasicSearchesByAlias(searchEntities, entry.getValue())));
         }
@@ -248,7 +247,7 @@ public class TwinSearchService {
 
     public PaginationResult<TwinEntity> findTwins(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
         PaginationUtils.validPagination(pagination);
-        return runSearchExecutor(twinSearchEntity, namedParamsMap, searchNarrow, pagination, new LinkedHashSet<>());
+        return twinSearchExecutor(twinSearchEntity).execute(twinSearchEntity, namedParamsMap, searchNarrow, pagination);
     }
 
     public PaginationResult<TwinEntity> findTwins(List<TwinSearchEntity> searchEntities, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
@@ -262,17 +261,11 @@ public class TwinSearchService {
     }
 
     /**
-     * Runs the saved search executor without the aligned-offset check.
-     * Concatenation calls this for a child window whose offset is not a multiple of the page size.
+     * Resolves the executor configured for the saved search. The recursion guard lives entirely
+     * inside {@link TwinSearchExecutor} — callers never pass it.
      */
-    public PaginationResult<TwinEntity> runSearchExecutor(TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination, Set<UUID> stack) throws ServiceException {
-        TwinSearchExecutor executor = featurerService.getFeaturer(searchFeaturerId(search), TwinSearchExecutor.class);
-        return executor.execute(search, namedParams, narrow, pagination, stack);
-    }
-
-    public long countSearchExecutor(TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {
-        TwinSearchExecutor executor = featurerService.getFeaturer(searchFeaturerId(search), TwinSearchExecutor.class);
-        return executor.count(search, namedParams, narrow, stack);
+    private TwinSearchExecutor twinSearchExecutor(TwinSearchEntity search) throws ServiceException {
+        return featurerService.getFeaturer(search.getTwinSearchExecutorFeaturerId(), TwinSearchExecutor.class);
     }
 
     public List<TwinSearchEntity> loadSearchesInOrder(List<UUID> searchIds) throws ServiceException {
@@ -305,10 +298,6 @@ public class TwinSearchService {
         Pageable pageable = new OffsetLimitPageRequest(pagination.getOffset(), pagination.getLimit(), sort == null ? Sort.unsorted() : sort);
         Page<TwinEntity> ret = twinRepository.findAll(spec, pageable);
         return PaginationUtils.convertInPaginationResult(ret, pagination);
-    }
-
-    private static int searchFeaturerId(TwinSearchEntity search) {
-        return search.getTwinSearchExecutorFeaturerId() == null ? FeaturerTwins.ID_5701 : search.getTwinSearchExecutorFeaturerId();
     }
 
     protected void addPredicates(List<TwinSearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {

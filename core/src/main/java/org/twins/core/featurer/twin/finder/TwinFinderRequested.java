@@ -22,14 +22,25 @@ public abstract class TwinFinderRequested extends TwinFinder {
     @FeaturerParam(name = "Required", description = "", order = 10, optional = true, defaultValue = "true")
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
 
-    public Set<UUID> getRequestedIds(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    /**
+     * Reads the named request param pointed to by paramKey. A missing value fails when the
+     * required featurer param is on, otherwise yields null.
+     */
+    public static String getRequestedParam(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         String paramKeyStr = paramKey.extract(properties);
-        String paramValue = namedParamsMap.get(paramKeyStr);
+        String paramValue = namedParamsMap == null ? null : namedParamsMap.get(paramKeyStr);
         if (StringUtils.isBlank(paramValue))
             if (required.extract(properties))
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED, "search param[" + paramKeyStr + "] missed");
             else
                 return null;
+        return paramValue;
+    }
+
+    public Set<UUID> getRequestedIds(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+        String paramValue = getRequestedParam(paramKey, properties, namedParamsMap);
+        if (paramValue == null)
+            return null;
         Set<UUID> ret = null;
         try {
             ret = Arrays.stream(paramValue.split(","))
@@ -38,24 +49,20 @@ public abstract class TwinFinderRequested extends TwinFinder {
                     .map(UUID::fromString)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKeyStr + "] is not uuid (or uuid list)");
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKey.extract(properties) + "] is not uuid (or uuid list)");
         }
         return ret;
     }
 
     public UUID getRequestedId(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
-        String paramKeyStr = paramKey.extract(properties);
-        String paramValue = namedParamsMap.get(paramKeyStr);
-        if (StringUtils.isBlank(paramValue))
-            if (required.extract(properties))
-                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED, "search param[" + paramKeyStr + "] missed");
-            else
-                return null;
+        String paramValue = getRequestedParam(paramKey, properties, namedParamsMap);
+        if (paramValue == null)
+            return null;
         UUID ret = null;
         try {
             ret = UUID.fromString(paramValue);
         } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKeyStr + "] is not uuid (or uuid list)");
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKey.extract(properties) + "] is not uuid (or uuid list)");
         }
         return ret;
     }

@@ -56,7 +56,7 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
         List<TwinEntity> rows = new ArrayList<>();
         for (Slice slice : ConcatenatedPageWindow.slices(counts, pagination.getOffset(), pagination.getLimit())) {
             SimplePagination childPagination = new SimplePagination().setOffset(slice.offset()).setLimit(slice.limit());
-            rows.addAll(twinSearchService.runSearchExecutor(children.get(slice.index()), namedParams, narrow, childPagination, stack).getList());
+            rows.addAll(executeChild(children.get(slice.index()), namedParams, narrow, childPagination, stack).getList());
         }
         PaginationResult<TwinEntity> result = new PaginationResult<TwinEntity>()
                 .setList(rows)
@@ -81,7 +81,7 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
     private long[] counts(List<TwinSearchEntity> children, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {
         long[] counts = new long[children.size()];
         for (int i = 0; i < children.size(); i++)
-            counts[i] = twinSearchService.countSearchExecutor(children.get(i), namedParams, narrow, stack);
+            counts[i] = countChild(children.get(i), namedParams, narrow, stack);
         return counts;
     }
 }

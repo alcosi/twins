@@ -84,6 +84,15 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         return valueType;
     }
 
+    /**
+     * The search clause type this typer accepts in {@link #searchBy} — the precise capability signal
+     * for whether the typer supports a given search (the value type alone is broader, e.g.
+     * FieldTyperBaseDateField yields FieldValueDate but only TwinFieldSearchNotImplemented).
+     */
+    public Class<A> getTwinFieldSearchType() {
+        return twinFieldSearchType;
+    }
+
     public Class<D> getFieldDescriptorType(TwinClassFieldEntity twinClassField) throws ServiceException {
         return descriptorType;
     }

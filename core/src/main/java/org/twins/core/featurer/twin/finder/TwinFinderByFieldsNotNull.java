@@ -17,7 +17,7 @@ import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.FieldTyperTimestamp;
+import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
@@ -44,8 +44,8 @@ public class TwinFinderByFieldsNotNull extends TwinFinder {
         TwinFieldClause clause = new TwinFieldClause();
         for (UUID fieldId : twinClassFieldIds.extract(properties)) {
             TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(fieldId);
-            FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
-            if (!(fieldTyper instanceof FieldTyperTimestamp))
+            FieldTyper fieldTyper = twinClassFieldService.checkValueType(field, FieldValueDate.class);
+            if (!fieldTyper.getTwinFieldSearchType().isAssignableFrom(TwinFieldValueSearchDate.class))
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "field[" + field.easyLog(EasyLoggable.Level.SHORT) + "] typer does not support date search");
             // empty=false with no bounds means "is not null" (TwinSpecification.checkFieldTimestamp)
             TwinFieldValueSearchDate condition = new TwinFieldValueSearchDate()

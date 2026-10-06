@@ -20,7 +20,7 @@ import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.FieldTyperTimestamp;
+import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
@@ -36,7 +36,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_2724,
         name = "By field date (requested)",
         description = "Adds a date/timestamp field condition whose bounds are read from named request params (ISO-8601, e.g. 2026-10-04T00:00:00)")
-public class TwinFinderByFieldDateRequested extends TwinFinder {
+public class TwinFinderByFieldDateRequested extends TwinFinderRequested {
     @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
@@ -52,8 +52,8 @@ public class TwinFinderByFieldDateRequested extends TwinFinder {
     @FeaturerParam(name = "Empty", description = "twins missing the field value match too (OR value IS NULL)", order = 5, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean empty = new FeaturerParamBoolean("empty");
 
-    @FeaturerParam(name = "Required", description = "fail the search when a configured param is missing from the request", order = 6, optional = true, defaultValue = "true")
-    public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
+    // required is inherited from TwinFinderRequested (featurer params are collected per class,
+    // a second "required" field here would shadow it and duplicate the key)
 
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
@@ -61,16 +61,16 @@ public class TwinFinderByFieldDateRequested extends TwinFinder {
     @Override
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
-        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
-        if (!(fieldTyper instanceof FieldTyperTimestamp))
+        FieldTyper fieldTyper = twinClassFieldService.checkValueType(field, FieldValueDate.class);
+        if (!fieldTyper.getTwinFieldSearchType().isAssignableFrom(TwinFieldValueSearchDate.class))
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "field[" + field.easyLog(EasyLoggable.Level.SHORT) + "] typer does not support date search");
         TwinFieldValueSearchDate condition = new TwinFieldValueSearchDate()
                 .setEmpty(empty.extract(properties));
         condition.setTwinClassFieldEntity(field);
         condition.setFieldTyper(fieldTyper);
-        condition.setLessThenOrEquals(resolveBound(lessThenOrEqualsParamKey, properties, namedParamsMap));
-        condition.setMoreThenOrEquals(resolveBound(moreThenOrEqualsParamKey, properties, namedParamsMap));
-        condition.setEquals(resolveBound(equalsParamKey, properties, namedParamsMap));
+        condition.setLessThenOrEquals(parseBound(lessThenOrEqualsParamKey, properties, namedParamsMap));
+        condition.setMoreThenOrEquals(parseBound(moreThenOrEqualsParamKey, properties, namedParamsMap));
+        condition.setEquals(parseBound(equalsParamKey, properties, namedParamsMap));
         TwinFieldFilter fieldsFilter = twinSearch.getFieldsFilter();
         if (fieldsFilter == null)
             twinSearch.setFieldsFilter(fieldsFilter = new TwinFieldFilter());
@@ -78,23 +78,19 @@ public class TwinFinderByFieldDateRequested extends TwinFinder {
     }
 
     /**
-     * Reads the bound from the named param. Configured but missing param fails when required,
+     * Parses the bound from the named param. Configured but missing param fails when required,
      * otherwise the bound is treated as absent.
      */
-    static LocalDateTime resolveBound(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
-        String paramKeyStr = paramKey.extract(properties);
-        if (StringUtils.isBlank(paramKeyStr))
+    static LocalDateTime parseBound(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+        if (StringUtils.isBlank(paramKey.extract(properties)))
+            return null; // unconfigured key means the bound is not used, required does not apply
+        String paramValue = getRequestedParam(paramKey, properties, namedParamsMap);
+        if (paramValue == null)
             return null;
-        String paramValue = namedParamsMap == null ? null : namedParamsMap.get(paramKeyStr);
-        if (StringUtils.isBlank(paramValue)) {
-            if (required.extract(properties))
-                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED, "search param[" + paramKeyStr + "] missed");
-            return null;
-        }
         try {
             return LocalDateTime.parse(paramValue);
         } catch (DateTimeParseException e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKeyStr + "] is not ISO-8601 date-time: [" + paramValue + "]");
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKey.extract(properties) + "] is not ISO-8601 date-time: [" + paramValue + "]");
         }
     }
 }
