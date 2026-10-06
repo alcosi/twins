@@ -20,6 +20,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -97,6 +98,19 @@ public class FieldTyperI18n extends FieldTyper<FieldDescriptorI18n, FieldValueI1
         }
     }
 
+
+    @Override
+    public boolean checkIsChanged(TwinEntity twin, FieldValueI18n oldValue, FieldValueI18n newValue, Properties properties) {
+        if (oldValue == null)
+            return true;
+        for (Map.Entry<Locale, String> entry : newValue.getTranslations().entrySet()) {
+            if (UuidUtils.NULLIFY_MARKER.toString().equals(entry.getValue()))
+                return true;
+            if (!Objects.equals(oldValue.getTranslations().get(entry.getKey()), entry.getValue()))
+                return true;
+        }
+        return false;
+    }
 
     @Override
     protected FieldValueI18n deserializeValue(Properties properties, TwinField twinField) throws ServiceException {

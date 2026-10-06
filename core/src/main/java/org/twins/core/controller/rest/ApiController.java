@@ -1,5 +1,7 @@
 package org.twins.core.controller.rest;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +18,9 @@ import tools.jackson.databind.ObjectMapper;
 
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class ApiController {
@@ -28,6 +32,9 @@ public abstract class ApiController {
 
     @Autowired
     private I18nService i18NService;
+
+    @Autowired
+    private Validator validator;
 
     protected void logException(Exception ex) {
         if (ex instanceof ServiceException)
@@ -95,10 +102,19 @@ public abstract class ApiController {
     }
 
     protected <T> T mapRequest(byte[] bytes, Class<T> clazz) {
+        T request;
         try {
-            return objectMapper.readValue(bytes, clazz);
+            request = objectMapper.readValue(bytes, clazz);
         } catch (Throwable t) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, t.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Malformed request json");
         }
+        Set<ConstraintViolation<T>> violations = validator.validate(request);
+        if (!violations.isEmpty()) {
+            String details = violations.stream()
+                    .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                    .collect(Collectors.joining("; "));
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, details);
+        }
+        return request;
     }
 }

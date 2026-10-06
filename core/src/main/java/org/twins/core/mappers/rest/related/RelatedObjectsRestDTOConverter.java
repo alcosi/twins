@@ -1,8 +1,10 @@
 package org.twins.core.mappers.rest.related;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerTypeEntity;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
@@ -10,6 +12,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
@@ -26,556 +29,230 @@ import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
-import org.twins.core.dto.rest.action.ActionRestrictionReasonDTOv1;
-import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
-import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
-import org.twins.core.dto.rest.comment.CommentDTOv1;
-import org.twins.core.dto.rest.datalist.DataListDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
-import org.twins.core.dto.rest.face.FaceDTOv1;
-import org.twins.core.dto.rest.factory.*;
-import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
-import org.twins.core.dto.rest.featurer.FeaturerTypeDTOv1;
-import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
-import org.twins.core.dto.rest.i18n.I18nDTOv1;
-import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.notification.*;
-import org.twins.core.dto.rest.permission.PermissionDTOv1;
-import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
-import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
-import org.twins.core.dto.rest.projection.ProjectionTypeDTOv1;
-import org.twins.core.dto.rest.projection.ProjectionTypeGroupDTOv1;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
-import org.twins.core.dto.rest.scheduler.SchedulerDTOv1;
-import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
-import org.twins.core.dto.rest.tier.TierDTOv1;
-import org.twins.core.dto.rest.trigger.TwinTriggerDTOv1;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinclass.*;
-import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
-import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
-import org.twins.core.dto.rest.user.UserDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
-import org.twins.core.dto.rest.validator.TwinValidatorSetDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.action.ActionRestrictionReasonRestDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentRestrictionRestDTOMapper;
-import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
-import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
-import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
-import org.twins.core.mappers.rest.factory.*;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerTypeRestDTOMapper;
-import org.twins.core.mappers.rest.history.HistoryTypeRestDTOMapper;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOMapper;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.FeaturerParams;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
-import org.twins.core.mappers.rest.notification.*;
-import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
-import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
-import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
-import org.twins.core.mappers.rest.projection.ProjectionTypeGroupRestDTOMapper;
-import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
-import org.twins.core.mappers.rest.scheduler.SchedulerRestDTOMapperV1;
-import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
-import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
-import org.twins.core.mappers.rest.trigger.TwinTriggerRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twinclass.*;
-import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
-import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
+import org.twins.core.mappers.rest.system.EntityRefRestDTOMapper;
+import org.twins.core.service.EntityServiceRegistry;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-
+/**
+ * Converts the postponed related objects of a MapperContext into {@link RelatedObjectsDTOv1}.
+ * Declarative: one {@link RelatedMapDescriptor} per related map — a destination setter plus one or
+ * more {@link RelatedMapDescriptor.Source sources} of postponed objects — and a single drain loop
+ * running on each of the three conversion levels — related objects of level N postpone their own
+ * relations into the context of level N+1 (see the inline comments about the levels).
+ * EntityRefs postponed by featurer params resolution are drained between the levels by EntityRefRestDTOMapper.
+ */
 @Component
 @RequiredArgsConstructor
 public class RelatedObjectsRestDTOConverter {
 
-    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    private final LinkRestDTOMapper linkRestDTOMapper;
-    private final UserRestDTOMapper userRestDTOMapper;
-    private final UserGroupRestDTOMapper userGroupRestDTOMapper;
-    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    private final TwinTriggerRestDTOMapper twinTriggerRestDTOMapper;
-    private final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
-    private final DataListRestDTOMapper dataListRestDTOMapper;
-    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
-    private final BusinessAccountDTOMapper businessAccountDTOMapper;
-    private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
-    private final PermissionRestDTOMapper permissionRestDTOMapper;
-    private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
-    private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
-    private final TwinClassSchemaDTOMapper twinClassSchemaDTOMapper;
-    private final TwinflowSchemaRestDTOMapper twinflowSchemaRestDTOMapper;
-    private final FactoryRestDTOMapper factoryRestDTOMapper;
-    private final FactoryPipelineRestDTOMapper factoryPipelineRestDTOMapper;
-    private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
-    private final FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
-    private final FactoryBranchRestDTOMapper factoryBranchRestDTOMapper;
-    private final FactoryPipelineStepRestDTOMapper factoryPipelineStepRestDTOMapper;
-    private final FactoryMultiplierFilterRestDTOMapper factoryMultiplierFilterRestDTOMapper;
-    private final FactoryEraserRestDTOMapper factoryEraserRestDTOMapper;
-    private final FactoryTriggerRestDTOMapper factoryTriggerRestDTOMapper;
-    private final FactoryConditionRestDTOMapper factoryConditionRestDTOMapper;
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
-    private final FeaturerTypeRestDTOMapper featurerTypeRestDTOMapper;
-    private final FaceRestDTOMapper faceRestDTOMapper;
-    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
-    private final CommentRestDTOMapper commentRestDTOMapper;
-    private final I18nRestDTOMapper i18nRestDTOMapper;
-    private final TierRestDTOMapper tierRestDTOMapper;
-    private final AttachmentRestrictionRestDTOMapper attachmentRestrictionRestDTOMapper;
-    private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
-    private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
-    private final ProjectionTypeGroupRestDTOMapper projectionTypeGroupRestDTOMapper;
-    private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
-    private final SchedulerRestDTOMapperV1 schedulerRestDTOMapperV1;
-    private final HistoryNotificationRecipientDTOMapperV1 historyNotificationRecipientDTOMapper;
-    private final NotificationSchemaRestDTOMapper notificationSchemaRestDTOMapper;
-    private final NotificationChannelRestDTOMapper notificationChannelRestDTOMapper;
-    private final NotificationContextRestDTOMapper notificationContextRestDTOMapper;
-    private final NotificationChannelEventRestDTOMapper notificationChannelEventRestDTOMapper;
-    private final TwinValidatorSetRestDTOMapper twinValidatorSetRestDTOMapper;
-    private final HistoryTypeRestDTOMapper historyTypeRestDTOMapper;
-    private final ActionRestrictionReasonRestDTOMapper actionRestrictionReasonRestDTOMapper;
+    private final EntityRestMapperRegistry entityRestMapperRegistry;
+    private final EntityServiceRegistry entityServiceRegistry;
+    private final EntityRefRestDTOMapper entityRefRestDTOMapper;
+
+    private List<RelatedMapDescriptor<?, ?>> descriptors;
+
+    @PostConstruct
+    void initDescriptors() {
+        descriptors = List.of(
+                descriptor(RelatedObjectsDTOv1::setTwinClassMap, source(TwinClassEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinMap, source(TwinEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setStatusMap, source(TwinStatusEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setLinkMap, source(LinkEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTriggerMap, source(TwinTriggerEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setUserMap, source(UserEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setUserGroupMap, source(UserGroupEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTransitionsMap, source(TwinflowTransitionEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setDataListsMap, source(DataListEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setDataListsOptionMap, source(DataListOptionEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setSpaceRoleMap, source(SpaceRoleEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setBusinessAccountMap, source(BusinessAccountEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setPermissionGroupMap, source(PermissionGroupEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setPermissionMap, source(PermissionEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setPermissionSchemaMap, source(PermissionSchemaEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinflowMap, source(TwinflowEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinflowFactoryMap, source(TwinflowFactoryEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryMap, source(TwinFactoryEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryPipelineMap, source(TwinFactoryPipelineEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryConditionSetMap, source(TwinFactoryConditionSetEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryMultiplierMap, source(TwinFactoryMultiplierEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryBranchMap, source(TwinFactoryBranchEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryPipelineStepMap, source(TwinFactoryPipelineStepEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryMultiplierFilterMap, source(TwinFactoryMultiplierFilterEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryEraserMap, source(TwinFactoryEraserEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryTriggerMap, source(TwinFactoryTriggerEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFactoryConditionMap, source(TwinFactoryConditionEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFaceMap, source(FaceEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setCommentMap, source(TwinCommentEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setI18nMap, source(I18nEntity.class)),
+                //the featurer map is drained from two sources: featurer definitions postponed as FeaturerEntity
+                //and featurer+params pairs postponed as FeaturerParams (both keyed by the featurer id in the result)
+                descriptor(RelatedObjectsDTOv1::setFeaturerMap,
+                        source(FeaturerEntity.class, entityRestMapperRegistry.getFeaturerRestDTOMapper(), FeaturerEntity::getId),
+                        source(FeaturerParams.class, entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), FeaturerParams::getFeaturerId)),
+                // Integer id: no EntitySecureFindServiceImpl service to derive the id getter from
+                descriptor(RelatedObjectsDTOv1::setFeaturerTypeMap, source(FeaturerTypeEntity.class, entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), FeaturerTypeEntity::getId)),
+                descriptor(RelatedObjectsDTOv1::setTwinClassFieldMap, source(TwinClassFieldEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinClassSchemaMap, source(TwinClassSchemaEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinflowSchemaMap, source(TwinflowSchemaEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTierMap, source(TierEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setAttachmentRestrictionMap, source(TwinAttachmentRestrictionEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinClassFreezeMap, source(TwinClassFreezeEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setFieldRuleMap, source(TwinClassFieldRuleEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setProjectionTypeGroupMap, source(ProjectionTypeGroupEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setProjectionTypeMap, source(ProjectionTypeEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setSchedulerMap, source(SchedulerEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setHistoryNotificationRecipientMap, source(HistoryNotificationRecipientEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setNotificationSchemaMap, source(NotificationSchemaEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setNotificationChannelMap, source(NotificationChannelEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setNotificationContextMap, source(NotificationContextEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setNotificationChannelEventMap, source(NotificationChannelEventEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinValidatorSetMap, source(TwinValidatorSetEntity.class)),
+                // String id: does not fit Function<T, UUID>
+                descriptor(RelatedObjectsDTOv1::setHistoryTypeMap, source(HistoryTypeEntity.class, entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), HistoryTypeEntity::getId)),
+                descriptor(RelatedObjectsDTOv1::setActionRestrictionReasonMap, source(ActionRestrictionReasonEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setTwinPointerMap, source(TwinPointerEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setDataListSubsetMap, source(DataListSubsetEntity.class))
+        );
+    }
+
+    /**
+     * One related map declaration: the destination setter and the sources of postponed objects drained
+     * into the shared result map. Most maps have a single source; the featurer map drains two
+     * (FeaturerEntity definitions and FeaturerParams pairs), both keyed by the featurer id in the result.
+     * Source and destination key types are separate: e.g. the featurer params source is keyed by a
+     * cache string on MapperContext but contributes to featurerMap keyed by the featurer id.
+     * Stateless by design: the accumulator map is created per convert() call — the converter is a
+     * singleton bean, accumulators must never survive a request.
+     */
+    private record RelatedMapDescriptor<DK, D>(
+            List<Source<?, DK, D>> sources,
+            BiConsumer<RelatedObjectsDTOv1, Map<DK, D>> destinationSetter) {
+
+        /** One postponed-objects source: where to read from, how to convert and how to key the results. */
+        private record Source<E, DK, D>(
+                Class<E> relatedClass,
+                RestSimpleDTOMapper<E, ? extends D> mapper,
+                Function<? super E, ? extends DK> idGetter) {
+        }
+
+        /**
+         * Drains the postponed objects of all sources into this descriptor's accumulator map. The map is
+         * created lazily, on the first drained object only — a typical request postpones a few classes,
+         * the rest must not allocate anything.
+         */
+        @SuppressWarnings("unchecked")
+        private void drain(MapperContext sourceContext, MapperContext mapperContext,
+                           Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators) throws Exception {
+            for (Source<?, DK, D> source : sources) {
+                Map<Object, RelatedObject<Object>> postponed = postponedMap(sourceContext, source.relatedClass());
+                if (postponed == null || postponed.isEmpty())
+                    continue;
+                Map<Object, Object> accumulated = accumulators.computeIfAbsent(this, descriptor -> new HashMap<>());
+                Function<Object, Object> id = (Function<Object, Object>) source.idGetter();
+                RestSimpleDTOMapper<Object, Object> convertingMapper = (RestSimpleDTOMapper<Object, Object>) source.mapper();
+                for (RelatedObject<Object> relatedObject : postponed.values())
+                    accumulated.put(id.apply(relatedObject.getObject()),
+                            convertingMapper.convert(relatedObject.getObject(), mapperContext.setModesMap(relatedObject.getModes())));
+            }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static Map<Object, RelatedObject<Object>> postponedMap(MapperContext sourceContext, Class<?> relatedClass) {
+            return (Map<Object, RelatedObject<Object>>) (Map<?, ?>) sourceContext.getRelatedMap(relatedClass);
+        }
+
+        @SuppressWarnings("unchecked")
+        private void applyResult(RelatedObjectsDTOv1 ret, Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators) {
+            Map<Object, Object> accumulated = accumulators.get(this); // null when nothing was drained
+            ((BiConsumer<RelatedObjectsDTOv1, Map<Object, Object>>) (BiConsumer<?, ?>) destinationSetter)
+                    .accept(ret, accumulated == null || accumulated.isEmpty() ? null : accumulated);
+        }
+    }
+
+    @SafeVarargs
+    private static <DK, D> RelatedMapDescriptor<DK, D> descriptor(
+            BiConsumer<RelatedObjectsDTOv1, Map<DK, D>> destinationSetter,
+            RelatedMapDescriptor.Source<?, DK, D>... sources) {
+        return new RelatedMapDescriptor<>(List.of(sources), destinationSetter);
+    }
+
+    /**
+     * Source deriving the mapper (EntityRestMapperRegistry) and the id getter (EntityServiceRegistry,
+     * entityGetIdFunction) by entity class — the regular case for UUID-keyed entity maps. Fails fast at
+     * startup when a registry entry is missing. Not applicable to the featurer family (Integer ids,
+     * FeaturerParams is not an entity) and historyType (String id): those use the explicit overload below.
+     */
+    @SuppressWarnings("unchecked")
+    private <E, D> RelatedMapDescriptor.Source<E, UUID, D> source(Class<E> entityClass) {
+        RestSimpleDTOMapper<E, ?> mapper = (RestSimpleDTOMapper<E, ?>) entityRestMapperRegistry.getMapper(entityClass);
+        if (mapper == null)
+            throw new IllegalStateException("RelatedObjectsRestDTOConverter: entity class[" + entityClass.getName()
+                    + "] has no mapper registered in EntityRestMapperRegistry");
+        EntitySecureFindServiceImpl<E> service = (EntitySecureFindServiceImpl<E>) entityServiceRegistry.getService(entityClass);
+        if (service == null)
+            throw new IllegalStateException("RelatedObjectsRestDTOConverter: entity class[" + entityClass.getName()
+                    + "] has no service registered in EntityServiceRegistry");
+        return new RelatedMapDescriptor.Source<>(entityClass, (RestSimpleDTOMapper<E, ? extends D>) mapper,
+                service.entityGetIdFunction());
+    }
+
+    private static <E, DK, D> RelatedMapDescriptor.Source<E, DK, D> source(
+            Class<E> relatedClass,
+            RestSimpleDTOMapper<E, ? extends D> mapper,
+            Function<? super E, ? extends DK> idGetter) {
+        return new RelatedMapDescriptor.Source<>(relatedClass, mapper, idGetter);
+    }
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
             return null;
-        RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
-        Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
-        Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
-        Map<UUID, LinkDTOv1> linkMap = new HashMap<>();
-        Map<UUID, TwinTriggerDTOv1> triggerMap = new HashMap<>();
-        Map<UUID, UserDTOv1> userMap = new HashMap<>();
-        Map<UUID, UserGroupDTOv1> userGroupMap = new HashMap<>();
-        Map<UUID, TwinClassDTOv1> twinClassMap = new HashMap<>();
-        Map<UUID, TwinflowTransitionBaseDTOv1> twinflowTransitionMap = new HashMap<>();
-        Map<UUID, DataListDTOv1> dataListMap = new HashMap<>();
-        Map<UUID, DataListOptionDTOv1> dataListOptionMap = new HashMap<>();
-        Map<UUID, SpaceRoleDTOv1> spaceRoleMap = new HashMap<>();
-        Map<UUID, BusinessAccountDTOv1> businessAccountMap = new HashMap<>();
-        Map<UUID, PermissionGroupDTOv1> permissionGroupMap = new HashMap<>();
-        Map<UUID, PermissionDTOv1> permissionMap = new HashMap<>();
-        Map<UUID, PermissionSchemaDTOv1> permissionSchemaMap = new HashMap<>();
-        Map<UUID, TwinflowBaseDTOv1> twinflowMap = new HashMap<>();
-        Map<UUID, FactoryDTOv1> factoryMap = new HashMap<>();
-        Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap = new HashMap<>();
-        Map<UUID, FactoryConditionSetDTOv1> factoryConditionSetMap = new HashMap<>();
-        Map<UUID, FactoryMultiplierDTOv1> factoryMultiplierMap = new HashMap<>();
-        Map<UUID, FactoryBranchDTOv1> factoryBranchMap = new HashMap<>();
-        Map<UUID, FactoryPipelineStepDTOv1> factoryPipelineStepMap = new HashMap<>();
-        Map<UUID, FactoryMultiplierFilterDTOv1> factoryMultiplierFilterMap = new HashMap<>();
-        Map<UUID, FactoryEraserDTOv1> factoryEraserMap = new HashMap<>();
-        Map<UUID, FactoryTriggerDTOv1> factoryTriggerMap = new HashMap<>();
-        Map<UUID, FactoryConditionDTOv1> factoryConditionMap = new HashMap<>();
-        Map<UUID, FaceDTOv1> faceMap = new HashMap<>();
-        Map<UUID, CommentDTOv1> commentMap = new HashMap<>();
-        Map<UUID, I18nDTOv1> i18nMap = new HashMap<>();
-        Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap = new HashMap<>();
-        Map<UUID, TwinflowSchemaDTOv1> twinflowSchemaMap = new HashMap<>();
-        Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
-        Map<Integer, FeaturerTypeDTOv1> featurerTypeMap = new HashMap<>();
-        Map<UUID, TwinClassFieldDTOv1> twinClassFiledMap = new HashMap<>();
-        Map<UUID, TierDTOv1> tierMap = new HashMap<>();
-        Map<UUID, AttachmentRestrictionDTOv1> attachmentRestrictionMap = new HashMap<>();
-        Map<UUID, TwinClassFreezeDTOv1> twinClassFreezeMap = new HashMap<>();
-        Map<UUID, TwinClassFieldRuleDTOv1> twinClassFieldRuleMap = new HashMap<>();
-        Map<UUID, ProjectionTypeGroupDTOv1> projectionTypeGroupMap = new HashMap<>();
-        Map<UUID, ProjectionTypeDTOv1> projectionTypeMap = new HashMap<>();
-        Map<UUID, SchedulerDTOv1> schedulerMap = new HashMap<>();
-        Map<UUID, HistoryNotificationRecipientDTOv1> historyNotificationRecipientMap = new HashMap<>();
-        Map<UUID, NotificationSchemaDTOv1> notificationSchemaMap = new HashMap<>();
-        Map<UUID, NotificationChannelDTOv1> notificationChannelMap = new HashMap<>();
-        Map<UUID, NotificationContextDTOv1> notificationContextMap = new HashMap<>();
-        Map<UUID, NotificationChannelEventDTOv1> notificationChannelEventMap = new HashMap<>();
-        Map<String, HistoryTypeDTOv1> historyTypeMap = new HashMap<>();
-        Map<UUID, TwinValidatorSetDTOv1> twinValidatorSetMap = new HashMap<>();
-        Map<UUID, ActionRestrictionReasonDTOv1> actionRestrictionReasonMap = new HashMap<>();
-
+        //per-convert accumulators, created lazily on first drained object (see RelatedMapDescriptor.drain):
+        //the descriptors are a shared singleton config, the maps must die with the request
+        Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators = new HashMap<>();
+        //resolve featurer param entity refs postponed during the main conversion: rendered on level 1
+        entityRefRestDTOMapper.resolve(mapperContext);
+        //run mappers one more time, because related objects can also contain relations (they were added to the isolated context on the previous step)
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
-        if (!mapperContext.getRelatedTwinClassMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassMap(), twinClassRestDTOMapper, mapperContextLevel2, twinClassMap, TwinClassEntity::getId);
-        if (!mapperContext.getRelatedTwinMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel2, twinMap, TwinEntity::getId);
-        if (!mapperContext.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel2, statusMap, TwinStatusEntity::getId);
-        if (!mapperContext.getRelatedLinkMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedLinkMap(), linkRestDTOMapper, mapperContextLevel2, linkMap, LinkEntity::getId);
-        if (!mapperContext.getRelatedTwinTriggerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinTriggerMap(), twinTriggerRestDTOMapper, mapperContextLevel2, triggerMap, TwinTriggerEntity::getId);
-        if (!mapperContext.getRelatedUserMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel2, userMap, UserEntity::getId);
-        if (!mapperContext.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel2, userGroupMap, UserGroupEntity::getId);
-        if (!mapperContext.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel2, twinflowTransitionMap, TwinflowTransitionEntity::getId);
-        if (!mapperContext.getRelatedDataListMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedDataListMap(), dataListRestDTOMapper, mapperContextLevel2, dataListMap, DataListEntity::getId);
-        if (!mapperContext.getRelatedDataListOptionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel2, dataListOptionMap, DataListOptionEntity::getId);
-        if (!mapperContext.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel2, spaceRoleMap, SpaceRoleEntity::getId);
-        if (!mapperContext.getRelatedBusinessAccountMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel2, businessAccountMap, BusinessAccountEntity::getId);
-        if (!mapperContext.getRelatedPermissionGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedPermissionGroupMap(), permissionGroupRestDTOMapper, mapperContextLevel2, permissionGroupMap, PermissionGroupEntity::getId);
-        if (!mapperContext.getRelatedPermissionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel2, permissionMap, PermissionEntity::getId);
-        if (!mapperContext.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel2, permissionSchemaMap, PermissionSchemaEntity::getId);
-        if (!mapperContext.getRelatedTwinflowMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel2, twinflowMap, TwinflowEntity::getId);
-        if (!mapperContext.getRelatedFactoryMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel2, factoryMap, TwinFactoryEntity::getId);
-        if (!mapperContext.getRelatedFactoryPipelineMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapper, mapperContextLevel2, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
-        if (!mapperContext.getRelatedFactoryConditionSetMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryConditionSetMap(), factoryConditionSetRestDTOMapper, mapperContextLevel2, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
-        if (!mapperContext.getRelatedFactoryMultiplierMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryMultiplierMap(), factoryMultiplierRestDTOMapper, mapperContextLevel2, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
-        if (!mapperContext.getRelatedFactoryBranchMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryBranchMap(), factoryBranchRestDTOMapper, mapperContextLevel2, factoryBranchMap, TwinFactoryBranchEntity::getId);
-        if (!mapperContext.getRelatedFactoryPipelineStepMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryPipelineStepMap(), factoryPipelineStepRestDTOMapper, mapperContextLevel2, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
-        if (!mapperContext.getRelatedFactoryMultiplierFilterMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryMultiplierFilterMap(), factoryMultiplierFilterRestDTOMapper, mapperContextLevel2, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
-        if (!mapperContext.getRelatedFactoryEraserMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryEraserMap(), factoryEraserRestDTOMapper, mapperContextLevel2, factoryEraserMap, TwinFactoryEraserEntity::getId);
-        if (!mapperContext.getRelatedFactoryTriggerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryTriggerMap(), factoryTriggerRestDTOMapper, mapperContextLevel2, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
-        if (!mapperContext.getRelatedFactoryConditionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFactoryConditionMap(), factoryConditionRestDTOMapper, mapperContextLevel2, factoryConditionMap, TwinFactoryConditionEntity::getId);
-        if (!mapperContext.getRelatedFaceMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel2, faceMap, FaceEntity::getId);
-        if (!mapperContext.getRelatedCommentMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedCommentMap(), commentRestDTOMapper, mapperContextLevel2, commentMap, TwinCommentEntity::getId);
-        if (!mapperContext.getRelatedI18nMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel2, i18nMap, I18nEntity::getId);
-        if (!mapperContext.getRelatedFeaturerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel2, featurerMap, FeaturerEntity::getId);
-        if (!mapperContext.getRelatedFeaturerTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedFeaturerTypeMap(), featurerTypeRestDTOMapper, mapperContextLevel2, featurerTypeMap, FeaturerTypeEntity::getId);
-        if (!mapperContext.getRelatedTwinClassFieldMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel2, twinClassFiledMap, TwinClassFieldEntity::getId);
-        if (!mapperContext.getRelatedTwinClassSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassSchemaMap(), twinClassSchemaDTOMapper, mapperContextLevel2, twinClassSchemaMap, TwinClassSchemaEntity::getId);
-        if (!mapperContext.getRelatedTwinflowSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), twinflowSchemaRestDTOMapper, mapperContextLevel2, twinflowSchemaMap, TwinflowSchemaEntity::getId);
-        if (!mapperContext.getRelatedTierMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel2, tierMap, TierEntity::getId);
-        if (!mapperContext.getRelatedAttachmentRestrictionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel2, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
-        if (!mapperContext.getRelatedTwinClassFreezeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel2, twinClassFreezeMap, TwinClassFreezeEntity::getId);
-        if (!mapperContext.getRelatedClassFieldRuleMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel2, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel2, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContext.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel2, projectionTypeMap, ProjectionTypeEntity::getId);
-        if (!mapperContext.getRelatedSchedulerMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel2, schedulerMap, SchedulerEntity::getId);
-        if (!mapperContext.getRelatedHistoryNotificationRecipientMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel2, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
-        if (!mapperContext.getRelatedNotificationSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationSchemaMap(), notificationSchemaRestDTOMapper, mapperContextLevel2, notificationSchemaMap, NotificationSchemaEntity::getId);
-        if (!mapperContext.getRelatedNotificationChannelMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationChannelMap(), notificationChannelRestDTOMapper, mapperContextLevel2, notificationChannelMap, NotificationChannelEntity::getId);
-        if (!mapperContext.getRelatedNotificationContextMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationContextMap(), notificationContextRestDTOMapper, mapperContextLevel2, notificationContextMap, NotificationContextEntity::getId);
-        if (!mapperContext.getRelatedNotificationChannelEventMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedNotificationChannelEventMap(), notificationChannelEventRestDTOMapper, mapperContextLevel2, notificationChannelEventMap, NotificationChannelEventEntity::getId);
-        if (!mapperContext.getRelatedTwinValidatorSetMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel2, twinValidatorSetMap, TwinValidatorSetEntity::getId);
-        if (!mapperContext.getRelatedHistoryTypeMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel2, historyTypeMap, HistoryTypeEntity::getId);
-        if (!mapperContext.getRelatedActionRestrictionReasonMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel2, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
-
-        //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
+        drain(mapperContext, mapperContextLevel2, accumulators);
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
-        if (!mapperContextLevel2.getRelatedTwinClassMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassMap(), twinClassRestDTOMapper, mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel3, twinMap, TwinEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
-        if (!mapperContextLevel2.getRelatedLinkMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedLinkMap(), linkRestDTOMapper, mapperContextLevel3, linkMap, LinkEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinTriggerMap(), twinTriggerRestDTOMapper, mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
-        if (!mapperContextLevel2.getRelatedUserMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
-        if (!mapperContextLevel2.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
-        if (!mapperContextLevel2.getRelatedDataListMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedDataListMap(), dataListRestDTOMapper, mapperContextLevel3, dataListMap, DataListEntity::getId);
-        if (!mapperContextLevel2.getRelatedDataListOptionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
-        if (!mapperContextLevel2.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
-        if (!mapperContextLevel2.getRelatedBusinessAccountMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
-        if (!mapperContextLevel2.getRelatedPermissionGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedPermissionGroupMap(), permissionGroupRestDTOMapper, mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
-        if (!mapperContextLevel2.getRelatedPermissionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel3, permissionMap, PermissionEntity::getId);
-        if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
-        if (!mapperContextLevel2.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryPipelineMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapper, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryConditionSetMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryConditionSetMap(), factoryConditionSetRestDTOMapper, mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryMultiplierMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryMultiplierMap(), factoryMultiplierRestDTOMapper, mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryBranchMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryBranchMap(), factoryBranchRestDTOMapper, mapperContextLevel3, factoryBranchMap, TwinFactoryBranchEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryPipelineStepMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineStepMap(), factoryPipelineStepRestDTOMapper, mapperContextLevel3, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryMultiplierFilterMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryMultiplierFilterMap(), factoryMultiplierFilterRestDTOMapper, mapperContextLevel3, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryEraserMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryEraserMap(), factoryEraserRestDTOMapper, mapperContextLevel3, factoryEraserMap, TwinFactoryEraserEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryTriggerMap(), factoryTriggerRestDTOMapper, mapperContextLevel3, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
-        if (!mapperContextLevel2.getRelatedFactoryConditionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFactoryConditionMap(), factoryConditionRestDTOMapper, mapperContextLevel3, factoryConditionMap, TwinFactoryConditionEntity::getId);
-        if (!mapperContextLevel2.getRelatedFaceMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel3, faceMap, FaceEntity::getId);
-        if (!mapperContextLevel2.getRelatedCommentMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedCommentMap(), commentRestDTOMapper, mapperContextLevel3, commentMap, TwinCommentEntity::getId);
-        if (!mapperContextLevel2.getRelatedI18nMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
-        if (!mapperContextLevel2.getRelatedFeaturerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
-        if (!mapperContextLevel2.getRelatedFeaturerTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedFeaturerTypeMap(), featurerTypeRestDTOMapper, mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinClassFieldMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinClassSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassSchemaMap(), twinClassSchemaDTOMapper, mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinflowSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), twinflowSchemaRestDTOMapper, mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
-        if (!mapperContextLevel2.getRelatedTierMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel3, tierMap, TierEntity::getId);
-        if (!mapperContextLevel2.getRelatedAttachmentRestrictionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinClassFreezeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
-        if (!mapperContextLevel2.getRelatedClassFieldRuleMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContextLevel2.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContextLevel2.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
-        if (!mapperContextLevel2.getRelatedSchedulerMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
-        if (!mapperContextLevel2.getRelatedHistoryNotificationRecipientMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
-        if (!mapperContextLevel2.getRelatedNotificationSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationSchemaMap(), notificationSchemaRestDTOMapper, mapperContextLevel3, notificationSchemaMap, NotificationSchemaEntity::getId);
-        if (!mapperContextLevel2.getRelatedNotificationChannelMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationChannelMap(), notificationChannelRestDTOMapper, mapperContextLevel3, notificationChannelMap, NotificationChannelEntity::getId);
-        if (!mapperContextLevel2.getRelatedNotificationContextMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationContextMap(), notificationContextRestDTOMapper, mapperContextLevel3, notificationContextMap, NotificationContextEntity::getId);
-        if (!mapperContextLevel2.getRelatedNotificationChannelEventMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedNotificationChannelEventMap(), notificationChannelEventRestDTOMapper, mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
-        if (!mapperContextLevel2.getRelatedTwinValidatorSetMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
-        if (!mapperContextLevel2.getRelatedHistoryTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
-        if (!mapperContextLevel2.getRelatedActionRestrictionReasonMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
-
-        //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
-        //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
+        //resolve entity refs postponed during level 1 conversions: rendered on level 2
+        entityRefRestDTOMapper.resolve(mapperContextLevel2);
+        drain(mapperContextLevel2, mapperContextLevel3, accumulators);
+        //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList on level2 and its options only on level3
         mapperContextLevel3.setLazyRelations(true); // on such depth we will not collect related objects anymore
-        if (!mapperContextLevel3.getRelatedTwinClassMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassMap(), twinClassRestDTOMapper, mapperContextLevel3, twinClassMap, TwinClassEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel3, twinMap, TwinEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
-        if (!mapperContextLevel3.getRelatedLinkMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedLinkMap(), linkRestDTOMapper, mapperContextLevel3, linkMap, LinkEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinTriggerMap(), twinTriggerRestDTOMapper, mapperContextLevel3, triggerMap, TwinTriggerEntity::getId);
-        if (!mapperContextLevel3.getRelatedUserMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
-        if (!mapperContextLevel3.getRelatedUserGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedUserGroupMap(), userGroupRestDTOMapper, mapperContextLevel3, userGroupMap, UserGroupEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
-        if (!mapperContextLevel3.getRelatedDataListMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedDataListMap(), dataListRestDTOMapper, mapperContextLevel3, dataListMap, DataListEntity::getId);
-        if (!mapperContextLevel3.getRelatedDataListOptionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
-        if (!mapperContextLevel3.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
-        if (!mapperContextLevel3.getRelatedBusinessAccountMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
-        if (!mapperContextLevel3.getRelatedPermissionGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedPermissionGroupMap(), permissionGroupRestDTOMapper, mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
-        if (!mapperContextLevel3.getRelatedPermissionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel3, permissionMap, PermissionEntity::getId);
-        if (!mapperContextLevel3.getRelatedPermissionSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedPermissionSchemaMap(), permissionSchemaRestDTOMapper, mapperContextLevel3, permissionSchemaMap, PermissionSchemaEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinflowMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinflowMap(), twinflowBaseV1RestDTOMapper, mapperContextLevel3, twinflowMap, TwinflowEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryPipelineMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapper, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryConditionSetMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryConditionSetMap(), factoryConditionSetRestDTOMapper, mapperContextLevel3, factoryConditionSetMap, TwinFactoryConditionSetEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryMultiplierMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryMultiplierMap(), factoryMultiplierRestDTOMapper, mapperContextLevel3, factoryMultiplierMap, TwinFactoryMultiplierEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryBranchMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryBranchMap(), factoryBranchRestDTOMapper, mapperContextLevel3, factoryBranchMap, TwinFactoryBranchEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryPipelineStepMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineStepMap(), factoryPipelineStepRestDTOMapper, mapperContextLevel3, factoryPipelineStepMap, TwinFactoryPipelineStepEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryMultiplierFilterMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryMultiplierFilterMap(), factoryMultiplierFilterRestDTOMapper, mapperContextLevel3, factoryMultiplierFilterMap, TwinFactoryMultiplierFilterEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryEraserMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryEraserMap(), factoryEraserRestDTOMapper, mapperContextLevel3, factoryEraserMap, TwinFactoryEraserEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryTriggerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryTriggerMap(), factoryTriggerRestDTOMapper, mapperContextLevel3, factoryTriggerMap, TwinFactoryTriggerEntity::getId);
-        if (!mapperContextLevel3.getRelatedFactoryConditionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFactoryConditionMap(), factoryConditionRestDTOMapper, mapperContextLevel3, factoryConditionMap, TwinFactoryConditionEntity::getId);
-        if (!mapperContextLevel3.getRelatedFaceMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFaceMap(), faceRestDTOMapper, mapperContextLevel3, faceMap, FaceEntity::getId);
-        if (!mapperContextLevel3.getRelatedCommentMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedCommentMap(), commentRestDTOMapper, mapperContextLevel3, commentMap, TwinCommentEntity::getId);
-        if (!mapperContext.getRelatedI18nMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedI18nMap(), i18nRestDTOMapper, mapperContextLevel3, i18nMap, I18nEntity::getId);
-        if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
-        if (!mapperContextLevel3.getRelatedFeaturerTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedFeaturerTypeMap(), featurerTypeRestDTOMapper, mapperContextLevel3, featurerTypeMap, FeaturerTypeEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinClassFieldMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassFieldMap(), twinClassFieldRestDTOMapper, mapperContextLevel3, twinClassFiledMap, TwinClassFieldEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinClassSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassSchemaMap(), twinClassSchemaDTOMapper, mapperContextLevel3, twinClassSchemaMap, TwinClassSchemaEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinflowSchemaMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowSchemaMap(), twinflowSchemaRestDTOMapper, mapperContextLevel3, twinflowSchemaMap, TwinflowSchemaEntity::getId);
-        if (!mapperContextLevel3.getRelatedTierMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTierMap(), tierRestDTOMapper, mapperContextLevel3, tierMap, TierEntity::getId);
-        if (!mapperContextLevel3.getRelatedAttachmentRestrictionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedAttachmentRestrictionMap(), attachmentRestrictionRestDTOMapper, mapperContextLevel3, attachmentRestrictionMap, TwinAttachmentRestrictionEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinClassFreezeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinClassFreezeMap(), twinClassFreezeDTOMapper, mapperContextLevel3, twinClassFreezeMap, TwinClassFreezeEntity::getId);
-        if (!mapperContextLevel3.getRelatedClassFieldRuleMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedClassFieldRuleMap(), twinClassFieldRuleRestDTOMapper, mapperContextLevel3, twinClassFieldRuleMap, TwinClassFieldRuleEntity::getId);
-        if (!mapperContextLevel3.getRelatedProjectionTypeGroupMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeGroupMap(), projectionTypeGroupRestDTOMapper, mapperContextLevel3, projectionTypeGroupMap, ProjectionTypeGroupEntity::getId);
-        if (!mapperContextLevel3.getRelatedProjectionTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedProjectionTypeMap(), projectionTypeRestDTOMapper, mapperContextLevel3, projectionTypeMap, ProjectionTypeEntity::getId);
-        if (!mapperContextLevel3.getRelatedSchedulerMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedSchedulerMap(), schedulerRestDTOMapperV1, mapperContextLevel3, schedulerMap, SchedulerEntity::getId);
-        if (!mapperContextLevel3.getRelatedHistoryNotificationRecipientMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedHistoryNotificationRecipientMap(), historyNotificationRecipientDTOMapper, mapperContextLevel3, historyNotificationRecipientMap, HistoryNotificationRecipientEntity::getId);
-        if (!mapperContextLevel3.getRelatedNotificationSchemaMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationSchemaMap(), notificationSchemaRestDTOMapper, mapperContextLevel3, notificationSchemaMap, NotificationSchemaEntity::getId);
-        if (!mapperContextLevel3.getRelatedNotificationChannelMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationChannelMap(), notificationChannelRestDTOMapper, mapperContextLevel3, notificationChannelMap, NotificationChannelEntity::getId);
-        if (!mapperContextLevel3.getRelatedNotificationContextMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationContextMap(), notificationContextRestDTOMapper, mapperContextLevel3, notificationContextMap, NotificationContextEntity::getId);
-        if (!mapperContextLevel3.getRelatedNotificationChannelEventMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedNotificationChannelEventMap(), notificationChannelEventRestDTOMapper, mapperContextLevel3, notificationChannelEventMap, NotificationChannelEventEntity::getId);
-        if (!mapperContextLevel3.getRelatedTwinValidatorSetMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinValidatorSetMap(), twinValidatorSetRestDTOMapper, mapperContextLevel3, twinValidatorSetMap, TwinValidatorSetEntity::getId);
-        if (!mapperContextLevel3.getRelatedHistoryTypeMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedHistoryTypeMap(), historyTypeRestDTOMapper, mapperContextLevel3, historyTypeMap, HistoryTypeEntity::getId);
-        if (!mapperContextLevel3.getRelatedActionRestrictionReasonMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedActionRestrictionReasonMap(), actionRestrictionReasonRestDTOMapper, mapperContextLevel3, actionRestrictionReasonMap, ActionRestrictionReasonEntity::getId);
-
-        ret
-                .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
-                .setTwinMap(twinMap.isEmpty() ? null : twinMap)
-                .setStatusMap(statusMap.isEmpty() ? null : statusMap)
-                .setLinkMap(linkMap.isEmpty() ? null : linkMap)
-                .setTriggerMap(triggerMap.isEmpty() ? null : triggerMap)
-                .setUserMap(userMap.isEmpty() ? null : userMap)
-                .setUserGroupMap(userGroupMap.isEmpty() ? null : userGroupMap)
-                .setTransitionsMap(twinflowTransitionMap.isEmpty() ? null : twinflowTransitionMap)
-                .setDataListsMap(dataListMap.isEmpty() ? null : dataListMap)
-                .setDataListsOptionMap(dataListOptionMap.isEmpty() ? null : dataListOptionMap)
-                .setSpaceRoleMap(spaceRoleMap.isEmpty() ? null : spaceRoleMap)
-                .setBusinessAccountMap(businessAccountMap.isEmpty() ? null : businessAccountMap)
-                .setPermissionGroupMap(permissionGroupMap.isEmpty() ? null : permissionGroupMap)
-                .setPermissionMap(permissionMap.isEmpty() ? null : permissionMap)
-                .setPermissionSchemaMap(permissionSchemaMap.isEmpty() ? null : permissionSchemaMap)
-                .setTwinflowMap(twinflowMap.isEmpty() ? null : twinflowMap)
-                .setFactoryMap(factoryMap.isEmpty() ? null : factoryMap)
-                .setFactoryPipelineMap(factoryPipelineMap.isEmpty() ? null : factoryPipelineMap)
-                .setFactoryConditionSetMap(factoryConditionSetMap.isEmpty() ? null : factoryConditionSetMap)
-                .setFactoryMultiplierMap(factoryMultiplierMap.isEmpty() ? null : factoryMultiplierMap)
-                .setFactoryBranchMap(factoryBranchMap.isEmpty() ? null : factoryBranchMap)
-                .setFactoryPipelineStepMap(factoryPipelineStepMap.isEmpty() ? null : factoryPipelineStepMap)
-                .setFactoryMultiplierFilterMap(factoryMultiplierFilterMap.isEmpty() ? null : factoryMultiplierFilterMap)
-                .setFactoryEraserMap(factoryEraserMap.isEmpty() ? null : factoryEraserMap)
-                .setFactoryTriggerMap(factoryTriggerMap.isEmpty() ? null : factoryTriggerMap)
-                .setFactoryConditionMap(factoryConditionMap.isEmpty() ? null : factoryConditionMap)
-                .setCommentMap(commentMap.isEmpty() ? null : commentMap)
-                .setFeaturerMap(featurerMap.isEmpty() ? null : featurerMap)
-                .setFeaturerTypeMap(featurerTypeMap.isEmpty() ? null : featurerTypeMap)
-                .setFaceMap(faceMap.isEmpty() ? null : faceMap)
-                .setI18nMap(i18nMap.isEmpty() ? null : i18nMap)
-                .setTwinClassFieldMap(twinClassFiledMap.isEmpty() ? null : twinClassFiledMap)
-                .setTwinClassSchemaMap(twinClassSchemaMap.isEmpty() ? null : twinClassSchemaMap)
-                .setTwinflowSchemaMap(twinflowSchemaMap.isEmpty() ? null : twinflowSchemaMap)
-                .setTierMap(tierMap.isEmpty() ? null : tierMap)
-                .setAttachmentRestrictionMap(attachmentRestrictionMap.isEmpty() ? null : attachmentRestrictionMap)
-                .setTwinClassFreezeMap(twinClassFreezeMap.isEmpty() ? null : twinClassFreezeMap)
-                .setFieldRuleMap(twinClassFieldRuleMap.isEmpty() ? null : twinClassFieldRuleMap)
-                .setProjectionTypeGroupMap(projectionTypeGroupMap.isEmpty() ? null : projectionTypeGroupMap)
-                .setProjectionTypeMap(projectionTypeMap.isEmpty() ? null : projectionTypeMap)
-                .setSchedulerMap(schedulerMap.isEmpty() ? null : schedulerMap)
-                .setHistoryNotificationRecipientMap(historyNotificationRecipientMap.isEmpty() ? null : historyNotificationRecipientMap)
-                .setNotificationSchemaMap(notificationSchemaMap.isEmpty() ? null : notificationSchemaMap)
-                .setNotificationChannelMap(notificationChannelMap.isEmpty() ? null : notificationChannelMap)
-                .setNotificationContextMap(notificationContextMap.isEmpty() ? null : notificationContextMap)
-                .setNotificationChannelEventMap(notificationChannelEventMap.isEmpty() ? null : notificationChannelEventMap)
-                .setHistoryTypeMap(historyTypeMap.isEmpty() ? null : historyTypeMap)
-                .setTwinValidatorSetMap(twinValidatorSetMap.isEmpty() ? null : twinValidatorSetMap)
-                .setActionRestrictionReasonMap(actionRestrictionReasonMap.isEmpty() ? null : actionRestrictionReasonMap)
-        ;
+        //resolve entity refs postponed during level 2 conversions: loaded and rendered on this level, the cascade
+        //stops here because postpone is a no-op with lazyRelations=true
+        entityRefRestDTOMapper.resolve(mapperContextLevel3);
+        drain(mapperContextLevel3, mapperContextLevel3, accumulators);
+        RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
+        for (RelatedMapDescriptor<?, ?> descriptor : descriptors)
+            descriptor.applyResult(ret, accumulators);
         return ret;
     }
 
-    public <E, D, K> void convertAndPut(Map<K, RelatedObject<E>> relatedObjects, RestSimpleDTOMapper<E, ? extends D> mapper, MapperContext mapperContext, Map<K, D> map, Function<? super E, ? extends K> functionGetId) throws Exception {
-        for (RelatedObject<E> relatedObject : relatedObjects.values())
-            map.put(functionGetId.apply(relatedObject.getObject()), mapper.convert(relatedObject.getObject(), mapperContext.setModesMap(relatedObject.getModes())));
+    private void drain(MapperContext sourceContext, MapperContext mapperContext, Map<RelatedMapDescriptor<?, ?>, Map<Object, Object>> accumulators) throws Exception {
+        for (RelatedMapDescriptor<?, ?> descriptor : descriptors)
+            descriptor.drain(sourceContext, mapperContext, accumulators);
     }
 }

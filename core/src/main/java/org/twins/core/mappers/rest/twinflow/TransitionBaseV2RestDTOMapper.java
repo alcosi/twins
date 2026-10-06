@@ -56,14 +56,17 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         }
         if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE) && src.getSrcTwinStatusId() != null) {
             dst.setSrcTwinStatusId(src.getSrcTwinStatusId());
+            twinflowTransitionService.loadTwinStatuses(src);
             twinStatusRestDTOMapper.postpone(src.getSrcTwinStatus(), mapperContext.forkOnPoint(StatusMode.Transition2StatusMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionMode.Transition2PermissionMode.HIDE) && src.getPermissionId() != null) {
             dst.setPermissionId(src.getPermissionId());
-            permissionRestDTOMapper.postpone(twinflowTransitionService.loadPermission(src), mapperContext.forkOnPoint(PermissionMode.Transition2PermissionMode.SHORT));
+            twinflowTransitionService.loadPermission(src);
+            permissionRestDTOMapper.postpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.Transition2PermissionMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinflowMode.Transition2TwinflowMode.HIDE) && src.getTwinflowId() != null) {
             dst.setTwinflowId(src.getTwinflowId());
+            twinflowTransitionService.loadTwinflow(src);
             twinflowBaseV1RestDTOMapper.postpone(src.getTwinflow(), mapperContext.forkOnPoint(TwinflowMode.Transition2TwinflowMode.SHORT));
         }
         if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE) && src.getCreatedByUserId() != null) {
@@ -73,8 +76,9 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         }
         if (mapperContext.hasModeButNot(FactoryMode.Transition2FactoryMode.HIDE)) {
             dst.setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId());
-            factoryRestDTOMapper.postpone(src.getInbuiltFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT));
             dst.setDraftingTwinFactoryId(src.getDraftingTwinFactoryId());
+            twinflowTransitionService.loadFactories(src);
+            factoryRestDTOMapper.postpone(src.getInbuiltFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT));
             factoryRestDTOMapper.postpone(src.getDraftingFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT));
         }
     }
@@ -92,8 +96,19 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     @Override
     public void beforeCollectionConversion(Collection<TwinflowTransitionEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
         if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE)) {
             twinflowTransitionService.loadUsers(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE)) {
+            twinflowTransitionService.loadTwinStatuses(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinflowMode.Transition2TwinflowMode.HIDE)) {
+            twinflowTransitionService.loadTwinflow(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FactoryMode.Transition2FactoryMode.HIDE)) {
+            twinflowTransitionService.loadFactories(srcCollection);
         }
     }
 }

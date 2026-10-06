@@ -23,7 +23,14 @@ public abstract class FieldTyperSingleValue<
         V,
         S extends TwinFieldStorageMater<E>,
         A extends TwinFieldValueSearch> extends FieldTyper<D, T, S, A> {
-    protected void detectValueChange(E twinFieldEntity, TwinChangesCollector twinChangesCollector, V newValue) {
+
+    /**
+     * Applies the processed value: registers the change in the collector (this is what makes
+     * the entity persisted), adds the history entry and sets the in-memory value. The collectIf*
+     * comparison inside is the authoritative write-time diff — the isChanged guard does not run
+     * on create and errs towards "changed" for incomparable values, so this check stays.
+     */
+    protected void collectChangedValue(E twinFieldEntity, TwinChangesCollector twinChangesCollector, V newValue) {
         var oldValue = getEntityValue(twinFieldEntity);
         if (twinChangesCollector.collectIfChangedWithNullifySupport(twinFieldEntity, "field[" + twinFieldEntity.getTwinClassField().getKey() + "]", oldValue, newValue)) {
             addHistoryContext(twinChangesCollector, twinFieldEntity, newValue);
@@ -39,27 +46,54 @@ public abstract class FieldTyperSingleValue<
     protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (value.isUndefined())
             return;
-        var twinFieldEntity = resolveTwinFieldEntity(twin, value.getTwinClassField());
-        if (twinFieldEntity == null && value.isNotEmpty()) {
-            // create
-            twinFieldEntity = createTwinFieldEntity(twin, value.getTwinClassField());
-            detectValueChange(twinFieldEntity, twinChangesCollector, processValue(properties, twinFieldEntity, value));
-        } else if (twinFieldEntity != null && value.isCleared()) {
-            onCleared(properties, twinFieldEntity, twinChangesCollector);
-        } else if (twinFieldEntity != null && value.isNotEmpty()) {
-            // update
-            detectValueChange(twinFieldEntity, twinChangesCollector, processValue(properties, twinFieldEntity, value));
-        } else if (twinFieldEntity == null && value.isCleared()) {
-            // no stored row to clear — default no-op; override onClearedNoRow to materialize a row
-            onClearedNoRow(properties, twin, value.getTwinClassField(), twinChangesCollector);
+        TwinClassFieldEntity twinClassField = value.getTwinClassField();
+        E twinFieldEntity = resolveTwinFieldEntity(twin, twinClassField);
+
+        if (value.isCleared()) {
+            if (twinFieldEntity != null) {
+                onCleared(properties, twinFieldEntity, twinChangesCollector);
+            } else {
+                // no stored row to clear — default no-op; override onClearedNoRow to materialize a row
+                onClearedNoRow(properties, twin, twinClassField, twinChangesCollector);
+            }
+            return;
+        }
+
+        if (value.isNotEmpty()) {
+            if (twinFieldEntity == null) {
+                twinFieldEntity = reviveDeletedOrCreate(twin, twinClassField, twinChangesCollector);
+            }
+            collectChangedValue(twinFieldEntity, twinChangesCollector, processValue(properties, twinFieldEntity, value));
         }
     }
 
+    /**
+     * Looks up an existing row in the twin's field kit. Does not create or revive deleted rows.
+     */
     public E resolveTwinFieldEntity(TwinEntity twin, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         var field = getFieldKit(twin).get(twinClassFieldEntity.getId());
         if (field != null)
             field.setTwin(twin);
         return field;
+    }
+
+    /**
+     * When kit has no row for a non-empty write: revive a row deleted earlier in this collector
+     * (clear -> refill), otherwise create a new one. Avoids DELETE+INSERT against UNIQUE (twin, field).
+     */
+    private E reviveDeletedOrCreate(TwinEntity twin, TwinClassFieldEntity twinClassField,
+                                    TwinChangesCollector twinChangesCollector) {
+        E revived = twinChangesCollector.pullDeletedTwinField(twin.getId(), twinClassField.getId());
+        if (revived != null) {
+            revived.setTwin(twin);
+            revived.setTwinClassField(twinClassField);
+            Kit<E, UUID> kit = getFieldKit(twin);
+            if (kit != null) {
+                kit.add(revived);
+            }
+            return revived;
+        }
+        return createTwinFieldEntity(twin, twinClassField);
     }
 
     protected abstract Kit<E, UUID> getFieldKit(TwinEntity twinEntity);

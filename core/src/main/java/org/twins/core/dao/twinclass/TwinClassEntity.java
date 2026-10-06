@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 @Table(name = "twin_class")
 @FieldNameConstants
-public class TwinClassEntity implements EasyLoggable, Identifiable {
+public class TwinClassEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

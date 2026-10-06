@@ -40,6 +40,6 @@ public interface TwinflowRepository extends CrudRepository<TwinflowEntity, UUID>
 
     List<TwinflowEntity> findByTwinClassIdIn(Collection<UUID> twinClassIds);
 
-    @Query("select t.id from TwinflowEntity t where t.createdByUserId = :businessAccountId and (t.twinClass.domainId = :domainId or t.twinClass.domainId is null)")
+    @Query("select t.id from TwinflowEntity t where t.createdByUserId = :businessAccountId and (t.twinClassSpecOnly.domainId = :domainId or t.twinClassSpecOnly.domainId is null)")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 }

@@ -15,7 +15,7 @@ public interface EasyLoggable {
         return easyLog(Level.DETAILED);
     }
 
-    public enum Level {
+    enum Level {
         SHORT, NORMAL, DETAILED
     }
 }

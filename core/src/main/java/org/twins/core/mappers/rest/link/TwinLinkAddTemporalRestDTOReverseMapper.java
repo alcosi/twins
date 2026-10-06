@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.StringUtils;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
@@ -13,6 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TemporalIdContext;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -25,6 +27,7 @@ import java.util.UUID;
 public class TwinLinkAddTemporalRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLinkAddDTOv2, TwinLinkCreate> {
     private final AuthService authService;
     private final RelationTwinFieldsConverter relationTwinFieldsConverter;
+    private final TemporalIdContext temporalIdContext;
 
     @Override
     public void map(TwinLinkAddDTOv2 src, TwinLinkCreate dst, MapperContext mapperContext) throws Exception {
@@ -38,6 +41,11 @@ public class TwinLinkAddTemporalRestDTOReverseMapper extends RestSimpleDTOMapper
         try {
             UUID dstTwinId = UUID.fromString(src.getDstTwinId());
             twinLink.setDstTwinId(dstTwinId);
+            TwinEntity batchTwin = temporalIdContext.resolveTwin(dstTwinId);
+            if (batchTwin != null)
+                // temporal link to a not-yet-persisted batch twin: reference the being-created entity — there is
+                // nothing to load from db, and consumers (fillers, lookupers) read dstTwin without resolution
+                twinLink.setDstTwin(batchTwin);
         } catch (IllegalArgumentException e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
                     "DstTwinId can not be parsed to UUID");

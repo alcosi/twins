@@ -8,6 +8,7 @@ import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twinflow_schema")
-public class TwinflowSchemaEntity {
+public class TwinflowSchemaEntity implements Identifiable<UUID> {
     @Id
     private UUID id;
 

@@ -89,6 +89,10 @@ public enum ErrorCodeTwins implements ErrorCode {
     DATALIST_NAME_IS_NOT_UNIQUE(10604, "data list with this key is not unique"),
     DATALIST_OPTION_INVALID_ATTRIBUTE(10605, "invalid attribute"),
     DATALIST_KEY_INCORRECT(10606, "invalid datalist key"),
+    DATALIST_SUBSET_KEY_IS_NOT_UNIQUE(10607, "data list subset with this key is not unique"),
+    DATALIST_SUBSET_OPTION_IS_NOT_VALID(10608, "data list option is not valid for current data list subset"),
+    DATALIST_SUBSET_KEY_INCORRECT(10609, "invalid data list subset key"),
+    DATALIST_SUBSET_IS_ALREADY_IN_USE(10610, "data list subset is already in use by options"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "head twin must be specified"),
@@ -156,7 +160,6 @@ public enum ErrorCodeTwins implements ErrorCode {
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
     TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
     ATTACHMENTS_NOT_VALID(12503, "attachment not valid"),
-    BAD_REQUEST_MULTIPART_FILE_IS_NOT_PRESENTED(12504, "multipart file is not presented", HttpStatus.BAD_REQUEST),
     POINTER_NON_SINGLE(12601, "twin pointer is not single"),
     POINTER_ON_NULL(12602, "twin pointer is null"),
     POINTER_UPDATE_RESTRICTED(12603, "twin pointer can not be updated"),
@@ -204,7 +207,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     DUPLICATE_TEMPORAL_ID(13602, "duplicate temporal id in batch request"),
     CYCLIC_DEPENDENCY(13603, "cyclic dependency detected in temporal references"),
     INVALID_TEMPORAL_REFERENCE(13604, "invalid temporal reference format"),
-    TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account");
+    TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account"),
+    VALIDATION_DTO_FAILED(13701, "dto bean validation failed"),
+    MALFORMED_REQUEST_BODY(13702, "request body is malformed");
 
     private final int code;
     private final String message;

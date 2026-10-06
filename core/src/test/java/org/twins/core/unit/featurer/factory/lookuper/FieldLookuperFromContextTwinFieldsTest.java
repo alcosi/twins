@@ -15,6 +15,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinFiel
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -28,12 +29,19 @@ class FieldLookuperFromContextTwinFieldsTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldLookuperFromContextTwinFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromContextTwinFields();
         setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
+        // getValueFromOutputLinks guard for non-link fields: no configured link -> no uncommitted link value
+        lenient().when(twinClassFieldService.findEntitySafe(any(UUID.class))).thenReturn(new TwinClassFieldEntity());
+        lenient().when(twinClassFieldService.getConfiguredLink(any(TwinClassFieldEntity.class))).thenReturn(null);
     }
 
     // contract: resolve from SINGLE context item — uncommitted output.getField(fieldId) first;

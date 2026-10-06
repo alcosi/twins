@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dto.rest.scheduler.SchedulerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.SchedulerMode;
@@ -19,7 +19,7 @@ import org.twins.core.service.scheduler.SchedulerService;
 public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntity, SchedulerDTOv1> {
 
     @MapperModePointerBinding(modes = FeaturerMode.Scheduler2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
     private final SchedulerService schedulerService;
 
     @Override
@@ -44,7 +44,7 @@ public class SchedulerRestDTOMapperV1 extends RestSimpleDTOMapper<SchedulerEntit
 
         if (mapperContext.hasModeButNot(FeaturerMode.Scheduler2FeaturerMode.HIDE)) {
             dst.setSchedulerFeaturerId(src.getSchedulerFeaturerId());
-            featurerRestDTOMapper.postpone(src.getSchedulerFeaturerId(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Scheduler2FeaturerMode.SHORT)));
+            featurerParametrizedRestDTOMapper.postpone(src.getSchedulerFeaturerId(), src.getSchedulerParams(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Scheduler2FeaturerMode.SHORT)));
         }
     }
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Entity
 @Table(name = "draft_twin_persist")
-public class DraftTwinPersistEntity implements Identifiable {
+public class DraftTwinPersistEntity implements Identifiable<UUID> {
     @Id
     private UUID id;
 

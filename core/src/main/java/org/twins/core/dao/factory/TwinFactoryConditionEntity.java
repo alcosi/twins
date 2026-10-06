@@ -19,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Data
 @FieldNameConstants
-public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

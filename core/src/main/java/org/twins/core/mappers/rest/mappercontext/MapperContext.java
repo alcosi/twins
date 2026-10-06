@@ -11,6 +11,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
@@ -27,9 +28,11 @@ import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowFactoryEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -45,108 +48,84 @@ public class MapperContext {
     @Getter
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
-
-    @Getter
-    private Map<UUID, RelatedObject<UserEntity>> relatedUserMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<UserGroupEntity>> relatedUserGroupMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinClassEntity>> relatedTwinClassMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinStatusEntity>> relatedTwinStatusMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<LinkEntity>> relatedLinkMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinTriggerEntity>> relatedTwinTriggerMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinEntity>> relatedTwinMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinflowTransitionEntity>> relatedTwinflowTransitionMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<DataListEntity>> relatedDataListMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<DataListOptionEntity>> relatedDataListOptionMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<SpaceRoleEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<BusinessAccountEntity>> relatedBusinessAccountMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<PermissionGroupEntity>> relatedPermissionGroupMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<PermissionSchemaEntity>> relatedPermissionSchemaMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<PermissionEntity>> relatedPermissionMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinflowEntity>> relatedTwinflowMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryEntity>> relatedFactoryMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryPipelineEntity>> relatedFactoryPipelineMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryConditionSetEntity>> relatedFactoryConditionSetMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryMultiplierEntity>> relatedFactoryMultiplierMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryBranchEntity>> relatedFactoryBranchMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryPipelineStepEntity>> relatedFactoryPipelineStepMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryMultiplierFilterEntity>> relatedFactoryMultiplierFilterMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryEraserEntity>> relatedFactoryEraserMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryTriggerEntity>> relatedFactoryTriggerMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinFactoryConditionEntity>> relatedFactoryConditionMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<FaceEntity>> relatedFaceMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<I18nEntity>> relatedI18nMap = new LinkedHashMap<>();
-    @Getter
-    private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
-    @Getter
-    private Map<Integer, RelatedObject<FeaturerTypeEntity>> relatedFeaturerTypeMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinClassFieldEntity>> relatedTwinClassFieldMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinCommentEntity>> relatedCommentMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinClassSchemaEntity>> relatedTwinClassSchemaMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinflowSchemaEntity>> relatedTwinflowSchemaMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TierEntity>> relatedTierMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinAttachmentRestrictionEntity>> relatedAttachmentRestrictionMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinClassFreezeEntity>> relatedTwinClassFreezeMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinClassFieldRuleEntity>> relatedClassFieldRuleMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<TwinValidatorSetEntity>> relatedTwinValidatorSetMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<ProjectionTypeGroupEntity>> relatedProjectionTypeGroupMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<ProjectionTypeEntity>> relatedProjectionTypeMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<SchedulerEntity>> relatedSchedulerMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<HistoryNotificationRecipientEntity>> relatedHistoryNotificationRecipientMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<NotificationSchemaEntity>> relatedNotificationSchemaMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<NotificationChannelEntity>> relatedNotificationChannelMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<NotificationContextEntity>> relatedNotificationContextMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<NotificationChannelEventEntity>> relatedNotificationChannelEventMap = new LinkedHashMap<>();
-    @Getter
-    private Map<String, RelatedObject<HistoryTypeEntity>> relatedHistoryTypeMap = new LinkedHashMap<>();
-    @Getter
-    private Map<UUID, RelatedObject<ActionRestrictionReasonEntity>> relatedActionRestrictionReasonMap = new LinkedHashMap<>();
-
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
+
+    /**
+     * Postponed related objects: outer key is the registered class of the postponed object (see
+     * {@link #RELATED_CLASSES}), inner key is the object id (dedup + mode merging in smartPut).
+     * Inner maps are created lazily; cloneIgnoreRelatedObjects starts a fresh outer map (level isolation),
+     * fork() shares it by reference (see linkToRelatedObjects).
+     */
+    private Map<Class<?>, Map<Object, RelatedObject<?>>> relatedMaps = new LinkedHashMap<>();
+
+    /** All postponable classes; everything else is rejected by addRelatedObject (so convertOrPostpone falls back to inline conversion). */
+    private static final Set<Class<?>> RELATED_CLASSES = Set.of(
+            UserEntity.class,
+            UserGroupEntity.class,
+            TwinClassEntity.class,
+            TwinStatusEntity.class,
+            LinkEntity.class,
+            TwinTriggerEntity.class,
+            TwinEntity.class,
+            TwinflowTransitionEntity.class,
+            TwinflowFactoryEntity.class,
+            DataListEntity.class,
+            DataListOptionEntity.class,
+            DataListSubsetEntity.class,
+            SpaceRoleEntity.class,
+            BusinessAccountEntity.class,
+            PermissionGroupEntity.class,
+            PermissionSchemaEntity.class,
+            PermissionEntity.class,
+            TwinflowEntity.class,
+            TwinFactoryEntity.class,
+            TwinFactoryPipelineEntity.class,
+            TwinFactoryConditionSetEntity.class,
+            TwinFactoryMultiplierEntity.class,
+            TwinFactoryBranchEntity.class,
+            TwinFactoryPipelineStepEntity.class,
+            TwinFactoryMultiplierFilterEntity.class,
+            TwinFactoryEraserEntity.class,
+            TwinFactoryTriggerEntity.class,
+            TwinFactoryConditionEntity.class,
+            FeaturerEntity.class,
+            FeaturerTypeEntity.class,
+            FaceEntity.class,
+            TwinClassFieldEntity.class,
+            TwinCommentEntity.class,
+            I18nEntity.class,
+            TwinClassSchemaEntity.class,
+            TwinflowSchemaEntity.class,
+            TierEntity.class,
+            TwinAttachmentRestrictionEntity.class,
+            TwinClassFreezeEntity.class,
+            TwinClassFieldRuleEntity.class,
+            TwinValidatorSetEntity.class,
+            ProjectionTypeGroupEntity.class,
+            ProjectionTypeEntity.class,
+            SchedulerEntity.class,
+            HistoryNotificationRecipientEntity.class,
+            NotificationSchemaEntity.class,
+            NotificationChannelEntity.class,
+            NotificationContextEntity.class,
+            NotificationChannelEventEntity.class,
+            HistoryTypeEntity.class,
+            ActionRestrictionReasonEntity.class,
+            TwinPointerEntity.class,
+            FeaturerParams.class,
+            EntityRef.class);
+
+    /**
+     * Resolves the registered related class for the given class: exact match first, then the superclass
+     * chain, so Hibernate proxies (a subclass of the entity) map to the registered entity class.
+     */
+    private static Class<?> resolveRelatedClass(Class<?> cls) {
+        for (Class<?> c = cls; c != null; c = c.getSuperclass())
+            if (RELATED_CLASSES.contains(c))
+                return c;
+        return null;
+    }
 
     public static MapperContext create() {
         return new MapperContext();
@@ -213,13 +192,13 @@ public class MapperContext {
 
     public MapperContext setLazyRelations(boolean lazyRelations) {
         this.lazyRelations = lazyRelations;
-        log.debug("lazyRelations = " + lazyRelations);
+        log.debug("lazyRelations = {}", lazyRelations);
         return this;
     }
 
     public MapperContext addProperty(String key, Object value) {
         properties.put(key, value);
-        log.debug("property[" + key + "] was set to[" + value + "]");
+        log.debug("property[{}] was set to[{}]", key, value);
         return this;
     }
 
@@ -240,113 +219,35 @@ public class MapperContext {
     public boolean addRelatedObject(Object relatedObject) {
         if (relatedObject == null)
             return true;
-        if (relatedObject instanceof UserEntity user)
-            smartPut(relatedUserMap, user, user.getId());
-        else if (relatedObject instanceof UserGroupEntity userGroup)
-            smartPut(relatedUserGroupMap, userGroup, userGroup.getId());
-        else if (relatedObject instanceof TwinClassEntity twinClass)
-            smartPut(relatedTwinClassMap, twinClass, twinClass.getId());
-        else if (relatedObject instanceof TwinStatusEntity twinStatus)
-            smartPut(relatedTwinStatusMap, twinStatus, twinStatus.getId());
-        else if (relatedObject instanceof LinkEntity link)
-            smartPut(relatedLinkMap, link, link.getId());
-        else if (relatedObject instanceof TwinTriggerEntity twinTrigger)
-            smartPut(relatedTwinTriggerMap, twinTrigger, twinTrigger.getId());
-        else if (relatedObject instanceof TwinEntity twin) {
-            if (!SystemIdLookup.isSystemClass(twin.getTwinClassId())) // system twins (user and ba) will be skipped
-                smartPut(relatedTwinMap, twin, twin.getId());
-        }
-        else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
-            smartPut(relatedTwinflowTransitionMap, twinflowTransition, twinflowTransition.getId());
-        else if (relatedObject instanceof DataListEntity dataList)
-            smartPut(relatedDataListMap, dataList, dataList.getId());
-        else if (relatedObject instanceof DataListOptionEntity dataListOption)
-            smartPut(relatedDataListOptionMap, dataListOption, dataListOption.getId());
-        else if (relatedObject instanceof SpaceRoleEntity spaceRole)
-            smartPut(relatedSpaceRoleMap, spaceRole, spaceRole.getId());
-        else if (relatedObject instanceof BusinessAccountEntity businessAccount)
-            smartPut(relatedBusinessAccountMap, businessAccount, businessAccount.getId());
-        else if (relatedObject instanceof PermissionGroupEntity permissionGroup)
-            smartPut(relatedPermissionGroupMap, permissionGroup, permissionGroup.getId());
-        else if (relatedObject instanceof PermissionEntity permission)
-            smartPut(relatedPermissionMap, permission, permission.getId());
-        else if (relatedObject instanceof PermissionSchemaEntity permissionSchema)
-            smartPut(relatedPermissionSchemaMap, permissionSchema, permissionSchema.getId());
-        else if (relatedObject instanceof TwinflowEntity twinflow)
-            smartPut(relatedTwinflowMap, twinflow, twinflow.getId());
-        else if (relatedObject instanceof TwinFactoryEntity twinFactory)
-            smartPut(relatedFactoryMap, twinFactory, twinFactory.getId());
-        else if (relatedObject instanceof TwinFactoryPipelineEntity twinFactoryPipeline)
-            smartPut(relatedFactoryPipelineMap, twinFactoryPipeline, twinFactoryPipeline.getId());
-        else if (relatedObject instanceof TwinFactoryConditionSetEntity factoryConditionSet)
-            smartPut(relatedFactoryConditionSetMap, factoryConditionSet, factoryConditionSet.getId());
-        else if (relatedObject instanceof TwinFactoryMultiplierEntity factoryMultiplier)
-            smartPut(relatedFactoryMultiplierMap, factoryMultiplier, factoryMultiplier.getId());
-        else if (relatedObject instanceof TwinFactoryBranchEntity factoryBranch)
-            smartPut(relatedFactoryBranchMap, factoryBranch, factoryBranch.getId());
-        else if (relatedObject instanceof TwinFactoryPipelineStepEntity factoryPipelineStep)
-            smartPut(relatedFactoryPipelineStepMap, factoryPipelineStep, factoryPipelineStep.getId());
-        else if (relatedObject instanceof TwinFactoryMultiplierFilterEntity factoryMultiplierFilter)
-            smartPut(relatedFactoryMultiplierFilterMap, factoryMultiplierFilter, factoryMultiplierFilter.getId());
-        else if (relatedObject instanceof TwinFactoryEraserEntity factoryEraser)
-            smartPut(relatedFactoryEraserMap, factoryEraser, factoryEraser.getId());
-        else if (relatedObject instanceof TwinFactoryTriggerEntity factoryTrigger)
-            smartPut(relatedFactoryTriggerMap, factoryTrigger, factoryTrigger.getId());
-        else if (relatedObject instanceof TwinFactoryConditionEntity factoryCondition)
-            smartPut(relatedFactoryConditionMap, factoryCondition, factoryCondition.getId());
-        else if (relatedObject instanceof FaceEntity face)
-            smartPut(relatedFaceMap, face, face.getId());
-        else if (relatedObject instanceof I18nEntity i18n)
-            smartPut(relatedI18nMap, i18n, i18n.getId());
-        else if (relatedObject instanceof FeaturerEntity featurer)
-            smartPut(relatedFeaturerMap, featurer, featurer.getId());
-        else if (relatedObject instanceof FeaturerTypeEntity featurerType)
-            smartPut(relatedFeaturerTypeMap, featurerType, featurerType.getId());
-        else if (relatedObject instanceof TwinClassFieldEntity twinClassField)
-            smartPut(relatedTwinClassFieldMap, twinClassField, twinClassField.getId());
-        else if (relatedObject instanceof TwinCommentEntity entity)
-            smartPut(relatedCommentMap, entity, entity.getId());
-        else if (relatedObject instanceof TwinClassSchemaEntity twinClassSchema)
-            smartPut(relatedTwinClassSchemaMap, twinClassSchema, twinClassSchema.getId());
-        else if (relatedObject instanceof TwinflowSchemaEntity twinflowSchemaEntity)
-            smartPut(relatedTwinflowSchemaMap, twinflowSchemaEntity, twinflowSchemaEntity.getId());
-        else if (relatedObject instanceof TierEntity tier)
-            smartPut(relatedTierMap, tier, tier.getId());
-        else if (relatedObject instanceof TwinAttachmentRestrictionEntity entity)
-            smartPut(relatedAttachmentRestrictionMap, entity, entity.getId());
-        else if (relatedObject instanceof TwinClassFieldRuleEntity entity)
-            smartPut(relatedClassFieldRuleMap, entity, entity.getId());
-        else if (relatedObject instanceof TwinValidatorSetEntity entity)
-            smartPut(relatedTwinValidatorSetMap, entity, entity.getId());
-        else if (relatedObject instanceof TwinClassFreezeEntity entity)
-            smartPut(relatedTwinClassFreezeMap, entity, entity.getId());
-        else if (relatedObject instanceof ProjectionTypeGroupEntity entity)
-            smartPut(relatedProjectionTypeGroupMap, entity, entity.getId());
-        else if (relatedObject instanceof ProjectionTypeEntity entity)
-            smartPut(relatedProjectionTypeMap, entity, entity.getId());
-        else if (relatedObject instanceof SchedulerEntity entity)
-            smartPut(relatedSchedulerMap, entity, entity.getId());
-        else if (relatedObject instanceof HistoryNotificationRecipientEntity entity)
-            smartPut(relatedHistoryNotificationRecipientMap, entity, entity.getId());
-        else if (relatedObject instanceof NotificationSchemaEntity entity)
-            smartPut(relatedNotificationSchemaMap, entity, entity.getId());
-        else if (relatedObject instanceof NotificationChannelEntity entity)
-            smartPut(relatedNotificationChannelMap, entity, entity.getId());
-        else if (relatedObject instanceof NotificationContextEntity entity)
-            smartPut(relatedNotificationContextMap, entity, entity.getId());
-        else if (relatedObject instanceof NotificationChannelEventEntity entity)
-            smartPut(relatedNotificationChannelEventMap, entity, entity.getId());
-        else if (relatedObject instanceof HistoryTypeEntity historyType)
-            smartPut(relatedHistoryTypeMap, historyType, historyType.getId());
-        else if (relatedObject instanceof ActionRestrictionReasonEntity entity)
-            smartPut(relatedActionRestrictionReasonMap, entity, entity.getId());
-        else {
+        if (relatedObject instanceof TwinEntity twin && SystemIdLookup.isSystemClass(twin.getTwinClassId()))
+            return true; // system twins (user and business account) are skipped
+        Class<?> relatedClass = resolveRelatedClass(relatedObject.getClass());
+        Object id = relatedClass == null || !(relatedObject instanceof org.twins.core.domain.Identifiable<?> identifiable)
+                ? null
+                : identifiable.getId();
+        if (id == null) {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
         }
+        smartPutRelated(relatedClass, relatedObject, id);
         if (relatedObject instanceof EasyLoggable loggable)
             log.debug("{} will be converted later", loggable.logNormal());
         return true;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void smartPutRelated(Class<?> relatedClass, Object object, Object id) {
+        Map<Object, RelatedObject<?>> relatedMap = relatedMaps.computeIfAbsent(relatedClass, key -> new LinkedHashMap<>());
+        smartPut((Map<Object, RelatedObject<Object>>) (Map<?, ?>) relatedMap, object, id);
+    }
+
+    /**
+     * Postponed objects of the given registered class, keyed by id; null when nothing of this class
+     * was postponed yet (or the class is not registered at all).
+     */
+    @SuppressWarnings("unchecked")
+    public <E> Map<Object, RelatedObject<E>> getRelatedMap(Class<E> relatedClass) {
+        return (Map<Object, RelatedObject<E>>) (Map<?, ?>) relatedMaps.get(relatedClass);
     }
 
     /**
@@ -432,7 +333,7 @@ public class MapperContext {
 
     public <S> S getFromCache(Class<S> clazz, String cacheId) {
         if (cacheId == null) {
-            log.debug("CacheId is null for class[" + clazz.getSimpleName() + "]");
+            log.debug("CacheId is null for class[{}]", clazz.getSimpleName());
             return null;
         }
         Hashtable<String, Object> cache = cachedObjects.get(clazz);
@@ -445,13 +346,13 @@ public class MapperContext {
             debugLog(obj, " was found by cacheId[" + cacheId + "]");
             return (S) obj;
         } else
-            log.error("Incorrect cached object type loaded by cacheId[" + cacheId + "]. Expected[" + clazz.getSimpleName() + "] but got[" + obj.getClass().getSimpleName() + "]");
+            log.error("Incorrect cached object type loaded by cacheId[{}]. Expected[{}] but got[{}]", cacheId, clazz.getSimpleName(), obj.getClass().getSimpleName());
         return null;
     }
 
     public void putToCache(Class clazz, String cacheId, Object obj) {
         if (cacheId == null) {
-            log.debug("CacheId is null for class[" + clazz.getSimpleName() + "]");
+            log.debug("CacheId is null for class[{}]", clazz.getSimpleName());
             return;
         }
         Hashtable<String, Object> cache = cachedObjects.get(clazz);
@@ -523,55 +424,7 @@ public class MapperContext {
     }
 
     private static void linkToRelatedObjects(MapperContext srcMapperContext, MapperContext dstMapperContext) {
-        dstMapperContext.relatedUserMap = srcMapperContext.relatedUserMap;
-        dstMapperContext.relatedUserGroupMap = srcMapperContext.relatedUserGroupMap;
-        dstMapperContext.relatedTwinClassMap = srcMapperContext.relatedTwinClassMap;
-        dstMapperContext.relatedTwinStatusMap = srcMapperContext.relatedTwinStatusMap;
-        dstMapperContext.relatedLinkMap = srcMapperContext.relatedLinkMap;
-        dstMapperContext.relatedTwinTriggerMap = srcMapperContext.relatedTwinTriggerMap;
-        dstMapperContext.relatedTwinMap = srcMapperContext.relatedTwinMap;
-        dstMapperContext.relatedTwinflowTransitionMap = srcMapperContext.relatedTwinflowTransitionMap;
-        dstMapperContext.relatedDataListMap = srcMapperContext.relatedDataListMap;
-        dstMapperContext.relatedDataListOptionMap = srcMapperContext.relatedDataListOptionMap;
-        dstMapperContext.relatedSpaceRoleMap = srcMapperContext.relatedSpaceRoleMap;
-        dstMapperContext.relatedBusinessAccountMap = srcMapperContext.relatedBusinessAccountMap;
-        dstMapperContext.relatedPermissionGroupMap = srcMapperContext.relatedPermissionGroupMap;
-        dstMapperContext.relatedPermissionMap = srcMapperContext.relatedPermissionMap;
-        dstMapperContext.relatedPermissionSchemaMap = srcMapperContext.relatedPermissionSchemaMap;
-        dstMapperContext.relatedTwinflowMap = srcMapperContext.relatedTwinflowMap;
-        dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
-        dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
-        dstMapperContext.relatedFactoryConditionSetMap = srcMapperContext.relatedFactoryConditionSetMap;
-        dstMapperContext.relatedFactoryMultiplierMap = srcMapperContext.relatedFactoryMultiplierMap;
-        dstMapperContext.relatedFactoryBranchMap = srcMapperContext.relatedFactoryBranchMap;
-        dstMapperContext.relatedFactoryPipelineStepMap = srcMapperContext.relatedFactoryPipelineStepMap;
-        dstMapperContext.relatedFactoryMultiplierFilterMap = srcMapperContext.relatedFactoryMultiplierFilterMap;
-        dstMapperContext.relatedFactoryEraserMap = srcMapperContext.relatedFactoryEraserMap;
-        dstMapperContext.relatedFactoryTriggerMap = srcMapperContext.relatedFactoryTriggerMap;
-        dstMapperContext.relatedFactoryConditionMap = srcMapperContext.relatedFactoryConditionMap;
-        dstMapperContext.relatedFaceMap = srcMapperContext.relatedFaceMap;
-        dstMapperContext.relatedI18nMap = srcMapperContext.relatedI18nMap;
-        dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
-        dstMapperContext.relatedFeaturerTypeMap = srcMapperContext.relatedFeaturerTypeMap;
-        dstMapperContext.relatedTwinClassFieldMap = srcMapperContext.relatedTwinClassFieldMap;
-        dstMapperContext.relatedCommentMap = srcMapperContext.relatedCommentMap;
-        dstMapperContext.relatedTwinClassSchemaMap = srcMapperContext.relatedTwinClassSchemaMap;
-        dstMapperContext.relatedTwinflowSchemaMap = srcMapperContext.relatedTwinflowSchemaMap;
-        dstMapperContext.relatedTierMap = srcMapperContext.relatedTierMap;
-        dstMapperContext.relatedAttachmentRestrictionMap = srcMapperContext.relatedAttachmentRestrictionMap;
-        dstMapperContext.relatedTwinClassFreezeMap = srcMapperContext.relatedTwinClassFreezeMap;
-        dstMapperContext.relatedClassFieldRuleMap = srcMapperContext.relatedClassFieldRuleMap;
-        dstMapperContext.relatedTwinValidatorSetMap = srcMapperContext.relatedTwinValidatorSetMap;
-        dstMapperContext.relatedProjectionTypeGroupMap = srcMapperContext.relatedProjectionTypeGroupMap;
-        dstMapperContext.relatedProjectionTypeMap = srcMapperContext.relatedProjectionTypeMap;
-        dstMapperContext.relatedSchedulerMap = srcMapperContext.relatedSchedulerMap;
-        dstMapperContext.relatedHistoryNotificationRecipientMap = srcMapperContext.relatedHistoryNotificationRecipientMap;
-        dstMapperContext.relatedNotificationSchemaMap = srcMapperContext.relatedNotificationSchemaMap;
-        dstMapperContext.relatedNotificationChannelMap = srcMapperContext.relatedNotificationChannelMap;
-        dstMapperContext.relatedNotificationContextMap = srcMapperContext.relatedNotificationContextMap;
-        dstMapperContext.relatedNotificationChannelEventMap = srcMapperContext.relatedNotificationChannelEventMap;
-        dstMapperContext.relatedHistoryTypeMap = srcMapperContext.relatedHistoryTypeMap;
-        dstMapperContext.relatedActionRestrictionReasonMap = srcMapperContext.relatedActionRestrictionReasonMap;
+        dstMapperContext.relatedMaps = srcMapperContext.relatedMaps;
     }
 
     public MapperContext fork(MapperModeCollection mapperModeCollection) {
@@ -583,8 +436,8 @@ public class MapperContext {
 
     private void debugLog(Object obj, String message) {
         if (obj instanceof EasyLoggable loggable)
-            log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + message);
+            log.debug("{}{}", loggable.easyLog(EasyLoggable.Level.NORMAL), message);
         else
-            log.debug("Object of class[" + obj.getClass().getSimpleName() + "]" + message);
+            log.debug("Object of class[{}]{}", obj.getClass().getSimpleName(), message);
     }
 }

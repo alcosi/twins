@@ -1,12 +1,18 @@
 package org.twins.core.mappers.rest;
 
 
+import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.twins.core.domain.CountResult;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.MapperMode;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -14,6 +20,10 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> {
+    @Lazy
+    @Autowired
+    private PermissionService permissionService;
+
     private final Class<S> type;
 
     public RestSimpleDTOMapper() {
@@ -130,6 +140,16 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
             if (countResult.getGroupFields() != null && countResult.getGroupFields().contains(field)) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    protected boolean showWithPermissionCheck(MapperContext mapperContext, MapperMode hideMode, Permissions... permissions) throws ServiceException {
+        if (mapperContext.hasModeButNot(hideMode)) {
+            if (!permissionService.currentUserHasPermission(true, permissions))
+                throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + mapperContext.getModeOrUse(hideMode) + "] is not allowed for current user");
+            else
+                return true;
         }
         return false;
     }

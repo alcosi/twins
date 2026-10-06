@@ -6,17 +6,20 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dto.rest.domain.DomainUpdateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.i18n.I18nService;
 
 
 @Component
 @RequiredArgsConstructor
 public class DomainUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<DomainUpdateDTOv1, DomainEntity> {
-    private final DomainSaveRestDTOReverseMapper domainSaveRestDTOReverseMapper;
+    private final I18nService i18nService;
 
     @Override
     public void map(DomainUpdateDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {
-        domainSaveRestDTOReverseMapper.map(src, dst, mapperContext);
         dst
+                .setName(src.getName())
+                .setDescription(src.getDescription())
+                .setDefaultI18nLocaleId(i18nService.localeFromTagOrSystemDefault(src.getDefaultLocale()))
                 .setBusinessAccountInitiatorFeaturerId(src.getBusinessAccountInitiatorFeaturerId())
                 .setBusinessAccountInitiatorParams(src.getBusinessAccountInitiatorParams())
                 .setUserGroupManagerFeaturerId(src.getUserGroupManagerFeaturerId())

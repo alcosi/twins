@@ -1,19 +1,25 @@
 package org.twins.core.mappers.rest.factory;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
-import org.twins.core.dto.rest.factory.FactoryPipelineUpdateRqDTOv1;
+import org.twins.core.dto.rest.factory.FactoryPipelineUpdateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
-@RequiredArgsConstructor
-public class FactoryPipelineUpdateDTOReverseMapper extends RestSimpleDTOMapper<FactoryPipelineUpdateRqDTOv1, TwinFactoryPipelineEntity> {
-    private final FactoryPipelineSaveDTOReverseMapper mapper;
+public class FactoryPipelineUpdateDTOReverseMapper extends RestSimpleDTOMapper<FactoryPipelineUpdateDTOv1, TwinFactoryPipelineEntity> {
 
     @Override
-    public void map(FactoryPipelineUpdateRqDTOv1 src, TwinFactoryPipelineEntity dst, MapperContext mapperContext) throws Exception {
-        mapper.map(src.getFactoryPipeline(), dst, mapperContext);
+    public void map(FactoryPipelineUpdateDTOv1 src, TwinFactoryPipelineEntity dst, MapperContext mapperContext) throws Exception {
+        dst
+                .setId(src.getId())
+                .setInputTwinClassId(src.getInputTwinClassId())
+                .setTwinFactoryConditionSetId(src.getFactoryConditionSetId())
+                .setTwinFactoryConditionInvert(src.getFactoryConditionSetInvert())
+                .setActive(src.getActive())
+                .setOutputTwinStatusId(src.getOutputStatusId())
+                .setNextTwinFactoryId(src.getNextFactoryId())
+                .setTemplateTwinId(src.getTemplateTwinId())
+                .setDescription(src.getDescription());
     }
 }

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
@@ -17,6 +18,7 @@ import org.twins.core.mappers.rest.link.RelationTwinFieldsConverter;
 import org.twins.core.mappers.rest.link.TwinLinkAddTemporalRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TemporalIdContext;
 
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,8 @@ class TwinLinkAddTemporalRestDTOReverseMapperTest {
     private AuthService authService;
     @Mock
     private RelationTwinFieldsConverter relationTwinFieldsConverter;
+    @Mock
+    private TemporalIdContext temporalIdContext;
 
     @InjectMocks
     private TwinLinkAddTemporalRestDTOReverseMapper twinLinkAddTemporalRestDTOReverseMapper;
@@ -105,5 +109,30 @@ class TwinLinkAddTemporalRestDTOReverseMapperTest {
                 dto(linkId, UUID.randomUUID().toString(), null));
         assertNull(result.getRelationTwinFields());
         verifyNoInteractions(relationTwinFieldsConverter);
+    }
+
+    @Test
+    void shouldSetDstTwinWhenDstTwinIdFromCreateBatch() throws Exception {
+        UUID linkId = UuidUtils.generate();
+        UUID dstTwinId = UuidUtils.generate();
+        TwinEntity batchTwin = new TwinEntity().setId(dstTwinId);
+        when(temporalIdContext.resolveTwin(dstTwinId)).thenReturn(batchTwin);
+
+        TwinLinkCreate result = twinLinkAddTemporalRestDTOReverseMapper.convert(dto(linkId, dstTwinId.toString(), null));
+
+        assertSame(batchTwin, result.getTwinLink().getDstTwin()); // consumers read dstTwin without resolution
+        assertEquals(dstTwinId, result.getTwinLink().getDstTwinId());
+    }
+
+    @Test
+    void shouldNotSetDstTwinForTwinOutsideCreateBatch() throws Exception {
+        UUID linkId = UuidUtils.generate();
+        UUID dstTwinId = UuidUtils.generate();
+        when(temporalIdContext.resolveTwin(dstTwinId)).thenReturn(null);
+
+        TwinLinkCreate result = twinLinkAddTemporalRestDTOReverseMapper.convert(dto(linkId, dstTwinId.toString(), null));
+
+        assertNull(result.getTwinLink().getDstTwin()); // existing twin — resolved later by consumers, not in the mapper
+        assertEquals(dstTwinId, result.getTwinLink().getDstTwinId());
     }
 }

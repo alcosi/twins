@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datalist.DataListStatus;
 
 import java.sql.Timestamp;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "data_list_option")
-public class DataListOptionEntity implements EasyLoggable {
+public class DataListOptionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

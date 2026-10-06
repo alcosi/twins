@@ -34,7 +34,7 @@ public class FieldTyperCalcChildrenFieldV2 extends FieldTyperDecimalBase<FieldDe
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, TwinFieldDecimalEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, getSumResult(properties, twinFieldEntity.getTwin(), twinFieldDecimalRepository));
+        collectChangedValue(twinFieldEntity, twinChangesCollector, getSumResult(properties, twinFieldEntity.getTwin(), twinFieldDecimalRepository));
     }
 
     @Override

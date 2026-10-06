@@ -127,6 +127,34 @@ class FieldValidatorDurationEqualsDateDiffTest extends BaseUnitTest {
     }
 
     @Test
+    void passesWhenEndOnlyInDb_notInPayload_evenIfStale() throws Exception {
+        // start+duration in payload; DB still has an old end that does not match — recompute will fix end
+        twinEntity.getFieldValuesKit().add(dateValue(endFieldId, "2030-01-05"));
+        twinEntity.getFieldValuesKit().add(dateValue(startFieldId, "2030-01-01"));
+        var result = isValid(durationValue("10"), Map.of(
+                startFieldId, dateValue(startFieldId, "2030-01-01")));
+        assertTrue(result.isValid());
+    }
+
+    @Test
+    void failsWhenAllThreeInPayloadAreInconsistent() throws Exception {
+        var result = isValid(durationValue("9"), Map.of(
+                startFieldId, dateValue(startFieldId, "2030-01-01"),
+                endFieldId, dateValue(endFieldId, "2030-01-10"),
+                durationFieldId, durationValue("9")));
+        assertFalse(result.isValid());
+    }
+
+    @Test
+    void passesWhenAllThreeInPayloadAreConsistent() throws Exception {
+        var result = isValid(durationValue("10"), Map.of(
+                startFieldId, dateValue(startFieldId, "2030-01-01"),
+                endFieldId, dateValue(endFieldId, "2030-01-10"),
+                durationFieldId, durationValue("10")));
+        assertTrue(result.isValid());
+    }
+
+    @Test
     void passesOnEqualDatesWithOneDayDuration() throws Exception {
         var result = isValid(durationValue("1"), Map.of(
                 startFieldId, dateValue(startFieldId, "2030-01-10"),

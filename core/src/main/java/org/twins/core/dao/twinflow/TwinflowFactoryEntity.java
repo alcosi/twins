@@ -1,14 +1,13 @@
 package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.util.UUID;
@@ -18,7 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twinflow_factory")
 @FieldNameConstants
-public class TwinflowFactoryEntity implements EasyLoggable {
+public class TwinflowFactoryEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -37,16 +36,30 @@ public class TwinflowFactoryEntity implements EasyLoggable {
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
+    private TwinflowEntity twinflowSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinflowEntity twinflow;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactorySpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinFactoryEntity twinFactory;
 
     @Override

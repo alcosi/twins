@@ -169,6 +169,15 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return processIcons(savedStatus, lightIcon, darkIcon);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinStatusEntity> createStatuses(List<TwinStatusEntity> twinStatusEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n, List<FileData> lightIcons, List<FileData> darkIcons) throws ServiceException {
+        List<TwinStatusEntity> created = new ArrayList<>(twinStatusEntities.size());
+        for (int i = 0; i < twinStatusEntities.size(); i++)
+            created.add(createStatus(twinStatusEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i),
+                    lightIcons.get(i), darkIcons.get(i)));
+        return created;
+    }
+
     private void evictClassesCache(TwinClassEntity twinClassEntity) throws ServiceException {
         CacheUtils.evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassEntity.getId());
         CacheUtils.evictCache(cacheManager, TwinClassEntity.class.getSimpleName(), List.of(twinClassEntity.getId()));
@@ -199,6 +208,14 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return dbEntity;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinStatusEntity> updateStatuses(List<TwinStatusEntity> updateEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n, List<FileData> lightIcons, List<FileData> darkIcons) throws ServiceException {
+        List<TwinStatusEntity> updated = new ArrayList<>(updateEntities.size());
+        for (int i = 0; i < updateEntities.size(); i++)
+            updated.add(updateStatus(updateEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i), lightIcons.get(i), darkIcons.get(i)));
+        return updated;
+    }
+
     public void updateTwinStatusIcons(TwinStatusEntity dbEntity, FileData iconLight, FileData iconDark, ChangesHelper changesHelper) throws ServiceException {
         if (iconLight != null) {
             ResourceEntity newValue = saveIconResourceIfExist(iconLight);
@@ -212,8 +229,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             ResourceEntity newValue = saveIconResourceIfExist(iconDark);
             if (changesHelper.isChanged(TwinStatusEntity.Fields.iconDarkResourceId, dbEntity.getIconDarkResourceId(), newValue.getId())) {
                 dbEntity
-                        .setIconLightResourceId(newValue.getId())
-                        .setIconLightResource(newValue);
+                        .setIconDarkResourceId(newValue.getId())
+                        .setIconDarkResource(newValue);
             }
         }
     }

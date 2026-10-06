@@ -7,9 +7,11 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.related.RelatedObject;
+import org.twins.core.dto.rest.usage.UsageDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -75,6 +77,9 @@ public class FactoryDTOv1 {
     @Schema(description = "trigger id list.")
     @RelatedObject(type = FactoryTriggerDTOv1.class, name = "triggers")
     public Set<UUID> triggerIdList;
+
+    @Schema(description = "factory usages list (places where the factory is referenced from)")
+    public List<UsageDTOv1> usages;
 }
 
 

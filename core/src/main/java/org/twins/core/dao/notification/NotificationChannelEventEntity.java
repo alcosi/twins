@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "notification_channel_event")
-public class NotificationChannelEventEntity implements EasyLoggable {
+public class NotificationChannelEventEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

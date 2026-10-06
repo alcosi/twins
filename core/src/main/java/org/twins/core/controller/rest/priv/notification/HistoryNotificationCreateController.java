@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -24,8 +25,8 @@ import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.dto.rest.notification.HistoryNotificationCreateRqDTOv1;
 import org.twins.core.dto.rest.notification.HistoryNotificationListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.notification.HistoryNotificationDTOMapperV1;
 import org.twins.core.mappers.rest.notification.HistoryNotificationCreateDTOReverseMapper;
+import org.twins.core.mappers.rest.notification.HistoryNotificationDTOMapperV1;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.notification.HistoryNotificationService;
 import org.twins.core.service.permission.Permissions;
@@ -54,7 +55,7 @@ public class HistoryNotificationCreateController extends ApiController {
     @PostMapping(value = "/private/history_notification/v1")
     public ResponseEntity<?> historyNotificationCreateV1(
             @MapperContextBinding(roots = HistoryNotificationDTOMapperV1.class, response = HistoryNotificationListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody HistoryNotificationCreateRqDTOv1 request) {
+            @RequestBody @Valid HistoryNotificationCreateRqDTOv1 request) {
         HistoryNotificationListRsDTOv1 rs = new HistoryNotificationListRsDTOv1();
         try {
             List<HistoryNotificationCreate> createList = historyNotificationCreateDTOReverseMapper.convertCollection(request.getHistoryNotifications());

@@ -1,21 +1,21 @@
 package org.twins.core.mappers.rest.twinflow;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinflow.TwinflowEntity;
-import org.twins.core.dto.rest.twinflow.TwinflowCreateRqDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowCreateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 
 @Component
-@RequiredArgsConstructor
-public class TwinflowCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinflowCreateRqDTOv1, TwinflowEntity> {
-
-    private final TwinflowSaveRestDTOReverseMapper twinflowSaveRestDTOReverseMapper;
+public class TwinflowCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinflowCreateDTOv1, TwinflowEntity> {
 
     @Override
-    public void map(TwinflowCreateRqDTOv1 src, TwinflowEntity dst, MapperContext mapperContext) throws Exception {
-        twinflowSaveRestDTOReverseMapper.map(src, dst, mapperContext);
+    public void map(TwinflowCreateDTOv1 src, TwinflowEntity dst, MapperContext mapperContext) throws Exception {
+        dst
+                .setTwinClassId(src.getTwinClassId())
+                .setInitialTwinStatusId(src.getInitialStatusId())
+                .setInitialSketchTwinStatusId(src.getInitialSketchStatusId())
+                .setInheritable(src.getInheritable());
     }
 }

@@ -28,9 +28,9 @@ import org.twins.core.domain.twinclass.FieldValidateItem;
 import org.twins.core.domain.twinclass.TwinClassFieldValidatorCreate;
 import org.twins.core.domain.twinclass.TwinClassFieldValidatorUpdate;
 import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldvalidator.FieldValidator;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
@@ -170,6 +170,8 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
             return Collections.emptyList();
         List<FieldValidateItem> items = new ArrayList<>(fieldValidatorKit.size());
         for (TwinClassFieldValidatorEntity validatorEntity : fieldValidatorKit.getCollection()) {
+            if (!validatorEntity.isActive())
+                continue; // inactive validators never run
             items.add(new FieldValidateItem()
                     .setValidatorEntity(validatorEntity)
                     .setTwinEntity(twinEntity)
@@ -188,6 +190,8 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
         for (TwinClassFieldValidatorCreate validator : validators) {
             TwinClassFieldValidatorEntity entity = validator.getTwinClassFieldValidator();
             twinClassFieldService.findEntitySafe(entity.getTwinClassFieldId());
+            if (entity.getActive() == null)
+                entity.setActive(Boolean.TRUE); // a freshly created validator is active unless explicitly disabled
             HashMap<String, String> validatorParams = entity.getFieldValidatorParams() != null
                     ? new HashMap<>(entity.getFieldValidatorParams())
                     : new HashMap<>();
@@ -228,6 +232,9 @@ public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<
                     TwinClassFieldValidatorEntity::getFieldValidatorParams, TwinClassFieldValidatorEntity::setFieldValidatorParams,
                     TwinClassFieldValidatorEntity.Fields.fieldValidatorFeaturerId, TwinClassFieldValidatorEntity.Fields.fieldValidatorParams,
                     FieldValidator.class, changesHelper);
+            updateEntityFieldByValueIfNotNull(sourceEntity.getActive(), entity,
+                    TwinClassFieldValidatorEntity::getActive, TwinClassFieldValidatorEntity::setActive,
+                    TwinClassFieldValidatorEntity.Fields.active, changesHelper);
             i18nService.updateI18nFieldForEntity(validator.getBeValidationErrorI18n(), I18nType.TWIN_CLASS_FIELD_BE_VALIDATION_ERROR,
                     entity, TwinClassFieldValidatorEntity::getBeValidationErrorI18nId, TwinClassFieldValidatorEntity::setBeValidationErrorI18nId,
                     TwinClassFieldValidatorEntity.Fields.beValidationErrorI18nId, changesHelper);

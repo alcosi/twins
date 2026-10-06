@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class ProjectionTypeGroupCreateController extends ApiController {
     @PostMapping(value = "/private/projection_type_group/v1")
     public ResponseEntity<?> projectionTypeGroupCreateV1(
             @MapperContextBinding(roots = ProjectionTypeGroupRestDTOMapper.class, response = ProjectionTypeGroupListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody ProjectionTypeGroupCreateRqDTOv1 request) {
+            @RequestBody @Valid ProjectionTypeGroupCreateRqDTOv1 request) {
         ProjectionTypeGroupListRsDTOv1 rs = new ProjectionTypeGroupListRsDTOv1();
         try {
             List<ProjectionTypeGroupEntity> entities = projectionTypeGroupService.createProjectionTypeGroups(projectionTypeGroupCreateDTOReverseMapper.convertCollection(request.getProjectionTypeGroups()));

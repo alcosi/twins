@@ -17,7 +17,7 @@ public class EntitiesChangesCollector {
 
     public EntitiesChangesCollector() {}
 
-    protected ChangesHelper detectChangesHelper(Identifiable entity) {
+    protected ChangesHelper detectChangesHelper(Identifiable<UUID> entity) {
         if (entity.getId() == null) {
             entity.setId(UuidUtils.generate());
         }
@@ -47,24 +47,24 @@ public class EntitiesChangesCollector {
         return result;
     }
 
-    public EntitiesChangesCollector add(Identifiable entity, String field, Object oldValue, Object newValue) {
+    public EntitiesChangesCollector add(Identifiable<UUID> entity, String field, Object oldValue, Object newValue) {
         detectChangesHelper(entity).add(field, oldValue, newValue);
         return this;
     }
 
-    public EntitiesChangesCollector add(Identifiable entity) {
+    public EntitiesChangesCollector add(Identifiable<UUID> entity) {
         detectChangesHelper(entity);
         return this;
     }
 
-    public EntitiesChangesCollector addAll(Collection<? extends Identifiable> entities) {
-        for (Identifiable entity : entities) {
+    public EntitiesChangesCollector addAll(Collection<? extends Identifiable<UUID>> entities) {
+        for (Identifiable<UUID> entity : entities) {
             detectChangesHelper(entity);
         }
         return this;
     }
 
-    public boolean collectIfChanged(Identifiable entity, String field, Object oldValue, Object newValue) {
+    public boolean collectIfChanged(Identifiable<UUID> entity, String field, Object oldValue, Object newValue) {
         if (newValue != null && !newValue.equals(oldValue)) {
             detectChangesHelper(entity).addWithNullifySupport(field, oldValue, newValue);
             return true;
@@ -72,7 +72,7 @@ public class EntitiesChangesCollector {
         return false;
     }
 
-    public boolean collectIfChangedWithNullifySupport(Identifiable entity, String field, Object oldValue, Object newValue) {
+    public boolean collectIfChangedWithNullifySupport(Identifiable<UUID> entity, String field, Object oldValue, Object newValue) {
         if (!Objects.equals(newValue, oldValue)) {
             detectChangesHelper(entity).addWithNullifySupport(field, oldValue, newValue);
             return true;
@@ -84,7 +84,7 @@ public class EntitiesChangesCollector {
         return !saveEntityMap.isEmpty() || !deleteEntityMap.isEmpty();
     }
 
-    public boolean hasChanges(Identifiable entity) {
+    public boolean hasChanges(Identifiable<UUID> entity) {
         if (!hasChanges())
             return false;
         Class<?> entityClass = Hibernate.getClass(entity);
@@ -95,12 +95,12 @@ public class EntitiesChangesCollector {
         return false;
     }
 
-    public void deleteAll(Collection<? extends Identifiable> entities) {
-        for (Identifiable entity : entities)
+    public void deleteAll(Collection<? extends Identifiable<UUID>> entities) {
+        for (Identifiable<UUID> entity : entities)
             delete(entity);
     }
 
-    public void delete(Identifiable entity) {
+    public void delete(Identifiable<UUID> entity) {
         Set<Object> entityClassDeletions = deleteEntityMap.computeIfAbsent(Hibernate.getClass(entity), k -> new HashSet<>());
         entityClassDeletions.add(entity);
     }

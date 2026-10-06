@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.notification;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,6 +14,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "NotificationSchemaCreateRqV1")
 public class NotificationSchemaCreateRqDTOv1 extends Request {
+    @Valid
     @Schema(description = "notification schema list")
     public List<NotificationSchemaCreateDTOv1> notificationSchemas;
 }

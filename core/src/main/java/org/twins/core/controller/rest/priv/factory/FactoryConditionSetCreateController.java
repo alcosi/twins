@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -58,7 +59,7 @@ public class FactoryConditionSetCreateController extends ApiController {
     public ResponseEntity<?> factoryConditionSetCreateV1(
             @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody FactoryConditionSetCreateRqDTOv1 request) {
+            @RequestBody @Valid FactoryConditionSetCreateRqDTOv1 request) {
         FactoryConditionSetListRsDTOv1 rs = new FactoryConditionSetListRsDTOv1();
         try {
             List<TwinFactoryConditionSetEntity> conditionSet = factoryConditionSetService.createFactoryConditionSet(

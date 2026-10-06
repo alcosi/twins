@@ -21,6 +21,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.*;
@@ -35,6 +36,7 @@ import java.util.stream.StreamSupport;
 public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<TwinClassDynamicMarkerEntity> {
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
     private final TwinValidatorSetService twinValidatorSetService;
+    private final DataListOptionService dataListOptionService;
 
     @Lazy
     @Autowired
@@ -53,6 +55,7 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
 
     @Override
     public boolean isEntityReadDenied(TwinClassDynamicMarkerEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        loadTwinClass(entity);
         return checkDomainAccessDenied(entity.getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
@@ -136,6 +139,7 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
                 TwinClassDynamicMarkerEntity::getTwinValidatorSetId);
 
         twinValidatorSetService.loadTwinValidatorSet(markersByValidatorSet.getCollection());
+        loadMarkerDataListOption(markersByValidatorSet.getCollection());
 
         List<TwinEntity> twinsToValidate = new ArrayList<>();
         for (TwinClassDynamicMarkerEntity twinClassDynamicMarkerEntity : markersByValidatorSet.getCollection()) { //todo perhaps we could iterate by validatorSet in future
@@ -150,6 +154,7 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
     }
 
     private void processValidatorSet(TwinClassDynamicMarkerEntity dynamicMarkerEntity, List<TwinEntity> twinEntitiesToLoad) throws ServiceException {
+        loadMarkerDataListOption(dynamicMarkerEntity);
         Map<UUID, ValidationResult> validationResults = twinValidatorSetService.isValid(twinEntitiesToLoad, dynamicMarkerEntity);
 
         for (TwinEntity twin : twinEntitiesToLoad) {
@@ -160,5 +165,31 @@ public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<T
                 twin.getTwinMarkerKit().add(dynamicMarkerEntity.getMarkerDataListOption());
             }
         }
+    }
+
+    public void loadTwinClass(TwinClassDynamicMarkerEntity src) throws ServiceException {
+        if (src.getTwinClass() != null)
+            return;
+        loadTwinClass(Collections.singletonList(src));
+    }
+
+    public void loadTwinClass(Collection<TwinClassDynamicMarkerEntity> srcCollection) throws ServiceException {
+        twinClassService.load(srcCollection,
+                TwinClassDynamicMarkerEntity::getTwinClassId,
+                TwinClassDynamicMarkerEntity::getTwinClass,
+                TwinClassDynamicMarkerEntity::setTwinClass);
+    }
+
+    public void loadMarkerDataListOption(TwinClassDynamicMarkerEntity src) throws ServiceException {
+        if (src.getMarkerDataListOption() != null)
+            return;
+        loadMarkerDataListOption(Collections.singletonList(src));
+    }
+
+    public void loadMarkerDataListOption(Collection<TwinClassDynamicMarkerEntity> srcCollection) throws ServiceException {
+        dataListOptionService.load(srcCollection,
+                TwinClassDynamicMarkerEntity::getMarkerDataListOptionId,
+                TwinClassDynamicMarkerEntity::getMarkerDataListOption,
+                TwinClassDynamicMarkerEntity::setMarkerDataListOption);
     }
 }

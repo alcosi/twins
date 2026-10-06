@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.twins.core.base.BaseUnitTest;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -22,6 +23,7 @@ import org.twins.core.mappers.rest.twin.TwinFieldAttributeCreateRestDTOReverseMa
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TemporalIdContext;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
@@ -43,6 +45,7 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
     @Mock private UserService userService;
     @Mock private AuthService authService;
     @Mock private TemporalIdContext temporalIdContext;
+    @Mock private TwinService twinService;
     @Mock private ApiUser apiUser;
     @Mock private UserEntity userEntity;
 
@@ -58,6 +61,7 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
         when(apiUser.getUser()).thenReturn(userEntity);
         when(userEntity.getId()).thenReturn(UUID.randomUUID());
         when(userService.checkId(any(), any())).thenReturn(null);
+        when(twinFieldValueRestDTOReverseMapperV2.parse(any(), any())).thenReturn(Collections.emptyList());
         when(twinFieldValueRestDTOReverseMapperV2.mapFields(any(), any())).thenReturn(Collections.emptyList());
         when(attachmentCreateRestDTOReverseMapper.convertCollection(anyCollection())).thenReturn(Collections.emptyList());
         when(twinLinkAddTemporalRestDTOReverseMapper.convertCollection(anyCollection())).thenReturn(Collections.emptyList());
@@ -208,10 +212,11 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
     class Mapping {
 
         @Test
-        void map_withTemporalId_resolvesIdInTwinEntity() throws Exception {
+        void map_withTemporalId_populatesRegisteredBatchTwinInPlace() throws Exception {
             var twinId = UUID.randomUUID();
             var headTwinId = UUID.randomUUID();
-            when(temporalIdContext.resolve("PROJECT-1")).thenReturn(twinId);
+            var batchTwin = new TwinEntity().setId(twinId); // as registered by collectTemporalIds
+            when(temporalIdContext.resolveTwinByTemporalId("PROJECT-1")).thenReturn(batchTwin);
 
             var d = dto("PROJECT-1");
             d.setHeadTwinId(headTwinId.toString());
@@ -219,14 +224,13 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
             var twinCreate = new TwinCreate();
             mapper.map(d, twinCreate, mapperContext);
 
+            assertSame(batchTwin, twinCreate.getTwinEntity()); // the registered entity is populated, not rebuilt
             assertEquals(twinId, twinCreate.getTwinEntity().getId());
             assertEquals(headTwinId, twinCreate.getTwinEntity().getHeadTwinId());
         }
 
         @Test
-        void map_withoutTemporalId_setsNullId() throws Exception {
-            when(temporalIdContext.resolve(null)).thenReturn(null);
-
+        void map_withoutTemporalId_buildsFreshEntityWithNullId() throws Exception {
             var d = dto(null);
             d.setHeadTwinId(UUID.randomUUID().toString());
 
@@ -234,6 +238,22 @@ class TwinCreateRqRestDTOReverseMapperTemporalTest extends BaseUnitTest {
             mapper.map(d, twinCreate, mapperContext);
 
             assertNull(twinCreate.getTwinEntity().getId());
+        }
+
+        @Test
+        void map_skipsEmptyFieldValues() throws Exception {
+            var d = dto(null);
+            var fields = new HashMap<String, String>();
+            fields.put("plannedDuration", null);
+            fields.put("plannedStart", "");
+            fields.put("progress", "  ");
+            fields.put("plannedScope", "34.0");
+            d.setFields(fields);
+
+            mapper.map(d, new TwinCreate(), mapperContext);
+
+            verify(twinFieldValueRestDTOReverseMapperV2).parse(eq(classId), argThat(passed ->
+                    passed.size() == 1 && "34.0".equals(passed.get("plannedScope"))));
         }
     }
 

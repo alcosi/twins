@@ -7,12 +7,13 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.domain.Identifiable;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @Table(name = "history_type")
-public class HistoryTypeEntity implements EasyLoggable {
+public class HistoryTypeEntity implements EasyLoggable, Identifiable<String> {
     @Id
 //    @Convert(converter = HistoryTypeConverter.class)
     private String id;

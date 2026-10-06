@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinFieldClause;
 import org.twins.core.domain.TwinFieldFilter;
@@ -27,7 +26,6 @@ import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.*;
 import org.twins.core.service.twin.TwinHeadService;
@@ -100,13 +98,12 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity contextTwin = inputItem.checkSingleContextTwin();
             UUID headTwinId = twinHeadService.resolveHeadTwinId(contextTwin, headTwinClassId.extract(properties));
-
-            UUID dstTwinId = resolveDstTwinId(properties, inputItem);
-            if (dstTwinId == null) {
+            var dstTwin = resolveDstTwinId(properties, inputItem);
+            if (dstTwin == null) {
                 log.info("Dst twin is empty for [{}], multiplier step skipped", contextTwin.logShort());
                 continue;
             }
-
+            UUID dstTwinId = dstTwin.getId();
             FieldValue equalsFieldValue = resolveEqualsFieldValue(properties, inputItem, equalsFieldId);
             if (!(equalsFieldValue instanceof FieldValueText numericField) || numericField.isEmpty()) {
                 log.info("Equals field value is empty for [{}], multiplier step skipped", contextTwin.logShort());
@@ -165,13 +162,13 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
                 .lookupFieldValue(inputItem, equalsFieldId);
     }
 
-    private UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem) throws ServiceException {
+    private TwinEntity resolveDstTwinId(Properties properties, FactoryItem factoryItem) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         if (dstFieldId == null)
             return null;
         FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties)))
                 .lookupFieldValue(factoryItem, dstFieldId);
-        return extractTwinIdFromFieldValue(dstFieldValue);
+        return FieldValueLink.getSingleLinkedTwin(dstFieldValue);
     }
 
     private UUID resolveSearchTwinClassFieldId(UUID equalsFieldId, Properties properties) {
@@ -180,20 +177,6 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
             searchFieldId = equalsFieldId;
         }
         return searchFieldId;
-    }
-
-    private UUID extractTwinIdFromFieldValue(FieldValue fieldValue) {
-        if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue().getId();
-        }
-        if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
-            TwinLinkEntity linkEntity = link.getItems().getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
-            return linkEntity.getDstTwinId();
-        }
-        return null;
     }
 
     private TwinFieldSearch buildNumericFieldEquals(UUID fieldId, double value) throws ServiceException {

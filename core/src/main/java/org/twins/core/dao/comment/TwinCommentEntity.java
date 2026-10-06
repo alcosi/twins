@@ -22,7 +22,7 @@ import java.util.UUID;
 @Table(name = "twin_comment")
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinCommentEntity implements Identifiable {
+public class TwinCommentEntity implements Identifiable<UUID> {
     @Id
     private UUID id;
 

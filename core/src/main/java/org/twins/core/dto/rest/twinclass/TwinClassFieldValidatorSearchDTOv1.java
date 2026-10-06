@@ -3,6 +3,8 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.Set;
 import java.util.UUID;
@@ -28,4 +30,7 @@ public class TwinClassFieldValidatorSearchDTOv1 {
 
     @Schema(description = "field validator featurer id exclude list")
     public Set<Integer> fieldValidatorFeaturerIdExcludeList;
+
+    @Schema(description = "active", example = DTOExamples.TERNARY)
+    public Ternary active;
 }

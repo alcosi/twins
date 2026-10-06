@@ -32,6 +32,10 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
     @Lazy
     private final TwinClassService twinClassService;
     private final TwinClassFieldConditionService twinClassFieldConditionService;
+    @Lazy
+    private final TwinClassFieldRuleService twinClassFieldRuleService;
+    @Lazy
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public CrudRepository<TwinClassFieldRuleMapEntity, UUID> entityRepository() {
@@ -91,6 +95,7 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
                 twinClassFieldRuleMapRepository.findByTwinClassFieldIdIn(needLoad.getIdSet()),
                 TwinClassFieldRuleMapEntity::getId,
                 TwinClassFieldRuleMapEntity::getTwinClassFieldId);
+        loadTwinClassFieldRule(ruleMaps.getCollection());
 
         if (ruleMaps.isEmpty()) {
             needLoad.forEach(field -> field.setRuleKit(Kit.EMPTY));
@@ -124,5 +129,31 @@ public class TwinClassFieldRuleMapService extends EntitySecureFindServiceImpl<Tw
 
     public List<TwinClassFieldRuleMapEntity> findByTwinClassFieldRuleIdIn(Collection<UUID> fieldIds) {
         return twinClassFieldRuleMapRepository.findByTwinClassFieldRuleIdIn(fieldIds);
+    }
+
+    public void loadTwinClassFieldRule(TwinClassFieldRuleMapEntity src) throws ServiceException {
+        if (src.getTwinClassFieldRule() != null)
+            return;
+        loadTwinClassFieldRule(Collections.singletonList(src));
+    }
+
+    public void loadTwinClassFieldRule(Collection<TwinClassFieldRuleMapEntity> srcCollection) throws ServiceException {
+        twinClassFieldRuleService.load(srcCollection,
+                TwinClassFieldRuleMapEntity::getTwinClassFieldRuleId,
+                TwinClassFieldRuleMapEntity::getTwinClassFieldRule,
+                TwinClassFieldRuleMapEntity::setTwinClassFieldRule);
+    }
+
+    public void loadTwinClassField(TwinClassFieldRuleMapEntity src) throws ServiceException {
+        if (src.getTwinClassField() != null)
+            return;
+        loadTwinClassField(Collections.singletonList(src));
+    }
+
+    public void loadTwinClassField(Collection<TwinClassFieldRuleMapEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                TwinClassFieldRuleMapEntity::getTwinClassFieldId,
+                TwinClassFieldRuleMapEntity::getTwinClassField,
+                TwinClassFieldRuleMapEntity::setTwinClassField);
     }
 }

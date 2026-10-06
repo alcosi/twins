@@ -45,7 +45,7 @@ import java.util.function.Predicate;
  * @param <P> parent entity type — {@code Void} for top-level entities
  */
 @Slf4j
-public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E extends Identifiable, P> {
+public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E extends Identifiable<UUID>, P> {
 
     /**
      * Shared i18n batch service — wired via setter injection to avoid a circular-bean deadlock

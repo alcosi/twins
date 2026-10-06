@@ -181,6 +181,74 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return result;
     }
 
+    // permission_check_mater_batch takes the assignee/creator flags as scalar params,
+    // so keys sharing the same role combination are merged into one SQL call
+    record Roles(boolean isAssignee, boolean isCreator) {}
+
+    public Map<PermissionDetectKey, Boolean> hasPermissionBatch(Map<PermissionDetectKey, UUID> permissionDetectKeys) throws ServiceException {
+        if (permissionDetectKeys.isEmpty())
+            return new HashMap<>();
+        ApiUser apiUser = authService.getApiUser();
+        userGroupService.loadGroupsForCurrentUser();
+        UUID userGroupsFootprint = apiUser.getUser().getUserGroupsFootprint();
+        Map<PermissionDetectKey, Boolean> result = new HashMap<>();
+        Map<PermissionDetectKey, UUID> sqlNeeded = new LinkedHashMap<>();
+        for (var permissionDetectKey : permissionDetectKeys.entrySet()) {
+            if (currentUserHasPermission(permissionDetectKey.getValue())) {
+                result.put(permissionDetectKey.getKey(), true);
+                continue;
+            }
+            Boolean cached = permissionCheckRequestCache.get(new PermissionCheckRequestCache.Key(
+                    apiUser.getUserId(), userGroupsFootprint, permissionDetectKey.getKey(), permissionDetectKey.getValue()));
+            if (cached != null)
+                result.put(permissionDetectKey.getKey(), cached);
+            else
+                sqlNeeded.put(permissionDetectKey.getKey(), permissionDetectKey.getValue());
+        }
+        if (sqlNeeded.isEmpty())
+            return result;
+
+        Map<Roles, List<PermissionDetectKey>> sqlNeededByRoles = new LinkedHashMap<>();
+        for (PermissionDetectKey key : sqlNeeded.keySet()) {
+            sqlNeededByRoles
+                    .computeIfAbsent(new Roles(key.isAssignee, key.isCreator), k -> new ArrayList<>())
+                    .add(key);
+        }
+        for (var rolesEntry : sqlNeededByRoles.entrySet()) {
+            Roles roles = rolesEntry.getKey();
+            List<PermissionDetectKey> keys = rolesEntry.getValue();
+            List<PermissionRepository.PermissionMaterBatchResult> batchResults = permissionRepository.hasPermissionBatch(
+                    toUuidArray(keys, PermissionDetectKey::getPermissionSchemaId),
+                    toUuidArray(keys, sqlNeeded::get),
+                    toUuidArray(keys, PermissionDetectKey::getPermissionSchemaSpaceId),
+                    toUuidArray(keys, PermissionDetectKey::getTwinClassId),
+                    roles.isCreator(),
+                    roles.isAssignee(),
+                    apiUser.getUserId(),
+                    userGroupsFootprint);
+            for (PermissionRepository.PermissionMaterBatchResult batchResult : batchResults) {
+                PermissionDetectKey permissionDetectKey = new PermissionDetectKey(
+                        batchResult.getTwinClassId(),
+                        batchResult.getPermissionSchemaId(),
+                        batchResult.getPermissionSpaceId(),
+                        roles.isAssignee(),
+                        roles.isCreator());
+                boolean allowed = batchResult.isAllowed();
+                result.put(permissionDetectKey, allowed);
+                permissionCheckRequestCache.put(new PermissionCheckRequestCache.Key(
+                        apiUser.getUserId(), userGroupsFootprint, permissionDetectKey, sqlNeeded.get(permissionDetectKey)), allowed);
+            }
+        }
+        return result;
+    }
+
+    private static String toUuidArray(Collection<PermissionDetectKey> keys, Function<PermissionDetectKey, UUID> extractor) {
+        return keys.stream()
+                .map(extractor)
+                .map(uuid -> uuid == null ? "NULL" : uuid.toString())
+                .collect(Collectors.joining(",", "{", "}"));
+    }
+
     public Map<PermissionDetectKey, List<TwinEntity>> convertToDetectKeys(Collection<TwinEntity> twinEntities) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Map<PermissionDetectKey, List<TwinEntity>> detectKeys = new HashMap<>();
@@ -227,6 +295,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionRepository.save(createEntity);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<PermissionEntity> createPermissions(List<PermissionEntity> createEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<PermissionEntity> created = new ArrayList<>(createEntities.size());
+        for (int i = 0; i < createEntities.size(); i++)
+            created.add(createPermission(createEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return created;
+    }
+
     public Map<DefaultClassPermissionsPrefix, PermissionEntity> createDefaultPermissionsForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
         List<PermissionEntity> permissionsForSave = new ArrayList<>();
         PermissionGroupEntity permissionGroup = permissionGroupService.createDefaultPermissionGroupForNewInDomainClass(twinClassEntity);
@@ -267,6 +343,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         i18nService.updateI18nFieldForEntity(nameI18n, I18nType.PERMISSION_NAME, dbEntity, PermissionEntity::getNameI18NId, PermissionEntity::setNameI18NId, PermissionEntity.Fields.nameI18NId, changesHelper);
         i18nService.updateI18nFieldForEntity(descriptionI18n, I18nType.PERMISSION_DESCRIPTION, dbEntity, PermissionEntity::getDescriptionI18NId, PermissionEntity::setDescriptionI18NId, PermissionEntity.Fields.descriptionI18NId, changesHelper);
         return updateSafe(dbEntity, changesHelper);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<PermissionEntity> updatePermissions(List<PermissionEntity> updateEntities, List<I18nEntity> namesI18n, List<I18nEntity> descriptionsI18n) throws ServiceException {
+        List<PermissionEntity> updated = new ArrayList<>(updateEntities.size());
+        for (int i = 0; i < updateEntities.size(); i++)
+            updated.add(updatePermission(updateEntities.get(i), namesI18n.get(i), descriptionsI18n.get(i)));
+        return updated;
     }
 
     private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
@@ -458,6 +542,13 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return anyOf
                 ? permissions.stream().anyMatch(systemPermissions::contains)
                 : systemPermissions.containsAll(permissions);
+    }
+
+    public boolean currentUserHasPermission(boolean anyOf, Permissions... permissions) throws ServiceException {
+        Set<UUID> permissionIds = Arrays.stream(permissions)
+                .map(Permissions::getId)
+                .collect(Collectors.toSet());
+       return currentUserHasPermission(anyOf, permissionIds);
     }
 
     public boolean currentUserHasPermission(boolean anyOf, Set<UUID> permissions) throws ServiceException {

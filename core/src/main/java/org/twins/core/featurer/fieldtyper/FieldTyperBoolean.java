@@ -21,6 +21,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueBoolean;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsCheckboxType;
 import org.twins.core.service.history.HistoryItem;
 
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -90,6 +91,13 @@ public class FieldTyperBoolean extends FieldTyperSingleValue<
     }
 
     @Override
+    public boolean checkIsChanged(TwinEntity twin, FieldValueBoolean oldValue, FieldValueBoolean newValue, Properties properties) throws ServiceException {
+        if (oldValue != null)
+            return !Objects.equals(oldValue.getValue(), newValue.getValue());
+        return !Objects.equals(defaultValue.extract(properties), newValue.getValue());
+    }
+
+    @Override
     protected Boolean processValue(Properties properties, TwinFieldBooleanEntity twinFieldBooleanEntity, FieldValueBoolean value) {
         // if field_value=null in json and field is not required we use defaultValue and save it in db
         return value.isNotEmpty() ? value.getValue() : defaultValue.extract(properties);
@@ -98,16 +106,16 @@ public class FieldTyperBoolean extends FieldTyperSingleValue<
     @Override
     protected void onCleared(Properties properties, TwinFieldBooleanEntity twinFieldBooleanEntity, TwinChangesCollector twinChangesCollector) {
         // Boolean clears to its configured default value (not delete / not null) — keeps a concrete value
-        detectValueChange(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
+        collectChangedValue(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
     }
 
     @Override
     protected void onClearedNoRow(Properties properties, TwinEntity twin, TwinClassFieldEntity twinClassField, TwinChangesCollector twinChangesCollector) throws ServiceException {
         // A clear on a phantom boolean (no stored row) materializes a row with the default value,
         // preserving the "boolean always has a concrete value" invariant — same as the former
-        // FieldTyperBooleanV1 behavior (create + collector.add + detectValueChange(defaultValue)).
+        // FieldTyperBooleanV1 behavior (create + collector.add + collectChangedValue(defaultValue)).
         TwinFieldBooleanEntity twinFieldBooleanEntity = createTwinFieldEntity(twin, twinClassField);
-        detectValueChange(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
+        collectChangedValue(twinFieldBooleanEntity, twinChangesCollector, defaultValue.extract(properties));
     }
 
     @Override

@@ -122,6 +122,11 @@ abstract class GenerateTypeScriptDTOsTask extends DefaultTask {
                     tsCode.append("    if (this.fieldsByKey == null || fieldKey == null) return undefined;\n")
                     tsCode.append("    return this.fieldsByKey[fieldKey];\n")
                     tsCode.append("  }\n")
+                } else if (className == 'TwinDTOv2' && m.nameAsString == 'getFieldValueByKey') {
+                    tsCode.append("  public getFieldValueByKey(fieldKey: string | null): string | undefined {\n")
+                    tsCode.append("    const field = this.getFieldByKey(fieldKey);\n")
+                    tsCode.append("    return field == null ? undefined : field.value;\n")
+                    tsCode.append("  }\n")
                 } else if (className == 'TwinDTOv2' && m.nameAsString == 'getFieldById') {
                     tsCode.append("  public getFieldById(fieldId: string | null): TwinFieldDTOv3 | undefined {\n")
                     tsCode.append("    this.initFieldsObjects();\n")

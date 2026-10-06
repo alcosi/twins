@@ -2,7 +2,6 @@ package org.twins.core.featurer.factory.conditioner;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinFieldClause;
 import org.twins.core.domain.TwinFieldFilter;
@@ -25,7 +23,6 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.*;
 import org.twins.core.service.twin.TwinHeadService;
@@ -199,9 +196,9 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
         if (dstFieldId != null) {
             FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstTwinLookupper.extract(properties)))
                     .lookupFieldValue(factoryItem, dstFieldId);
-            UUID dstTwinId = extractTwinIdFromFieldValue(dstFieldValue);
-            if (dstTwinId != null) {
-                return dstTwinId;
+            var dstTwin = FieldValueLink.getSingleLinkedTwin(dstFieldValue);
+            if (dstTwin != null) {
+                return dstTwin.getId();
             }
         }
 
@@ -221,26 +218,6 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
             searchFieldId = equalsFieldId;
         }
         return searchFieldId;
-    }
-
-    private UUID extractTwinIdFromFieldValue(FieldValue fieldValue) {
-        if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue().getId();
-        }
-        if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
-            TwinLinkEntity linkEntity = link.getItems().getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
-            return linkEntity.getDstTwinId();
-        }
-        if (fieldValue instanceof FieldValueText textField && textField.isNotEmpty()) {
-            String value = textField.getValue().trim();
-            if (UuidUtils.isUUID(value)) {
-                return UUID.fromString(value);
-            }
-        }
-        return null;
     }
 
     private UUID resolveAssigneeUserIdFromDstTwin(UUID dstTwinId) throws ServiceException {

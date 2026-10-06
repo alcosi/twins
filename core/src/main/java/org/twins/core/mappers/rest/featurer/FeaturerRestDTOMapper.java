@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.featurer;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
@@ -77,9 +78,9 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         return mapperContext.hasModeOrEmpty(FeaturerMode.HIDE);
     }
 
-    public void postpone(Integer featurerId, MapperContext mapperContext) {
+    public void postpone(Integer featurerId, MapperContext mapperContext) throws ServiceException {
         if (featurerId != null) {
-            postpone(featurerService.getFeaturerEntity(featurerId), mapperContext);
+            postpone(featurerService.findEntitySafe(featurerId), mapperContext);
         }
     }
 }

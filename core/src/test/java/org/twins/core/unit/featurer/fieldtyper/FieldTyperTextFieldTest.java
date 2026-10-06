@@ -139,7 +139,7 @@ class FieldTyperTextFieldTest extends BaseUnitTest {
 
         @Test
         void serializeValue_nullNewValue_clearsEntity() throws ServiceException {
-            // Intended: CLEARED value -> FieldTyperSimple.onCleared -> detectValueChange(null) -> nullify
+            // Intended: CLEARED value -> FieldTyperSimple.onCleared -> collectChangedValue(null) -> nullify
             // (the row is kept, value column set to null).
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = twinWithKit(classField, "was-here");

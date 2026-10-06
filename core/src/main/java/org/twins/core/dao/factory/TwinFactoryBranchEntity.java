@@ -15,7 +15,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_branch")
-public class TwinFactoryBranchEntity implements EasyLoggable, Identifiable, ContainsFactoryConditionSet {
+public class TwinFactoryBranchEntity implements EasyLoggable, Identifiable<UUID>, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 

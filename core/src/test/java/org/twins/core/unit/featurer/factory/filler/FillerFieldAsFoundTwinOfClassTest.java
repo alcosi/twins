@@ -87,7 +87,7 @@ class FillerFieldAsFoundTwinOfClassTest extends BaseUnitTest {
             var factoryItem = buildFactoryItem();
             when(twinSearchService.findTwins(any(BasicSearch.class))).thenReturn(List.of(found));
             var createdLink = new FieldValueLink(new TwinClassFieldEntity().setId(LINK_FIELD_ID));
-            when(twinService.createFieldValue(LINK_FIELD_ID, foundTwinId.toString())).thenReturn(createdLink);
+            when(twinService.createFieldValue(LINK_FIELD_ID, found)).thenReturn(createdLink);
 
             filler.fill(props(), factoryItem, null);
 

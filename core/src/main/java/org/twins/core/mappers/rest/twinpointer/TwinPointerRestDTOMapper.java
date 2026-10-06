@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dto.rest.twinpointer.TwinPointerDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
@@ -28,7 +28,7 @@ public class TwinPointerRestDTOMapper extends RestSimpleDTOMapper<TwinPointerEnt
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinPointer2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @MapperModePointerBinding(modes = UserMode.TwinPointer2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
@@ -59,7 +59,7 @@ public class TwinPointerRestDTOMapper extends RestSimpleDTOMapper<TwinPointerEnt
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinPointer2FeaturerMode.HIDE)) {
             dst.setPointerFeaturerId(src.getPointerFeaturerId());
-            featurerRestDTOMapper.postpone(src.getPointerFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinPointer2FeaturerMode.SHORT));
+            featurerParametrizedRestDTOMapper.postpone(src.getPointerFeaturerId(), src.getPointerParams(), mapperContext.forkOnPoint(FeaturerMode.TwinPointer2FeaturerMode.SHORT));
         }
         if (mapperContext.hasModeButNot(UserMode.TwinPointer2UserMode.HIDE)) {
             dst.setCreatedByUserId(src.getCreatedByUserId());

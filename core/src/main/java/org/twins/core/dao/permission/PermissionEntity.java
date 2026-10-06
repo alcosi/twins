@@ -7,6 +7,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.List;
 import java.util.Set;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "permission")
-public class PermissionEntity implements EasyLoggable {
+public class PermissionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

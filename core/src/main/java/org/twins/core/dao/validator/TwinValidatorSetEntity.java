@@ -10,6 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Table(name = "twin_validator_set")
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinValidatorSetEntity implements EasyLoggable {
+public class TwinValidatorSetEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

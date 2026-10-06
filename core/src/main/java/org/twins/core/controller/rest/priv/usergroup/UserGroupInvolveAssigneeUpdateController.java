@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class UserGroupInvolveAssigneeUpdateController extends ApiController {
     @PutMapping(value = "/private/user_group/involve_assignee/v1")
     public ResponseEntity<?> userGroupInvolveAssigneeUpdateV1(
             @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupInvolveAssigneeListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody UserGroupInvolveAssigneeUpdateRqDTOv1 request) {
+            @RequestBody @Valid UserGroupInvolveAssigneeUpdateRqDTOv1 request) {
 
         UserGroupInvolveAssigneeListRsDTOv1 rs = new UserGroupInvolveAssigneeListRsDTOv1();
         try {

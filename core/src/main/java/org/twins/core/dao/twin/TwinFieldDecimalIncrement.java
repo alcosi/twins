@@ -15,7 +15,7 @@ import java.util.UUID;
  */
 @Data
 @Accessors(chain = true)
-public class TwinFieldDecimalIncrement implements Identifiable {
+public class TwinFieldDecimalIncrement implements Identifiable<UUID> {
     private UUID id;
     private UUID twinId;
     private TwinEntity twin;

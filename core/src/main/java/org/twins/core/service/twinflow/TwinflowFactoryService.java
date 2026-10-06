@@ -73,6 +73,8 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
 
     @Override
     public boolean isEntityReadDenied(TwinflowFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        loadTwinflow(entity);
+        loadTwinFactory(entity);
         return twinflowService.isEntityReadDenied(entity.getTwinflow(), readPermissionCheckMode)
                 || factoryService.isEntityReadDenied(entity.getTwinFactory(), readPermissionCheckMode);
     }
@@ -317,6 +319,8 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     }
 
     public void loadTwinflow(TwinflowFactoryEntity src) throws ServiceException {
+        if (src.getTwinflow() != null)
+            return;
         loadTwinflow(Collections.singletonList(src));
     }
 
@@ -328,6 +332,8 @@ public class TwinflowFactoryService extends EntitySecureFindServiceImpl<Twinflow
     }
 
     public void loadTwinFactory(TwinflowFactoryEntity src) throws ServiceException {
+        if (src.getTwinFactory() != null)
+            return;
         loadTwinFactory(Collections.singletonList(src));
     }
 

@@ -12,12 +12,14 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamMap;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.dto.rest.featurer.storager.filehandler.AttachmentModification;
@@ -32,8 +34,11 @@ import javax.naming.LimitExceededException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.UrlUtils.toURI;
@@ -79,6 +84,8 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     )
     public static final FeaturerParamMap basePathReplaceMap = new FeaturerParamMap("basePathReplaceMap");
 
+    // NOTE: all deployments use the DEFAULT value "/{businessAccountId}/{fileId}". The parsers in this
+    // class (generateFileKey, addFileInternal, extractDirsToDelete) rely on that exact template shape
     @FeaturerParam(
             name = "relativePath",
             description = "Prefix for file keys.\nPlaceholders {domainId}, {businessAccountId} and {fileId} can be used to make domain/account relevant path.",
@@ -132,9 +139,12 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         try {
             var properties = extractProperties(params, false);
             var url = STR."\{fileHandlerUri.extract(properties)}/api/storage/delete";
-            var dirs = extractDirsToDelete(fileKey, properties);
+            var dirs = extractDirsToDelete(fileKey);
             var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
-            var resp = restTemplate.exchange(url, HttpMethod.POST, request, Void.class);
+            var resp = exchangeWithRetry(
+                    "Delete " + dirs,
+                    () -> restTemplate.exchange(url, HttpMethod.POST, request, Void.class)
+            );
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
                 throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID);
@@ -149,6 +159,8 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
     @Override
     public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
+        // default template renders fileKey as "{businessAccountId}/{fileId}/{fileId}":
+        // storageDir "{businessAccountId}/{fileId}" + bare fileId UUID as the file name
         var properties = extractProperties(params, false);
         var businessAccount = getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount");
         var relativePathString = addSlashAtTheEndIfNeeded(relativePath.extract(properties));
@@ -172,6 +184,8 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
             try (tikaStream) {
                 var properties = extractProperties(params, false);
+                // fileKey shape from generateFileKey: "{businessAccountId}/{fileId}/{fileId}" —
+                // the file name is a bare fileId UUID, no extension or label
                 var fileKeyElems = Arrays.stream(fileKey.split("/")).collect(Collectors.toList());
                 var fileName = fileKeyElems.removeLast();
                 var fileId = Arrays.stream(fileName.split("\\.")).toList().getFirst();
@@ -181,7 +195,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
                 var detectedMime = tika.detect(tikaStream);
                 var pipelineJson = preparePipelineJson(properties, fileId, storageDir, detectedMime);
 
-                var resp = sendWithRetry(fileHandlerUri.extract(properties) + fileHandlerUploadPath.extract(properties), pipelineJson, tikaStream, fileName, fileSize, FHSyncProcessRsDTO.class);
+                var resp = sendWithRetry(fileHandlerUri.extract(properties) + fileHandlerUploadPath.extract(properties), pipelineJson, tikaStream, fileName, FHSyncProcessRsDTO.class);
 
                 if (!resp.getStatusCode().is2xxSuccessful() || resp.getBody() == null) {
                     log.error("RS STATUS CODE: {}\nRS BODY:{}", resp.getStatusCode(), resp.getBody());
@@ -250,33 +264,27 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return result;
     }
 
-    private String extractDirsToDelete(String fileKey, Properties properties) throws ServiceException {
-        //extracting only relative path (ex. {businessAccountId}/{fileId})
+    private String extractDirsToDelete(String fileKey) {
+        // fileKey is the URL stored on save; with the default relativePath it looks like
+        // ".../{businessAccountId}/{fileId}/{fileId}-{as}.{ext}" — the handler renames the file
+        // ("{fileId}-original.jpg" etc.) but keeps our dirs. Dir to delete = last two segments
+        // before the file name: "{businessAccountId}/{fileId}" — label/extension noise goes away
+        // together with the file name itself.
+        var segments = List.of(fileKey.split("/"));
 
-        var parts = new ArrayList<>(List.of(fileKey.split("/")));
-        var fileName = parts.removeLast();
-        var fileId = fileName.split("\\.")[0];
-        var businessAccountId = getBusinessAccountId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
-        var domainId = getDomainId().map(UUID::toString).orElseThrow(() -> new ServiceException(ErrorCodeCommon.UUID_UNKNOWN));
-
-        var dirs = relativePath.extract(properties)
-                .replace("{domainId}", domainId)
-                .replace("{businessAccountId}", businessAccountId)
-                .replace("{fileId}", fileId);
-
-        dirs = deleteSlashAtTheStartIfNeeded(dirs);
-        dirs = deleteSlashAtTheEndIfNeeded(dirs);
-
-        return dirs;
+        return String.join("/", segments.subList(segments.size() - 3, segments.size() - 1));
     }
 
-    private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, InputStream fileStream, String fileName, Long fileSize) {
+    private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, Resource fileResource) {
+        var fileHeaders = new HttpHeaders();
+        fileHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
         var body = new LinkedMultiValueMap<String, Object>();
 
         body.add("data", prepareDataPart(rqData));
-        body.add("file", prepareFilePart(fileStream, fileName, fileSize));
+        body.add("file", new HttpEntity<>(fileResource, fileHeaders));
 
-        HttpHeaders headers = new HttpHeaders();
+        var headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
         return new HttpEntity<>(body, headers);
@@ -287,26 +295,6 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         dataHeaders.setContentType(MediaType.APPLICATION_JSON);
 
         return new HttpEntity<>(rqData, dataHeaders);
-    }
-
-    @SneakyThrows
-    private HttpEntity<Resource> prepareFilePart(InputStream fileStream, String fileName, Long fileSize) {
-        var fileHeaders = new HttpHeaders();
-        fileHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-
-        var fileResource = new InputStreamResource(fileStream) {
-            @Override
-            public String getFilename() {
-                return fileName;
-            }
-
-            @Override
-            public long contentLength() {
-                return fileSize;
-            }
-        };
-
-        return new HttpEntity<>(fileResource, fileHeaders);
     }
 
     @SneakyThrows
@@ -322,26 +310,48 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return size;
     }
 
-    private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, long fileSize, Class<T> clazz) {
-        var maxRetries = 3;
+    @SneakyThrows
+    private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, Class<T> clazz) {
+        // RestTemplate closes the part stream after the first write, so the file is spooled to a temp
+        // file and re-opened by FileSystemResource on every attempt — an InputStreamResource would be
+        // dead after attempt one
+        var tempFile = Files.createTempFile("file-handler-upload", null);
+        Files.copy(tikaStream, tempFile, StandardCopyOption.REPLACE_EXISTING);
 
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            var fileResource = new FileSystemResource(tempFile) {
+                @Override
+                public String getFilename() {
+                    return fileName;
+                }
+            };
+
+            return exchangeWithRetry(
+                    STR."Upload \{fileName}",
+                    () -> restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, fileResource), clazz)
+            );
+        } finally {
+            Files.deleteIfExists(tempFile);
+        }
+    }
+
+    private <T> ResponseEntity<T> exchangeWithRetry(String what, Supplier<ResponseEntity<T>> exchangeCall) {
+        var maxAttempts = 4;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                return restTemplate.exchange(
-                        url,
-                        HttpMethod.POST,
-                        prepareMultipartRq(rqData, tikaStream, fileName, fileSize),
-                        clazz
-                );
-            } catch (ResourceAccessException e) {
-                log.warn("Attempt {}/{} failed: {}", attempt, maxRetries, e.getMessage());
+                return exchangeCall.get();
+            } catch (HttpServerErrorException.NotImplemented | HttpServerErrorException.ServiceUnavailable e) {
+                throw e;
+            } catch (ResourceAccessException | HttpClientErrorException.TooManyRequests | HttpServerErrorException e) {
+                log.warn("{}: attempt {}/{} failed: {}", what, attempt, maxAttempts, e.getMessage());
 
-                if (attempt == maxRetries) {
+                if (attempt == maxAttempts) {
                     throw e;
                 }
 
                 try {
-                    Thread.sleep(500L * attempt);
+                    Thread.sleep(retryDelayMs(e, attempt));
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     throw e;
@@ -350,5 +360,13 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         }
 
         return null;
+    }
+
+    private long retryDelayMs(Exception e, int attempt) {
+        if (e instanceof HttpClientErrorException.TooManyRequests) {
+            return 2000L * attempt; // cumulative 12s outlasts the 10s FH rate window
+        }
+
+        return 500L * attempt; // network error / 5xx: 0.5s, 1s, 1.5s
     }
 }

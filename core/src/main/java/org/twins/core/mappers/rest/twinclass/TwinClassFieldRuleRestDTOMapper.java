@@ -13,7 +13,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldrule.fieldoverwriter.FieldParamOverwriter;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldConditionMode;
@@ -37,7 +37,7 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassFieldRule2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     private final TwinClassFieldDescriptorRestDTOMapper twinClassFieldDescriptorRestDTOMapper;
 
@@ -60,7 +60,7 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
                         .setFieldOverwriterParams(src.getFieldOverwriterParams());
                 if (mapperContext.hasModeButNot(FeaturerMode.TwinClassFieldRule2FeaturerMode.HIDE)) {
                     dst.setFieldOverwriterFeaturerId(src.getFieldOverwriterFeaturerId());
-                    featurerRestDTOMapper.postpone(src.getFieldOverwriterFeaturerId(), mapperContext.forkOnPoint(FeaturerMode.TwinClassFieldRule2FeaturerMode.SHORT));
+                    featurerParametrizedRestDTOMapper.postpone(src.getFieldOverwriterFeaturerId(), src.getFieldOverwriterParams(), mapperContext.forkOnPoint(FeaturerMode.TwinClassFieldRule2FeaturerMode.SHORT));
                 }
             default:
                 dst

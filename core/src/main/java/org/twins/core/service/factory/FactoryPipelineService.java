@@ -22,10 +22,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinstatus.TwinStatusService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -89,6 +86,22 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
 
     public TwinFactoryPipelineEntity createFactoryPipeline(TwinFactoryPipelineEntity entity) throws ServiceException {
         return saveSafe(entity);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryPipelineEntity> createFactoryPipelines(List<TwinFactoryPipelineEntity> entities) throws ServiceException {
+        List<TwinFactoryPipelineEntity> created = new ArrayList<>(entities.size());
+        for (TwinFactoryPipelineEntity entity : entities)
+            created.add(createFactoryPipeline(entity));
+        return created;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryPipelineEntity> updateFactoryPipelines(List<TwinFactoryPipelineEntity> entities) throws ServiceException {
+        List<TwinFactoryPipelineEntity> updated = new ArrayList<>(entities.size());
+        for (TwinFactoryPipelineEntity entity : entities)
+            updated.add(updateFactoryPipeline(entity));
+        return updated;
     }
 
     @Transactional(rollbackFor = Throwable.class)

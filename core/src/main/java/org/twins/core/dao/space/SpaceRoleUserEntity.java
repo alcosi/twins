@@ -19,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "space_role_user")
 @FieldNameConstants
-public class SpaceRoleUserEntity implements EasyLoggable, Identifiable {
+public class SpaceRoleUserEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 

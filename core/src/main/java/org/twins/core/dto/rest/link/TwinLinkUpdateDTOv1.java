@@ -2,6 +2,7 @@
 package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinLinkUpdateV1")
 public class TwinLinkUpdateDTOv1 {
+    @NotNull
     @Schema(description = "id", example = DTOExamples.LINK_ID)
     public UUID id;
 

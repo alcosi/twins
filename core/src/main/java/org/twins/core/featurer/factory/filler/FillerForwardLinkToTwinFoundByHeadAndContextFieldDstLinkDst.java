@@ -8,13 +8,10 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
-import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
@@ -42,11 +39,11 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
     @Override
-    protected UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
+    protected TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties)))
                 .lookupFieldValue(factoryItem, dstFieldId);
-        return extractTwinIdFromFieldValue(dstFieldValue);
+        return FieldValueLink.getSingleLinkedTwinSafe(dstFieldValue);
     }
 
     @Override
@@ -54,21 +51,4 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
         return dstLinkId.extract(properties);
     }
 
-    private UUID extractTwinIdFromFieldValue(FieldValue fieldValue) throws ServiceException {
-        if (fieldValue instanceof FieldValueLinkSingle linkSingle && linkSingle.isNotEmpty()) {
-            return linkSingle.getValue() != null ? linkSingle.getValue().getId() : null;
-        }
-        if (fieldValue instanceof FieldValueLink link && link.isNotEmpty()) {
-            var linkEntity = link.getItems().getFirst();
-            if (linkEntity.getDstTwin() != null) {
-                return linkEntity.getDstTwin().getId();
-            }
-            return linkEntity.getDstTwinId();
-        }
-        if (fieldValue instanceof FieldValueText) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
-                    "dstTwinClassFieldId is expected to be a link field, but it's FieldValueText.");
-        }
-        return null;
-    }
 }

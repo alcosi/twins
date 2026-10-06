@@ -12,9 +12,14 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.twins.core.domain.usage.Usage;
+import org.twins.core.domain.usage.UsageHolder;
+import org.twins.core.domain.usage.UsageType;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.holder.EntityRequestCacheHolder;
@@ -637,6 +642,47 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
             Function<? super E, T> functionGetGroupingEntity,
             BiConsumer<E, T> functionSetGroupingEntity
     ) {
+    }
+
+    /**
+     * Registers usages of this service's entities into the usages lists of the target entities:
+     * finds all entities of this service where the field named by {@code usageType.entityFieldName}
+     * (lombok Fields constant of the referencing entity) points to one of the targets and appends a
+     * {@link Usage} to each referenced target. The referenced id is read via
+     * {@code usageType.entityIdFunction} (getter reference, checked at the enum declaration site).
+     * The usages list is lazily initialized; targets that end up with a null list keep it — callers
+     * may normalize it afterwards (e.g. to {@code List.of()}).
+     * Requires the entity repository to extend {@link JpaSpecificationExecutor}.
+     */
+    public <H extends UsageHolder> void registerUsages(Kit<H, UUID> targetKit, UsageType usageType) throws ServiceException {
+        if (KitUtils.isEmpty(targetKit))
+            return;
+        if (!(entityRepository() instanceof JpaSpecificationExecutor))
+            throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED,
+                    "repository of " + entitySmartService.entityShortName(entityRepository()) + " must extend JpaSpecificationExecutor to register usages[" + usageType + "]");
+        @SuppressWarnings("unchecked")
+        JpaSpecificationExecutor<T> specificationExecutor = (JpaSpecificationExecutor<T>) entityRepository();
+        Specification<T> specification = (root, query, cb) -> root.get(usageType.getEntityFieldName()).in(targetKit.getIdSet());
+        for (T usageEntity : specificationExecutor.findAll(specification)) {
+            UUID targetId = usageType.getEntityIdFunction().apply(usageEntity);
+            if (targetId == null)
+                continue;
+            H target = targetKit.get(targetId);
+            if (target == null)
+                continue;
+            addUsage(target, usageType, entityGetIdFunction().apply(usageEntity), usageEntity);
+        }
+    }
+
+    protected static void addUsage(UsageHolder target, UsageType usageType, UUID usageEntityId, Object usageEntity) {
+        List<Usage> usages = target.getUsages();
+        if (usages == null) {
+            usages = new ArrayList<>();
+            target.setUsages(usages);
+        }
+        Usage usage = new Usage(usageType, usageEntityId);
+        usage.setEntity(usageEntity);
+        usages.add(usage);
     }
 
     public static <S, R, K, RI> void loadKit(

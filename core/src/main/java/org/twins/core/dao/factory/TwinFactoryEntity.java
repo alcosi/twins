@@ -16,6 +16,8 @@ import org.hibernate.generator.EventType;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.domain.usage.Usage;
+import org.twins.core.domain.usage.UsageHolder;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -27,7 +29,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory")
-public class TwinFactoryEntity implements EasyLoggable, Identifiable {
+public class TwinFactoryEntity implements EasyLoggable, Identifiable<UUID>, UsageHolder {
     @Id
     private UUID id;
 
@@ -124,6 +126,11 @@ public class TwinFactoryEntity implements EasyLoggable, Identifiable {
 
     @Transient
     public Integer factoryUsagesCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    public List<Usage> usages;
 
     // Trigger-maintained counter columns: read-only in Java, maintained by AFTER triggers
     // (see V1.4.344.01). insertable=false/updatable=false keeps Hibernate out of the write path

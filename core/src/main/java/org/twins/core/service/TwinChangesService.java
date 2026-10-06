@@ -75,6 +75,9 @@ public class TwinChangesService {
             twinChangesCollector.getPostponedChanges().isEmpty() &&
             twinChangesCollector.getPostponedTriggers().isEmpty())
             return changesApplyResult;
+        // Clear→refill in one collector may leave delete+insert for the same (twin, field).
+        // Prefer UPDATE of the existing row before flush (unique on twin_id + twin_class_field_id).
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector);
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
         saveTwinEntitiesAndFlush(twinChangesCollector, changesApplyResult);
         applyDecimalIncrements(twinChangesCollector);
@@ -130,6 +133,62 @@ public class TwinChangesService {
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
         return changesApplyResult;
+    }
+
+    /**
+     * Safety net for single-value mater twin fields that have UNIQUE (twin_id, twin_class_field_id).
+     * If the same field is both deleted and saved in one collector (clear then refill without
+     * {@link TwinChangesCollector#pullDeletedTwinField}), drop the delete and reuse the existing
+     * row id on the save so flush becomes UPDATE instead of DELETE+INSERT.
+     * Does not apply to multi-row storages (datalist / user / twin-class).
+     */
+    private void reconcileSingleValueTwinFieldDeletes(TwinChangesCollector twinChangesCollector) {
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldTimestampEntity.class);
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldDecimalEntity.class);
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldBooleanEntity.class);
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldSimpleEntity.class);
+    }
+
+    private <T extends TwinFieldBaseEntity> void reconcileSingleValueTwinFieldDeletes(
+            TwinChangesCollector twinChangesCollector, Class<T> entityClass) {
+        Set<Object> deletes = twinChangesCollector.getDeleteEntityMap().get(entityClass);
+        Map<EntityKey, ChangesHelper> saves = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        if (deletes == null || deletes.isEmpty() || saves == null || saves.isEmpty()) {
+            return;
+        }
+        Map<String, TwinFieldBaseEntity> deletedByTwinAndField = new HashMap<>();
+        for (Object deleted : deletes) {
+            TwinFieldBaseEntity field = (TwinFieldBaseEntity) deleted;
+            deletedByTwinAndField.put(twinFieldKey(field.getTwinId(), field.getTwinClassFieldId()), field);
+        }
+        for (Map.Entry<EntityKey, ChangesHelper> entry : List.copyOf(saves.entrySet())) {
+            TwinFieldBaseEntity saveField = (TwinFieldBaseEntity) entry.getKey().entity();
+            TwinFieldBaseEntity deletedField = deletedByTwinAndField.remove(
+                    twinFieldKey(saveField.getTwinId(), saveField.getTwinClassFieldId()));
+            if (deletedField == null) {
+                continue;
+            }
+            deletes.remove(deletedField);
+            if (!Objects.equals(saveField.getId(), deletedField.getId())) {
+                ChangesHelper changesHelper = entry.getValue();
+                saves.remove(entry.getKey());
+                UUID existingId = deletedField.getId();
+                saveField.setId(existingId);
+                saves.put(new EntityKey(existingId, saveField), changesHelper);
+                log.info("Reconciled clear -> refill for {} twin[{}] field[{}]: reuse id[{}] (cancel delete+insert)",
+                        entityClass.getSimpleName(), saveField.getTwinId(), saveField.getTwinClassFieldId(), existingId);
+            } else {
+                log.info("Reconciled clear -> refill for {} twin[{}] field[{}]: cancel delete of id[{}]",
+                        entityClass.getSimpleName(), saveField.getTwinId(), saveField.getTwinClassFieldId(), deletedField.getId());
+            }
+        }
+        if (deletes.isEmpty()) {
+            twinChangesCollector.getDeleteEntityMap().remove(entityClass);
+        }
+    }
+
+    private static String twinFieldKey(UUID twinId, UUID twinClassFieldId) {
+        return twinId + ":" + twinClassFieldId;
     }
 
     private void savePostponedChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {

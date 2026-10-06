@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -53,7 +54,7 @@ public class TwinPointerCreateController extends ApiController {
     @PostMapping(value = "/private/twin_pointer/v1")
     public ResponseEntity<?> twinPointerCreateV1(
             @MapperContextBinding(roots = TwinPointerRestDTOMapper.class, response = TwinPointerListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinPointerCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinPointerCreateRqDTOv1 request) {
         TwinPointerListRsDTOv1 rs = new TwinPointerListRsDTOv1();
         try {
             List<TwinPointerCreate> createList = twinPointerCreateRestDTOReverseMapper.convertCollection(request.getTwinPointers());
