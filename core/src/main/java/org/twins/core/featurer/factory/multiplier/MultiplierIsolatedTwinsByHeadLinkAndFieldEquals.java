@@ -21,7 +21,6 @@ import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -158,7 +157,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
     }
 
     private FieldValue resolveEqualsFieldValue(Properties properties, FactoryItem inputItem, UUID equalsFieldId) throws ServiceException {
-        return ((FieldLookuperNearest) fieldLookupers.getByType(equalsFieldLookupper.extract(properties)))
+        return fieldLookupers.getNearestByType(equalsFieldLookupper.extract(properties))
                 .lookupFieldValue(inputItem, equalsFieldId);
     }
 
@@ -166,7 +165,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         if (dstFieldId == null)
             return null;
-        FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookupper.extract(properties)))
+        FieldValue dstFieldValue = fieldLookupers.getNearestByType(dstFieldLookupper.extract(properties))
                 .lookupFieldValue(factoryItem, dstFieldId);
         return FieldValueLink.getSingleLinkedTwin(dstFieldValue);
     }

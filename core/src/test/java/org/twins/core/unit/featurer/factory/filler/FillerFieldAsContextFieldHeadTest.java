@@ -50,7 +50,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
         filler = new FillerFieldAsContextFieldHead();
         inject("twinService", twinService);
         inject("fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getByType(FieldLookupers.Type.fromContextFields)).thenReturn(fromContextFields);
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromContextFields)).thenReturn(fromContextFields);
     }
 
     private void inject(String fieldName, Object value) {

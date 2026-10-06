@@ -43,7 +43,7 @@ public abstract class FillerFieldLookupLinked extends Filler {
      * concrete filler declares the param (with its default value) and binds it here, mirroring
      * {@link FillerFieldLookup#lookuper(Properties)}.
      */
-    protected abstract FieldLookuperLinked lookuper(Properties properties);
+    protected abstract FieldLookuperLinked lookuper(Properties properties) throws ServiceException;
 
     /** Id of the link (or link field) the source twin is found by, extracted once per batch. */
     protected abstract UUID linkedById(Properties properties) throws ServiceException;

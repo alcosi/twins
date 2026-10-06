@@ -53,7 +53,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldMathDivisionFromContextField(twinClassFieldService);
         inject(filler, "fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getByType(FieldLookupers.Type.fromItemOutputDbFields)).thenReturn(dbLookuper);
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromItemOutputDbFields)).thenReturn(dbLookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {

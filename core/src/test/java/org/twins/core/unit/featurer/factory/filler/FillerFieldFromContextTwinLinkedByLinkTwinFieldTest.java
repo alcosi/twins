@@ -55,7 +55,7 @@ class FillerFieldFromContextTwinLinkedByLinkTwinFieldTest extends BaseUnitTest {
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
         inject(filler, "twinClassFieldService", twinClassFieldService);
-        when(fieldLookupers.getByType(FieldLookupers.Type.fromContextTwinLinkedByLinkTwinFields)).thenReturn(lookuper);
+        when(fieldLookupers.getLinkedByType(FieldLookupers.Type.fromContextTwinLinkedByLinkTwinFields)).thenReturn(lookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {

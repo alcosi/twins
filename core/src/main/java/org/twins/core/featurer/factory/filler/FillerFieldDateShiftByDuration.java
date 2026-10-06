@@ -74,7 +74,7 @@ public class FillerFieldDateShiftByDuration extends Filler {
         var targetField = twinClassFieldService.findEntitySafe(targetTwinClassFieldId.extract(properties));
         var sourceField = twinClassFieldService.findEntitySafe(sourceDateTwinClassFieldId.extract(properties));
         var durationField = twinClassFieldService.findEntitySafe(durationTwinClassFieldId.extract(properties));
-        FieldLookuperNearest lookuper = (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+        FieldLookuperNearest lookuper = fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
         LookupResult targetResult = lookuper.lookupFieldValue(batch, targetField);
         LookupResult sourceResult = lookuper.lookupFieldValue(batch, sourceField);
         LookupResult durationResult = lookuper.lookupFieldValue(batch, durationField);

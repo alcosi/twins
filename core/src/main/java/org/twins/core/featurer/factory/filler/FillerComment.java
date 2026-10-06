@@ -34,7 +34,7 @@ public class FillerComment extends FillerFieldLookup {
 
     @Override
     protected FieldLookuperNearest lookuper(Properties properties) {
-        return (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
     }
 
     @Override

@@ -39,8 +39,8 @@ public class FillerFieldDateCurrent extends FillerFieldLookup {
     public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
 
     @Override
-    protected FieldLookuperNearest lookuper(Properties properties) {
-        return (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+    protected FieldLookuperNearest lookuper(Properties properties) throws ServiceException {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
     }
 
     @Override

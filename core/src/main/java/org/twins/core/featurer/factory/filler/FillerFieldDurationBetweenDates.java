@@ -70,7 +70,7 @@ public class FillerFieldDurationBetweenDates extends Filler {
         UUID durationFieldId = durationTwinClassFieldId.extract(properties);
         UUID startFieldId = startDateTwinClassFieldId.extract(properties);
         UUID endFieldId = endDateTwinClassFieldId.extract(properties);
-        FieldLookuperNearest lookuper = (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+        FieldLookuperNearest lookuper = fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
         LookupResult durationResult = lookuper.lookupFieldValue(batch, durationFieldId);
         LookupResult startResult = lookuper.lookupFieldValue(batch, startFieldId);
         LookupResult endResult = lookuper.lookupFieldValue(batch, endFieldId);

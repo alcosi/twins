@@ -54,7 +54,7 @@ class FillerFieldDateShiftByDurationTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldDateShiftByDuration(twinService, twinClassFieldService);
         inject(filler, "fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getByType(FieldLookupers.Type.fromItemOutputFields)).thenReturn(lookuper);
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromItemOutputFields)).thenReturn(lookuper);
         lenient().when(twinClassFieldService.findEntitySafe(TARGET_ID)).thenReturn(TARGET_FIELD);
         lenient().when(twinClassFieldService.findEntitySafe(SOURCE_ID)).thenReturn(SOURCE_FIELD);
         lenient().when(twinClassFieldService.findEntitySafe(DURATION_ID)).thenReturn(DURATION_FIELD);

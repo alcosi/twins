@@ -19,7 +19,6 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinFieldValueSearchNumeric;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -194,7 +193,7 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
     private UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity rootTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
         if (dstFieldId != null) {
-            FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstTwinLookupper.extract(properties)))
+            FieldValue dstFieldValue = fieldLookupers.getNearestByType(dstTwinLookupper.extract(properties))
                     .lookupFieldValue(factoryItem, dstFieldId);
             var dstTwin = FieldValueLink.getSingleLinkedTwin(dstFieldValue);
             if (dstTwin != null) {
@@ -225,7 +224,7 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
     }
 
     private FieldValue resolveEqualsFieldValue(Properties properties, FactoryItem inputItem, UUID equalsFieldId) throws ServiceException {
-        return ((FieldLookuperNearest) fieldLookupers.getByType(equalsFieldLookupper.extract(properties)))
+        return fieldLookupers.getNearestByType(equalsFieldLookupper.extract(properties))
                 .lookupFieldValue(inputItem, equalsFieldId);
     }
 

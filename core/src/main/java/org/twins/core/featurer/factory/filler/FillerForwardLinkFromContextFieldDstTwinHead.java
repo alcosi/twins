@@ -16,7 +16,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -70,7 +69,7 @@ public class FillerForwardLinkFromContextFieldDstTwinHead extends FillerLinks {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
         boolean useHead = useDstTwinHead.extract(properties);
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties)); // step constant — one lookup per step
-        LookupResult srcResult = ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties)))
+        LookupResult srcResult = fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties))
                 .lookupFieldValue(batch, extractedSrcTwinClassFieldId);
         var dstTwins = new LinkedHashMap<FactoryItem, TwinEntity>();
         for (FactoryItem factoryItem : batch.getFactoryItems()) {

@@ -13,7 +13,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -56,7 +55,7 @@ public class FillerFieldAsContextFieldHead extends Filler {
     public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         if (batch == null || batch.isEmpty())
             return;
-        LookupResult result = ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties)))
+        LookupResult result = fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties))
                 .lookupFieldValue(batch, srcTwinClassFieldId.extract(properties));
         var linkedTwins = new HashMap<FactoryItem, TwinEntity>();
         for (FactoryItem factoryItem : batch.getFactoryItems()) {

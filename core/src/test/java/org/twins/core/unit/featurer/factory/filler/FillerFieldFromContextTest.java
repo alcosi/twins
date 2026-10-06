@@ -54,7 +54,7 @@ class FillerFieldFromContextTest extends BaseUnitTest {
         inject(filler, "fieldLookupers", fieldLookupers);
         inject(filler, "twinService", twinService);
         inject(filler, "twinClassFieldService", twinClassFieldService);
-        when(fieldLookupers.getByType(FieldLookupers.Type.fromContextFieldsAndContextTwinDbFields)).thenReturn(lookuper);
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromContextFieldsAndContextTwinDbFields)).thenReturn(lookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {

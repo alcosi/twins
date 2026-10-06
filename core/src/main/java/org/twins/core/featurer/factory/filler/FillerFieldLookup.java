@@ -48,11 +48,11 @@ public abstract class FillerFieldLookup extends Filler {
      * <pre>{@code
      * @Override
      * protected FieldLookuperNearest lookuper(Properties properties) {
-     *     return (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+     *     return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
      * }
      * }</pre>
      */
-    protected abstract FieldLookuperNearest lookuper(Properties properties);
+    protected abstract FieldLookuperNearest lookuper(Properties properties) throws ServiceException;
 
     /** Field id to look up, extracted from the step params once per batch. */
     protected abstract UUID lookupFieldId(Properties properties) throws ServiceException;

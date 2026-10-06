@@ -54,7 +54,7 @@ class FillerBasicsAssigneeFromContextFieldTwinAssigneeTest extends BaseUnitTest 
         inject(filler, "twinService", twinService);
         // the merged filler resolves its link-field source from the fieldLookuper param — the
         // default fromContextFields covers the former raw context-fields read
-        when(fieldLookupers.getByType(FieldLookupers.Type.fromContextFields)).thenReturn(lookuper);
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromContextFields)).thenReturn(lookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {

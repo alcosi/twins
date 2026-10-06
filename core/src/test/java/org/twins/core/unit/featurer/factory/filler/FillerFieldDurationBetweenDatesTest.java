@@ -52,7 +52,7 @@ class FillerFieldDurationBetweenDatesTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldDurationBetweenDates(twinService, twinClassFieldService);
         inject(filler, "fieldLookupers", fieldLookupers);
-        when(fieldLookupers.getByType(FieldLookupers.Type.fromItemOutputFields)).thenReturn(lookuper);
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromItemOutputFields)).thenReturn(lookuper);
         lenient().when(twinClassFieldService.findEntitySafe(DURATION_ID)).thenReturn(DURATION_FIELD);
     }
 

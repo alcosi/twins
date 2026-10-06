@@ -49,7 +49,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
     @Override
     public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
-        FieldLookuperNearest dstLookuper = (FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookuper.extract(properties));
+        FieldLookuperNearest dstLookuper = fieldLookupers.getNearestByType(dstFieldLookuper.extract(properties));
         LookupResult dstFieldValue = dstLookuper.lookupFieldValue(batch, dstFieldId);
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
@@ -63,7 +63,7 @@ public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends
     @Override
     protected TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
         UUID dstFieldId = dstTwinClassFieldId.extract(properties);
-        FieldValue dstFieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(dstFieldLookuper.extract(properties)))
+        FieldValue dstFieldValue = fieldLookupers.getNearestByType(dstFieldLookuper.extract(properties))
                 .lookupFieldValue(factoryItem, dstFieldId);
         return FieldValueLink.getSingleLinkedTwinSafe(dstFieldValue);
     }

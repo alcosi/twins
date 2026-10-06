@@ -6,8 +6,7 @@ import org.twins.core.domain.factory.FactoryItemsBatch;
 import java.util.UUID;
 
 /**
- * Common batch contract of the linked-twin lookupers ({@link FieldLookuperLinkedTwinByField},
- * {@link FieldLookuperLinkedTwinByLink}) — lets batch callers hold either family in one type.
+ * Common batch contract of the linked-twin lookupers — lets batch callers hold either family in one type.
  */
 public interface FieldLookuperLinked {
 

@@ -50,8 +50,8 @@ public class FillerFieldFromContextTwinLinkedByFieldTwinField extends FillerFiel
 
 
     @Override
-    protected FieldLookuperLinked lookuper(Properties properties) {
-        return (FieldLookuperLinked) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+    protected FieldLookuperLinked lookuper(Properties properties) throws ServiceException {
+        return fieldLookupers.getLinkedByType(fieldLookuperParam.extract(properties));
     }
 
     @Override

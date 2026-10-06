@@ -28,7 +28,7 @@ public class ConditionerFactoryItemValueExists extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookupper.extract(properties))));
+        return check(properties, factoryItem, fieldLookupers.getNearestByType(fieldLookupper.extract(properties)));
     }
 
     public boolean check(Properties properties, FactoryItem factoryItem, FieldLookuperNearest fieldLookuper) throws ServiceException {

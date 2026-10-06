@@ -7,7 +7,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
@@ -18,7 +17,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -38,15 +36,12 @@ public class FillerFieldIncrementFromContextField extends FillerFieldLookup {
     @FeaturerParam(name = "Allow negative increment", description = "If false, a negative context value fails the step (mark the step as optional to skip instead of failing the pipeline)", order = 2, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean allowNegativeIncrement = new FeaturerParamBoolean("allowNegativeIncrement");
 
-    @Lazy
-    private final TwinClassFieldService twinClassFieldService;
-
     @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextFields")
     public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
 
     @Override
-    protected FieldLookuperNearest lookuper(Properties properties) {
-        return (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+    protected FieldLookuperNearest lookuper(Properties properties) throws ServiceException {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
     }
 
     @Override

@@ -61,7 +61,7 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         UUID paramDividendTwinClassFieldId = dividendTwinClassFieldId.extract(properties);
         UUID paramDivisorTwinClassFieldId = divisorTwinClassFieldId.extract(properties);
         UUID paramTargetTwinClassFieldId = targetTwinClassFieldId.extract(properties);
-        FieldLookuperNearest lookuper = (FieldLookuperNearest) fieldLookupers.getByType(fieldLookuperParam.extract(properties));
+        FieldLookuperNearest lookuper = fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
         LookupResult dividendDbResult = lookuper.lookupFieldValue(batch, paramDividendTwinClassFieldId);
         LookupResult divisorDbResult = lookuper.lookupFieldValue(batch, paramDivisorTwinClassFieldId);
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
