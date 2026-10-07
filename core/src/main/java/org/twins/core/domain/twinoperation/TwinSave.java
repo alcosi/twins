@@ -3,6 +3,7 @@ package org.twins.core.domain.twinoperation;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.*;
@@ -43,6 +44,10 @@ public abstract class TwinSave extends TwinOperation {
 
     public FieldValue getField(UUID twinClassFieldId) {
         return fields != null ? fields.get(twinClassFieldId) : null;
+    }
+
+    public FieldValue getField(TwinClassFieldEntity twinClassField) {
+        return getField(twinClassField.getId());
     }
 
     public TwinSave setFields(List<FieldValue> fieldValueList) {

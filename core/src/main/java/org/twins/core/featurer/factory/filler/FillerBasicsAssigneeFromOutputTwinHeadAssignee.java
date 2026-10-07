@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
@@ -19,17 +20,23 @@ import java.util.Properties;
         name = "Basics assignee from head twin assignee",
         description = "Fill the assignee from own head twin assignee")
 @Slf4j
-public class FillerBasicsAssigneeFromOutputTwinHeadAssignee extends Filler {
+public class FillerBasicsAssigneeFromOutputTwinHeadAssignee extends FillerAtomic {
 
     @Lazy
     @Autowired
     TwinService twinService;
 
     @Override
+    protected void beforeFill(FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
+        if (!batch.getTwins().isEmpty())
+            twinService.loadHead(batch.getTwins()); // one query for the whole batch
+    }
+
+    @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.getTwin();
         TwinEntity headTwin = twinService.loadHead(factoryItemTwin);
-        if(null == headTwin)
+        if (null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItemTwin.logDetailed());
         factoryItem.getOutput().getTwinEntity()
                 .setAssignerUser(headTwin.getAssignerUser())

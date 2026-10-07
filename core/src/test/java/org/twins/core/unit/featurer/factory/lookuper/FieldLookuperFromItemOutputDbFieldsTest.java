@@ -10,22 +10,26 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputDbFields;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FieldLookuperFromItemOutputDbFieldsTest extends BaseUnitTest {
 
     @Mock
     private TwinService twinService;
+
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
 
     private FieldLookuperFromItemOutputDbFields lookuper;
 
@@ -33,6 +37,7 @@ class FieldLookuperFromItemOutputDbFieldsTest extends BaseUnitTest {
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromItemOutputDbFields();
         setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
     }
 
     // contract: resolve the field value from factoryItem.getOutput().getTwinEntity()'s DB fields
@@ -45,30 +50,33 @@ class FieldLookuperFromItemOutputDbFieldsTest extends BaseUnitTest {
         @Test
         void lookupFieldValue_fieldPresentInOutputTwinDb_returnsValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var outputTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithOutputTwin(outputTwin);
             var expected = fieldValue(fieldId, "db-val");
 
-            when(twinService.getTwinFieldValue(outputTwin, fieldId)).thenReturn(expected);
+            when(twinService.getTwinFieldValue(outputTwin, field)).thenReturn(expected);
 
-            var result = lookuper.lookupFieldValue(factoryItem, fieldId);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(expected, result);
-            verify(twinService).getTwinFieldValue(outputTwin, fieldId);
+            verify(twinService).getTwinFieldValue(outputTwin, field);
         }
 
         @Test
-        void lookupFieldValue_fieldAbsentInOutputTwinDb_throwsFactoryPipelineError() throws ServiceException {
+        void lookupFieldValue_fieldAbsentInOutputTwinDb_returnsUndefinedValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var outputTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithOutputTwin(outputTwin);
 
-            when(twinService.getTwinFieldValue(outputTwin, fieldId)).thenReturn(null);
+            when(twinService.getTwinFieldValue(outputTwin, field)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            var undefined = new FieldValueText(field); // no value set -> isUndefined()
+            when(twinService.createFieldValue(field)).thenReturn(undefined);
+            assertSame(undefined, lookuper.lookupFieldValue(factoryItem, field.getId())); // the per-item entry converts a not-found lookup into an undefined value
         }
     }
 

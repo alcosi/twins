@@ -10,11 +10,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldMathDivisionFromContextField;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputDbFields;
 import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -26,6 +28,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
@@ -49,8 +53,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
     void setUp() throws Exception {
         filler = new FillerFieldMathDivisionFromContextField(twinClassFieldService);
         inject(filler, "fieldLookupers", fieldLookupers);
-        // NOTE: getFromItemOutputDbFields() is stubbed per-test (only the divisor-missing path consults it);
-        // stubbing it in @BeforeEach would trip strict-stubbing on the happy-path tests.
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromItemOutputDbFields)).thenReturn(dbLookuper);
     }
 
     private void inject(Object target, String name, Object value) throws Exception {
@@ -73,6 +76,7 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
     private Properties props() {
         var p = new Properties();
         p.setProperty("dividendTwinClassFieldId", DIVIDEND_FIELD_ID.toString());
+        p.setProperty("fieldLookuper", "fromItemOutputDbFields");
         p.setProperty("divisorTwinClassFieldId", DIVISOR_FIELD_ID.toString());
         p.setProperty("targetTwinClassFieldId", TARGET_FIELD_ID.toString());
         return p;
@@ -93,6 +97,12 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
         return new TwinClassFieldEntity().setId(id).setTwinClassId(UUID.randomUUID());
     }
 
+    /** The batch entry resolves both db fields once per batch; the results are only consulted when the output field is missing. */
+    private void stubDbBatchResults() throws ServiceException {
+        when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), any(UUID.class)))
+                .thenReturn(LookupResult.empty(1));
+    }
+
     @Nested
     class Fill {
 
@@ -103,8 +113,9 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var divisor = new FieldValueText(field(DIVISOR_FIELD_ID)).setValue("4");
             var target = new FieldValueText(field(TARGET_FIELD_ID));
             var factoryItem = buildFactoryItem(dividend, divisor, target);
+            stubDbBatchResults();
 
-            filler.fill(props(), factoryItem, null);
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
 
             FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(TARGET_FIELD_ID);
             // 10 / 4 = 2.50 (HALF_UP, scale 2)
@@ -116,12 +127,18 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var dividend = new FieldValueText(field(DIVIDEND_FIELD_ID)).setValue("10");
             var target = new FieldValueText(field(TARGET_FIELD_ID));
             var factoryItem = buildFactoryItem(dividend, target);
-            // divisor not on output -> code calls dbLookuper; stub null.
-            when(fieldLookupers.getFromItemOutputDbFields()).thenReturn(dbLookuper);
-            when(dbLookuper.lookupFieldValue(factoryItem, DIVISOR_FIELD_ID)).thenReturn(null);
+            // divisor not on output -> its db batch result carries the undefined value the batch
+            // entry creates for a not-found lookup (new lookuper contract).
+            var undefinedDivisor = new FieldValueText(field(DIVISOR_FIELD_ID)); // undefined
+            var divisorResult = LookupResult.empty(1);
+            divisorResult.values().put(factoryItem, undefinedDivisor);
+            when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), any(UUID.class)))
+                    .thenReturn(LookupResult.empty(1));
+            when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DIVISOR_FIELD_ID)))
+                    .thenReturn(divisorResult);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -131,9 +148,10 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var divisor = new FieldValueText(field(DIVISOR_FIELD_ID)).setValue("0");
             var target = new FieldValueText(field(TARGET_FIELD_ID));
             var factoryItem = buildFactoryItem(dividend, divisor, target);
+            stubDbBatchResults();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -144,9 +162,10 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var nonTextDivisor = new org.twins.core.featurer.fieldtyper.value.FieldValueUser(field(DIVISOR_FIELD_ID));
             var target = new FieldValueText(field(TARGET_FIELD_ID));
             var factoryItem = buildFactoryItem(dividend, nonTextDivisor, target);
+            stubDbBatchResults();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
 
@@ -157,9 +176,10 @@ class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
             var divisor = new FieldValueText(field(DIVISOR_FIELD_ID)).setValue("4");
             var nonTextTarget = new org.twins.core.featurer.fieldtyper.value.FieldValueUser(field(TARGET_FIELD_ID));
             var factoryItem = buildFactoryItem(dividend, divisor, nonTextTarget);
+            stubDbBatchResults();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> filler.fill(props(), factoryItem, null));
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
         }
     }

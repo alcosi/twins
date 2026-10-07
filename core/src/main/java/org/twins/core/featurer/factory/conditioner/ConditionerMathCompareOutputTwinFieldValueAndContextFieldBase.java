@@ -33,15 +33,15 @@ public abstract class ConditionerMathCompareOutputTwinFieldValueAndContextFieldB
         FieldValue greaterValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties));
         FieldValue comparisonValue = resolveComparisonValue(properties, factoryItem);
         double greater, comparison;
-        if (greaterValue instanceof FieldValueText greaterValueText) {
+        if (greaterValue instanceof FieldValueText greaterValueText && greaterValueText.isNotEmpty()) { // isEmpty also covers the undefined value of a not-found lookup
             greater = NumberUtils.createNumber(greaterValueText.getValue()).doubleValue();
         } else {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "greaterTwinClassField[" + greaterTwinClassField + "] is not instance of text field and can not be converted to number");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "greaterTwinClassField[" + greaterTwinClassField + "] is not instance of filled text field and can not be converted to number");
         }
-        if (comparisonValue instanceof FieldValueText comparisonValueText) {
+        if (comparisonValue instanceof FieldValueText comparisonValueText && comparisonValueText.isNotEmpty()) {
             comparison = NumberUtils.createNumber(comparisonValueText.getValue()).doubleValue();
         } else {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "comparisonTwinClassField[" + comparisonTwinClassField + "] is not instance of text field and can not be converted to number");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "comparisonTwinClassField[" + comparisonTwinClassField + "] is not instance of filled text field and can not be converted to number");
         }
         return equals.extract(properties) ? greater >= comparison : greater > comparison;
     }

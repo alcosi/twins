@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputLinkedTwinHeadTwinFields;
@@ -17,11 +18,13 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
 class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTest {
@@ -29,12 +32,16 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldLookuperFromItemOutputLinkedTwinHeadTwinFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromItemOutputLinkedTwinHeadTwinFields();
         setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
     }
 
     // contract: read the link FIELD (linkedTwinByTwinClassFieldId) from factoryItem.getTwin() freshest value;
@@ -49,61 +56,70 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
         void lookupFieldValue_linkDstHead_resolvesLookupFieldFromLinkDstHead() throws Exception {
             var linkFieldId = UUID.randomUUID();
             var lookupFieldId = UUID.randomUUID();
+            var linkFieldEntity = new TwinClassFieldEntity().setId(linkFieldId);
+            var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var dstTwin = new TwinEntity().setId(UUID.randomUUID());
             var dstHeadTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
             var linkField = singleLinkField(linkFieldId, dstTwin);
 
-            when(twinService.getTwinFieldValue(twin, linkFieldId)).thenReturn(linkField);
-            when(twinService.loadHead(dstTwin)).thenReturn(dstHeadTwin);
-            var expected = fieldValue(lookupFieldId, "dst-head-val");
-            when(twinService.getTwinFieldValue(dstHeadTwin, lookupFieldId)).thenReturn(expected);
+            when(twinClassFieldService.findEntitySafe(linkFieldId)).thenReturn(linkFieldEntity);
+            when(twinService.getTwinFieldValue(twin, linkFieldEntity)).thenReturn(linkField);
+            dstTwin.setHeadTwin(dstHeadTwin); // the bulk loadHead of the preload phase is a no-op mock — preset the field readSource reads
+            var expected = fieldValue(lookupFieldEntity, "dst-head-val");
+            when(twinService.getTwinFieldValue(dstHeadTwin, lookupFieldEntity)).thenReturn(expected);
 
-            var result = lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId);
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
-            assertSame(expected, result);
-            verify(twinService).loadHead(dstTwin);
-            verify(twinService).getTwinFieldValue(dstHeadTwin, lookupFieldId);
+            assertSame(expected, result.value(factoryItem));
+            verify(twinService).getTwinFieldValue(dstHeadTwin, lookupFieldEntity);
             // Must NOT consult the item twin itself for the lookup field.
-            verify(twinService, never()).getTwinFieldValue(twin, lookupFieldId);
+            verify(twinService, never()).getTwinFieldValue(twin, lookupFieldEntity);
         }
 
         @Test
         void lookupFieldValue_linkDstHeadNull_throwsFactoryPipelineError() throws Exception {
             var linkFieldId = UUID.randomUUID();
             var lookupFieldId = UUID.randomUUID();
+            var linkFieldEntity = new TwinClassFieldEntity().setId(linkFieldId);
+            var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var dstTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
             var linkField = singleLinkField(linkFieldId, dstTwin);
 
-            when(twinService.getTwinFieldValue(twin, linkFieldId)).thenReturn(linkField);
-            when(twinService.loadHead(dstTwin)).thenReturn(null);
+            when(twinClassFieldService.findEntitySafe(linkFieldId)).thenReturn(linkFieldEntity);
+            when(twinService.getTwinFieldValue(twin, linkFieldEntity)).thenReturn(linkField);
+            // dstTwin carries no head -> readSource fails the item
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
-            verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), eq(lookupFieldId));
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), result.failures().get(factoryItem).getErrorCode());
+            verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), eq(lookupFieldEntity));
         }
 
         @Test
         void lookupFieldValue_linkFieldMultipleItems_throwsFactoryPipelineError() throws ServiceException {
             var linkFieldId = UUID.randomUUID();
             var lookupFieldId = UUID.randomUUID();
+            var linkFieldEntity = new TwinClassFieldEntity().setId(linkFieldId);
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin);
             var multiLink = new FieldValueLink(new TwinClassFieldEntity().setId(linkFieldId));
             multiLink.add(new TwinEntity().setId(UUID.randomUUID()));
             multiLink.add(new TwinEntity().setId(UUID.randomUUID()));
 
-            when(twinService.getTwinFieldValue(twin, linkFieldId)).thenReturn(multiLink);
+            when(twinClassFieldService.findEntitySafe(linkFieldId)).thenReturn(linkFieldEntity);
+            when(twinService.getTwinFieldValue(twin, linkFieldEntity)).thenReturn(multiLink);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, linkFieldId, lookupFieldId));
+            var lookupFieldEntity = new TwinClassFieldEntity().setId(lookupFieldId);
+            when(twinClassFieldService.findEntitySafe(lookupFieldId)).thenReturn(lookupFieldEntity); // the UUID entry resolves the field once per batch
+            var result = lookuper.lookupFieldValue(new FactoryItemsBatch().add(factoryItem), linkFieldId, lookupFieldId);
 
-            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), ex.getErrorCode());
+            assertEquals(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT.getCode(), result.failures().get(factoryItem).getErrorCode());
         }
     }
 
@@ -119,10 +135,8 @@ class FieldLookuperFromItemOutputLinkedTwinHeadTwinFieldsTest extends BaseUnitTe
         return new FactoryItem().setOutput(output).setFactoryContext(new FactoryContext(null, null));
     }
 
-    private FieldValue fieldValue(UUID fieldId, String value) {
-        var twinClassField = new TwinClassFieldEntity();
-        twinClassField.setId(fieldId);
-        var fv = new FieldValueText(twinClassField);
+    private FieldValue fieldValue(TwinClassFieldEntity field, String value) {
+        var fv = new FieldValueText(field);
         fv.setValue(value);
         return fv;
     }

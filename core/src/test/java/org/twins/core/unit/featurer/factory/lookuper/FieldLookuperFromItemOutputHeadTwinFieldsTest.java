@@ -16,6 +16,7 @@ import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputHeadT
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.lang.reflect.Field;
 import java.util.UUID;
@@ -28,12 +29,16 @@ class FieldLookuperFromItemOutputHeadTwinFieldsTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FieldLookuperFromItemOutputHeadTwinFields lookuper;
 
     @BeforeEach
     void setUp() throws Exception {
         lookuper = new FieldLookuperFromItemOutputHeadTwinFields();
         setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
     }
 
     // contract: load head twin of factoryItem.getTwin() (null head -> ServiceException),
@@ -46,53 +51,57 @@ class FieldLookuperFromItemOutputHeadTwinFieldsTest extends BaseUnitTest {
 
         @Test
         void lookupFieldValue_headTwinNull_throwsFactoryPipelineError() throws ServiceException {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin, new FactoryContext(null, null));
 
             when(twinService.loadHead(twin)).thenReturn(null);
 
             var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
+                    () -> lookuper.lookupFieldValue(factoryItem, field.getId()));
 
             assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
-            verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(UUID.class));
+            verify(twinService, never()).getTwinFieldValue(any(TwinEntity.class), any(TwinClassFieldEntity.class));
         }
 
         @Test
         void lookupFieldValue_fieldInHeadDb_returnsHeadValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var headTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryContext = new FactoryContext(null, null);
             var factoryItem = itemWithTwin(twin, factoryContext);
 
-            when(twinService.loadHead(twin)).thenReturn(headTwin);
+            when(twinService.loadHead(twin)).thenReturn(headTwin); // preloaded by beforeLookup — the per-item read short-circuits on it
             var expected = fieldValue(fieldId, "head-db-val");
-            when(twinService.getTwinFieldValue(headTwin, fieldId)).thenReturn(expected);
+            when(twinService.getTwinFieldValue(headTwin, field)).thenReturn(expected);
 
-            var result = lookuper.lookupFieldValue(factoryItem, fieldId);
+            var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(expected, result);
-            verify(twinService).getTwinFieldValue(headTwin, fieldId);
+            verify(twinService).getTwinFieldValue(headTwin, field);
             // Must NOT consult the twin itself.
-            verify(twinService, never()).getTwinFieldValue(twin, fieldId);
+            verify(twinService, never()).getTwinFieldValue(twin, field);
         }
 
         @Test
-        void lookupFieldValue_fieldNowhereOnHead_throwsFactoryPipelineError() throws ServiceException {
+        void lookupFieldValue_fieldNowhereOnHead_returnsUndefinedValue() throws ServiceException {
             var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(fieldId);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var headTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = itemWithTwin(twin, new FactoryContext(null, null));
 
-            when(twinService.loadHead(twin)).thenReturn(headTwin);
-            when(twinService.getTwinFieldValue(headTwin, fieldId)).thenReturn(null);
+            when(twinService.loadHead(twin)).thenReturn(headTwin); // preloaded by beforeLookup — the per-item read short-circuits on it
+            when(twinService.getTwinFieldValue(headTwin, field)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.lookupFieldValue(factoryItem, fieldId));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            var undefined = new FieldValueText(field); // no value set -> isUndefined()
+            when(twinService.createFieldValue(field)).thenReturn(undefined);
+            assertSame(undefined, lookuper.lookupFieldValue(factoryItem, field.getId())); // the per-item entry converts a not-found lookup into an undefined value
         }
     }
 

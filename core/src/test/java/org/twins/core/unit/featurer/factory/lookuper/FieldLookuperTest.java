@@ -12,7 +12,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -50,23 +49,25 @@ class FieldLookuperTest extends BaseUnitTest {
         setField(lookuper, "twinLinkService", twinLinkService);
     }
 
-    // contract for FieldLookuper.getFreshestValue(twinEntity, twinClassFieldId, factoryContext, msg):
+    // contract for FieldLookuper.getFreshestValue(twinEntity, twinClassFieldId, factoryContext):
     //   1. If factoryContext has an output FactoryItem for twinEntity.id, return its uncommitted field.
     //   2. Otherwise (or if that field is null), fall back to twinService.getTwinFieldValue(twinEntity, fieldId).
-    //   3. If both are null, throw ServiceException(FACTORY_PIPELINE_STEP_ERROR) with the supplied msg.
+    //   3. If both are null, return null — not-found is the caller's decision (undefined value at the
+    //      batch boundary), not an exception.
 
     @Nested
     class GetFreshestValue {
 
         @Test
         void getFreshestValue_uncommittedPresent_returnsUncommittedAndSkipsDb() throws Exception {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var ctx = new FactoryContext(null, null);
-            var uncommitted = fieldValue(fieldId, "uncommitted");
+            var uncommitted = fieldValue(field.getId(), "uncommitted");
             registerOutputFieldInContext(ctx, twin.getId(), uncommitted);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
 
-            var result = lookuper.callGetFreshestValue(twin, fieldId, ctx, "msg");
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx);
 
             assertSame(uncommitted, result);
             verifyNoInteractions(twinService);
@@ -74,31 +75,30 @@ class FieldLookuperTest extends BaseUnitTest {
 
         @Test
         void getFreshestValue_uncommittedNull_fallsBackToDb() throws ServiceException {
-            var fieldId = UUID.randomUUID();
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var ctx = new FactoryContext(null, null);
-            var dbValue = fieldValue(fieldId, "db-val");
+            var dbValue = fieldValue(field.getId(), "db-val");
 
-            when(twinService.getTwinFieldValue(twin, fieldId)).thenReturn(dbValue);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinService.getTwinFieldValue(twin, field)).thenReturn(dbValue);
 
-            var result = lookuper.callGetFreshestValue(twin, fieldId, ctx, "msg");
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx);
 
             assertSame(dbValue, result);
-            verify(twinService).getTwinFieldValue(twin, fieldId);
+            verify(twinService).getTwinFieldValue(twin, field);
         }
 
         @Test
-        void getFreshestValue_uncommittedNullAndDbNull_throwsWithSuppliedMessage() throws ServiceException {
-            var fieldId = UUID.randomUUID();
+        void getFreshestValue_uncommittedNullAndDbNull_returnsNull() throws ServiceException {
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID());
             var ctx = new FactoryContext(null, null);
 
-            when(twinService.getTwinFieldValue(twin, fieldId)).thenReturn(null);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinService.getTwinFieldValue(twin, field)).thenReturn(null);
 
-            var ex = assertThrows(ServiceException.class,
-                    () -> lookuper.callGetFreshestValue(twin, fieldId, ctx, "custom-msg"));
-
-            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+            assertNull(lookuper.callGetFreshestValue(twin, field.getId(), ctx));
         }
     }
 
@@ -172,8 +172,8 @@ class FieldLookuperTest extends BaseUnitTest {
 
     /** Minimal same-package stub so we can invoke the public getFreshestValue directly. */
     static class StubLookuper extends FieldLookuper {
-        public FieldValue callGetFreshestValue(TwinEntity twinEntity, UUID fieldId, FactoryContext ctx, String msg) throws ServiceException {
-            return getFreshestValue(twinEntity, fieldId, ctx, msg);
+        public FieldValue callGetFreshestValue(TwinEntity twinEntity, UUID fieldId, FactoryContext ctx) throws ServiceException {
+            return getFreshestValue(twinEntity, fieldId, ctx);
         }
 
         public FieldValue callGetValueFromOutputLinks(UUID fieldId, org.twins.core.domain.twinoperation.TwinSave twinSave) throws ServiceException {

@@ -3,28 +3,29 @@ package org.twins.core.featurer.factory.lookuper;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 
+import java.util.List;
 import java.util.UUID;
 
 @Component
-public class FieldLookuperFromContextTwinLinkedTwinByFieldDbFields extends FieldLookuperLinkedTwinByField {
-
+public class FieldLookuperFromContextTwinLinkedTwinByFieldDbFields extends FieldLookuperNavigated implements FieldLookuperLinked {
 
     @Override
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
-        var contextTwin = factoryItem.checkSingleContextTwin();
-        twinService.loadFieldsValues(contextTwin);
-        var fieldValue = contextTwin.getFieldValuesKit().get(linkedTwinByTwinClassFieldId);
-        TwinEntity fromTwin = FieldValueLink.getSingleLinkedTwinSafe(fieldValue);
-        FieldValue fieldValueForCopy = twinService.getTwinFieldValue(fromTwin, lookupTwinClassFieldId);
-        if (fieldValueForCopy == null) {
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + lookupTwinClassFieldId + "] is not present in linked twin fields");
-        }
+    public LookupResult lookupFieldValue(FactoryItemsBatch factoryItemsBatch, UUID linkedTwinByTwinClassFieldId, UUID lookupTwinClassFieldId) throws ServiceException {
+        return navigate(factoryItemsBatch, lookupTwinClassFieldId, List.of(NavigationStage.valuesLinkField(linkedTwinByTwinClassFieldId)));
+    }
 
-        return fieldValueForCopy;
+    @Override
+    protected TwinEntity startTwin(FactoryItem factoryItem) throws ServiceException {
+        return factoryItem.checkSingleContextTwin();
+    }
+
+    @Override
+    protected FieldValue read(FactoryItem factoryItem, TwinEntity readSource, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+        return twinService.getTwinFieldValue(readSource, lookupTwinClassField); // the linked twin's db field
     }
 }

@@ -2,6 +2,8 @@ package org.twins.core.featurer.factory.lookuper;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -63,5 +65,29 @@ public class FieldLookupers {
             case fromItemOutputHeadTwinLinkedTwinFields -> this.fromItemOutputHeadTwinLinkedTwinFields;
             case fromItemOutputLinkedTwinHeadTwinFields -> this.fromItemOutputLinkedTwinHeadTwinFields;
         };
+    }
+
+    /**
+     * Typed variant of {@link #getByType(Type)} for consumers of the nearest family: a wrong-family
+     * value of the fieldLookuper param must fail as a configuration error, not as a ClassCastException.
+     */
+    public FieldLookuperNearest getNearestByType(Type type) throws ServiceException {
+        FieldLookuper lookuper = getByType(type);
+        if (!(lookuper instanceof FieldLookuperNearest nearest))
+            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS,
+                    "fieldLookuper value[" + type + "] is from the linked family; a nearest-family lookuper is required here");
+        return nearest;
+    }
+
+    /**
+     * Typed variant of {@link #getByType(Type)} for consumers of the linked family: a wrong-family
+     * value of the fieldLookuper param must fail as a configuration error, not as a ClassCastException.
+     */
+    public FieldLookuperLinked getLinkedByType(Type type) throws ServiceException {
+        FieldLookuper lookuper = getByType(type);
+        if (!(lookuper instanceof FieldLookuperLinked linked))
+            throw new ServiceException(ErrorCodeCommon.FEATURER_WRONG_PARAMS,
+                    "fieldLookuper value[" + type + "] is from the nearest family; a linked-family lookuper is required here");
+        return linked;
     }
 }

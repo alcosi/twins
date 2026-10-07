@@ -22,7 +22,7 @@ import java.util.Properties;
         name = "Field from featurer params",
         description = "")
 @Slf4j
-public class FillerFieldFromParams extends Filler {
+public class FillerFieldFromParams extends FillerAtomic {
     @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 

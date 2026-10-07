@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
@@ -27,7 +28,7 @@ import java.util.Properties;
         name = "Field user from context twin basic field",
         description = "Fill the user field with assignee-or-creator of context twin")
 @Slf4j
-public class FillerFieldUserFromContextTwinBasicField extends Filler {
+public class FillerFieldUserFromContextTwinBasicField extends FillerAtomic {
 
     @FeaturerParam(name = "Twin class field id", description = "TwinClassFieldId for filling", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
@@ -43,6 +44,12 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
     @Lazy
     @Autowired
     private TwinService twinService;
+
+    @Override
+    protected void beforeFill(FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
+        if (!batch.getContextTwins().isEmpty())
+            twinService.loadUser(batch.getContextTwins()); // one query for the whole batch; per-item loadUser becomes an in-memory no-op
+    }
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {

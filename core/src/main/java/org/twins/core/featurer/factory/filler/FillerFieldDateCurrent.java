@@ -6,17 +6,16 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.time.LocalDateTime;
 import java.util.Properties;
@@ -32,30 +31,35 @@ import java.util.UUID;
         description = "Sets the target date field to now when it is empty; does not overwrite an existing value")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldDateCurrent extends Filler {
+public class FillerFieldDateCurrent extends FillerFieldLookup {
     @FeaturerParam(name = "Twin class field id", description = "Date field to set to the current date-time when empty", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
-    @Lazy
-    private final TwinService twinService;
-    @Lazy
-    private final TwinClassFieldService twinClassFieldService;
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromItemOutputFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
 
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        UUID fieldId = twinClassFieldId.extract(properties);
-        FieldValue existing = fieldLookupers.getFromItemOutputFields().lookupFieldValue(factoryItem, fieldId);
-        if (existing != null && existing.isNotEmpty()) {
-            log.info("twinClassField[{}] already filled, skip current date", fieldId);
+    protected FieldLookuperNearest lookuper(Properties properties) throws ServiceException {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return twinClassFieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        if (fieldValue.isNotEmpty()) {
+            log.info("{} already filled, skip current date", fieldValue.getTwinClassField().logShort());
             return;
         }
-        FieldValue created = twinService.createFieldValue(twinClassFieldService.findEntitySafe(fieldId));
-        if (!(created instanceof FieldValueDate dateValue)) {
+        if (!(fieldValue instanceof FieldValueDate dateValue)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
-                    "twinClassField[" + fieldId + "] is not a date field");
+                    "{} is not a date field", fieldValue.getTwinClassField().logShort());
         }
         dateValue.setDate(LocalDateTime.now());
         factoryItem.getOutput().addField(dateValue);
-        log.info("Set twinClassField[{}] to current date-time", fieldId);
+        log.info("{} was set to current date-time", fieldValue.getTwinClassField().logShort());
     }
 }

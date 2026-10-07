@@ -12,12 +12,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
@@ -40,15 +44,38 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
     @FeaturerParam(name = "Target twin class field id", description = "", order = 3)
     public static final FeaturerParamUUID targetTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("targetTwinClassFieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the db field values", order = 99, optional = true, defaultValue = "fromItemOutputDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
 
+    /**
+     * Direct batch override (not a {@code FillerAtomic} subclass): one lookuper batch call per field
+     * (bulk preloads + entity resolution once), then the per-item distribution — a lookup failure is
+     * re-thrown at the exact point where the old per-item body performed the lookup — see
+     * featurer_design_pattern.md.
+     */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         UUID paramDividendTwinClassFieldId = dividendTwinClassFieldId.extract(properties);
         UUID paramDivisorTwinClassFieldId = divisorTwinClassFieldId.extract(properties);
         UUID paramTargetTwinClassFieldId = targetTwinClassFieldId.extract(properties);
+        FieldLookuperNearest lookuper = fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
+        LookupResult dividendDbResult = lookuper.lookupFieldValue(batch, paramDividendTwinClassFieldId);
+        LookupResult divisorDbResult = lookuper.lookupFieldValue(batch, paramDivisorTwinClassFieldId);
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                fillWith(factoryItem, properties, paramDividendTwinClassFieldId, paramDivisorTwinClassFieldId, paramTargetTwinClassFieldId, dividendDbResult, divisorDbResult);
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
+        }
+    }
 
+    /** Per-item body with the pre-resolved db lookup results — see the batch override above. */
+    private void fillWith(FactoryItem factoryItem, Properties properties, UUID paramDividendTwinClassFieldId, UUID paramDivisorTwinClassFieldId, UUID paramTargetTwinClassFieldId,
+                          LookupResult dividendDbResult, LookupResult divisorDbResult) throws ServiceException {
         FieldValue dividendFieldValue = factoryItem.getOutput().getField(paramDividendTwinClassFieldId);
         if (factoryItem.getOutput() instanceof TwinCreate) {
             if (dividendFieldValue == null) {
@@ -61,7 +88,8 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
         }
         if (factoryItem.getOutput() instanceof TwinUpdate) {
             if (dividendFieldValue == null) {
-                dividendFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDividendTwinClassFieldId);
+                dividendDbResult.rethrowFailureIfPresent(factoryItem);
+                dividendFieldValue = dividendDbResult.value(factoryItem);
             }
             if (dividendFieldValue == null) {
                 dividendFieldValue = new FieldValueText(twinClassFieldService.findEntitySafe(paramDividendTwinClassFieldId)).setValue("0.0");
@@ -81,10 +109,10 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
 
         FieldValue divisorFieldValue = factoryItem.getOutput().getField(paramDivisorTwinClassFieldId);
         if (divisorFieldValue == null) {
-            divisorFieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, paramDivisorTwinClassFieldId);
+            divisorDbResult.rethrowFailureIfPresent(factoryItem);
+            divisorFieldValue = divisorDbResult.value(factoryItem);
         }
-        if (divisorFieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] can not be detected");
+        divisorFieldValue.assertIsDefined("divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] is not present in output twin fields");
 
         if (divisorFieldValue instanceof FieldValueText divisorFieldValueText) {
             BigDecimal dividendNumber = new BigDecimal(((FieldValueText) dividendFieldValue).getValue());
@@ -110,4 +138,4 @@ public class FillerFieldMathDivisionFromContextField extends Filler {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "divisorTwinClassField[" + paramDivisorTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         }
     }
-} 
+}

@@ -22,7 +22,9 @@ class FillerHeadAsContextTwinTest extends BaseUnitTest {
 
     private FactoryItem buildFactoryItem(TwinEntity contextTwin) {
         var output = new TwinCreate();
-        output.setTwinEntity(new TwinEntity());
+        // id is required by TwinHeadService.setHead (hierarchyTree build) — in production the UUID
+        // pregen of the factory pre-pass guarantees ids before fillers run
+        output.setTwinEntity(new TwinEntity().setId(UUID.randomUUID()));
         var contextOutput = new TwinCreate();
         contextOutput.setTwinEntity(contextTwin);
         var contextItem = new FactoryItem().setOutput(contextOutput);

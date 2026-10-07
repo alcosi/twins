@@ -25,7 +25,7 @@ import java.util.Properties;
         name = "Fields from template twin all",
         description = "")
 @Slf4j
-public class FillerFieldsFromTemplateTwinAll extends Filler {
+public class FillerFieldsFromTemplateTwinAll extends FillerAtomic {
     @Lazy
     @Autowired
     TwinClassService twinClassService;

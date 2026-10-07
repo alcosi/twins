@@ -9,7 +9,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldrule.conditionevaluator.ConditionEvaluator;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsConditionOperatorType;
@@ -38,7 +37,8 @@ public class ConditionerValueCompare extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValue fieldValue = ((FieldLookuperNearest) fieldLookupers.getByType(fieldLookuper.extract(properties))).lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+        FieldValue fieldValue = fieldLookupers.getNearestByType(fieldLookuper.extract(properties)).lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+        FieldValue.assertIsDefined(fieldValue, "TwinClassField[" + twinClassFieldId.extract(properties) + "] is not found by fieldLookuper"); // static form: the per-item convenience returns a raw null
         String actual = ConditionEvaluator.normalizeValue(fieldValue);
         return ConditionEvaluator.evaluateOperator(actual, conditionOperator.extract(properties), valueToCompareWith.extract(properties));
     }

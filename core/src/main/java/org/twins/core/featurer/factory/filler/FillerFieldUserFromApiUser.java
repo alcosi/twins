@@ -24,7 +24,7 @@ import java.util.Properties;
         name = "Basics assignee from api user",
         description = "")
 @Slf4j
-public class FillerFieldUserFromApiUser extends Filler {
+public class FillerFieldUserFromApiUser extends FillerAtomic {
 
     @FeaturerParam(name = "Twin class field id", description = "TwinClassFieldId for filling")
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");

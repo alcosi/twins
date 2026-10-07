@@ -9,11 +9,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -30,12 +33,35 @@ public class FillerHeadFromContextTwinHead extends Filler {
     @FeaturerParam(name = "Depth head twin", description = "How many levels up the head hierarchy to walk. 1 = head of the context twin (default)", optional = true, defaultValue = "1")
     public static final FeaturerParamInt depthHeadTwin = new FeaturerParamInt("depth");
 
+    /**
+     * Direct batch override, two-phase: the head ids are resolved per item purely in memory
+     * (hierarchyTree walk, isolated per item — the agreement check can fail an individual item),
+     * then ONE bulk {@code findEntitiesSafe} covers the whole batch, then the in-memory
+     * distribution — see featurer_design_pattern.md.
+     */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        if (batch == null || batch.isEmpty())
+            return;
         int depth = depthHeadTwin.extract(properties);
         if (depth < 1) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "head depth must be >= 1, got: " + depth);
         }
+        var detectedHeadTwinIds = new LinkedHashMap<FactoryItem, UUID>();
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                detectedHeadTwinIds.put(factoryItem, detectSingleHeadTwinId(factoryItem, depth));
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
+        }
+        var headTwinKit = twinService.findEntitiesSafe(detectedHeadTwinIds.values()); // one query for the whole batch
+        for (Map.Entry<FactoryItem, UUID> entry : detectedHeadTwinIds.entrySet())
+            TwinHeadService.setHead(entry.getKey().getOutput().getTwinEntity(), headTwinKit.get(entry.getValue()));
+    }
+
+    /** All context twins of the item must resolve to the same head at the given depth. */
+    private UUID detectSingleHeadTwinId(FactoryItem factoryItem, int depth) throws ServiceException {
         UUID detectedHeadTwinId = null;
         for (FactoryItem contextItem : factoryItem.getContextFactoryItemList()) { // we will check if all context twins resolve to the same head at the given depth, otherwise exception
             UUID resolvedHeadTwinId = TwinHeadService.resolveHeadTwinId(contextItem.getTwin(), depth);
@@ -49,9 +75,7 @@ public class FillerHeadFromContextTwinHead extends Filler {
         if (detectedHeadTwinId == null) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "no head twin context");
         }
-        var detectedHeadTwin = twinService.findEntitySafe(detectedHeadTwinId);
-        var outputTwin = factoryItem.getOutput().getTwinEntity();
-        TwinHeadService.setHead(outputTwin, detectedHeadTwin);
+        return detectedHeadTwinId;
     }
 
     @Override

@@ -21,7 +21,7 @@ import java.util.*;
         name = "Fields from context all",
         description = "")
 @Slf4j
-public class FillerFieldsFromContextAll extends Filler {
+public class FillerFieldsFromContextAll extends FillerAtomic {
     @Lazy
     @Autowired
     TwinClassFieldService twinClassFieldService;

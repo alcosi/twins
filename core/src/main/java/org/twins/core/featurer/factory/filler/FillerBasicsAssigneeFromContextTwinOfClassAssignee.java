@@ -23,7 +23,7 @@ import java.util.UUID;
         name = "Basics assignee from context twin of class assignee",
         description = "")
 @Slf4j
-public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
+public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends FillerAtomic {
     @FeaturerParam(name = "Twin class id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
 
@@ -36,7 +36,7 @@ public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
         UUID id = twinClassId.extract(properties);
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         TwinEntity contextTwin = factoryExecutionService.lookupTwinOfClass(factoryItem, id, 0);
-        if(null != contextTwin)
+        if (null != contextTwin)
         outputTwinEntity
                 .setAssignerUser(contextTwin.getAssignerUser())
                 .setAssignerUserId(contextTwin.getAssignerUserId());

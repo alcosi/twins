@@ -18,14 +18,9 @@ import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldValueTest extends BaseUnitTest {
 
@@ -85,6 +80,7 @@ class ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldValueTest
     private FieldValueText textValue(String value) {
         var fv = mock(FieldValueText.class);
         lenient().when(fv.getValue()).thenReturn(value);
+        lenient().when(fv.isNotEmpty()).thenReturn(true); // the filled-text guard of the comparison base
         return fv;
     }
 

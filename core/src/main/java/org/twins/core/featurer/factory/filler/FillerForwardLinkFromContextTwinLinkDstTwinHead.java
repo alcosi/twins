@@ -12,13 +12,13 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2325,
@@ -39,34 +39,93 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
     @FeaturerParam(name = "New links id", description = "", order = 1)
     public static final FeaturerParamUUID newLinksId = new FeaturerParamUUIDTwinsLinkId("newLinksId");
 
+    /**
+     * Direct batch override. The old per-item {@code lookupLink} recursion (walk up the context chain,
+     * up to 5 levels above the item's own context twin, until a forward link of the configured id is
+     * found) is restructured level-major: each walk level pays ONE bulk {@code loadTwinLinks} for all
+     * still-pending items instead of one query per item, and the context checks stay isolated per
+     * item. After the walk ONE bulk {@code loadDstTwin} and ONE bulk {@code loadHead} cover the whole
+     * batch, then the in-memory distribution runs under the same isolation — see
+     * featurer_design_pattern.md.
+     */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        List<TwinLinkEntity> contextTwinLinksList = lookupLink(properties, factoryItem, 5);
-        if (CollectionUtils.isEmpty(contextTwinLinksList))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLink.extract(properties) + "] configured from " + contextTwin.logShort());
-        if (contextTwinLinksList.size() != 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLink.extract(properties) + "] configured from " + contextTwin.logShort());
-        twinLinkService.loadDstTwin(contextTwinLinksList);
-        var dstTwin = contextTwinLinksList.getFirst().getDstTwin();
-        twinService.loadHead(dstTwin);
-        var detectedHead = dstTwin.getHeadTwin();
-        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
-        TwinLinkEntity newLink = new TwinLinkEntity()
-                .setLink(link)
-                .setLinkId(link.getId())
-                .setDstTwin(detectedHead)
-                .setDstTwinId(detectedHead.getId());
-        addLink(factoryItem.getOutput(), newLink);
-    }
-
-    //todo optimize with hierarchy
-    private List<TwinLinkEntity> lookupLink(Properties properties, FactoryItem factoryItem, int deep) throws ServiceException {
-            TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-            List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin)
-                    .getGrouped(headHunterLink.extract(properties));
-            if (CollectionUtils.isEmpty(contextTwinLinksList) && deep > 0)
-                contextTwinLinksList = lookupLink(properties, factoryItem.checkSingleContextItem(), deep - 1);
-        return contextTwinLinksList;
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        if (batch == null || batch.isEmpty())
+            return;
+        UUID headHunterLinkId = headHunterLink.extract(properties);
+        LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties)); // step constant — one lookup per step
+        var contextTwinByItem = new LinkedHashMap<FactoryItem, TwinEntity>(); // level-0 twin, for the original error messages
+        var pendingItems = new LinkedHashMap<FactoryItem, FactoryItem>(); // original item -> its ancestor item at the current walk level
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                contextTwinByItem.put(factoryItem, factoryItem.checkSingleContextTwin());
+                pendingItems.put(factoryItem, factoryItem);
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
+        }
+        var resolvedLinkByItem = new LinkedHashMap<FactoryItem, TwinLinkEntity>(); // item -> its single matched link
+        int deep = 5;
+        while (!pendingItems.isEmpty() && deep >= 0) {
+            var failedItems = new ArrayList<FactoryItem>();
+            var levelTwins = new ArrayList<TwinEntity>(pendingItems.size());
+            for (var entry : pendingItems.entrySet()) {
+                try {
+                    levelTwins.add(entry.getValue().checkSingleContextTwin());
+                } catch (Exception ex) {
+                    failedItems.add(entry.getKey());
+                    handleItemError(entry.getKey(), optionalStep, ex);
+                }
+            }
+            failedItems.forEach(pendingItems::remove);
+            if (!levelTwins.isEmpty())
+                twinLinkService.loadTwinLinks(levelTwins); // ONE query for the whole walk level
+            var nextPending = new LinkedHashMap<FactoryItem, FactoryItem>();
+            for (var iterator = pendingItems.entrySet().iterator(); iterator.hasNext(); ) {
+                var entry = iterator.next();
+                FactoryItem originalItem = entry.getKey();
+                FactoryItem currentItem = entry.getValue();
+                try {
+                    List<TwinLinkEntity> matchedLinks = currentItem.checkSingleContextTwin().getTwinLinks().getForwardLinks().getGrouped(headHunterLinkId);
+                    if (CollectionUtils.isEmpty(matchedLinks))
+                        nextPending.put(originalItem, currentItem.checkSingleContextItem()); // descend, validated — same as the old recursion
+                    else if (matchedLinks.size() != 1)
+                        throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLinkId + "] configured from " + contextTwinByItem.get(originalItem).logShort());
+                    else
+                        resolvedLinkByItem.put(originalItem, matchedLinks.getFirst());
+                } catch (Exception ex) {
+                    handleItemError(originalItem, optionalStep, ex);
+                }
+                iterator.remove();
+            }
+            pendingItems = nextPending;
+            deep--;
+        }
+        for (var iterator = pendingItems.keySet().iterator(); iterator.hasNext(); ) {
+            FactoryItem originalItem = iterator.next();
+            handleItemError(originalItem, optionalStep, new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR,
+                    "No links[" + headHunterLinkId + "] configured from " + contextTwinByItem.get(originalItem).logShort()));
+            iterator.remove();
+        }
+        var matchedLinks = new ArrayList<TwinLinkEntity>(resolvedLinkByItem.values());
+        twinLinkService.loadDstTwin(matchedLinks); // one query for the whole batch
+        var dstTwins = new ArrayList<TwinEntity>(matchedLinks.size());
+        for (TwinLinkEntity matchedLink : matchedLinks)
+            dstTwins.add(matchedLink.getDstTwin());
+        twinService.loadHead(dstTwins); // one query for the whole batch
+        for (var entry : resolvedLinkByItem.entrySet()) {
+            FactoryItem factoryItem = entry.getKey();
+            try {
+                TwinEntity detectedHead = entry.getValue().getDstTwin().getHeadTwin();
+                TwinLinkEntity newLink = new TwinLinkEntity()
+                        .setLink(link)
+                        .setLinkId(link.getId())
+                        .setDstTwin(detectedHead)
+                        .setDstTwinId(detectedHead.getId());
+                addLink(factoryItem.getOutput(), newLink);
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
+        }
     }
 }

@@ -14,6 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -26,12 +27,15 @@ import java.util.UUID;
         name = "Field from context",
         description = "")
 @Slf4j
-public class FillerFieldFromContext extends Filler {
+public class FillerFieldFromContext extends FillerFieldLookup {
     @FeaturerParam(name = "Src twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("srcTwinClassFieldId");
 
     @FeaturerParam(name = "Dst twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
+
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextFieldsAndContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
 
     @Lazy
     @Autowired
@@ -41,18 +45,23 @@ public class FillerFieldFromContext extends Filler {
     @Autowired
     TwinClassFieldService twinClassFieldService;
 
-
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFieldsAndContextTwinDbFields());
+    protected FieldLookuperNearest lookuper(Properties properties) throws ServiceException {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return srcTwinClassFieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in context fields and in context twins");
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
-        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, srcTwinClassFieldId.extract(properties));
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
         if (twinClassFieldService.isInvalidForClass(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField()))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId +"]");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId + "]");
         factoryItem.getOutput().addField(clone);
     }
 }

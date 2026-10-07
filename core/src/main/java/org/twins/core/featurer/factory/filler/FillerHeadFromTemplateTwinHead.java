@@ -1,5 +1,6 @@
 package org.twins.core.featurer.factory.filler;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinHeadService;
@@ -18,19 +20,32 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_2306,
         name = "Head from template twin head",
         description = "")
+@Slf4j
 public class FillerHeadFromTemplateTwinHead extends Filler {
     @Lazy
     @Autowired
     TwinService twinService;
 
+    /**
+     * Direct batch override (not a {@code FillerAtomic} subclass): the template twin is shared by the
+     * whole batch, so the template checks and the head load run once per step instead of once per item.
+     */
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        if (batch == null || batch.isEmpty())
+            return;
         if (templateTwin == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template twin");
         if (templateTwin.getHeadTwinId() == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template head twin");
-        twinService.loadHead(templateTwin);
-        var outputTwin = factoryItem.getOutput().getTwinEntity();
-        TwinHeadService.setHead(outputTwin, templateTwin.getHeadTwin());
+        twinService.loadHead(templateTwin); // once per batch
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                var outputTwin = factoryItem.getOutput().getTwinEntity();
+                TwinHeadService.setHead(outputTwin, templateTwin.getHeadTwin());
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
+        }
     }
 }

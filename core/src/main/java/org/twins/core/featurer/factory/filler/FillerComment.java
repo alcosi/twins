@@ -10,25 +10,41 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2346,
         name = "Comment field",
         description = "")
 @Slf4j
-public class FillerComment extends Filler {
+public class FillerComment extends FillerFieldLookup {
 
     @FeaturerParam(name = "Field id", description = "", order = 1)
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        FieldValue commentField = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, fieldId.extract(properties));
+    protected FieldLookuperNearest lookuper(Properties properties) {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return fieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue commentField) throws ServiceException {
+        commentField.assertIsDefined(commentField.getTwinClassField().logNormal() + " is not present in context twin db fields");
         if (commentField instanceof FieldValueText fieldValueText) {
             factoryItem.getOutput().addComment(fieldValueText.getValue());
         } else {

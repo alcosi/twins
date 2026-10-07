@@ -12,10 +12,11 @@ import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
-import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
 import org.twins.core.featurer.params.FeaturerParamBasicsTwinBasicField;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
@@ -26,41 +27,34 @@ import java.util.UUID;
         name = "Basic user field from twin field",
         description = "Maps a custom user field to output twin assignee/creator basics via dstBasicsUserFiledName")
 @Slf4j
-public class FillerBasicsFieldUserFromTwinField extends Filler {
+public class FillerBasicsFieldUserFromTwinField extends FillerFieldLookup {
     @FeaturerParam(name = "Field id", description = "", order = 1)
     public static final FeaturerParamUUID fieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("fieldId");
 
     @FeaturerParam(name = "Destination basics user field name", description = "assigneeUserId or createdByUserId", order = 2)
     public static final FeaturerParamBasicsTwinBasicField dstBasicsUserFiledName = new FeaturerParamBasicsTwinBasicField("dstBasicsUserFiledName");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        UUID sourceFieldId = fieldId.extract(properties);
-        TwinBasicFields.Basics dstUserBasic = dstBasicsUserFiledName.extract(properties);
-        FieldValue fieldValue = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, sourceFieldId);
-        UserEntity user = extractSingleUser(fieldValue);
-        String fieldName = applyUserToOutputBasics(outputTwinEntity, user, dstUserBasic);
-        log.info("{} with field[{}] will be filled from context {}", outputTwinEntity.logShort(), fieldName, fieldValue.getTwinClassField().logShort());
+    protected FieldLookuperNearest lookuper(Properties properties) {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
     }
 
-    private static UserEntity extractSingleUser(FieldValue fieldValue) throws ServiceException {
-        if (fieldValue instanceof FieldValueUser fieldValueUser) {
-            if (fieldValueUser.isEmpty()) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
-            }
-            if (fieldValueUser.size() > 1) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiple users");
-            }
-            return fieldValueUser.getItems().getFirst();
-        }
-        if (fieldValue instanceof FieldValueUserSingle fieldValueUserSingle) {
-            if (fieldValueUserSingle.isEmpty() || fieldValueUserSingle.getValue() == null) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
-            }
-            return fieldValueUserSingle.getValue();
-        }
-        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, fieldValue.getTwinClassField().logShort() + " is not a user field");
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return fieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in context twin db fields");
+        TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
+        TwinBasicFields.Basics dstUserBasic = dstBasicsUserFiledName.extract(properties);
+        UserEntity user = FieldValueUser.getSingleUserSafe(fieldValue);
+        String fieldName = applyUserToOutputBasics(outputTwinEntity, user, dstUserBasic);
+        log.info("{} with field[{}] will be filled from context {}", outputTwinEntity.logShort(), fieldName, fieldValue.getTwinClassField().logShort());
     }
 
     private static String applyUserToOutputBasics(TwinEntity outputTwinEntity, UserEntity user, TwinBasicFields.Basics dstUserBasic) throws ServiceException {

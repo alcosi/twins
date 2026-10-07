@@ -15,7 +15,7 @@ import java.util.Properties;
         name = "Basics assignee from context twin assignee",
         description = "")
 @Slf4j
-public class FillerBasicsAssigneeFromContextTwinAssignee extends Filler {
+public class FillerBasicsAssigneeFromContextTwinAssignee extends FillerAtomic {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
