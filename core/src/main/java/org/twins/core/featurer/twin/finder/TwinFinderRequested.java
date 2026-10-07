@@ -8,6 +8,8 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.twins.core.exception.ErrorCodeTwins;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -65,5 +67,23 @@ public abstract class TwinFinderRequested extends TwinFinder {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKey.extract(properties) + "] is not uuid (or uuid list)");
         }
         return ret;
+    }
+
+    /**
+     * Reads the named request param as ISO-8601 date-time. A missing value fails when the
+     * required featurer param is on, otherwise yields null. An unconfigured key means the
+     * date is not used and required does not apply.
+     */
+    public static LocalDateTime getRequestedDate(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+        if (StringUtils.isBlank(paramKey.extract(properties)))
+            return null;
+        String paramValue = getRequestedParam(paramKey, properties, namedParamsMap);
+        if (paramValue == null)
+            return null;
+        try {
+            return LocalDateTime.parse(paramValue);
+        } catch (DateTimeParseException e) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKey.extract(properties) + "] is not ISO-8601 date-time: [" + paramValue + "]");
+        }
     }
 }

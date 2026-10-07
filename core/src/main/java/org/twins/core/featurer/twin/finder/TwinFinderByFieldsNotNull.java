@@ -45,7 +45,7 @@ public class TwinFinderByFieldsNotNull extends TwinFinder {
         for (UUID fieldId : twinClassFieldIds.extract(properties)) {
             TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(fieldId);
             FieldTyper fieldTyper = twinClassFieldService.checkValueType(field, FieldValueDate.class);
-            if (!fieldTyper.getTwinFieldSearchType().isAssignableFrom(TwinFieldValueSearchDate.class))
+            if (!fieldTyper.getTwinFieldSearch().isAssignableFrom(TwinFieldValueSearchDate.class))
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "field[" + field.easyLog(EasyLoggable.Level.SHORT) + "] typer does not support date search");
             // empty=false with no bounds means "is not null" (TwinSpecification.checkFieldTimestamp)
             TwinFieldValueSearchDate condition = new TwinFieldValueSearchDate()

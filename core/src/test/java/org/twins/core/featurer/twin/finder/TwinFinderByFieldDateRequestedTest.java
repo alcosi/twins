@@ -22,7 +22,7 @@ class TwinFinderByFieldDateRequestedTest {
         Map<String, String> params = new HashMap<>();
         params.put("until", "2026-10-03T00:00:00");
         assertEquals(LocalDateTime.of(2026, 10, 3, 0, 0),
-                TwinFinderByFieldDateRequested.parseBound(KEY, properties("lessThenOrEqualsParamKey", "until"), params));
+                TwinFinderRequested.getRequestedDate(KEY, properties("lessThenOrEqualsParamKey", "until"), params));
     }
 
     @Test
@@ -30,26 +30,26 @@ class TwinFinderByFieldDateRequestedTest {
         // defaults from @FeaturerParam are only filled by FeaturerService.extractProperties, set explicitly
         Properties properties = properties("lessThenOrEqualsParamKey", "until", "required", "true");
         ServiceException se = assertThrows(ServiceException.class,
-                () -> TwinFinderByFieldDateRequested.parseBound(KEY, properties, new HashMap<>()));
+                () -> TwinFinderRequested.getRequestedDate(KEY, properties, new HashMap<>()));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED.getCode(), se.getErrorCode());
     }
 
     @Test
     void optionalParamMissedYieldsNull() throws ServiceException {
         Properties properties = properties("lessThenOrEqualsParamKey", "until", "required", "false");
-        assertNull(TwinFinderByFieldDateRequested.parseBound(KEY, properties, new HashMap<>()));
+        assertNull(TwinFinderRequested.getRequestedDate(KEY, properties, new HashMap<>()));
     }
 
     @Test
     void unconfiguredKeyYieldsNull() throws ServiceException {
-        assertNull(TwinFinderByFieldDateRequested.parseBound(KEY, new Properties(), new HashMap<>()));
+        assertNull(TwinFinderRequested.getRequestedDate(KEY, new Properties(), new HashMap<>()));
     }
 
     @Test
     void unconfiguredKeyIgnoresRequired() throws ServiceException {
         // required applies only to a configured param: without the key the bound is simply not used
         Properties properties = properties("required", "true");
-        assertNull(TwinFinderByFieldDateRequested.parseBound(KEY, properties, new HashMap<>()));
+        assertNull(TwinFinderRequested.getRequestedDate(KEY, properties, new HashMap<>()));
     }
 
     @Test
@@ -57,7 +57,7 @@ class TwinFinderByFieldDateRequestedTest {
         Map<String, String> params = new HashMap<>();
         params.put("until", "03.10.2026");
         ServiceException se = assertThrows(ServiceException.class,
-                () -> TwinFinderByFieldDateRequested.parseBound(KEY, properties("lessThenOrEqualsParamKey", "until"), params));
+                () -> TwinFinderRequested.getRequestedDate(KEY, properties("lessThenOrEqualsParamKey", "until"), params));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), se.getErrorCode());
     }
 

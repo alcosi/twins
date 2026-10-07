@@ -2,7 +2,6 @@ package org.twins.core.featurer.twin.finder;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -24,8 +23,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.Properties;
 
@@ -62,35 +59,18 @@ public class TwinFinderByFieldDateRequested extends TwinFinderRequested {
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
         FieldTyper fieldTyper = twinClassFieldService.checkValueType(field, FieldValueDate.class);
-        if (!fieldTyper.getTwinFieldSearchType().isAssignableFrom(TwinFieldValueSearchDate.class))
+        if (!fieldTyper.getTwinFieldSearch().isAssignableFrom(TwinFieldValueSearchDate.class))
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "field[" + field.easyLog(EasyLoggable.Level.SHORT) + "] typer does not support date search");
         TwinFieldValueSearchDate condition = new TwinFieldValueSearchDate()
                 .setEmpty(empty.extract(properties));
         condition.setTwinClassFieldEntity(field);
         condition.setFieldTyper(fieldTyper);
-        condition.setLessThenOrEquals(parseBound(lessThenOrEqualsParamKey, properties, namedParamsMap));
-        condition.setMoreThenOrEquals(parseBound(moreThenOrEqualsParamKey, properties, namedParamsMap));
-        condition.setEquals(parseBound(equalsParamKey, properties, namedParamsMap));
+        condition.setLessThenOrEquals(getRequestedDate(lessThenOrEqualsParamKey, properties, namedParamsMap));
+        condition.setMoreThenOrEquals(getRequestedDate(moreThenOrEqualsParamKey, properties, namedParamsMap));
+        condition.setEquals(getRequestedDate(equalsParamKey, properties, namedParamsMap));
         TwinFieldFilter fieldsFilter = twinSearch.getFieldsFilter();
         if (fieldsFilter == null)
             twinSearch.setFieldsFilter(fieldsFilter = new TwinFieldFilter());
         fieldsFilter.addClause(new TwinFieldClause().addCondition(condition));
-    }
-
-    /**
-     * Parses the bound from the named param. Configured but missing param fails when required,
-     * otherwise the bound is treated as absent.
-     */
-    static LocalDateTime parseBound(FeaturerParamString paramKey, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
-        if (StringUtils.isBlank(paramKey.extract(properties)))
-            return null; // unconfigured key means the bound is not used, required does not apply
-        String paramValue = getRequestedParam(paramKey, properties, namedParamsMap);
-        if (paramValue == null)
-            return null;
-        try {
-            return LocalDateTime.parse(paramValue);
-        } catch (DateTimeParseException e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "search param[" + paramKey.extract(properties) + "] is not ISO-8601 date-time: [" + paramValue + "]");
-        }
     }
 }
