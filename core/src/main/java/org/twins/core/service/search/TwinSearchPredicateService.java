@@ -54,7 +54,7 @@ public class TwinSearchPredicateService extends EntitySecureFindServiceImpl<Twin
     public void loadPredicates(Collection<TwinSearchEntity> entities) throws ServiceException {
         Kit<TwinSearchEntity, UUID> needLoad = new Kit<>(TwinSearchEntity::getId);
         for (TwinSearchEntity entity : entities)
-            if (entity.getSortKit() == null)
+            if (entity.getSearchPredicateKit() == null)
                 needLoad.add(entity);
 
         if (needLoad.isEmpty()) return;

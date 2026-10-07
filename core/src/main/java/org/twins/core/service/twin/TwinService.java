@@ -1555,7 +1555,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      * iterating a batch must finish with {@link #materializeFieldValues} over the whole batch before using the values.
      */
     public FieldValue parseFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
-        Class<? extends FieldValue> valueType = fieldValueType(twinClassFieldEntity);
+        Class<? extends FieldValue> valueType = twinClassFieldService.fieldValueType(twinClassFieldEntity);
         if (REFERENCE_VALUE_TYPES.contains(valueType)) {
             List<UUID> ids = parseReferenceUuidList(twinClassFieldEntity, value);
             if (ids.isEmpty())
@@ -1727,11 +1727,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (UUID id : ids)
             adder.accept(value, loaded.get(id));
         return value;
-    }
-
-    private Class<? extends FieldValue> fieldValueType(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
-        return fieldTyper.getValueType(twinClassFieldEntity);
     }
 
     public FieldValue createFieldValue(UUID twinClassFieldEntityId, TwinEntity value) throws ServiceException {

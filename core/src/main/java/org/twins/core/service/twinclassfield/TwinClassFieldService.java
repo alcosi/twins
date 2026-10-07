@@ -43,6 +43,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperDateTime;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.auth.AuthService;
@@ -250,6 +251,32 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             TwinFieldStorage storage = fieldTyper.getStorage(twinClassField);
             twinClassEntity.getFieldStorageSet().add(storage);
         }
+    }
+
+    /**
+     * The value type produced by the field's typer, e.g. FieldValueDate for FieldTyperTimestamp.
+     */
+    public Class<? extends FieldValue> fieldValueType(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        return fieldTyper(twinClassFieldEntity).getValueType(twinClassFieldEntity);
+    }
+
+    /**
+     * Resolves the field's typer and asserts its value type matches the expected one.
+     *
+     * @return the resolved typer, so the caller does not resolve it twice
+     */
+    public FieldTyper checkValueType(TwinClassFieldEntity twinClassFieldEntity, Class<? extends FieldValue> expectedValueType) throws ServiceException {
+        FieldTyper fieldTyper = fieldTyper(twinClassFieldEntity);
+        Class<? extends FieldValue> actualValueType = fieldTyper.getValueType(twinClassFieldEntity);
+        if (!expectedValueType.equals(actualValueType))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT,
+                    "field[" + twinClassFieldEntity.easyLog(EasyLoggable.Level.SHORT) + "] typer value type [" + actualValueType.getSimpleName()
+                            + "] is not [" + expectedValueType.getSimpleName() + "]");
+        return fieldTyper;
+    }
+
+    private FieldTyper fieldTyper(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        return featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturerId(), FieldTyper.class);
     }
 
     public void loadRuleFields(TwinClassFieldRuleEntity ruleEntity) throws ServiceException {
