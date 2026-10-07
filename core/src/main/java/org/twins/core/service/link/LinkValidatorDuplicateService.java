@@ -116,14 +116,21 @@ public class LinkValidatorDuplicateService extends EntityDuplicateService<LinkVa
         linkValidatorService.evictLinkValidatorsCache(saved);
     }
 
-    private int nextFreeOrder(UUID linkId, EntityDuplicateCollector duplicateCollector) throws ServiceException {
-        int max = 0;
-        for (LinkValidatorEntity other : linkValidatorService.getRepository().findByLinkIdOrderByOrder(linkId))
-            max = Math.max(max, other.getOrder());
-        for (LinkValidatorEntity reserved : duplicateCollector.getNewEntities(LinkValidatorEntity.class)) {
-            if (linkId.equals(reserved.getLinkId()) && reserved.getOrder() != null)
-                max = Math.max(max, reserved.getOrder());
-        }
-        return max + 1;
+    private int nextFreeOrder(UUID linkId, EntityDuplicateCollector duplicateCollector) {
+        Map<UUID, Integer> maxOrderCache = duplicateCollector.getMaxOrderCache(LinkValidatorEntity.class);
+        int next = maxOrderCache.computeIfAbsent(linkId, this::findDbMaxOrder) + 1;
+        maxOrderCache.put(linkId, next); // claim for the next clone of the same target link
+        return next;
+    }
+
+    /**
+     * Scalar db max — the per-operation cache in {@link EntityDuplicateCollector} keeps this to one
+     * query per distinct target link instead of one per cloned validator (N+1 on bulk duplicates).
+     */
+    private int findDbMaxOrder(UUID linkId) {
+        List<Object[]> rows = linkValidatorService.getRepository().findMaxOrderByLinkIdIn(List.of(linkId));
+        if (rows.isEmpty() || rows.get(0)[1] == null)
+            return 0;
+        return ((Number) rows.get(0)[1]).intValue();
     }
 }

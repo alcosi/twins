@@ -118,16 +118,22 @@ public class LinkValidatorService extends EntitySecureFindServiceImpl<LinkValida
     public List<LinkValidatorEntity> createLinkValidators(List<LinkValidatorCreate> creates) throws ServiceException {
         if (creates == null || creates.isEmpty())
             return Collections.emptyList();
+        Map<UUID, Integer> dbMaxOrders = prefetchMaxOrders(creates); // one group query for the whole batch
         Map<UUID, List<Integer>> claimedOrders = new HashMap<>(); // linkId -> orders claimed within this batch
+        checkParentLinksAccessible(creates); // one batch call instead of one find per create
+        Set<UUID> explicitOrderLinkIds = new HashSet<>();
+        for (LinkValidatorCreate create : creates)
+            if (create.getLinkValidator().getOrder() != null)
+                explicitOrderLinkIds.add(create.getLinkValidator().getLinkId());
+        Map<UUID, Map<UUID, Integer>> dbSiblings = loadOccupiedOrders(explicitOrderLinkIds); // one projection query for the batch
         List<LinkValidatorEntity> entitiesToSave = new ArrayList<>(creates.size());
         for (LinkValidatorCreate create : creates) {
             LinkValidatorEntity entity = create.getLinkValidator();
-            linkService.findEntitySafe(entity.getLinkId()); // existence + read permission on the parent link
             validateAndPrepareFeaturer(entity.getLinkerFeaturerId(), entity.getLinkerParams(), Linker.class);
             if (entity.getOrder() == null)
-                entity.setOrder(nextFreeOrder(entity.getLinkId(), claimedOrders));
+                entity.setOrder(nextFreeOrder(entity.getLinkId(), dbMaxOrders, claimedOrders));
             else
-                checkOrderFree(entity, claimedOrders);
+                checkOrderFree(entity, dbSiblings, claimedOrders);
             entitiesToSave.add(entity);
         }
         List<LinkValidatorEntity> saved = StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
@@ -141,6 +147,17 @@ public class LinkValidatorService extends EntitySecureFindServiceImpl<LinkValida
             return Collections.emptyList();
         ChangesHelperMulti<LinkValidatorEntity> changes = new ChangesHelperMulti<>();
         Kit<LinkValidatorEntity, UUID> entitiesKit = findEntitiesSafe(updates.stream().map(LinkValidatorUpdate::getId).toList());
+        // existence + read permission on the requested parent links — one batch call instead of one find per moved row
+        Set<UUID> requestedLinkIds = new HashSet<>();
+        for (LinkValidatorUpdate update : updates)
+            if (update.getLinkValidator().getLinkId() != null)
+                requestedLinkIds.add(update.getLinkValidator().getLinkId());
+        linkService.findEntitiesSafe(requestedLinkIds);
+        // order-conflict snapshot: target links = requested (moves) + current of all updated validators
+        Set<UUID> orderCheckLinkIds = new HashSet<>(requestedLinkIds);
+        for (LinkValidatorEntity entity : entitiesKit.getCollection())
+            orderCheckLinkIds.add(entity.getLinkId());
+        Map<UUID, Map<UUID, Integer>> dbSiblings = loadOccupiedOrders(orderCheckLinkIds);
         Map<UUID, List<Integer>> claimedOrders = new HashMap<>();
         List<LinkValidatorEntity> allEntities = new ArrayList<>(updates.size());
         for (LinkValidatorUpdate update : updates) {
@@ -148,8 +165,6 @@ public class LinkValidatorService extends EntitySecureFindServiceImpl<LinkValida
             allEntities.add(entity);
             ChangesHelper changesHelper = new ChangesHelper();
             LinkValidatorEntity sourceEntity = update.getLinkValidator();
-            if (sourceEntity.getLinkId() != null && !sourceEntity.getLinkId().equals(entity.getLinkId()))
-                linkService.findEntitySafe(sourceEntity.getLinkId()); // existence + read permission on the new parent link
             updateEntityFieldByValueIfNotNull(sourceEntity.getLinkId(), entity,
                     LinkValidatorEntity::getLinkId, LinkValidatorEntity::setLinkId,
                     LinkValidatorEntity.Fields.linkId, changesHelper);
@@ -162,7 +177,7 @@ public class LinkValidatorService extends EntitySecureFindServiceImpl<LinkValida
                     LinkValidatorEntity::getOrder, LinkValidatorEntity::setOrder,
                     LinkValidatorEntity.Fields.order, changesHelper);
             if (changesHelper.hasChange(LinkValidatorEntity.Fields.linkId) || changesHelper.hasChange(LinkValidatorEntity.Fields.order))
-                checkOrderFree(entity, claimedOrders);
+                checkOrderFree(entity, dbSiblings, claimedOrders);
             changes.add(entity, changesHelper);
         }
         updateSafe(changes);
@@ -182,17 +197,32 @@ public class LinkValidatorService extends EntitySecureFindServiceImpl<LinkValida
     }
 
     /**
-     * Unique index {@code link_validator(link_id, order)}: the requested order must be free in db
-     * and not claimed by a sibling from the same batch.
+     * Sibling (validatorId -> order) per link for the whole batch in one projection query — no
+     * entity hydration, and {@link #checkOrderFree} never hits the db per entity (N+1 on bulk
+     * create/update with explicit orders). Snapshot of uncommitted state: both batch methods save
+     * after the loop, so this equals what the old per-row reads saw.
      */
-    private void checkOrderFree(LinkValidatorEntity entity, Map<UUID, List<Integer>> claimedOrders) throws ServiceException {
+    private Map<UUID, Map<UUID, Integer>> loadOccupiedOrders(Collection<UUID> linkIds) {
+        Map<UUID, Map<UUID, Integer>> result = new HashMap<>();
+        if (linkIds.isEmpty())
+            return result;
+        for (Object[] row : repository.findSiblingsOrderByLinkIdIn(linkIds))
+            result.computeIfAbsent((UUID) row[1], k -> new HashMap<>()).put((UUID) row[0], (Integer) row[2]);
+        return result;
+    }
+
+    /**
+     * Unique index {@code link_validator(link_id, order)}: the requested order must be free in db
+     * (snapshot from {@link #loadOccupiedOrders}) and not claimed by a sibling from the same batch.
+     */
+    private void checkOrderFree(LinkValidatorEntity entity, Map<UUID, Map<UUID, Integer>> dbSiblings, Map<UUID, List<Integer>> claimedOrders) throws ServiceException {
         List<Integer> claimed = claimedOrders.computeIfAbsent(entity.getLinkId(), k -> new ArrayList<>());
-        for (LinkValidatorEntity other : repository.findByLinkIdOrderByOrder(entity.getLinkId())) {
-            if (entity.getId() != null && entity.getId().equals(other.getId()))
+        for (Map.Entry<UUID, Integer> sibling : dbSiblings.getOrDefault(entity.getLinkId(), Map.of()).entrySet()) {
+            if (entity.getId() != null && entity.getId().equals(sibling.getKey()))
                 continue; // own row — order change is handled by the db update
-            if (other.getOrder().equals(entity.getOrder()))
+            if (sibling.getValue().equals(entity.getOrder()))
                 throw new ServiceException(ErrorCodeTwins.LINK_VALIDATOR_ORDER_CONFLICT,
-                        entity.logShort() + " order[" + entity.getOrder() + "] is already taken by " + other.logShort() + " of link[" + entity.getLinkId() + "]");
+                        entity.logShort() + " order[" + entity.getOrder() + "] is already taken by linkValidator[" + sibling.getKey() + "] of link[" + entity.getLinkId() + "]");
         }
         if (claimed.contains(entity.getOrder()))
             throw new ServiceException(ErrorCodeTwins.LINK_VALIDATOR_ORDER_CONFLICT,
@@ -201,16 +231,46 @@ public class LinkValidatorService extends EntitySecureFindServiceImpl<LinkValida
     }
 
     /**
-     * Appends after the highest order of the link (batch-aware via {@code claimedOrders}).
+     * Parent-link existence + read permission for the whole batch in one
+     * {@link EntitySecureFindServiceImpl#findEntitiesSafe} call (ifMissedThrows + ifDeniedThrows) —
+     * replaces the per-create {@code findEntitySafe} (N+1 on bulk creates into one link).
      */
-    private int nextFreeOrder(UUID linkId, Map<UUID, List<Integer>> claimedOrders) {
-        int max = 0;
-        for (LinkValidatorEntity other : repository.findByLinkIdOrderByOrder(linkId))
-            max = Math.max(max, other.getOrder());
+    private void checkParentLinksAccessible(List<LinkValidatorCreate> creates) throws ServiceException {
+        Set<UUID> linkIds = new HashSet<>();
+        for (LinkValidatorCreate create : creates) {
+            UUID linkId = create.getLinkValidator().getLinkId();
+            if (linkId == null)
+                throw new ServiceException(ErrorCodeTwins.UUID_IS_NULL, "no Link can be found by null id");
+            linkIds.add(linkId);
+        }
+        linkService.findEntitiesSafe(linkIds);
+    }
+
+    /**
+     * Db max order per link for the whole batch in one group query — {@link #nextFreeOrder} never
+     * hits the db per entity (N+1 on bulk creates).
+     */
+    private Map<UUID, Integer> prefetchMaxOrders(List<LinkValidatorCreate> creates) {
+        Set<UUID> linkIds = new HashSet<>();
+        for (LinkValidatorCreate create : creates)
+            if (create.getLinkValidator().getOrder() == null)
+                linkIds.add(create.getLinkValidator().getLinkId());
+        Map<UUID, Integer> result = new HashMap<>();
+        if (!linkIds.isEmpty())
+            for (Object[] row : repository.findMaxOrderByLinkIdIn(linkIds))
+                result.put((UUID) row[0], row[1] == null ? 0 : ((Number) row[1]).intValue());
+        return result;
+    }
+
+    /**
+     * Hands out the first order above the db max not claimed by this batch (batch-aware via
+     * {@code claimedOrders}, db max prefetched by {@link #prefetchMaxOrders}).
+     */
+    private int nextFreeOrder(UUID linkId, Map<UUID, Integer> dbMaxOrders, Map<UUID, List<Integer>> claimedOrders) {
         List<Integer> claimed = claimedOrders.computeIfAbsent(linkId, k -> new ArrayList<>());
-        for (Integer order : claimed)
-            max = Math.max(max, order);
-        int next = max + 1;
+        int next = dbMaxOrders.getOrDefault(linkId, 0) + 1;
+        while (claimed.contains(next))
+            next++; // skip orders claimed by explicit values or earlier auto-appends in this batch
         claimed.add(next);
         return next;
     }

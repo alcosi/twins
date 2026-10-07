@@ -9,6 +9,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.i18n.specifications.I18nSpecification;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkValidatorEntity;
 import org.twins.core.dao.link.LinkValidatorRepository;
@@ -79,6 +80,12 @@ public class LinkValidatorSearchService extends EntitySearchService
             case order -> toSortSpecification(ascending, LinkValidatorEntity.Fields.order);
             case linkerFeaturerName -> toSortSpecification(ascending,
                     LinkValidatorEntity.Fields.linkerFeaturerSpecOnly, FeaturerEntity.Fields.name);
+            case linkForwardName ->
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale,
+                            LinkValidatorEntity.Fields.linkSpecOnly, LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly);
+            case linkBackwardName ->
+                    I18nSpecification.toSortSpecificationDirect(ascending, locale,
+                            LinkValidatorEntity.Fields.linkSpecOnly, LinkEntity.Fields.backwardNameI18nTranslationsSpecOnly);
         };
     }
 
