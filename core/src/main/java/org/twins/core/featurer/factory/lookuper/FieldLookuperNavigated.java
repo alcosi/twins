@@ -21,7 +21,10 @@ import java.util.*;
  *   <li>{@link #beforeRead}: ONE bulk for the read sources — by default the lookup field itself,</li>
  *   <li>{@code read}: the isolated per-item {@link #read}; a null value becomes an UNDEFINED value.</li>
  * </ol>
- * A failure at ANY phase fails only its item and lands in {@link LookupResult#failures()}.
+ * A failure at ANY phase fails only its item and lands in {@link LookupResult#failures()} —
+ * runtime exceptions included, matching the old per-item caller. The bulk phases
+ * ({@code stage.load}, {@link #beforeRead}) are NOT isolated: a failure there is batch-level
+ * and aborts the whole lookup.
  */
 public abstract class FieldLookuperNavigated extends FieldLookuper {
 
@@ -73,8 +76,8 @@ public abstract class FieldLookuperNavigated extends FieldLookuper {
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
                 frontier.put(factoryItem, startTwin(factoryItem));
-            } catch (ServiceException ex) {
-                ret.failures().put(factoryItem, ex);
+            } catch (Exception ex) {
+                ret.failures().put(factoryItem, LookupResult.asFailure(ex));
             }
         }
         return frontier;
@@ -89,8 +92,8 @@ public abstract class FieldLookuperNavigated extends FieldLookuper {
         for (var entry : frontier.entrySet()) {
             try {
                 next.put(entry.getKey(), stage.next(this, entry.getValue(), entry.getKey().getFactoryContext()));
-            } catch (ServiceException ex) {
-                ret.failures().put(entry.getKey(), ex);
+            } catch (Exception ex) {
+                ret.failures().put(entry.getKey(), LookupResult.asFailure(ex));
             }
         }
         return next;
@@ -104,8 +107,8 @@ public abstract class FieldLookuperNavigated extends FieldLookuper {
             try {
                 var value = read(entry.getKey(), entry.getValue(), lookupTwinClassField);
                 ret.values().put(entry.getKey(), value == null ? twinService.createFieldValue(lookupTwinClassField) : value); //create field as undefined
-            } catch (ServiceException ex) {
-                ret.failures().put(entry.getKey(), ex);
+            } catch (Exception ex) {
+                ret.failures().put(entry.getKey(), LookupResult.asFailure(ex));
             }
         }
     }

@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.lookuper;
 
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.HashMap;
@@ -16,7 +17,20 @@ import java.util.Map;
 public record LookupResult(Map<FactoryItem, FieldValue> values, Map<FactoryItem, ServiceException> failures) {
 
     public static LookupResult empty(int expectedSize) {
-        return new LookupResult(new HashMap<>(expectedSize), new HashMap<>());
+        return new LookupResult(new HashMap<>(expectedSize), new HashMap<>(expectedSize));
+    }
+
+    /**
+     * Wraps a non-ServiceException per-item failure so {@link #failures()} keeps its
+     * ServiceException contract — the original exception is preserved as the cause. Matches the old
+     * per-item caller, which isolated every exception, runtime ones included.
+     */
+    static ServiceException asFailure(Exception ex) {
+        if (ex instanceof ServiceException serviceException)
+            return serviceException;
+        ServiceException wrapped = new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, ex.toString());
+        wrapped.initCause(ex);
+        return wrapped;
     }
 
     public boolean hasFailures() {

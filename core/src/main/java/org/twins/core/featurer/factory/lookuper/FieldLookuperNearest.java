@@ -12,10 +12,11 @@ import java.util.UUID;
  * The two-hook read contract of the nearest family — see ai/plans/lookuper-navigation-stages.md.
  * A concrete lookuper is ONE obvious method ({@link #lookupFieldValueOrNull}: the whole per-item
  * logic) plus an optional {@link #beforeLookup} bulk for the batch. The template around them
- * provides the shared contract: per-item isolation (a failure fails only its item and lands in
- * {@link LookupResult#failures()}) and the not-found conversion (a null value becomes an UNDEFINED
- * value). True navigation (start -> hops -> read) lives in {@link FieldLookuperNavigated} — the
- * linked family only.
+ * provides the shared contract: per-item isolation (ANY failure — runtime exceptions included —
+ * fails only its item and lands in {@link LookupResult#failures()}) and the not-found conversion
+ * (a null value becomes an UNDEFINED value). The {@link #beforeLookup} bulk is NOT isolated: a
+ * failure there is batch-level and aborts the whole lookup. True navigation (start -> hops -> read)
+ * lives in {@link FieldLookuperNavigated} — the linked family only.
  */
 public abstract class FieldLookuperNearest extends FieldLookuper {
 
@@ -30,8 +31,8 @@ public abstract class FieldLookuperNearest extends FieldLookuper {
         for (var factoryItem : factoryItemsBatch.getFactoryItems()) {
             try {
                 ret.values().put(factoryItem, lookupFieldValue(factoryItem, twinClassField));
-            } catch (ServiceException ex) {
-                ret.failures().put(factoryItem, ex); // per-item isolation — the caller re-throws per item
+            } catch (Exception ex) {
+                ret.failures().put(factoryItem, LookupResult.asFailure(ex)); // per-item isolation (any exception, like the old per-item caller) — the caller re-throws per item
             }
         }
         return ret;
