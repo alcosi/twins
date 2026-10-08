@@ -33,7 +33,7 @@ public class FillerComment extends FillerFieldLookup {
     public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
 
     @Override
-    protected FieldLookuperNearest lookuper(Properties properties) {
+    protected FieldLookuperNearest lookuper(Properties properties) throws ServiceException {
         return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
     }
 
