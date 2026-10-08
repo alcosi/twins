@@ -8,15 +8,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -27,10 +23,8 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinlink.TwinLinkCUD;
 import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.domain.twinlink.TwinLinkUpdate;
@@ -41,15 +35,13 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.link.LinkValidatorService;
 import org.twins.core.service.twin.TwinHeadService;
-import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -67,10 +59,9 @@ import static org.twins.core.dao.specifications.link.TwinLinkSpecification.check
 @RequiredArgsConstructor
 public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity> {
     private final LinkService linkService;
-    private final TwinClassService twinClassService;
+    private final LinkValidatorService linkValidatorService;
     private final TwinLinkRepository twinLinkRepository;
     private final TwinService twinService;
-    private final TwinSearchService twinSearchService;
     @Lazy
     private final TwinHeadService twinHeadService;
     @Lazy
@@ -78,7 +69,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangesService twinChangesService;
-    private final FeaturerService featurerService;
     private final UserService userService;
 
     @Override
@@ -113,11 +103,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                     entity.setDstTwin(twinService.findEntitySafe(entity.getDstTwinId()));
                 if (entity.getSrcTwin() == null)
                     entity.setSrcTwin(twinService.findEntitySafe(entity.getSrcTwinId()));
-                if (entity.getDstTwinId() != entity.getDstTwin().getId())
+                // id and the associated object may be separately hydrated UUID instances — compare by value, not by reference
+                if (!Objects.equals(entity.getDstTwinId(), entity.getDstTwin().getId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect dstTwin object");
-                if (entity.getSrcTwinId() != entity.getSrcTwin().getId())
+                if (!Objects.equals(entity.getSrcTwinId(), entity.getSrcTwin().getId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect srcTwin object");
-                if (entity.getLinkId() != entity.getLink().getId())
+                if (!Objects.equals(entity.getLinkId(), entity.getLink().getId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect link object");
 // todo
 //            default:
@@ -139,11 +130,15 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 twinLinkEntity.setCreateElseUpdate(true); // fresh link entering the create flow (relink flips it back)
             Set<UUID> srcTwinExtendedClasses = srcTwinEntity.getTwinClass().getExtendedClassIdSet();
             Set<UUID> dstTwinExtendedClasses = twinLinkEntity.getDstTwin().getTwinClass().getExtendedClassIdSet();
+            boolean forwardElseBackward; // side of the link the operating twin lands on — feeds the linker validation below
+            TwinEntity candidateTwinEntity; // the twin from the request, validated against the link's linker
             if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId())) { // forward link creation
                 log.info("Forward link creation");
                 twinLinkEntity
                         .setSrcTwin(srcTwinEntity)
                         .setSrcTwinId(srcTwinEntity.getId()); //dst is already filled
+                forwardElseBackward = true;
+                candidateTwinEntity = twinLinkEntity.getDstTwin();
             } else if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId())) { // backward link creation, dst and src twins had to change places
                 log.info("Backward link creation");
                 twinLinkEntity
@@ -154,6 +149,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 Set<UUID> temp = srcTwinExtendedClasses;
                 srcTwinExtendedClasses = dstTwinExtendedClasses;
                 dstTwinExtendedClasses = temp;
+                forwardElseBackward = false;
+                candidateTwinEntity = twinLinkEntity.getSrcTwin();
             } else {
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created for twinId[" + srcTwinEntity.getId() + "]");
             }
@@ -161,6 +158,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created from twinId[" + twinLinkEntity.getSrcTwinId() + "] of twinClass[" + twinLinkEntity.getSrcTwin().getTwinClassId() + "]");
             if (!dstTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created to twinId[" + twinLinkEntity.getDstTwinId() + "] of twinClass[" + twinLinkEntity.getDstTwin().getTwinClassId() + "]");
+            linkValidatorService.validateLinkByLinkers(twinLinkEntity.getLink(), forwardElseBackward, srcTwinEntity, candidateTwinEntity.getId());
             twinLinkEntity.setCreatedAt(Timestamp.from(Instant.now()));
             if (twinLinkEntity.getCreatedByUserId() == null)
                 twinLinkEntity
@@ -382,17 +380,31 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             // per-link: the unlinked twin and the direction must pair with THEIR link in the history
             TwinEntity unlinkedTwinEntity = null;
             boolean forward = true;
+            UUID oldLinkedTwinId = null; // counterpart twin id before the update (change detection for the linker validation)
+            UUID newLinkedTwinId = null; // null also when twinEntity is on neither side of the link — nothing to validate then
             if (dbTwinLinkEntity.getSrcTwinId().equals(twinEntity.getId())) {// forward link
                 unlinkedTwinEntity = dbTwinLinkEntity.getDstTwin();
                 forward = true;
+                oldLinkedTwinId = dbTwinLinkEntity.getDstTwinId();
+                newLinkedTwinId = updateTwinLinkEntity.getDstTwinId();
                 dbTwinLinkEntity
-                        .setDstTwinId(updateTwinLinkEntity.getDstTwinId());
+                        .setDstTwinId(newLinkedTwinId);
+                if (!Objects.equals(newLinkedTwinId, oldLinkedTwinId))
+                    dbTwinLinkEntity.setDstTwin(null); // twin object was loaded before the id swap — stale; validateEntity(beforeSave) reloads it by the new id
             } else if (dbTwinLinkEntity.getDstTwinId().equals(twinEntity.getId())) { //backward link
                 unlinkedTwinEntity = dbTwinLinkEntity.getSrcTwin();
                 forward = false;
+                oldLinkedTwinId = dbTwinLinkEntity.getSrcTwinId();
+                newLinkedTwinId = updateTwinLinkEntity.getDstTwinId();
                 dbTwinLinkEntity
-                        .setSrcTwinId(updateTwinLinkEntity.getDstTwinId());
+                        .setSrcTwinId(newLinkedTwinId);
+                if (!Objects.equals(newLinkedTwinId, oldLinkedTwinId))
+                    dbTwinLinkEntity.setSrcTwin(null); // twin object was loaded before the id swap — stale; validateEntity(beforeSave) reloads it by the new id
             }
+            // validate the NEW linked twin by the link's linker — only when it actually changes, so
+            // field-only updates re-sending the same twin do not re-run the validation rules
+            if (newLinkedTwinId != null && !newLinkedTwinId.equals(oldLinkedTwinId))
+                linkValidatorService.validateLinkByLinkers(dbTwinLinkEntity.getLink(), forward, twinEntity, newLinkedTwinId);
             if (validateEntityAndLog(dbTwinLinkEntity, EntitySmartService.EntityValidateMode.beforeSave)) {
                 updatedTwinLinkEntityList.add(dbTwinLinkEntity);
                 twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(dbTwinLinkEntity, unlinkedTwinEntity, forward));
@@ -501,42 +513,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public PaginationResult<TwinEntity> findValidDstTwins(UUID twinClassId, UUID linkId, UUID headTwinId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        LinkEntity linkEntity = linkService.findEntitySafe(linkId);
-        TwinClassEntity srcTwinClassEntity = twinClassService.findEntitySafe(twinClassId);
-        TwinEntity headTwinEntity = null;
-        if (headTwinId != null)
-            headTwinEntity = twinService.findEntitySafe(headTwinId);
-        addClassCheckToValidTwinsForLinkSearch(linkEntity, srcTwinClassEntity, basicSearch);
-        if (linkEntity.getLinkerFeaturerId() != null) {
-            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturerId(), Linker.class);
-            linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), srcTwinClassEntity, headTwinEntity, basicSearch);
-        }
-        return twinSearchService.findTwins(basicSearch, pagination);
-    }
-
-    public PaginationResult<TwinEntity> findValidDstTwins(UUID twinId, UUID linkId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        LinkEntity linkEntity = linkService.findEntitySafe(linkId);
-        TwinEntity twinEntity = twinService.findEntitySafe(twinId);
-        addClassCheckToValidTwinsForLinkSearch(linkEntity, twinEntity.getTwinClass(), basicSearch);
-        if (linkEntity.getLinkerFeaturerId() != null) {
-            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturerId(), Linker.class);
-            linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), twinEntity, basicSearch);
-        }
-        return twinSearchService.findTwins(basicSearch, pagination);
-    }
-
-    private void addClassCheckToValidTwinsForLinkSearch(LinkEntity linkEntity, TwinClassEntity srcTwinClass, BasicSearch search) throws ServiceException {
-        if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            twinClassService.loadExtendsHierarchyChildClasses(linkEntity.getDstTwinClass());
-            search.addTwinClassId(linkEntity.getDstTwinClass().getExtendsHierarchyChildClassKit().getIdSet(), false);
-        } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            twinClassService.loadExtendsHierarchyChildClasses(srcTwinClass);
-            search.addTwinClassId(srcTwinClass.getExtendsHierarchyChildClassKit().getIdSet(), false);
-        } else
-            throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "unknown link type");
-    }
-
     public Collection<TwinLinkEntity> findTwinLinks(LinkEntity linkEntity, TwinEntity twinEntity, LinkService.LinkDirection linkDirection) throws ServiceException {
         if (linkDirection == null)
             linkDirection = linkService.detectLinkDirection(linkEntity, twinEntity.getTwinClass());
@@ -608,12 +584,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getBackwardLinks() != null)
             return twinEntity.getTwinLinks().getBackwardLinks().containsGroupedKey(linkId);
         return twinLinkRepository.existsByDstTwinIdAndLinkId(twinEntity.getId(), linkId);
-    }
-
-    public List<TwinLinkEntity> findTwinLinksBySrcTwinAndLinkId(TwinEntity twinEntity, UUID linkId) {
-        if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getBackwardLinks() != null)
-            return twinEntity.getTwinLinks().getForwardLinks().getGrouped(linkId);
-        return twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkId, TwinLinkEntity.class);
     }
 
     public boolean isLinkDstTwinStatusIn(TwinEntity twin, UUID linkId, Set<UUID> statusIds) throws ServiceException {

@@ -7,7 +7,6 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.featurer.linker.LinkerImpl;
 
 import java.util.Properties;
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,17 +35,36 @@ class LinkerImplTest extends BaseUnitTest {
         }
 
         @Test
-        void expandValidLinkedTwinSearch_withTwinEntity_doesNotModifySearch() {
+        void expandValidLinkedTwinSearch_withTwinEntity_doesNotModifySearch() throws ServiceException {
             var search = new BasicSearch();
 
             linker.expandValidLinkedTwinSearch(
                     new Properties(),
-                    new TwinEntity(),
+                    new TwinEntity(), true,
                     search
             );
 
             assertNull(search.getStatusIdList());
             assertNull(search.getStatusIdExcludeList());
+        }
+    }
+
+    @Nested
+    class ValidateLink {
+
+        @Test
+        void validateLink_doesNotModifySearch() throws ServiceException {
+            var search = new BasicSearch();
+
+            linker.validateLink(
+                    new Properties(),
+                    new TwinEntity(), true,
+                    search
+            );
+
+            assertNull(search.getStatusIdList());
+            assertNull(search.getStatusIdExcludeList());
+            assertFalse(search.isEmptyResult());
         }
     }
 }

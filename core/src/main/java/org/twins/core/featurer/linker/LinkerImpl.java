@@ -23,7 +23,12 @@ public class LinkerImpl extends Linker {
     }
 
     @Override
-    public void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, BasicSearch basicSearch) {
+    protected void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException {
+
+    }
+
+    @Override
+    protected void validateLink(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException {
 
     }
 }
