@@ -38,7 +38,7 @@ public class HistorySearchService {
     }
 
     private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) throws ServiceException {
-        Specification<HistoryEntity> domainSpec = checkUuid(authService.getApiUser().getDomainId(), false, true, HistoryEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId);
+        Specification<HistoryEntity> domainSpec = checkUuid(authService.getApiUser().getDomainId(), false, true, HistoryEntity.Fields.twinSpecOnly, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId);
         return domainSpec
                 .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false))
                 .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
