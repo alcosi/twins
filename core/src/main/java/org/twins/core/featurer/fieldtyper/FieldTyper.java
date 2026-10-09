@@ -239,7 +239,11 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (value.isCleared()) {
             return false;
         }
-        if (!value.isDefined() || value.isSystemInitialized()) {
+        // only client-payload values are gated: system writes (built-in transition factory fillers,
+        // initializers, draft restore) run on behalf of a transition/operation that was already
+        // permission-checked as a whole - e.g. subTaskStartProgress fills actualStart for a performer
+        // without SUB_TASK_FIELD_ACTUAL_START_EDIT, and gating it failed the whole transition (10902)
+        if (!value.isDefined() || value.isSystemInitialized() || !value.isUserProvided()) {
             return false;
         }
         return twinService.isFieldImmutable(twin, value.getTwinClassField());

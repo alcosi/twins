@@ -1633,7 +1633,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 continue;
             for (Map.Entry<UUID, FieldValue> entry : group.entrySet()) {
                 if (entry.getValue() instanceof FieldValueReference reference)
-                    group.put(entry.getKey(), buildReferencedValue(reference, loaded));
+                    //materialization swaps the instance - carry the payload origin over to the built value
+                    group.put(entry.getKey(), buildReferencedValue(reference, loaded).setUserProvided(reference.isUserProvided()));
             }
         }
     }

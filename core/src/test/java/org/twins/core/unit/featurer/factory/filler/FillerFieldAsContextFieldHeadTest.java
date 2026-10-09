@@ -46,7 +46,7 @@ class FillerFieldAsContextFieldHeadTest extends BaseUnitTest {
     private static final UUID DST_FIELD_ID = UUID.randomUUID();
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws ServiceException {
         filler = new FillerFieldAsContextFieldHead();
         inject("twinService", twinService);
         inject("fieldLookupers", fieldLookupers);
