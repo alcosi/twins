@@ -495,6 +495,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(true);
             var value = new FieldValueText(classField).setValue("10");
+            value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
 
             assertTrue(fieldTyper.updateRestricted(twin, value));
@@ -518,6 +519,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = twinWithoutDecimalField(classField).setCreateElseUpdate(false);
             var value = new FieldValueText(classField).setValue("10");
+            value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
 
             assertTrue(fieldTyper.updateRestricted(twin, value));
@@ -530,6 +532,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = twinWithDecimalField(classField, new BigDecimal("10.00")).setCreateElseUpdate(false);
             var value = new FieldValueText(classField).setValue("10.00");
+            value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
 
             assertTrue(fieldTyper.updateRestricted(twin, value));
@@ -542,9 +545,37 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
             var twin = twinWithDecimalField(classField, new BigDecimal("10.00")).setCreateElseUpdate(false);
             var value = new FieldValueText(classField).setValue("11.00");
+            value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
 
             assertTrue(fieldTyper.updateRestricted(twin, value));
+        }
+
+        @Test
+        void systemWrittenImmutable_isNotRestricted() throws ServiceException {
+            // Intended: values written by server-side logic (built-in transition factory fillers,
+            // initializers, draft restore) are not gated by the acting user's field edit permission —
+            // the operation itself was already permission-checked. This is the subTaskStartProgress
+            // fix: the factory fills actualStart for a performer without ACTUAL_START edit permission.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = twinWithoutDecimalField(classField).setCreateElseUpdate(false);
+            var value = new FieldValueText(classField).setValue("10"); // userProvided defaults to false
+            lenient().when(twinService.isFieldImmutable(twin, classField)).thenReturn(true); // never invoked - gate returns before the permission check
+
+            assertFalse(fieldTyper.updateRestricted(twin, value));
+            verify(twinService, never()).isFieldImmutable(any(), any());
+        }
+
+        @Test
+        void sameFieldClone_keepsUserProvided_crossFieldClone_resets() {
+            // Intended: origin survives a context->output same-field clone (FillerFieldsFromContextAll
+            // must stay gated), while a cross-field copy is a system-side write of a new field.
+            var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var otherField = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var value = new FieldValueText(classField).setValue("10").setUserProvided(true);
+
+            assertTrue(value.clone().isUserProvided());
+            assertFalse(value.clone(otherField).isUserProvided());
         }
     }
 }

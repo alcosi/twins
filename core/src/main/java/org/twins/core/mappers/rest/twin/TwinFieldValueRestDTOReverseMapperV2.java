@@ -131,7 +131,9 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
 
     // the one and only parse point: string -> FieldValue (reference types come back as FieldValueReference)
     private FieldValue parse(FieldValueText src) throws ServiceException {
-        return twinService.parseFieldValue(src.getTwinClassField(), src.getValue());
+        // the one and only payload-origin mark: values parsed from a client request are the only
+        // ones gated by field edit permission on update (see FieldTyper.updateRestricted)
+        return twinService.parseFieldValue(src.getTwinClassField(), src.getValue()).setUserProvided(true);
     }
 
     private List<FieldValue> parse(Collection<FieldValueText> fields) throws Exception {

@@ -36,6 +36,15 @@ public abstract class FieldValue implements Cloneable {
     //will help to prevent repeated initialization and identify values set by a system
     private boolean systemInitialized = false;
 
+    @Getter
+    @Setter
+    //true only for values parsed from a client request payload (REST mapper). These are gated by
+    //field edit permission on update. Values written by server-side logic (factories, initializers,
+    //draft restore) stay false: the operation itself was already permission-checked, and gating
+    //its system writes by the acting user's field permissions breaks transitions like
+    //subTaskStartProgress (built-in factory fills actualStart on the performer's behalf).
+    private boolean userProvided = false;
+
     public ValidationResult initValidationResult(ValidationResult validationResult) {
         this.validationResult = validationResult;
         return this.validationResult;
@@ -60,6 +69,10 @@ public abstract class FieldValue implements Cloneable {
     public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
         var clone = newInstance(newTwinClassFieldEntity);
         copyValueTo(clone);
+        //origin survives only a same-field clone (context value -> output, FillerFieldsFromContextAll):
+        //a cross-field copy is a system-side write of a field the user never sent in the payload,
+        //so it must not be gated by field edit permission
+        clone.userProvided = userProvided && twinClassField.getId().equals(newTwinClassFieldEntity.getId());
         return clone;
     }
 
