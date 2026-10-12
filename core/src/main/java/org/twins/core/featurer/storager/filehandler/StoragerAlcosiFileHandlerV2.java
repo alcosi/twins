@@ -14,14 +14,17 @@ import org.cambium.featurer.params.FeaturerParamMap;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 import org.twins.core.dto.rest.featurer.storager.filehandler.AttachmentModification;
 import org.twins.core.dto.rest.featurer.storager.filehandler.FHSyncProcessRsDTO;
 import org.twins.core.dto.rest.featurer.storager.filehandler.FileHandlerDeleteRqDTO;
@@ -33,7 +36,10 @@ import org.twins.core.featurer.storager.StoragerAbstractChecked;
 import javax.naming.LimitExceededException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.URI;
+import java.net.UnknownHostException;
+import java.net.http.HttpConnectTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
@@ -110,7 +116,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     public static final FeaturerParamString defaultPipeline = new FeaturerParamString("defaultPipeline");
 
     private static final Set<String> IMAGE_FORMATS = Set.of("jpg", "jpeg", "png", "webp", "tiff", "tif", "gif", "jp2");
-    private final RestTemplate restTemplate;
+    private final RestClient fileHandlerRestClient;
 
     @Override
     protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException {
@@ -140,10 +146,16 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             var properties = extractProperties(params, false);
             var url = STR."\{fileHandlerUri.extract(properties)}/api/storage/delete";
             var dirs = extractDirsToDelete(fileKey);
-            var request = new HttpEntity<>(new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3), new HttpHeaders());
+            var request = new FileHandlerDeleteRqDTO(List.of(dirs), StorageType.S3);
             var resp = exchangeWithRetry(
                     "Delete " + dirs,
-                    () -> restTemplate.exchange(url, HttpMethod.POST, request, Void.class)
+                    () -> fileHandlerRestClient
+                            .post()
+                            .uri(url)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(request)
+                            .retrieve()
+                            .toBodilessEntity()
             );
 
             if (!resp.getStatusCode().is2xxSuccessful()) {
@@ -275,7 +287,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return String.join("/", segments.subList(segments.size() - 3, segments.size() - 1));
     }
 
-    private HttpEntity<MultiValueMap<String, Object>> prepareMultipartRq(Object rqData, Resource fileResource) {
+    private MultiValueMap<String, Object> prepareMultipartBody(Object rqData, Resource fileResource) {
         var fileHeaders = new HttpHeaders();
         fileHeaders.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
@@ -284,10 +296,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         body.add("data", prepareDataPart(rqData));
         body.add("file", new HttpEntity<>(fileResource, fileHeaders));
 
-        var headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-
-        return new HttpEntity<>(body, headers);
+        return body;
     }
 
     private HttpEntity<?> prepareDataPart(Object rqData) {
@@ -312,7 +321,7 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
 
     @SneakyThrows
     private <T> ResponseEntity<T> sendWithRetry(String url, Object rqData, InputStream tikaStream, String fileName, Class<T> clazz) {
-        // RestTemplate closes the part stream after the first write, so the file is spooled to a temp
+        // the HTTP client closes the part stream after the first write, so the file is spooled to a temp
         // file and re-opened by FileSystemResource on every attempt — an InputStreamResource would be
         // dead after attempt one
         var tempFile = Files.createTempFile("file-handler-upload", null);
@@ -327,8 +336,14 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
             };
 
             return exchangeWithRetry(
-                    STR."Upload \{fileName}",
-                    () -> restTemplate.exchange(url, HttpMethod.POST, prepareMultipartRq(rqData, fileResource), clazz)
+                    "Upload " + fileName,
+                    () -> fileHandlerRestClient
+                            .post()
+                            .uri(url)
+                            .contentType(MediaType.MULTIPART_FORM_DATA)
+                            .body(prepareMultipartBody(rqData, fileResource))
+                            .retrieve()
+                            .toEntity(clazz)
             );
         } finally {
             Files.deleteIfExists(tempFile);
@@ -341,9 +356,11 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 return exchangeCall.get();
-            } catch (HttpServerErrorException.NotImplemented | HttpServerErrorException.ServiceUnavailable e) {
-                throw e;
-            } catch (ResourceAccessException | HttpClientErrorException.TooManyRequests | HttpServerErrorException e) {
+            } catch (RestClientException e) {
+                if (!isRetryable(e)) {
+                    throw e;
+                }
+
                 log.warn("{}: attempt {}/{} failed: {}", what, attempt, maxAttempts, e.getMessage());
 
                 if (attempt == maxAttempts) {
@@ -362,11 +379,32 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
         return null;
     }
 
+    // FH retries S3 itself, so only a rate limit or a request that never reached FH is need to be repeated
+    private boolean isRetryable(RestClientException e) {
+        if (e instanceof HttpClientErrorException.TooManyRequests) {
+            return true;
+        }
+
+        if (!(e instanceof ResourceAccessException)) {
+            return false;
+        }
+
+        for (var cause = e.getCause(); cause != null; cause = cause.getCause()) {
+            if (cause instanceof ConnectException
+                    || cause instanceof HttpConnectTimeoutException
+                    || cause instanceof UnknownHostException) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private long retryDelayMs(Exception e, int attempt) {
         if (e instanceof HttpClientErrorException.TooManyRequests) {
             return 2000L * attempt; // cumulative 12s outlasts the 10s FH rate window
         }
 
-        return 500L * attempt; // network error / 5xx: 0.5s, 1s, 1.5s
+        return 500L * attempt; // connect failure: 0.5s, 1s, 1.5s
     }
 }

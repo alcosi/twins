@@ -5,35 +5,34 @@ import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.test.web.client.ExpectedCount;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.dto.rest.featurer.storager.filehandler.FileHandlerDeleteRqDTO;
 import org.twins.core.service.auth.AuthService;
 
 import java.lang.reflect.Field;
+import java.net.ConnectException;
+import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpTimeoutException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 
 class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
-    @Mock
-    private RestTemplate restTemplate;
+    private static final String DELETE_URL = "http://localhost:8011/api/storage/delete";
 
     @Mock
     private AuthService authService;
@@ -46,9 +45,15 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
 
     private StoragerAlcosiFileHandlerV2 storager;
 
+    private MockRestServiceServer server;
+
     @BeforeEach
     void setUp() throws Exception {
-        storager = new StoragerAlcosiFileHandlerV2(restTemplate);
+        var restClientBuilder = RestClient.builder();
+        server = MockRestServiceServer
+                .bindTo(restClientBuilder)
+                .build();
+        storager = new StoragerAlcosiFileHandlerV2(restClientBuilder.build());
         setField(storager, "authService", authService);
         setField(storager, "featurerService", featurerService);
     }
@@ -178,14 +183,12 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
             var params = buildParams();
             stubProperties(params);
 
-            when(restTemplate.exchange(
-                    anyString(),
-                    any(),
-                    any(),
-                    eq(Void.class)
-            )).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+            server.expect(requestTo(DELETE_URL))
+                    .andExpect(method(HttpMethod.POST))
+                    .andRespond(withSuccess());
 
             assertDoesNotThrow(() -> storager.deleteFile("businessAccount/fileId/file.png", params));
+            server.verify();
         }
 
         @Test
@@ -195,20 +198,13 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
             var params = buildParams();
             stubProperties(params);
 
-            when(restTemplate.exchange(
-                    anyString(),
-                    any(),
-                    any(),
-                    eq(Void.class)
-            )).thenReturn(new ResponseEntity<>(HttpStatus.OK));
+            server.expect(requestTo(DELETE_URL))
+                    .andExpect(content().json(STR."{\"dirs\":[\"\{businessAccountId}/\{fileId}\"]}"))
+                    .andRespond(withSuccess());
 
             storager.deleteFile(buildStoredFileUrl(businessAccountId, fileId), params);
 
-            var captor = ArgumentCaptor.forClass(HttpEntity.class);
-            verify(restTemplate).exchange(anyString(), any(), captor.capture(), eq(Void.class));
-            var rq = (FileHandlerDeleteRqDTO) captor.getValue().getBody();
-
-            assertEquals(List.of(businessAccountId + "/" + fileId), rq.dirs());
+            server.verify();
         }
 
         @Test
@@ -216,31 +212,25 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
             var params = buildParams();
             stubProperties(params);
 
-            when(restTemplate.exchange(
-                    anyString(),
-                    any(),
-                    any(),
-                    eq(Void.class)
-            )).thenReturn(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withStatus(HttpStatus.FORBIDDEN));
 
             assertThrows(ServiceException.class,
                     () -> storager.deleteFile("businessAccount/fileId/file.png", params));
+            server.verify();
         }
 
         @Test
-        void deleteFile_restTemplateThrows_throwsServiceException() throws ServiceException {
+        void deleteFile_connectionRefused_throwsServiceExceptionAfterMaxAttempts() throws ServiceException {
             var params = buildParams();
             stubProperties(params);
 
-            when(restTemplate.exchange(
-                    anyString(),
-                    any(),
-                    any(),
-                    eq(Void.class)
-            )).thenThrow(new RuntimeException("Connection refused"));
+            server.expect(ExpectedCount.times(4), requestTo(DELETE_URL))
+                    .andRespond(withException(new ConnectException("Connection refused")));
 
             assertThrows(ServiceException.class,
                     () -> storager.deleteFile("businessAccount/fileId/file.png", params));
+            server.verify();
         }
     }
 
@@ -251,46 +241,94 @@ class StoragerAlcosiFileHandlerV2Test extends BaseUnitTest {
         void deleteFile_rateLimitedOnce_retriesAndSucceeds() throws ServiceException {
             stubProperties(buildParams());
 
-            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
-                    .thenThrow(HttpClientErrorException.create(HttpStatus.TOO_MANY_REQUESTS, "Rate limit exceeded", HttpHeaders.EMPTY, null, null))
-                    .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withTooManyRequests());
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withSuccess());
 
             assertDoesNotThrow(() -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
-            verify(restTemplate, times(2)).exchange(anyString(), any(), any(), eq(Void.class));
+            server.verify();
         }
 
         @Test
-        void deleteFile_serverErrorOnce_retriesAndSucceeds() throws ServiceException {
+        void deleteFile_connectRefusedOnce_retriesAndSucceeds() throws ServiceException {
             stubProperties(buildParams());
 
-            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
-                    .thenThrow(HttpServerErrorException.create(HttpStatus.INTERNAL_SERVER_ERROR, "oops", HttpHeaders.EMPTY, null, null))
-                    .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withException(new ConnectException("Connection refused")));
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withSuccess());
 
             assertDoesNotThrow(() -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
-            verify(restTemplate, times(2)).exchange(anyString(), any(), any(), eq(Void.class));
+            server.verify();
+        }
+
+        @Test
+        void deleteFile_connectTimeoutOnce_retriesAndSucceeds() throws ServiceException {
+            stubProperties(buildParams());
+
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withException(new HttpConnectTimeoutException("HTTP connect timed out")));
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withSuccess());
+
+            assertDoesNotThrow(() -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            server.verify();
+        }
+
+        @Test
+        void deleteFile_readTimeout_failsWithoutRetry() throws ServiceException {
+            stubProperties(buildParams());
+
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withException(new HttpTimeoutException("request timed out")));
+
+            assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            server.verify();
+        }
+
+        @Test
+        void deleteFile_serverError_failsWithoutRetry() throws ServiceException {
+            stubProperties(buildParams());
+
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withServerError());
+
+            assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            server.verify();
         }
 
         @Test
         void deleteFile_clientError_failsWithoutRetry() throws ServiceException {
             stubProperties(buildParams());
 
-            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
-                    .thenThrow(new HttpClientErrorException(HttpStatus.BAD_REQUEST));
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withBadRequest());
 
             assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
-            verify(restTemplate, times(1)).exchange(anyString(), any(), any(), eq(Void.class));
+            server.verify();
         }
 
         @Test
         void deleteFile_notImplemented_failsWithoutRetry() throws ServiceException {
             stubProperties(buildParams());
 
-            when(restTemplate.exchange(anyString(), any(), any(), eq(Void.class)))
-                    .thenThrow(HttpServerErrorException.create(HttpStatus.NOT_IMPLEMENTED, "Not Implemented", HttpHeaders.EMPTY, null, null));
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withStatus(HttpStatus.NOT_IMPLEMENTED));
 
             assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
-            verify(restTemplate, times(1)).exchange(anyString(), any(), any(), eq(Void.class));
+            server.verify();
+        }
+
+        @Test
+        void deleteFile_serviceUnavailable_failsWithoutRetry() throws ServiceException {
+            stubProperties(buildParams());
+
+            server.expect(requestTo(DELETE_URL))
+                    .andRespond(withServiceUnavailable());
+
+            assertThrows(ServiceException.class, () -> storager.deleteFile("businessAccount/fileId/file.png", buildParams()));
+            server.verify();
         }
     }
 
