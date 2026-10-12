@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.params.FeaturerParamUUIDSetUserId;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsUserGroupId;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.Map;
@@ -32,7 +32,7 @@ import java.util.UUID;
 public class RecipientResolverUserGroups extends RecipientResolver {
 
     @FeaturerParam(name = "User group ids", description = "", order = 1)
-    public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetUserId("userGroupIds");
+    public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetTwinsUserGroupId("userGroupIds");
 
     @Lazy
     @Autowired

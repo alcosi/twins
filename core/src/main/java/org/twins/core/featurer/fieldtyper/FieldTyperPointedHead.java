@@ -14,6 +14,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStoragePointedHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
 
@@ -24,7 +25,7 @@ import java.util.Properties;
         description = "")
 public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, FieldValue, TwinFieldStoragePointedHead, TwinFieldSearchNotImplemented> {
     @FeaturerParam(name = "Head twin field", description = "", order = 3)
-    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("headTwinClassFieldId");
+    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("headTwinClassFieldId");
 
     @Override
     public Class<FieldValue> getValueType(TwinClassFieldEntity twinClassField) throws ServiceException {

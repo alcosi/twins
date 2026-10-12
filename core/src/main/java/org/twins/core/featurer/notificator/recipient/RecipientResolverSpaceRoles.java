@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.params.FeaturerParamUUIDSetUserId;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsSpaceRoleId;
 import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.Map;
@@ -32,7 +32,7 @@ import java.util.UUID;
 public class RecipientResolverSpaceRoles extends RecipientResolver {
 
     @FeaturerParam(name = "Space role ids", description = "", order = 1)
-    public static final FeaturerParamUUIDSet spaceRoleIds = new FeaturerParamUUIDSetUserId("spaceRoleIds");
+    public static final FeaturerParamUUIDSet spaceRoleIds = new FeaturerParamUUIDSetTwinsSpaceRoleId("spaceRoleIds");
 
     @Lazy
     @Autowired
