@@ -229,10 +229,16 @@ public class TwinActionService {
         List<TwinEntity> twinsNeedsValidatorCheck = new ArrayList<>();
         Map<PermissionService.PermissionDetectKey, List<TwinEntity>> permissionDetectKeys = permissionService.convertToDetectKeys(twins);
 
+        // Verify all keys with one batch SQL call: every key of this action shares the permission id
+        Map<PermissionService.PermissionDetectKey, UUID> batchCheck = new LinkedHashMap<>();
+        for (PermissionService.PermissionDetectKey permissionDetectKey : permissionDetectKeys.keySet())
+            batchCheck.put(permissionDetectKey, permissionEntity.getPermissionId());
+        Map<PermissionService.PermissionDetectKey, Boolean> permissionCheck = permissionService.hasPermissionBatch(batchCheck);
+
         // Loop through permission check keys and verify permission
         for (Map.Entry<PermissionService.PermissionDetectKey, List<TwinEntity>> keyEntry : permissionDetectKeys.entrySet()) {
             // If the permission is denied for an action, mark the action as forbidden for those entities
-            if (!permissionService.hasPermission(keyEntry.getKey(), permissionEntity.getPermissionId())) {
+            if (!permissionCheck.getOrDefault(keyEntry.getKey(), false)) {
                 for (TwinEntity twin : keyEntry.getValue()) {
                     twinsActionsRestrictionReasons.computeIfAbsent(twin.getId(), k -> new HashMap<>());
                     // Only set if not already set (permission priority over validator)

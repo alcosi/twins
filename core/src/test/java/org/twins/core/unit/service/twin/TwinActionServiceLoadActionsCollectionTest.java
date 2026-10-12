@@ -154,8 +154,7 @@ class TwinActionServiceLoadActionsCollectionTest extends BaseUnitTest {
             keyMap.put(key2, List.of(twin2));
 
             when(permissionService.convertToDetectKeys(List.of(twin1, twin2))).thenReturn(keyMap);
-            when(permissionService.hasPermission(key1, permissionId)).thenReturn(true);
-            when(permissionService.hasPermission(key2, permissionId)).thenReturn(false);
+            when(permissionService.hasPermissionBatch(anyMap())).thenReturn(Map.of(key1, true, key2, false));
 
             twinActionService.loadActions(List.of(twin1, twin2));
 
@@ -181,7 +180,7 @@ class TwinActionServiceLoadActionsCollectionTest extends BaseUnitTest {
             keyMap.put(key, List.of(twin1, twin2));
 
             when(permissionService.convertToDetectKeys(List.of(twin1, twin2))).thenReturn(keyMap);
-            when(permissionService.hasPermission(key, permissionId)).thenReturn(false);
+            when(permissionService.hasPermissionBatch(anyMap())).thenReturn(Map.of(key, false));
 
             twinActionService.loadActions(List.of(twin1, twin2));
 
@@ -206,7 +205,7 @@ class TwinActionServiceLoadActionsCollectionTest extends BaseUnitTest {
             keyMap.put(key, List.of(twin1, twin2));
 
             when(permissionService.convertToDetectKeys(List.of(twin1, twin2))).thenReturn(keyMap);
-            when(permissionService.hasPermission(key, permissionId)).thenReturn(false);
+            when(permissionService.hasPermissionBatch(anyMap())).thenReturn(Map.of(key, false));
 
             twinActionService.loadActions(List.of(twin1, twin2));
 
@@ -231,7 +230,7 @@ class TwinActionServiceLoadActionsCollectionTest extends BaseUnitTest {
             keyMap.put(key, List.of(twin1));
 
             when(permissionService.convertToDetectKeys(List.of(twin1))).thenReturn(keyMap);
-            when(permissionService.hasPermission(key, permissionId)).thenReturn(false);
+            when(permissionService.hasPermissionBatch(anyMap())).thenReturn(Map.of(key, false));
 
             twinActionService.loadActions(List.of(twin1));
 
