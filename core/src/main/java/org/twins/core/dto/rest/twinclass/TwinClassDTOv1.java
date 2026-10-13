@@ -111,14 +111,6 @@ public class TwinClassDTOv1 {
     @Schema(description = "create permission id")
     public UUID createPermissionId;
 
-    @RelatedObject(type = PermissionDTOv1.class, name = "editPermission")
-    @Schema(description = "edit permission id")
-    public UUID editPermissionId;
-
-    @RelatedObject(type = PermissionDTOv1.class, name = "deletePermission")
-    @Schema(description = "delete permission id")
-    public UUID deletePermissionId;
-
     @Schema(description = "uuid of name in I18n table")
     public UUID nameI18nId;
 

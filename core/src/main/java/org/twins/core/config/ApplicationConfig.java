@@ -28,11 +28,13 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskDecorator;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.concurrent.SimpleAsyncTaskScheduler;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.BulkheadFilter;
 import org.twins.core.config.filter.I18nCacheCleanupFilter;
@@ -42,6 +44,8 @@ import org.twins.core.featurer.scheduler.Scheduler;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -90,6 +94,21 @@ public class ApplicationConfig {
         final RestTemplate restTemplate = new RestTemplate(new BufferingClientHttpRequestFactory(factory));
         restTemplate.getInterceptors().add(filter);
         return restTemplate;
+    }
+
+    // TODO add to properties
+    @Bean
+    public RestClient fileHandlerRestClient(RestTemplateConfig.LogRequestResponseFilter filter) {
+        var httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(5))
+                .build();
+        var factory = new JdkClientHttpRequestFactory(httpClient);
+        factory.setReadTimeout(Duration.ofSeconds(300));
+
+        return RestClient.builder()
+                .requestFactory(new BufferingClientHttpRequestFactory(factory))
+                .requestInterceptor(filter)
+                .build();
     }
 
     @Bean
