@@ -1167,6 +1167,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
             checkAssignee(changesRecorder.getDbEntity(), newAssignee != null ? newAssignee.getId() : null);
             if (changesRecorder.isHistoryCollectorEnabled()) {
+                loadUser(changesRecorder.getDbEntity()); // assignerUser is transient now: history events need the previous assignee
                 if (newAssignee != null) {
                     if (changesRecorder.getDbEntity().getAssignerUserId() == null) {
                         changesRecorder.getHistoryCollector().add(historyService.assigneeAssigned(newAssignee));
@@ -1469,10 +1470,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
         twinStatusTriggerService.runTwinStatusTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus(), twinDuplicate.getChangesCollector());
         twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
-    }
-
-    public UserEntity getTwinAssignee(UUID twinId) {
-        return twinRepository.getAssignee(twinId);
     }
 
     public void loadFieldsValues(TwinEntity src) throws ServiceException {

@@ -53,6 +53,7 @@ public class FillerFieldUserFromOutputTwinHeadAssignee extends FillerAtomic {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItemTwin.logDetailed());
         if(null == headTwin.getAssignerUserId())
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for head[" + headTwin.logShort() + "]twin detected for twin: " + factoryItemTwin.logDetailed());
+        twinService.loadUser(headTwin); // assignerUser is transient, filled in batch
         FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
         fieldValue.add(headTwin.getAssignerUser());
         factoryItem.getOutput().addField(fieldValue);

@@ -51,7 +51,7 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
 
     @Override
     protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination, Set<UUID> stack) throws ServiceException {
-        List<TwinSearchEntity> children = children(properties);
+        List<TwinSearchEntity> children = findChildrenTwinSearches(properties);
         long[] counts = counts(children, namedParams, narrow, stack);
         List<TwinEntity> rows = new ArrayList<>();
         for (Slice slice : ConcatenatedPageWindow.slices(counts, pagination.getOffset(), pagination.getLimit())) {
@@ -68,14 +68,14 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
 
     @Override
     protected long doCount(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {
-        return ConcatenatedPageWindow.total(counts(children(properties), namedParams, narrow, stack));
+        return ConcatenatedPageWindow.total(counts(findChildrenTwinSearches(properties), namedParams, narrow, stack));
     }
 
-    private List<TwinSearchEntity> children(Properties properties) throws ServiceException {
-        List<UUID> ids = childTwinSearchIds.extract(properties);
-        if (ids.isEmpty())
+    private List<TwinSearchEntity> findChildrenTwinSearches(Properties properties) throws ServiceException {
+        List<UUID> childrenTwinSearchIds = childTwinSearchIds.extract(properties);
+        if (childrenTwinSearchIds.isEmpty())
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "concatenated search has no child searches");
-        return twinSearchService.loadSearchesInOrder(ids);
+        return twinSearchService.getSearchById(childrenTwinSearchIds);
     }
 
     private long[] counts(List<TwinSearchEntity> children, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {

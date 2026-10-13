@@ -147,7 +147,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
                 case OWNER_USER_ID:
                     return toSortSpecification(ascending, TwinEntity.Fields.ownerUser, UserEntity.Fields.name);
                 case ASSIGNEE_USER_ID:
-                    return toSortSpecification(ascending, TwinEntity.Fields.assignerUser, UserEntity.Fields.name);
+                    return toSortSpecification(ascending, TwinEntity.Fields.assignerUserSpecOnly, UserEntity.Fields.name);
                 case CREATOR_USER_ID:
                     return toSortSpecification(ascending, TwinEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
                 default:

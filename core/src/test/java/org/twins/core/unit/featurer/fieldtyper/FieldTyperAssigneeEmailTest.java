@@ -20,6 +20,30 @@ class FieldTyperAssigneeEmailTest extends BaseUnitTest {
 
     private final FieldTyperAssigneeEmail fieldTyper = new FieldTyperAssigneeEmail();
 
+    @org.mockito.Mock
+    private org.twins.core.service.twin.TwinService twinService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() throws Exception {
+        // deserializeValue resolves the assignee via TwinService.loadUser (assignerUser is transient)
+        setField(fieldTyper, "twinService", twinService);
+    }
+
+    private static void setField(Object target, String name, Object value) throws Exception {
+        Class<?> clazz = target.getClass();
+        while (clazz != null) {
+            try {
+                var field = clazz.getDeclaredField(name);
+                field.setAccessible(true);
+                field.set(target, value);
+                return;
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(name);
+    }
+
     private TwinField twinField(TwinEntity twin, TwinClassFieldEntity classField) {
         return new TwinField(twin, classField);
     }

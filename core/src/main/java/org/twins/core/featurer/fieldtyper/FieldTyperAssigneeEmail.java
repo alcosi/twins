@@ -26,6 +26,7 @@ public class FieldTyperAssigneeEmail extends FieldTyperImmutable<FieldDescriptor
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
+        twinService.loadUser(twinField.getTwin()); // assignerUser is transient, filled in batch
         return new FieldValueText(twinField.getTwinClassField()).setValue(twinField.getTwin().getAssignerUser().getEmail());
     }
 }

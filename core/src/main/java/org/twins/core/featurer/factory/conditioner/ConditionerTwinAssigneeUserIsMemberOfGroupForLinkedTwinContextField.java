@@ -15,6 +15,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsUserGroupId;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.Map;
@@ -35,6 +36,10 @@ public class ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextField
     @Autowired
     private UserGroupService userGroupService;
 
+    @Lazy
+    @Autowired
+    private TwinService twinService;
+
     @Override
     protected Map<UUID, FieldValue> getFields(FactoryItem factoryItem) throws ServiceException {
         return factoryItem.getFactoryContext().getFields();
@@ -43,6 +48,7 @@ public class ConditionerTwinAssigneeUserIsMemberOfGroupForLinkedTwinContextField
     @Override
     protected boolean check(TwinEntity twinEntity, Properties properties) throws ServiceException {
         Set<UUID> propertiesUuids = userGroupIds.extract(properties);
+        twinService.loadUser(twinEntity); // assignerUser is transient, filled in batch
         UserEntity assignerUser = twinEntity.getAssignerUser();
         userGroupService.loadGroups(assignerUser);
         return KitUtils.isNotEmpty(assignerUser.getUserGroups()) && assignerUser.getUserGroups().getIdSet().stream().anyMatch(propertiesUuids::contains);

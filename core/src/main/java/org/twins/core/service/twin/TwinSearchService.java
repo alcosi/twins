@@ -23,14 +23,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.search.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
@@ -66,22 +64,18 @@ import static org.cambium.common.util.SetUtils.narrowSet;
 public class TwinSearchService {
     private final EntityManager entityManager;
     private final TwinRepository twinRepository;
-    private final UserRepository userRepository;
-    private final UserGroupService userGroupService;
     private final TwinSearchRepository twinSearchRepository;
     private final TwinSearchAliasRepository twinSearchAliasRepository;
     private final TwinSearchPredicateRepository twinSearchPredicateRepository;
     private final TwinSearchSortService twinSearchSortService;
     private final TwinSearchPredicateService twinSearchPredicateService;
     private final TwinClassFieldService twinClassFieldService;
-    private final PermissionService permissionService;
+    private final EntitySmartService entitySmartService;
+    private final TwinSearchServiceV2 twinSearchServiceV2;
     @Lazy
     private final FeaturerService featurerService;
     @Lazy
     private final AuthService authService;
-    private final EntitySmartService entitySmartService;
-    private final DBUService dbuService;
-    private final TwinSearchServiceV2 twinSearchServiceV2;
 
     public Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -112,26 +106,7 @@ public class TwinSearchService {
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
         spec = addSorting(basicSearch, pagination, spec);
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        loadTwinRefs(ret.getContent());
         return PaginationUtils.convertInPaginationResult(ret, pagination);
-    }
-
-    /**
-     * Batch-loads the users referenced by the page entities (creator + assigner) into the
-     * persistence context, so the following DTO conversion resolves them via findById → L1 cache
-     * instead of a select per distinct id. The page rows must be from the same persistence
-     * context (they always are: this is called right after the page query).
-     */
-    private void loadTwinRefs(Collection<TwinEntity> twins) {
-        Set<UUID> userIds = new HashSet<>();
-        for (TwinEntity twin : twins) {
-            if (twin.getCreatedByUserId() != null)
-                userIds.add(twin.getCreatedByUserId());
-            if (twin.getAssignerUserId() != null)
-                userIds.add(twin.getAssignerUserId());
-        }
-        if (!userIds.isEmpty())
-            userRepository.findByIdIn(userIds);
     }
 
     //todo THIS IS TEMPORAL SOLUTION FOR WORKING TWIN SEARCH V3
@@ -266,6 +241,27 @@ public class TwinSearchService {
         return findTwins(entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);
     }
 
+    /**
+     * Ids of the twins matched by the saved search: single-column criteria query over the search
+     * predicates — no entities, no pagination, no count, no narrow. The saved search's own
+     * executor is not run (predicate search only). At most {@code limit} ids are returned; the
+     * {@code limit + 1} trick detects truncation and warns (no extra count query).
+     */
+    public Set<UUID> findTwinIds(UUID searchId, Map<String, String> namedParamsMap, int limit) throws ServiceException {
+        if (limit < 1)
+            throw new ServiceException(ErrorCodeTwins.PAGINATION_LIMIT_ERROR);
+        TwinSearchEntity search = entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        BasicSearch basicSearch = toBasicSearch(search, namedParamsMap, null);
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<UUID> query = cb.createQuery(UUID.class);
+        Root<TwinEntity> root = query.from(TwinEntity.class);
+        query.select(root.get(TwinEntity.Fields.id)).where(createTwinEntitySearchSpecification(basicSearch).toPredicate(root, query, cb));
+        List<UUID> ids = entityManager.createQuery(query).setMaxResults(limit + 1).getResultList();
+        if (ids.size() > limit)
+            log.warn("findTwinIds[{}] matched more than limit[{}] twins, capped - twins beyond the cap are missed", searchId, limit);
+        return Set.copyOf(ids.subList(0, Math.min(ids.size(), limit)));
+    }
+
     public PaginationResult<TwinEntity> findTwins(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
         PaginationUtils.validPagination(pagination);
         return twinSearchExecutor(twinSearchEntity).execute(twinSearchEntity, namedParamsMap, searchNarrow, pagination);
@@ -289,7 +285,7 @@ public class TwinSearchService {
         return featurerService.getFeaturer(search.getTwinSearchExecutorFeaturerId(), TwinSearchExecutor.class);
     }
 
-    public List<TwinSearchEntity> loadSearchesInOrder(List<UUID> searchIds) throws ServiceException {
+    public List<TwinSearchEntity> getSearchById(List<UUID> searchIds) throws ServiceException {
         Map<UUID, TwinSearchEntity> byId = new HashMap<>();
         for (TwinSearchEntity search : twinSearchRepository.findAllById(searchIds))
             byId.put(search.getId(), search);
@@ -308,14 +304,6 @@ public class TwinSearchService {
      * but the offset does not have to be a multiple of the limit.
      */
     public PaginationResult<TwinEntity> findTwinsUnaligned(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        return findTwinsUnaligned(basicSearch, pagination, true);
-    }
-
-    /**
-     * @param loadRefs batch-load the users referenced by the returned page into the persistence
-     *                 context; pass {@code false} when only the twin ids are consumed
-     */
-    public PaginationResult<TwinEntity> findTwinsUnaligned(BasicSearch basicSearch, SimplePagination pagination, boolean loadRefs) throws ServiceException {
         if (pagination.getLimit() < 1)
             throw new ServiceException(ErrorCodeTwins.PAGINATION_LIMIT_ERROR);
         if (pagination.getOffset() < 0)
@@ -326,29 +314,7 @@ public class TwinSearchService {
         Sort sort = pagination.getSort();
         Pageable pageable = new OffsetLimitPageRequest(pagination.getOffset(), pagination.getLimit(), sort == null ? Sort.unsorted() : sort);
         Page<TwinEntity> ret = twinRepository.findAll(spec, pageable);
-        if (loadRefs)
-            loadTwinRefs(ret.getContent());
         return PaginationUtils.convertInPaginationResult(ret, pagination);
-    }
-
-    /**
-     * Same query as {@link #findTwinsUnaligned(BasicSearch, SimplePagination)}, but without the
-     * extra count query Spring Data runs for {@link Page} — for callers that already know the
-     * total themselves (e.g. concatenated searches that counted each part separately).
-     */
-    public List<TwinEntity> findTwinsUnalignedNoCount(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        if (pagination.getLimit() < 1)
-            throw new ServiceException(ErrorCodeTwins.PAGINATION_LIMIT_ERROR);
-        if (pagination.getOffset() < 0)
-            throw new ServiceException(ErrorCodeTwins.PAGINATION_ERROR, "pagination offset cannot be negative");
-        twinSearchServiceV2.detectSystemClassSearchCheck(basicSearch);
-        Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
-        spec = addSorting(basicSearch, pagination, spec);
-        Sort sort = pagination.getSort();
-        Pageable pageable = new OffsetLimitPageRequest(pagination.getOffset(), pagination.getLimit(), sort == null ? Sort.unsorted() : sort);
-        List<TwinEntity> ret = twinRepository.findBy(spec, query -> query.slice(pageable)).getContent();
-        loadTwinRefs(ret);
-        return ret;
     }
 
     protected void addPredicates(List<TwinSearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {
