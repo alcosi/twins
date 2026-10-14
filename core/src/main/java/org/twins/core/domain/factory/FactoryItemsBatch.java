@@ -31,6 +31,7 @@ public class FactoryItemsBatch {
     // incrementally in add() like twins/twinIds, so the no-arg getter is a plain field read.
     // Identity-deduped: multiplier copies share one context item, its twin is added once.
     private final Set<TwinEntity> contextTwins = Collections.newSetFromMap(new IdentityHashMap<>());
+    private Map<UUID, Set<TwinEntity>> contextTwinsByClass = null;
     private final Set<UUID> twinIds = new HashSet<>();
     @Getter(AccessLevel.NONE)
     private final Set<FactoryItem> uniq = Collections.newSetFromMap(new IdentityHashMap<>()); // identity guard: FactoryItem equals is field-based and mutable
@@ -39,6 +40,7 @@ public class FactoryItemsBatch {
         if (factoryItem == null || !uniq.add(factoryItem)) {
             return this; // already registered — keeps twins/twinIds free of duplicates
         }
+        contextTwinsByClass = null; // per-class view is derived on demand — drop it when the batch grows
         factoryItems.add(factoryItem);
         TwinEntity twin = factoryItem.getTwin();
         if (twin != null) {
@@ -83,6 +85,28 @@ public class FactoryItemsBatch {
             collectContextTwins(contextItems, 2, level, ret);
         }
         return ret;
+    }
+
+    /**
+     * Context twins of the given class for the batch items — the bulk-preload view for
+     * {@code beforeFill} hooks that resolve the context twin of a configured class
+     * (e.g. {@code FillerBasicsAssigneeFromContextTwinOfClassAssignee}). Cached per class,
+     * empty result included; the cache is dropped by {@link #add}.
+     */
+    public Set<TwinEntity> getContextTwins(UUID twinClassId) {
+        if (contextTwinsByClass == null)
+            contextTwinsByClass = new HashMap<>();
+        Set<TwinEntity> cached = contextTwinsByClass.get(twinClassId);
+        if (cached != null)
+            return cached;
+        Set<TwinEntity> found = Collections.newSetFromMap(new IdentityHashMap<>());
+        for (FactoryItem factoryItem : factoryItems) {
+            TwinEntity contextTwinOfClass = factoryItem.lookupTwinOfClass(twinClassId);
+            if (contextTwinOfClass != null)
+                found.add(contextTwinOfClass);
+        }
+        contextTwinsByClass.put(twinClassId, found);
+        return found;
     }
 
     private static void collectContextTwins(List<FactoryItem> items, int currentLevel, int maxLevel, Set<TwinEntity> acc) {

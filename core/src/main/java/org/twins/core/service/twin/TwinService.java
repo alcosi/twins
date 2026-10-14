@@ -1311,6 +1311,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 TwinEntity::setHeadTwin);
     }
 
+    //todo think over concat logic with load method
+    public Collection<TwinEntity> getHead(Collection<TwinEntity> srcCollection) throws ServiceException {
+        return srcCollection.stream().map(TwinEntity::getHeadTwin).filter(Objects::nonNull).collect(Collectors.toSet());
+    }
+
     public void loadSegments(TwinEntity twinEntity) {
         loadSegments(Collections.singletonList(twinEntity));
     }

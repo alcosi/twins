@@ -4,7 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
@@ -15,7 +14,6 @@ import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -123,21 +121,5 @@ public class FactoryExecutionService {
 
     public boolean mustBeDrafted(FactoryResultUncommited factoryResultUncommited) {
         return KitUtils.isNotEmpty(factoryResultUncommited.getDeletes());
-    }
-
-    public TwinEntity lookupTwinOfClass(FactoryItem factoryItem, UUID twinClassId, int depth) {
-        if (factoryItem == null || twinClassId == null || depth > 5) return null;
-
-        TwinEntity currentTwin = factoryItem.getTwin();
-        if (currentTwin != null && twinClassId.equals(currentTwin.getTwinClassId())) return currentTwin;
-
-        List<FactoryItem> contextItems = factoryItem.getContextFactoryItemList();
-        if (!CollectionUtils.isEmpty(contextItems)) {
-            for (FactoryItem subItem : contextItems) {
-                TwinEntity foundTwin = lookupTwinOfClass(subItem, twinClassId, depth + 1);
-                if (foundTwin != null) return foundTwin;
-            }
-        }
-        return null;
     }
 }

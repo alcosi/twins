@@ -45,7 +45,7 @@ public class FillerFieldUserFromOutputTwinBasicField extends FillerAtomic {
     private TwinService twinService;
 
     @Override
-    protected void beforeFill(FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
+    protected void beforeFill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
         if (!batch.getTwins().isEmpty())
             twinService.loadUser(batch.getTwins()); // one query for the whole batch; per-item loadUser becomes an in-memory no-op
     }

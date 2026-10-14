@@ -35,7 +35,7 @@ class FillerAtomicTest extends BaseUnitTest {
         }
 
         @Override
-        protected void beforeFill(FactoryItemsBatch batch, TwinEntity templateTwin) {
+        protected void beforeFill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin) {
             events.add("beforeFill");
         }
 

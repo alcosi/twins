@@ -3,10 +3,13 @@ package org.twins.core.featurer.factory.filler;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 
@@ -16,6 +19,15 @@ import java.util.Properties;
         description = "")
 @Slf4j
 public class FillerBasicsAssigneeFromContextTwinAssignee extends FillerAtomic {
+    @Autowired
+    TwinService twinService;
+
+    @Override
+    protected void beforeFill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
+        if (!batch.getContextTwins().isEmpty())
+            twinService.loadUser(batch.getContextTwins());
+    }
+
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();

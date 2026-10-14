@@ -27,9 +27,11 @@ public class FillerBasicsAssigneeFromOutputTwinHeadAssignee extends FillerAtomic
     TwinService twinService;
 
     @Override
-    protected void beforeFill(FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
-        if (!batch.getTwins().isEmpty())
+    protected void beforeFill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
             twinService.loadHead(batch.getTwins()); // one query for the whole batch
+            twinService.loadUser(twinService.getHead(batch.getTwins()));
+        }
     }
 
     @Override

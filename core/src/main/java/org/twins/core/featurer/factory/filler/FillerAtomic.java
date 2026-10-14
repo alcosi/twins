@@ -22,7 +22,7 @@ public abstract class FillerAtomic extends Filler {
     public final void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
         if (batch == null || batch.isEmpty())
             return;
-        beforeFill(batch, templateTwin);
+        beforeFill(properties, batch, templateTwin);
         for (FactoryItem factoryItem : batch.getFactoryItems()) {
             try {
                 fill(properties, factoryItem, templateTwin);
@@ -38,7 +38,7 @@ public abstract class FillerAtomic extends Filler {
      * {@link FactoryItemsBatch#getTwinIds()}) instead of re-collecting them from the items.
      * Default: no-op.
      */
-    protected void beforeFill(FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
+    protected void beforeFill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
     }
 
     /**

@@ -4,7 +4,6 @@ import org.cambium.common.exception.ServiceException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -12,45 +11,22 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromContextTwinOfClassAssignee;
-import org.twins.core.service.factory.FactoryExecutionService;
 
-import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
 
 class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTest {
-
-    @Mock
-    private FactoryExecutionService factoryExecutionService;
 
     private FillerBasicsAssigneeFromContextTwinOfClassAssignee filler;
 
     private static final UUID TWIN_CLASS_ID = UUID.randomUUID();
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         filler = new FillerBasicsAssigneeFromContextTwinOfClassAssignee();
-        inject(filler, "factoryExecutionService", factoryExecutionService);
-    }
-
-    private void inject(Object target, String name, Object value) throws Exception {
-        Field f = findField(target.getClass(), name);
-        f.setAccessible(true);
-        f.set(target, value);
-    }
-
-    private Field findField(Class<?> clazz, String name) {
-        while (clazz != null) {
-            try {
-                return clazz.getDeclaredField(name);
-            } catch (NoSuchFieldException e) {
-                clazz = clazz.getSuperclass();
-            }
-        }
-        throw new RuntimeException("field not found: " + name);
     }
 
     private Properties props() {
@@ -59,10 +35,15 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
         return p;
     }
 
-    private FactoryItem buildFactoryItem() {
+    // the filler looks the twin of the configured class up in the item's context — build a real
+    // context chain instead of stubbing the lookup
+    private FactoryItem buildFactoryItem(TwinEntity contextTwin) {
         var output = new TwinCreate();
         output.setTwinEntity(new TwinEntity());
-        return new FactoryItem().setOutput(output);
+        var contextOutput = new TwinCreate();
+        contextOutput.setTwinEntity(contextTwin);
+        var contextItem = new FactoryItem().setOutput(contextOutput);
+        return new FactoryItem().setOutput(output).setContextFactoryItemList(List.of(contextItem));
     }
 
     @Nested
@@ -70,13 +51,13 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
 
         @Test
         void fill_foundTwinOfClass_setsItsAssignee() throws ServiceException {
-            var factoryItem = buildFactoryItem();
             var assigneeId = UUID.randomUUID();
             var assignee = new UserEntity().setId(assigneeId);
             var contextTwin = new TwinEntity()
+                    .setTwinClassId(TWIN_CLASS_ID)
                     .setAssignerUser(assignee)
                     .setAssignerUserId(assigneeId);
-            when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
+            var factoryItem = buildFactoryItem(contextTwin);
 
             filler.fill(props(), factoryItem, null);
 
@@ -88,8 +69,8 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
 
         @Test
         void fill_noTwinOfClassFound_throwsStepError() {
-            var factoryItem = buildFactoryItem();
-            when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(null);
+            var wrongClassTwin = new TwinEntity().setTwinClassId(UUID.randomUUID());
+            var factoryItem = buildFactoryItem(wrongClassTwin);
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), factoryItem, null));
@@ -98,9 +79,8 @@ class FillerBasicsAssigneeFromContextTwinOfClassAssigneeTest extends BaseUnitTes
 
         @Test
         void fill_foundTwinWithNullAssignee_setsNull() throws ServiceException {
-            var factoryItem = buildFactoryItem();
-            var contextTwin = new TwinEntity(); // assignee null
-            when(factoryExecutionService.lookupTwinOfClass(factoryItem, TWIN_CLASS_ID, 0)).thenReturn(contextTwin);
+            var contextTwin = new TwinEntity().setTwinClassId(TWIN_CLASS_ID); // assignee null
+            var factoryItem = buildFactoryItem(contextTwin);
 
             filler.fill(props(), factoryItem, null);
 
