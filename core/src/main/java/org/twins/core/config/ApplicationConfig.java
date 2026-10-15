@@ -103,7 +103,7 @@ public class ApplicationConfig {
                 .connectTimeout(Duration.ofSeconds(5))
                 .build();
         var factory = new JdkClientHttpRequestFactory(httpClient);
-        factory.setReadTimeout(Duration.ofSeconds(300));
+        factory.setReadTimeout(Duration.ofSeconds(120));
 
         return RestClient.builder()
                 .requestFactory(new BufferingClientHttpRequestFactory(factory))
