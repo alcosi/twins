@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.cambium.common.util.SetUtils.narrowSet;
 
@@ -70,5 +71,14 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
         if (element == null || key == null || map == null)
             return;
         map.computeIfAbsent(key, k -> new HashSet<>()).add(element);
+    }
+
+    public static String canonical(Map<String, String> map) {
+        if (MapUtils.isEmpty(map)) return "";
+        return map.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> e.getKey() + "=" + e.getValue())
+                .collect(Collectors.joining("&"));
     }
 }

@@ -2,12 +2,10 @@ package org.twins.core.featurer.twin.finder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.holder.EntityRequestCacheHolder;
@@ -18,7 +16,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * Shared lookup of twin ids produced by a saved search.
@@ -86,7 +83,7 @@ public abstract class TwinFinderSubquery extends TwinFinder {
         return CACHE_KEY_PREFIX + apiUser.getDomainId()
                 + "|" + apiUser.getUserId()
                 + "|search=" + subQueryTwinSearchId
-                + "|params=" + namedParams;
+                + "|params=" + MapUtils.canonical(namedParams);
     }
 
     @SuppressWarnings("unchecked")
