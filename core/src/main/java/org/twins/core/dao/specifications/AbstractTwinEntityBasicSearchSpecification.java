@@ -32,7 +32,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] descriptionFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.description);
         String[] externalIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.externalId);
         String[] assignerUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserId);
-        String[] assignerUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUser, UserEntity.Fields.name);
+        String[] assignerUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.assignerUserSpecOnly, UserEntity.Fields.name);
         String[] createdByUserIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserId);
         String[] createdByUserNameFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
         String[] ownerBusinessAccountIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.ownerBusinessAccountId);

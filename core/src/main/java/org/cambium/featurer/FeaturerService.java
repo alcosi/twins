@@ -422,17 +422,8 @@ public class FeaturerService {
         return applicationContext.getBean(FeaturerService.class).extractProperties(featurerId, params); //self proxy
     }
 
-    private static String canonical(Map<String, String> map) {
-        if(MapUtils.isEmpty(map)) return "";
-        return map.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(Collectors.joining("&"));
-    }
-
     public static String toConfigKey(int featurerId, HashMap<String, String> params) {
-        return DigestUtils.sha256Hex(featurerId + "|" + canonical(params));
+        return DigestUtils.sha256Hex(featurerId + "|" + MapUtils.canonical(params));
     }
 
     public static String toConfigKey(Featurer featurer, HashMap<String, String> params) {

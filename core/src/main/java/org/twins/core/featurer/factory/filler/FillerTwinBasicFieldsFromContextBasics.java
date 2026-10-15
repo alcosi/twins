@@ -37,6 +37,7 @@ public class FillerTwinBasicFieldsFromContextBasics extends FillerAtomic {
     @Autowired
     private UserService userService;
 
+    //todo fix N+1 userLoad
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();

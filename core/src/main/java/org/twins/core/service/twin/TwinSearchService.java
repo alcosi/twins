@@ -3,11 +3,7 @@ package org.twins.core.service.twin;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Order;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,7 +17,6 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -42,12 +37,9 @@ import org.twins.core.featurer.twin.executor.TwinSearchExecutor;
 import org.twins.core.featurer.twin.finder.TwinFinder;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DBUService;
-import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.search.TwinSearchPredicateService;
 import org.twins.core.service.search.TwinSearchSortService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
-import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -65,21 +57,18 @@ import static org.cambium.common.util.SetUtils.narrowSet;
 public class TwinSearchService {
     private final EntityManager entityManager;
     private final TwinRepository twinRepository;
-    private final UserGroupService userGroupService;
     private final TwinSearchRepository twinSearchRepository;
     private final TwinSearchAliasRepository twinSearchAliasRepository;
     private final TwinSearchPredicateRepository twinSearchPredicateRepository;
     private final TwinSearchSortService twinSearchSortService;
     private final TwinSearchPredicateService twinSearchPredicateService;
     private final TwinClassFieldService twinClassFieldService;
-    private final PermissionService permissionService;
+    private final EntitySmartService entitySmartService;
+    private final TwinSearchServiceV2 twinSearchServiceV2;
     @Lazy
     private final FeaturerService featurerService;
     @Lazy
     private final AuthService authService;
-    private final EntitySmartService entitySmartService;
-    private final DBUService dbuService;
-    private final TwinSearchServiceV2 twinSearchServiceV2;
 
     public Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -245,6 +234,27 @@ public class TwinSearchService {
         return findTwins(entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);
     }
 
+    /**
+     * Ids of the twins matched by the saved search: single-column criteria query over the search
+     * predicates — no entities, no pagination, no count, no narrow. The saved search's own
+     * executor is not run (predicate search only). At most {@code limit} ids are returned; the
+     * {@code limit + 1} trick detects truncation and warns (no extra count query).
+     */
+    public Set<UUID> findTwinIds(UUID searchId, Map<String, String> namedParamsMap, int limit) throws ServiceException {
+        if (limit < 1)
+            throw new ServiceException(ErrorCodeTwins.PAGINATION_LIMIT_ERROR);
+        TwinSearchEntity search = entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        BasicSearch basicSearch = toBasicSearch(search, namedParamsMap, null);
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<UUID> query = cb.createQuery(UUID.class);
+        Root<TwinEntity> root = query.from(TwinEntity.class);
+        query.select(root.get(TwinEntity.Fields.id)).where(createTwinEntitySearchSpecification(basicSearch).toPredicate(root, query, cb));
+        List<UUID> ids = entityManager.createQuery(query).setMaxResults(limit + 1).getResultList();
+        if (ids.size() > limit)
+            log.warn("findTwinIds[{}] matched more than limit[{}] twins, capped - twins beyond the cap are missed", searchId, limit);
+        return Set.copyOf(ids.subList(0, Math.min(ids.size(), limit)));
+    }
+
     public PaginationResult<TwinEntity> findTwins(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
         PaginationUtils.validPagination(pagination);
         return twinSearchExecutor(twinSearchEntity).execute(twinSearchEntity, namedParamsMap, searchNarrow, pagination);
@@ -261,14 +271,15 @@ public class TwinSearchService {
     }
 
     /**
-     * Resolves the executor configured for the saved search. The recursion guard lives entirely
-     * inside {@link TwinSearchExecutor} — callers never pass it.
+     * Resolves the executor configured for the saved search. The recursion guard
+     * ({@link org.twins.core.holder.TwinSearchRecursionGuard}) lives entirely inside
+     * {@link TwinSearchExecutor} — callers never pass it.
      */
     private TwinSearchExecutor twinSearchExecutor(TwinSearchEntity search) throws ServiceException {
         return featurerService.getFeaturer(search.getTwinSearchExecutorFeaturerId(), TwinSearchExecutor.class);
     }
 
-    public List<TwinSearchEntity> loadSearchesInOrder(List<UUID> searchIds) throws ServiceException {
+    public List<TwinSearchEntity> getSearchById(List<UUID> searchIds) throws ServiceException {
         Map<UUID, TwinSearchEntity> byId = new HashMap<>();
         for (TwinSearchEntity search : twinSearchRepository.findAllById(searchIds))
             byId.put(search.getId(), search);

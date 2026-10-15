@@ -25,7 +25,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
@@ -53,13 +52,14 @@ class TwinActionServiceLoadActionsSingleTest extends BaseUnitTest {
         actionRestrictionReasonId = UUID.randomUUID();
     }
 
-    // Prod resolves permissions in batch: convertToDetectKeys(twins) -> hasPermission(PermissionDetectKey, UUID).
+    // Prod resolves permissions in batch: convertToDetectKeys(twins) -> hasPermissionBatch(keys -> permissionId).
     // hasPermission(TwinEntity, UUID) is never called by loadActions(), so we stub the batch path.
     private void stubPermission(UUID permissionId, boolean granted) throws ServiceException {
+        var detectKey = mock(PermissionDetectKey.class);
         when(permissionService.convertToDetectKeys(any()))
-                .thenReturn(Map.of(mock(PermissionDetectKey.class), List.of(twinEntity)));
-        when(permissionService.hasPermission(any(PermissionDetectKey.class), eq(permissionId)))
-                .thenReturn(granted);
+                .thenReturn(Map.of(detectKey, List.of(twinEntity)));
+        when(permissionService.hasPermissionBatch(Map.of(detectKey, permissionId)))
+                .thenReturn(Map.of(detectKey, granted));
     }
 
     // Prod validates in batch: isValid(Collection<TwinEntity>, Collection<rules>) -> Map<twinId, ValidationResult>.

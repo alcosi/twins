@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.EntryCount;
-import org.twins.core.dao.user.UserEntity;
 
 import java.util.Collection;
 import java.util.List;
@@ -27,9 +26,6 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     List<TwinEntity> findByIdIn(Collection<UUID> twinIds);
 
     boolean existsByTwinClassId(UUID twinClassId);
-
-    @Query(value = "select t.assignerUser from TwinEntity t where t.id = :twinId")
-    UserEntity getAssignee(@Param("twinId") UUID twinId);
 
     @Modifying
     @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")

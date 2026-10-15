@@ -15,8 +15,6 @@ import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Default executor. Builds one query from the saved search predicates and sorts.
@@ -32,13 +30,13 @@ public class TwinSearchExecutorByPredicates extends TwinSearchExecutor {
     private final TwinSearchService twinSearchService;
 
     @Override
-    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination, Set<UUID> stack) throws ServiceException {
+    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
         BasicSearch basicSearch = twinSearchService.toBasicSearch(search, namedParams, narrow);
         return twinSearchService.findTwinsUnaligned(basicSearch, pagination);
     }
 
     @Override
-    protected long doCount(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {
+    protected long doCount(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow) throws ServiceException {
         return twinSearchService.count(twinSearchService.toBasicSearch(search, namedParams, narrow));
     }
 }
