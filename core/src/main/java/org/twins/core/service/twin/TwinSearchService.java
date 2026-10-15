@@ -3,11 +3,7 @@ package org.twins.core.service.twin;
 import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Order;
-import jakarta.persistence.criteria.Path;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -21,8 +17,8 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.search.*;
@@ -41,12 +37,9 @@ import org.twins.core.featurer.twin.executor.TwinSearchExecutor;
 import org.twins.core.featurer.twin.finder.TwinFinder;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DBUService;
-import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.search.TwinSearchPredicateService;
 import org.twins.core.service.search.TwinSearchSortService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
-import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -278,8 +271,9 @@ public class TwinSearchService {
     }
 
     /**
-     * Resolves the executor configured for the saved search. The recursion guard lives entirely
-     * inside {@link TwinSearchExecutor} — callers never pass it.
+     * Resolves the executor configured for the saved search. The recursion guard
+     * ({@link org.twins.core.holder.TwinSearchRecursionGuard}) lives entirely inside
+     * {@link TwinSearchExecutor} — callers never pass it.
      */
     private TwinSearchExecutor twinSearchExecutor(TwinSearchEntity search) throws ServiceException {
         return featurerService.getFeaturer(search.getTwinSearchExecutorFeaturerId(), TwinSearchExecutor.class);

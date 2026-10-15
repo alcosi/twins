@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.holder.EntityRequestCacheHolder;
+import org.twins.core.holder.TwinSearchRecursionGuard;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
@@ -18,16 +19,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TwinFinderByLinkFromSubqueryTest {
@@ -44,6 +38,7 @@ class TwinFinderByLinkFromSubqueryTest {
     @BeforeEach
     void setUp() {
         EntityRequestCacheHolder.clear();
+        TwinSearchRecursionGuard.clear();
         finder = new TwinFinderByLinkFromSubquery();
         finder.twinSearchService = twinSearchService;
     }
@@ -144,7 +139,8 @@ class TwinFinderByLinkFromSubqueryTest {
         ServiceException e = assertThrows(ServiceException.class,
                 () -> finder.concat(new TwinSearch(), properties(searchId, link, true), Map.of()));
 
-        assertTrue(e.getMessage().contains("circular subquery"));
+        // the shared saved-search recursion guard names the cycle
+        assertTrue(e.getMessage().contains("circular saved search"), "message was: " + e.getMessage());
     }
 
 

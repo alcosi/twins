@@ -7,12 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.holder.EntityRequestCacheHolder;
+import org.twins.core.holder.TwinSearchRecursionGuard;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -33,13 +32,6 @@ import java.util.UUID;
 public abstract class TwinFinderSubquery extends TwinFinder {
 
     private static final String CACHE_KEY_PREFIX = "TwinFinderSubquery_";
-
-    /**
-     * Subquery searches currently being resolved on this thread. The subquery runs through its own
-     * executor, whose stack guard starts fresh on every public call — without this chain a search
-     * whose finder (directly or through other searches) references itself would recurse forever.
-     */
-    private static final ThreadLocal<Set<UUID>> RESOLVING_SUBQUERIES = ThreadLocal.withInitial(HashSet::new);
 
     @Autowired
     TwinSearchService twinSearchService;
@@ -63,14 +55,13 @@ public abstract class TwinFinderSubquery extends TwinFinder {
     }
 
     private Set<UUID> loadSubqueryTwinIds(UUID subQueryTwinSearchId, Map<String, String> namedParams, int limit) throws ServiceException {
-        Set<UUID> resolving = RESOLVING_SUBQUERIES.get();
-        if (!resolving.add(subQueryTwinSearchId))
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
-                    "circular subquery: saved search [" + subQueryTwinSearchId + "] resolves itself through TwinFinderByLinkFromSubquery");
+        // the shared recursion chain of saved searches — a subquery that leads back to a search
+        // being resolved (including the one running this finder) fails here instead of looping
+        TwinSearchRecursionGuard.push(subQueryTwinSearchId);
         try {
             return twinSearchService.findTwinIds(subQueryTwinSearchId, namedParams, limit);
         } finally {
-            resolving.remove(subQueryTwinSearchId);
+            TwinSearchRecursionGuard.pop(subQueryTwinSearchId);
         }
     }
 

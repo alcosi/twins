@@ -18,12 +18,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDListTwinsTwinSearchId;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Executes a saved search as a concatenation of child saved searches.
@@ -50,13 +45,13 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
     private final TwinSearchService twinSearchService;
 
     @Override
-    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination, Set<UUID> stack) throws ServiceException {
+    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
         List<TwinSearchEntity> children = findChildrenTwinSearches(properties);
-        long[] counts = counts(children, namedParams, narrow, stack);
+        long[] counts = counts(children, namedParams, narrow);
         List<TwinEntity> rows = new ArrayList<>();
         for (Slice slice : ConcatenatedPageWindow.slices(counts, pagination.getOffset(), pagination.getLimit())) {
             SimplePagination childPagination = new SimplePagination().setOffset(slice.offset()).setLimit(slice.limit());
-            rows.addAll(executeChild(children.get(slice.index()), namedParams, narrow, childPagination, stack).getList());
+            rows.addAll(executeChild(children.get(slice.index()), namedParams, narrow, childPagination).getList());
         }
         PaginationResult<TwinEntity> result = new PaginationResult<TwinEntity>()
                 .setList(rows)
@@ -67,8 +62,8 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
     }
 
     @Override
-    protected long doCount(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {
-        return ConcatenatedPageWindow.total(counts(findChildrenTwinSearches(properties), namedParams, narrow, stack));
+    protected long doCount(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow) throws ServiceException {
+        return ConcatenatedPageWindow.total(counts(findChildrenTwinSearches(properties), namedParams, narrow));
     }
 
     private List<TwinSearchEntity> findChildrenTwinSearches(Properties properties) throws ServiceException {
@@ -78,10 +73,10 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
         return twinSearchService.getSearchById(childrenTwinSearchIds);
     }
 
-    private long[] counts(List<TwinSearchEntity> children, Map<String, String> namedParams, BasicSearch narrow, Set<UUID> stack) throws ServiceException {
+    private long[] counts(List<TwinSearchEntity> children, Map<String, String> namedParams, BasicSearch narrow) throws ServiceException {
         long[] counts = new long[children.size()];
         for (int i = 0; i < children.size(); i++)
-            counts[i] = countChild(children.get(i), namedParams, narrow, stack);
+            counts[i] = countChild(children.get(i), namedParams, narrow);
         return counts;
     }
 }
