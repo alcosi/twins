@@ -38,6 +38,7 @@ public class EntityDuplicateCollector {
     private final Map<DuplicateKey, EntityDuplicate<?, ?>> entries = new LinkedHashMap<>();
     private final Map<Class<?>, EntityDuplicateService<?, ?, ?>> services = new LinkedHashMap<>();
     private final Map<UUID, UUID> i18nRemap = new LinkedHashMap<>();
+    private final Map<Class<?>, Map<UUID, Integer>> maxOrderCache = new LinkedHashMap<>();
 
     /**
      * Registers the service responsible for {@code clazz}. Idempotent. Each subclass calls this
@@ -123,5 +124,14 @@ public class EntityDuplicateCollector {
 
     public Map<UUID, UUID> getI18nRemap() {
         return Collections.unmodifiableMap(i18nRemap);
+    }
+
+    /**
+     * Per-parent max order cache scoped to one duplicate operation. Order-allocating services keep
+     * the running max here (db max + orders already handed out in this operation) so appending
+     * cloned children costs one db lookup per distinct parent instead of one per cloned entity.
+     */
+    public Map<UUID, Integer> getMaxOrderCache(Class<?> clazz) {
+        return maxOrderCache.computeIfAbsent(clazz, k -> new HashMap<>());
     }
 }

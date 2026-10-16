@@ -26,7 +26,6 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twinclass.OwnerType;
-import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.sql.Timestamp;
@@ -220,7 +219,6 @@ public class SystemEntityBootstrapService {
                     .setBackwardNameI18NId(systemLink.backwardName() != null ? systemLink.backwardName().i18nId() : null)
                     .setType(systemLink.type())
                     .setLinkStrengthId(systemLink.strength())
-                    .setLinkerFeaturerId(FeaturerTwins.ID_3001)
                     .setSrcTwinClassInheritable(true)
                     .setDstTwinClassInheritable(true)
                     .setCreatedByUserId(SystemIds.User.SYSTEM));

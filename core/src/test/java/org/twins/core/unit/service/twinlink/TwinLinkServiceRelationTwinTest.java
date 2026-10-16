@@ -3,7 +3,6 @@ package org.twins.core.unit.service.twinlink;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +34,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.link.LinkValidatorService;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
@@ -64,6 +64,8 @@ class TwinLinkServiceRelationTwinTest {
     @Mock
     private TwinLinkRepository twinLinkRepository;
     @Mock
+    private LinkValidatorService linkValidatorService; // no stubs — default no-op skips validateLinkByLinkers
+    @Mock
     private TwinService twinService;
     @Mock
     private TwinSearchService twinSearchService;
@@ -77,8 +79,6 @@ class TwinLinkServiceRelationTwinTest {
     private HistoryService historyService;
     @Mock
     private TwinChangesService twinChangesService;
-    @Mock
-    private FeaturerService featurerService;
     @Mock
     private UserService userService;
 
