@@ -10,14 +10,26 @@
 -- 0. Shared helpers
 -- ============================================================================
 
--- Registry of versioned configuration tables (pilot: 7). Extended per wave by replacing this function.
-CREATE OR REPLACE FUNCTION domain_version_config_tables() RETURNS text[] AS
+-- Single registry of the versioned configuration tables (pilot: 7). A new wave adds one row.
+-- excluded_columns: technical columns stripped by the meaningful change detection — common
+-- columns are prepended, table-specific derived columns (counters, hierarchy trees) are listed
+-- in the row. created_at is common: it never changes on UPDATE and is pure noise on a
+-- re-insert (resurrection).
+CREATE OR REPLACE FUNCTION domain_version_tables() RETURNS TABLE(table_name text, excluded_columns text[]) AS
 $$
-BEGIN
-    RETURN ARRAY['twin_class', 'twin_class_field', 'twin_status', 'data_list',
-                 'data_list_option', 'data_list_subset', 'data_list_subset_option'];
-END;
-$$ LANGUAGE plpgsql;
+    SELECT v.t, ARRAY['updated_at', 'domain_version_id', 'created_at'] || v.specific
+      FROM (VALUES
+            ('twin_class',              ARRAY['twin_counter', 'head_hierarchy_counter_direct_children',
+                                                 'extends_hierarchy_counter_direct_children',
+                                                 'extends_hierarchy_tree', 'head_hierarchy_tree']),
+            ('twin_class_field',        ARRAY[]::text[]),
+            ('twin_status',             ARRAY[]::text[]),
+            ('data_list',               ARRAY[]::text[]),
+            ('data_list_option',        ARRAY[]::text[]),
+            ('data_list_subset',        ARRAY[]::text[]),
+            ('data_list_subset_option', ARRAY[]::text[])
+           ) AS v(t, specific)
+$$ LANGUAGE sql IMMUTABLE;
 
 -- Advisory lock key: one key per domain for the whole edit/operation protocol
 CREATE OR REPLACE FUNCTION domain_version_edit_lock_key(p_domain_id uuid) RETURNS bigint AS
@@ -25,18 +37,24 @@ $$
     SELECT hashtext('domain_version_edit-' || p_domain_id::text)::bigint;
 $$ LANGUAGE sql IMMUTABLE;
 
--- Meaningful change detection, shared by stamping and audit. Technical columns are excluded:
--- updated_at, the stamp itself, derived counters and derived hierarchy trees;
--- row_status IS meaningful (DISABLE/ENABLE).
-CREATE OR REPLACE FUNCTION domain_version_is_meaningful_change(p_old jsonb, p_new jsonb) RETURNS boolean AS
+-- Per-table technical columns excluded from the meaningful change detection.
+-- Common columns live in the default branch; table-specific derived columns (counters,
+-- hierarchy trees) are listed per table. A new wave adds one CASE line here.
+-- Technical columns excluded from the meaningful change detection, per registry row
+-- (see domain_version_tables). Unknown tables fall back to the common set.
+CREATE OR REPLACE FUNCTION domain_version_excluded_columns(p_table text) RETURNS text[] AS
 $$
-    SELECT (p_old - ARRAY['updated_at', 'domain_version_id', 'twin_counter',
-                          'head_hierarchy_counter_direct_children', 'extends_hierarchy_counter_direct_children',
-                          'extends_hierarchy_tree', 'head_hierarchy_tree'])
+    SELECT coalesce((SELECT r.excluded_columns FROM domain_version_tables() r WHERE r.table_name = p_table),
+                    ARRAY['updated_at', 'domain_version_id', 'created_at'])
+$$ LANGUAGE sql IMMUTABLE;
+
+-- Meaningful change detection, shared by stamping and audit. row_status IS meaningful
+-- (DISABLE/ENABLE is a real configuration change).
+CREATE OR REPLACE FUNCTION domain_version_is_meaningful_change(p_table text, p_old jsonb, p_new jsonb) RETURNS boolean AS
+$$
+    SELECT (p_old - domain_version_excluded_columns(p_table))
            IS DISTINCT FROM
-           (p_new - ARRAY['updated_at', 'domain_version_id', 'twin_counter',
-                          'head_hierarchy_counter_direct_children', 'extends_hierarchy_counter_direct_children',
-                          'extends_hierarchy_tree', 'head_hierarchy_tree']);
+           (p_new - domain_version_excluded_columns(p_table));
 $$ LANGUAGE sql IMMUTABLE;
 
 -- Actor of the change: Java sets the GUC per request; absent -> NULL (service/legacy paths)
@@ -51,27 +69,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Does the window still have stamped rows? Collapse precondition for rollback/import ends.
+-- Does the window still carry net changes? Collapse precondition for rollback/import ends.
+-- ONE query over the audit journal (no per-table probing): a row counts as unchanged when its
+-- LAST record in the window slice is a physical DELETE (after IS NULL) — that covers rows born
+-- and deleted inside the window, and rows that left the window through an identical-content
+-- resurrection (the resurrection appends a closing DELETE record into the window slice).
+-- Backfilled rows carry synthetic INSERT records (03_backfill), so the baseline V1 correctly
+-- counts as non-empty. Safety net for registry gaps: the stamp FK is ON DELETE RESTRICT.
 CREATE OR REPLACE FUNCTION domain_version_window_has_stamped_rows(p_domain_id uuid, p_window_id uuid)
     RETURNS boolean AS
 $$
-DECLARE
-    t          text;
-    v_count    bigint;
-BEGIN
-    IF p_window_id IS NULL THEN
-        RETURN false;
-    END IF;
-    FOREACH t IN ARRAY domain_version_config_tables() LOOP
-        EXECUTE format('SELECT count(*) FROM %I WHERE domain_id = $1 AND domain_version_id = $2', t)
-            INTO v_count USING p_domain_id, p_window_id;
-        IF v_count > 0 THEN
-            RETURN true;
-        END IF;
-    END LOOP;
-    RETURN false;
-END;
-$$ LANGUAGE plpgsql;
+    SELECT p_window_id IS NOT NULL AND EXISTS (
+        SELECT 1
+          FROM domain_version_audit a
+         WHERE a.domain_id = p_domain_id
+           AND a.domain_version_id = p_window_id
+         GROUP BY a.table_name, a.row_id
+        HAVING (array_agg(a.operation ORDER BY a.id))[count(*)] <> 'DELETE'
+            OR (array_agg(a.after ORDER BY a.id))[count(*)] IS NOT NULL
+    )
+$$ LANGUAGE sql;
 
 -- Physical cleanup of soft-deleted rows (release time). Runs under twins.version_op, so the
 -- before-delete wrappers let the physical delete through; business AFTER DELETE triggers keep
@@ -79,12 +96,12 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION domain_version_deleted_rows_cleanup(p_domain_id uuid) RETURNS integer AS
 $$
 DECLARE
-    t         text;
+    r         record;
     v_total   integer := 0;
     v_deleted integer;
 BEGIN
-    FOREACH t IN ARRAY domain_version_config_tables() LOOP
-        EXECUTE format('DELETE FROM %I WHERE domain_id = $1 AND row_status = ''DELETED''', t)
+    FOR r IN SELECT table_name FROM domain_version_tables() LOOP
+        EXECUTE format('DELETE FROM %I WHERE domain_id = $1 AND row_status = ''DELETED''', r.table_name)
             USING p_domain_id;
         GET DIAGNOSTICS v_deleted = ROW_COUNT;
         v_total := v_total + v_deleted;
@@ -610,7 +627,7 @@ CREATE OR REPLACE FUNCTION domain_version_reconcile(p_domain_id uuid, p_dry_run 
     RETURNS TABLE (table_name text, row_ctid tid, domain_version_id uuid) AS
 $$
 DECLARE
-    t        text;
+    r        record;
     v_chain  uuid[];
 BEGIN
     WITH RECURSIVE chain AS (
@@ -624,19 +641,19 @@ BEGIN
     )
     SELECT ARRAY(SELECT id FROM chain) INTO v_chain;
 
-    FOREACH t IN ARRAY domain_version_config_tables() LOOP
+    FOR r IN SELECT table_name FROM domain_version_tables() LOOP
         RETURN QUERY
         EXECUTE format(
             'SELECT %L::text, ctid, domain_version_id FROM %I WHERE domain_id = $1 AND domain_version_id <> ALL($2)',
-            t, t)
+            r.table_name, r.table_name)
         USING p_domain_id, v_chain;
     END LOOP;
 
     IF NOT p_dry_run THEN
-        FOREACH t IN ARRAY domain_version_config_tables() LOOP
+        FOR r IN SELECT table_name FROM domain_version_tables() LOOP
             EXECUTE format(
                 'DELETE FROM %I WHERE domain_id = $1 AND domain_version_id <> ALL($2)',
-                t)
+                r.table_name)
             USING p_domain_id, v_chain;
         END LOOP;
     END IF;

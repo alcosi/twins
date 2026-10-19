@@ -152,11 +152,15 @@ BEGIN
                    tbl, tbl || '_row_status_ck');
     EXECUTE format('CREATE INDEX IF NOT EXISTS %I ON %I (domain_id, domain_version_id)',
                    tbl || '_domain_version_idx', tbl);
-    -- FK is NOT VALID here, VALIDATEd by 03_backfill after stamping
-    EXECUTE format('ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (domain_version_id)
-                        REFERENCES domain_version (id)
-                        ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID',
-                   tbl, tbl || '_domain_version_id_fk');
+    -- FK is NOT VALID here, VALIDATEd by 03_backfill after stamping; existence check keeps the
+    -- script re-runnable (the IT re-applies it per test)
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint
+                    WHERE conrelid = tbl::regclass AND conname = tbl || '_domain_version_id_fk') THEN
+        EXECUTE format('ALTER TABLE %I ADD CONSTRAINT %I FOREIGN KEY (domain_version_id)
+                            REFERENCES domain_version (id)
+                            ON UPDATE CASCADE ON DELETE RESTRICT NOT VALID',
+                       tbl, tbl || '_domain_version_id_fk');
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 

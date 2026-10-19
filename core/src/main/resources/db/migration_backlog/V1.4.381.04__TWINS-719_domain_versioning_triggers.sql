@@ -123,12 +123,15 @@ BEGIN
        AND column_name NOT IN ('domain_version_id', 'row_status');
 
     PERFORM set_config('twins.version_op', 'on', true);
-    -- created_at of the re-insert is always fresh and is pure noise for the comparison
     IF v_first_before IS NOT NULL
-       AND NOT domain_version_is_meaningful_change(v_first_before - '{created_at}'::text[], p_new - '{created_at}'::text[]) THEN
+       AND NOT domain_version_is_meaningful_change(p_table, v_first_before, p_new) THEN
         EXECUTE format('UPDATE %I r SET (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
                        p_table, v_all_cols, v_all_cols, p_table, p_pk_predicate)
         USING v_first_before;
+        -- the row left the window: close its group in the window audit slice so the
+        -- net-change detection (domain_version_window_has_stamped_rows) sees net zero
+        PERFORM domain_version_audit_write(p_table, (p_new->>'domain_id')::uuid, v_window, p_row_id,
+                                           'DELETE', v_old, NULL);
     ELSE
         EXECUTE format('UPDATE %I r SET row_status = ''ACTIVE'', domain_version_id = $2, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
                        p_table, v_cols, v_cols, p_table, p_pk_predicate)
@@ -159,10 +162,10 @@ BEGIN
     IF p_old_row_status <> 'DELETED' AND p_new_row_status = 'DELETED' THEN
         RAISE EXCEPTION '% %: use DELETE to delete a row (soft delete is trigger-managed)', p_table, p_row_id;
     END IF;
-    IF p_old_row_status = 'DELETED' AND domain_version_is_meaningful_change(p_old, p_new) THEN
+    IF p_old_row_status = 'DELETED' AND domain_version_is_meaningful_change(p_table, p_old, p_new) THEN
         RAISE EXCEPTION '% %: the row is deleted, restore it before editing', p_table, p_row_id;
     END IF;
-    IF domain_version_is_meaningful_change(p_old, p_new) THEN
+    IF domain_version_is_meaningful_change(p_table, p_old, p_new) THEN
         RETURN domain_version_gate(p_new_domain_id);
     END IF;
     RETURN NULL;
@@ -266,7 +269,7 @@ BEGIN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(to_jsonb(OLD), to_jsonb(NEW)) THEN
+    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
@@ -377,7 +380,7 @@ BEGIN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(to_jsonb(OLD), to_jsonb(NEW)) THEN
+    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
@@ -487,7 +490,7 @@ BEGIN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(to_jsonb(OLD), to_jsonb(NEW)) THEN
+    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
@@ -592,7 +595,7 @@ BEGIN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(to_jsonb(OLD), to_jsonb(NEW)) THEN
+    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
@@ -702,7 +705,7 @@ BEGIN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(to_jsonb(OLD), to_jsonb(NEW)) THEN
+    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
@@ -812,7 +815,7 @@ BEGIN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(to_jsonb(OLD), to_jsonb(NEW)) THEN
+    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
@@ -924,7 +927,7 @@ BEGIN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(to_jsonb(OLD), to_jsonb(NEW)) THEN
+    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
