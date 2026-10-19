@@ -45,7 +45,6 @@ public class TwinLinkDTOv1 {
     @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
 
-    @Schema(description = "user defined order key of src twins within the same (dstTwinId, linkId) scope "
-            + "(lexicographic string, sort ASC nulls last); null means link is not manually ordered")
+    @Schema(description = "user defined order key (lexicographic)")
     public String sortOrder;
 }
