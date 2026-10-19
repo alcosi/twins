@@ -2,12 +2,18 @@ package org.twins.core.dto.rest.user;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-@Schema(name =  "UserCreateV1")
-public class UserCreateDTOv1 extends UserSaveDTOv1 {
+@Schema(name = "UserCreateV1")
+public class UserCreateDTOv1 {
+    @Schema(description = "fullName", example = "John Doe")
+    public String fullName;
+
+    @Schema(description = "email", example = "some@email.com")
+    public String email;
+
+    @Schema(description = "avatar url", example = "http://twins.org/a/avatar/carkikrefmkawfwfwg.png")
+    public String avatar;
 }

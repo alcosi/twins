@@ -1,9 +1,7 @@
 package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.Hibernate;
@@ -52,11 +50,13 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @Column(name = "status_details")
     private String statusDetails;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
-    private DraftEntity draft;
+    private DraftEntity draftSpecOnly;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -64,6 +64,10 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private TwinEntity twin;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DraftEntity draft;
 
     @Override
     public String easyLog(Level level) {

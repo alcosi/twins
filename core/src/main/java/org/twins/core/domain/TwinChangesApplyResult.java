@@ -3,10 +3,8 @@ package org.twins.core.domain;
 
 import org.apache.commons.collections4.IterableUtils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 
 public class TwinChangesApplyResult {
     Map<Class<?>, Iterable<Object>> result = new HashMap<>();
@@ -18,6 +16,15 @@ public class TwinChangesApplyResult {
 
     public <T> Iterable<T> getForClass(Class<T> clazz) {
         return (Iterable<T>) result.getOrDefault(clazz, Collections.emptyList() );
+    }
+
+    public <T> T getById(Class<T> clazz, Function<T, UUID> functionGetId, UUID id) {
+        Collection<T> items = (Collection<T>) result.getOrDefault(clazz, Collections.emptyList());
+
+        return items.stream()
+                .filter(item -> Objects.equals(functionGetId.apply(item), id))
+                .findFirst()
+                .orElse(null);
     }
 
     public <T> List<T> getForClassAsList(Class<T> clazz) {

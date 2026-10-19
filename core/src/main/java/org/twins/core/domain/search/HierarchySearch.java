@@ -3,7 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.SetUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,18 +28,14 @@ public class HierarchySearch {
             .setIdExcludeList(Collections.EMPTY_SET);
 
     public HierarchySearch addTwinClassId(Collection<UUID> twinClassIdSet, boolean exclude) {
-        if (exclude)
-            idExcludeList = CollectionUtils.safeAdd(idExcludeList, twinClassIdSet);
-        else
-            idList = CollectionUtils.safeAdd(idList, twinClassIdSet);
-        return this;
+        return SetUtils.safeAddAll(this, twinClassIdSet, exclude,
+                this::getIdList, this::setIdList,
+                this::getIdExcludeList, this::setIdExcludeList);
     }
 
     public HierarchySearch addTwinClassId(UUID twinClassId, boolean exclude) {
-        if (exclude)
-            idExcludeList = CollectionUtils.safeAdd(idExcludeList, twinClassId);
-        else
-            idList = CollectionUtils.safeAdd(idList, twinClassId);
-        return this;
+        return SetUtils.safeAdd(this, twinClassId, exclude,
+                this::getIdList, this::setIdList,
+                this::getIdExcludeList, this::setIdExcludeList);
     }
 }

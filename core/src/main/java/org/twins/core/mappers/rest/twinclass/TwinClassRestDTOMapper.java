@@ -5,15 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -26,9 +25,9 @@ import org.twins.core.service.link.LinkService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.resource.ResourceService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.util.Collection;
 import java.util.List;
@@ -65,10 +64,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
 
     @MapperModePointerBinding(modes = {
-            DataListOptionMode.TwinClassMarker2DataListOptionMode.class,
-            DataListOptionMode.TwinClassTag2DataListOptionMode.class
+            DataListMode.TwinClassMarker2DataListMode.class,
+            DataListMode.TwinClassTag2DataListMode.class,
+            DataListMode.TwinClassFlavor2DataListMode.class
     })
-    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @MapperModePointerBinding(modes = StatusMode.TwinClass2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
@@ -77,7 +77,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinClass2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @MapperModePointerBinding(modes = FaceMode.TwinClassPage2FaceMode.class)
     private final FaceRestDTOMapper faceRestDTOMapper;
@@ -101,16 +101,22 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             mapperContext.setMode(TwinClassMode.DETAILED);
         }
 
+        if (mapperContext.hasMode(TwinClassMode.DETAILED) || mapperContext.hasMode(TwinClassMode.MANAGED)) {
+            resourceService.loadIconResources(src);
+        }
+
         switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case MANAGED:
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
                         .setHeadClassId(src.getHeadTwinClassId())
+                        .setHeadClassIdSet(src.getHeadHierarchyClassIdSet())
                         .setAbstractClass(src.getAbstractt())
                         .setUniqueName(src.getUniqueName())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
+                        .setFlavorsDataListId(src.getFlavorDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
@@ -121,8 +127,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setHeadHunterParams(src.getHeadHunterParams())
                         .setViewPermissionId(src.getViewPermissionId())
                         .setCreatePermissionId(src.getCreatePermissionId())
-                        .setEditPermissionId(src.getEditPermissionId())
-                        .setDeletePermissionId(src.getDeletePermissionId())
                         .setNameI18nId(src.getNameI18NId())
                         .setDescriptionI18nId(src.getDescriptionI18NId())
                         .setExtendsClassId(src.getExtendsTwinClassId())
@@ -155,6 +159,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .setUniqueName(src.getUniqueName())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
+                        .setFlavorsDataListId(src.getFlavorDataListId())
                         .setTwinClassFreezeId(src.getTwinClassFreezeId())
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
@@ -202,38 +207,24 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .setBackwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(LinkMode.TwinClass2LinkMode.SHORT))));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinClass2StatusMode.HIDE)) {
-            twinStatusService.loadStatusesForTwinClasses(src);
+            twinStatusService.loadStatuses(src);
             dst.setStatusIds(src.getTwinStatusKit().getIdSet());
             twinStatusRestDTOMapper.postpone(src.getTwinStatusKit(), mapperContext.forkOnPoint(StatusMode.TwinClass2StatusMode.SHORT));
         }
-        //todo delete me
-        if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE) && src.getMarkerDataListId() != null) {
+        if (mapperContext.hasModeButNot(DataListMode.TwinClassMarker2DataListMode.HIDE) && src.getMarkerDataListId() != null) {
             twinClassService.loadMarkerDataList(src);
-            DataListEntity markerDataListEntity = src.getMarkerDataList();
-            dataListService.loadDataListOptions(markerDataListEntity);
-            if (markerDataListEntity.getOptions() != null) {
-                MapperContext dataListMapperContext = mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassMarker2DataListOptionMode.SHORT));
-                if (mapperContext.isLazyRelations())
-                    dst.setMarkerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions().getMap(), dataListMapperContext));
-                else {
-                    //dst.markerList(markerDataListEntity.getOptions().keySet().stream().toList());
-                    dataListMapperContext.addRelatedObject(markerDataListEntity);
-                }
-            }
+            dst.setMarkersDataListId(src.getMarkerDataListId());
+            dataListRestDTOMapper.postpone(src.getMarkerDataList(), mapperContext.forkOnPoint(DataListMode.TwinClassMarker2DataListMode.SHORT));
         }
-        //todo delete me
-        if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE) && src.getTagDataListId() != null) {
-            DataListEntity tagDataListEntity = dataListService.findEntitySafe(src.getTagDataListId());
-            dataListService.loadDataListOptions(tagDataListEntity);
-            if (tagDataListEntity.getOptions() != null) {
-                MapperContext dataListMapperContext = mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassTag2DataListOptionMode.SHORT));
-                if (mapperContext.isLazyRelations())
-                    dst.setTagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions().getMap(), dataListMapperContext));
-                else {
-                    //dst.tagList(tagDataListEntity.getOptions().getMap().keySet().stream().toList());
-                    dataListMapperContext.addRelatedObject(tagDataListEntity);
-                }
-            }
+        if (mapperContext.hasModeButNot(DataListMode.TwinClassFlavor2DataListMode.HIDE) && src.getFlavorDataListId() != null) {
+            twinClassService.loadFlavorDataList(src);
+            dst.setFlavorsDataListId(src.getFlavorDataListId());
+            dataListRestDTOMapper.postpone(src.getFlavorDataList(), mapperContext.forkOnPoint(DataListMode.TwinClassFlavor2DataListMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(DataListMode.TwinClassTag2DataListMode.HIDE) && src.getTagDataListId() != null) {
+            twinClassService.loadTagDataList(src);
+            dst.setTagsDataListId(src.getTagDataListId());
+            dataListRestDTOMapper.postpone(src.getTagDataList(), mapperContext.forkOnPoint(DataListMode.TwinClassTag2DataListMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassHead2TwinClassMode.HIDE) && src.getHeadTwinClassId() != null) {
             twinClassService.loadHeadTwinClass(src);
@@ -247,24 +238,20 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassExtends2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE) &&
-                (src.getViewPermissionId() != null || src.getCreatePermissionId() != null || src.getEditPermissionId() != null || src.getDeletePermissionId() != null)) {
+                (src.getViewPermissionId() != null || src.getCreatePermissionId() != null)) {
             twinClassService.loadPermissions(src);
             dst
                     .setViewPermissionId(src.getViewPermissionId())
-                    .setCreatePermissionId(src.getCreatePermissionId())
-                    .setEditPermissionId(src.getEditPermissionId())
-                    .setDeletePermissionId(src.getDeletePermissionId());
+                    .setCreatePermissionId(src.getCreatePermissionId());
             permissionRestDTOMapper.postpone(src.getViewPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
             permissionRestDTOMapper.postpone(src.getCreatePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
-            permissionRestDTOMapper.postpone(src.getEditPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
-            permissionRestDTOMapper.postpone(src.getDeletePermission(), mapperContext.forkOnPoint(PermissionMode.TwinClass2PermissionMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
-            twinClassService.loadHeadHunter(src);
             dst.setHeadHunterFeaturerId(src.getHeadHunterFeaturerId());
-            featurerRestDTOMapper.postpone(src.getHeadHunterFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT)));
+            featurerParametrizedRestDTOMapper.postpone(src.getHeadHunterFeaturerId(), src.getHeadHunterParams(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(FaceMode.TwinClassPage2FaceMode.HIDE)) {
+            twinClassService.loadFaces(src);
             faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.TwinClassPage2FaceMode.SHORT));
             dst.setPageFaceId(src.getPageFaceId());
         }
@@ -283,7 +270,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     public void beforeCollectionConversion(Collection<TwinClassEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(StatusMode.TwinClass2StatusMode.HIDE)) {
-            twinStatusService.loadStatusesForTwinClasses(srcCollection);
+            twinStatusService.loadStatuses(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinClassFieldCollectionMode.HIDE)) {
             twinClassFieldService.loadTwinClassFields(srcCollection);
@@ -297,17 +284,23 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE)) {
             twinClassService.loadMarkerDataList(srcCollection, true);
         }
+        if (mapperContext.hasModeButNot(DataListMode.TwinClassFlavor2DataListMode.HIDE)) {
+            twinClassService.loadFlavorDataList(srcCollection, true);
+        }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE)) {
+            twinClassService.loadTagDataList(srcCollection);
+        }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
             twinClassService.loadPermissions(srcCollection);
-        }
-        if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
-            twinClassService.loadHeadHunter(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinClassSegmentMode.HIDE)) {
             twinClassService.loadSegments(srcCollection);
         }
         if (mapperContext.hasModeButNot(TwinClassFreezeMode.TwinClass2TwinClassFreezeMode.HIDE)) {
             twinClassService.loadFreeze(srcCollection);
+        }
+        if (mapperContext.hasMode(TwinClassMode.DETAILED) || mapperContext.hasMode(TwinClassMode.MANAGED)) {
+            resourceService.loadIconResources(srcCollection);
         }
     }
 

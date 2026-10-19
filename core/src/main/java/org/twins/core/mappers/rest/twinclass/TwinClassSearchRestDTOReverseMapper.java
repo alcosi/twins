@@ -32,10 +32,6 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setOwnerTypeExcludeList(convertToSetSafe(src.getOwnerTypeExcludeList()))
                 .setCreatePermissionIdList(src.getCreatePermissionIdList())
                 .setCreatePermissionIdExcludeList(src.getCreatePermissionIdExcludeList())
-                .setEditPermissionIdList(src.getEditPermissionIdList())
-                .setEditPermissionIdExcludeList(src.getEditPermissionIdExcludeList())
-                .setDeletePermissionIdList(src.getDeletePermissionIdList())
-                .setDeletePermissionIdExcludeList(src.getDeletePermissionIdExcludeList())
                 .addOwnerTypeExclude()
                 .setTwinClassIdList(convertToSetSafe(src.getTwinClassIdList()))
                 .setTwinClassKeyLikeList(convertToSetSafe(src.getTwinClassKeyLikeList()))
@@ -45,6 +41,8 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setDescriptionI18nNotLikeList(convertToSetSafe(src.getDescriptionI18nNotLikeList()))
                 .setMarkerDatalistIdList(src.getMarkerDatalistIdList())
                 .setMarkerDatalistIdExcludeList(src.getMarkerDatalistIdExcludeList())
+                .setFlavorDatalistIdList(src.getFlavorDatalistIdList())
+                .setFlavorDatalistIdExcludeList(src.getFlavorDatalistIdExcludeList())
                 .setTagDatalistIdList(src.getTagDatalistIdList())
                 .setTagDatalistIdExcludeList(src.getTagDatalistIdExcludeList())
                 .setFreezeIdList(src.getFreezeIdList())
@@ -63,6 +61,12 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setExternalIdLikeList(src.getExternalIdLikeList())
                 .setExternalIdNotLikeList(src.getExternalIdNotLikeList())
                 .setTwinCounterRange(integerRangeDTOReverseMapper.convert(src.getTwinCounterRange()))
+                .setHeadHunterFeaturerIdList(src.getHeadHunterFeaturerIdList())
+                .setHasDynamicMarkers(src.getHasDynamicMarkers())
+                .setBreadCrumbsFaceIdList(convertToSetSafe(src.getBreadCrumbsFaceIdList()))
+                .setBreadCrumbsFaceIdExcludeList(convertToSetSafe(src.getBreadCrumbsFaceIdExcludeList()))
+                .setPageFaceIdList(convertToSetSafe(src.getPageFaceIdList()))
+                .setPageFaceIdExcludeList(convertToSetSafe(src.getPageFaceIdExcludeList()))
         ;
     }
 }

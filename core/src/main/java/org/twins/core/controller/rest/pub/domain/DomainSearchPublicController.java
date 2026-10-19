@@ -27,6 +27,7 @@ import org.twins.core.mappers.rest.domain.DomainSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.domain.DomainViewPublicRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainSearchService;
 
 
@@ -35,6 +36,7 @@ import org.twins.core.service.domain.DomainSearchService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainSearchPublicController extends ApiController {
+    private final AuthService authService;
     private final DomainSearchService domainSearchService;
     private final DomainSearchDTOReverseMapper domainSearchDTOReverseMapper;
     private final DomainViewPublicRestDTOMapper domainViewRestDTOMapper;
@@ -53,6 +55,7 @@ public class DomainSearchPublicController extends ApiController {
             @RequestBody DomainPublicSearchRqDTOv1 request) {
         DomainPublicSearchRsDTOv1 rs = new DomainPublicSearchRsDTOv1();
         try {
+            authService.getApiUser().setAnonymous();
             PaginationResult<DomainEntity> domainList = domainSearchService
                     .findDomains(domainSearchDTOReverseMapper.convert(request.getSearch()), pagination);
 

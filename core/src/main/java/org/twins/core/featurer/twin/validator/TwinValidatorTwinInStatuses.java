@@ -3,12 +3,10 @@ package org.twins.core.featurer.twin.validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -16,6 +14,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -34,14 +33,17 @@ public class TwinValidatorTwinInStatuses extends TwinValidator {
     private final TwinService twinService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
-        boolean isValid = statusIdSet.contains(twinService.getTwinStatusId(twinEntity));
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " has no statuses[" + StringUtils.join(statusIdSet, ",") + "]",
-                twinEntity.logShort() + " has one of the statuses[" + StringUtils.join(statusIdSet, ",") + "]");
+        var result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            boolean isValid = statusIdSet.contains(twinService.getTwinStatusId(twinEntity));
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " has no statuses[" + StringUtils.join(statusIdSet, ",") + "]",
+                    twinEntity.logShort() + " has one of the statuses[" + StringUtils.join(statusIdSet, ",") + "]"));
+        }
+        return result;
     }
-
 }

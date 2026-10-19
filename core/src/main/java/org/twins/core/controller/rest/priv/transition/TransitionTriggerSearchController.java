@@ -31,7 +31,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinflow.TransitionTriggerRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionTriggerSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinflow.TransitionTriggerSearchService;
+import org.twins.core.service.twinflow.TwinflowTransitionTriggerSearchService;
 
 @Tag(name = ApiTag.TRANSITION)
 @RestController
@@ -43,7 +43,7 @@ public class TransitionTriggerSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final TransitionTriggerSearchDTOReverseMapper transitionTriggerSearchDTOReverseMapper;
     private final TransitionTriggerRestDTOMapper transitionTriggerRestDTOMapper;
-    private final TransitionTriggerSearchService transitionTriggerSearchService;
+    private final TwinflowTransitionTriggerSearchService twinflowTransitionTriggerSearchService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "transitionTriggerSearchV1", summary = "Search data list of transition triggers")
@@ -59,7 +59,7 @@ public class TransitionTriggerSearchController extends ApiController {
             @RequestBody TransitionTriggerSearchRqDTOv1 request) {
         TransitionTriggerSearchRsDTOv1 rs = new TransitionTriggerSearchRsDTOv1();
         try {
-            PaginationResult<TwinflowTransitionTriggerEntity> triggerList = transitionTriggerSearchService
+            PaginationResult<TwinflowTransitionTriggerEntity> triggerList = twinflowTransitionTriggerSearchService
                     .findTransitionTriggers(transitionTriggerSearchDTOReverseMapper.convert(request.getSearch()), pagination);
             rs
                     .setTriggers(transitionTriggerRestDTOMapper.convertCollection(triggerList.getList(), mapperContext))

@@ -14,6 +14,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.DomainUserMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinflowSchemaMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.twinflow.TwinflowSchemaService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -25,6 +28,8 @@ public class TwinflowSchemaRestDTOMapper extends RestSimpleDTOMapper<TwinflowSch
 
     @MapperModePointerBinding(modes = BusinessAccountMode.TwinflowSchema2BusinessAccountMode.class)
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
+
+    private final TwinflowSchemaService twinflowSchemaService;
 
     @Override
     public void map(TwinflowSchemaEntity src, TwinflowSchemaDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -49,11 +54,20 @@ public class TwinflowSchemaRestDTOMapper extends RestSimpleDTOMapper<TwinflowSch
         // Postpone related objects according to modes
         if (mapperContext.hasModeButNot(UserMode.TwinflowSchema2UserMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
+            twinflowSchemaService.loadCreatedByUser(src);
             userDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinflowSchema2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(BusinessAccountMode.TwinflowSchema2BusinessAccountMode.HIDE) && src.getBusinessAccountId() != null) {
             dst.setBusinessAccountId(src.getBusinessAccountId());
             businessAccountDTOMapper.postpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.TwinflowSchema2BusinessAccountMode.SHORT)));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinflowSchemaEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.TwinflowSchema2UserMode.HIDE)) {
+            twinflowSchemaService.loadCreatedByUser(srcCollection);
         }
     }
 }

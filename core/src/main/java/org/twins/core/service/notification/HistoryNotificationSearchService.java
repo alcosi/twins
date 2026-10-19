@@ -12,12 +12,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
 import org.twins.core.dao.notification.HistoryNotificationRepository;
 import org.twins.core.domain.search.HistoryNotificationSearch;
+import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twinclass.TwinClassService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
@@ -25,6 +26,8 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkTernary
 @Service
 public class HistoryNotificationSearchService {
     private final HistoryNotificationRepository repository;
+    private final TwinClassService twinClassService;
+    private final AuthService authService;
 
     public PaginationResult<HistoryNotificationEntity> findHistoryNotification(HistoryNotificationSearch search, SimplePagination pagination) throws ServiceException {
         Specification<HistoryNotificationEntity> spec = createSearchSpecification(search);
@@ -34,12 +37,13 @@ public class HistoryNotificationSearchService {
 
     private Specification<HistoryNotificationEntity> createSearchSpecification(HistoryNotificationSearch search) throws ServiceException {
         return Specification.allOf(
+                checkFieldUuid(authService.getApiUser().getDomainId(), HistoryNotificationEntity.Fields.historyNotificationRecipientSpecOnly, HistoryNotificationRecipientEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, HistoryNotificationEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, HistoryNotificationEntity.Fields.id),
                 checkFieldIn(search.getHistoryTypeIdList(), false, false, false, HistoryNotificationEntity.Fields.historyTypeId),
                 checkFieldIn(search.getHistoryTypeIdExcludeList(), true, false, false, HistoryNotificationEntity.Fields.historyTypeId),
-                checkUuidIn(search.getTwinClassIdList(), false, false, HistoryNotificationEntity.Fields.twinClassId),
-                checkUuidIn(search.getTwinClassIdExcludeList(), true, false, HistoryNotificationEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, HistoryNotificationEntity.Fields.twinClassId),
+                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, HistoryNotificationEntity.Fields.twinClassId),
                 checkUuidIn(search.getTwinClassFieldIdList(), false, false, HistoryNotificationEntity.Fields.twinClassFieldId),
                 checkUuidIn(search.getTwinClassFieldIdExcludeList(), true, false, HistoryNotificationEntity.Fields.twinClassFieldId),
                 checkUuidIn(search.getTwinValidatorSetIdList(), false, false, HistoryNotificationEntity.Fields.twinValidatorSetId),
@@ -50,7 +54,10 @@ public class HistoryNotificationSearchService {
                 checkUuidIn(search.getHistoryNotificationRecipientIdList(), false, false, HistoryNotificationEntity.Fields.historyNotificationRecipientId),
                 checkUuidIn(search.getHistoryNotificationRecipientIdExcludeList(), true, false, HistoryNotificationEntity.Fields.historyNotificationRecipientId),
                 checkUuidIn(search.getNotificationChannelEventIdList(), false, false, HistoryNotificationEntity.Fields.notificationChannelEventId),
-                checkUuidIn(search.getNotificationChannelEventIdExcludeList(), true, false, HistoryNotificationEntity.Fields.notificationChannelEventId)
+                checkUuidIn(search.getNotificationChannelEventIdExcludeList(), true, false, HistoryNotificationEntity.Fields.notificationChannelEventId),
+                checkTernary(search.getActive(), HistoryNotificationEntity.Fields.active)
         );
     }
+
+
 }

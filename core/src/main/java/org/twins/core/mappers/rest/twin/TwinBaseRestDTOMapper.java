@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
@@ -38,6 +39,9 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
     @MapperModePointerBinding(modes = {FaceMode.Twin2FaceMode.class})
     private final FaceRestDTOMapper faceRestDTOMapper;
 
+    @MapperModePointerBinding(modes = {DataListOptionMode.TwinFlavor2DataListOptionMode.class})
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+
     @Lazy
     @Autowired
     @MapperModePointerBinding(modes = {TwinClassMode.Twin2TwinClassMode.class})
@@ -56,14 +60,16 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .name(src.getName())
                         .externalId(src.getExternalId())
                         .headTwinId(src.getHeadTwinId())
+                        .headTwinIdSet(src.getHeadTwinsIdSet())
                         .assignerUserId(src.getAssignerUserId())
                         .authorUserId(src.getCreatedByUserId())
                         .statusId(twinService.getStatusOrFreeze(src).getId())
                         .twinClassId(src.getTwinClassId())
+                        .flavorDataListOptionId(src.getFlavorDataListOptionId())
                         .description(src.getDescription())
                         .ownerBusinessAccountId(src.getOwnerBusinessAccountId())
                         .ownerUserId(src.getOwnerUserId())
-                        .createdAt(src.getCreatedAt().toLocalDateTime())
+                        .createdAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
                         .pageFaceId(faceService.resolvePageFaceId(src))
                         .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
                         .freeze(twinService.checkIsFreezeStatus(src));
@@ -85,6 +91,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             dst
                     .assignerUserId(src.getAssignerUserId())
                     .authorUserId(src.getCreatedByUserId());
+            twinService.loadUser(src);
             userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
             userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
 
@@ -95,7 +102,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         }
 
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
-            twinService.loadHeadForTwin(src);
+            twinService.loadHead(src);
             dst.headTwinId(src.getHeadTwinId());
             this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByHeadMode.GREEN));  //head twin will be much less detail
         }
@@ -104,20 +111,17 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
             dst.aliases(twinAliasRestDTOMapper.convert(src, mapperContext));
         }
         if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
-            faceService.loadFaces(src);
-
-            faceRestDTOMapper.postpone(
-                    src.getPageFace(),
-                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
-            );
-            faceRestDTOMapper.postpone(
-                    src.getBreadCrumbsFace(),
-                    mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT)
-            );
-
+            twinService.loadFaces(src);
             dst
                     .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
                     .pageFaceId(faceService.resolvePageFaceId(src));
+            faceRestDTOMapper.postpone(src.getPageFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
+            faceRestDTOMapper.postpone(src.getBreadCrumbsFace(), mapperContext.forkOnPoint(FaceMode.Twin2FaceMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinFlavor2DataListOptionMode.HIDE)) {
+            dst.flavorDataListOptionId(src.getFlavorDataListOptionId());
+            twinService.loadFlavorDataListOption(src);
+            dataListOptionRestDTOMapper.postpone(src.getFlavorDataListOption(), mapperContext.forkOnPoint(DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT));
         }
     }
 
@@ -137,7 +141,16 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         if (mapperContext.hasModeButNot(TwinAliasMode.HIDE))
             twinAliasService.loadAliases(srcCollection);
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
-            twinService.loadHeadForTwin(srcCollection);
+            twinService.loadHead(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
+            twinService.loadUser(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FaceMode.Twin2FaceMode.HIDE)) {
+            twinService.loadFaces(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(DataListOptionMode.TwinFlavor2DataListOptionMode.HIDE)) {
+            twinService.loadFlavorDataListOption(srcCollection);
         }
     }
 

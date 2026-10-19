@@ -5,11 +5,12 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.user.UserEntity;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
 @Data
 @Accessors(chain = true)
-public class UserSnapshot {
+public class UserSnapshot implements Serializable {
     private String userId;
     private String name;
     private String email;

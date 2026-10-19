@@ -33,7 +33,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchRqDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
 
 import java.util.UUID;
 
@@ -41,7 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
+@ProtectedBy({Permissions.TWIN_CLASS_FIELD_MANAGE, Permissions.TWIN_CLASS_FIELD_VIEW})
 public class TwinClassFieldSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final TwinClassFieldSearchRqDTOReverseMapper twinClassFieldSearchRqDTOReverseMapper;
@@ -66,7 +66,7 @@ public class TwinClassFieldSearchController extends ApiController {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassField(twinClassFieldSearchRqDTOReverseMapper.convert(request), pagination);
+                    .search(twinClassFieldSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))
@@ -94,7 +94,8 @@ public class TwinClassFieldSearchController extends ApiController {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassField(twinClassFieldSearchDTOReverseMapper.convert(request.getSearch()), pagination);
+                    .search(twinClassFieldSearchDTOReverseMapper.convert(request.getSearch()), pagination,
+                            request.getSortField(), request.getSortDirection());
             rs
                     .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))

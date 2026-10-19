@@ -175,4 +175,44 @@ public enum StatusMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinStatusTrigger2TwinStatusMode implements MapperModePointer<StatusMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public StatusMode point() {
+            return switch (this) {
+                case HIDE -> StatusMode.HIDE;
+                case SHORT -> StatusMode.SHORT;
+                case DETAILED -> StatusMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinTriggerTask2StatusMode implements MapperModePointer<StatusMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public StatusMode point() {
+            return switch (this) {
+                case HIDE -> StatusMode.HIDE;
+                case SHORT -> StatusMode.SHORT;
+                case DETAILED -> StatusMode.DETAILED;
+            };
+        }
+    }
 }

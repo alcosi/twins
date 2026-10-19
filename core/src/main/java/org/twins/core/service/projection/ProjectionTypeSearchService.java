@@ -14,11 +14,11 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.projection.ProjectionTypeRepository;
 import org.twins.core.domain.search.ProjectionTypeSearch;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 // Log calls that took more than 2 seconds
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -28,6 +28,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 @RequiredArgsConstructor
 public class ProjectionTypeSearchService {
     private final ProjectionTypeRepository projectionTypeRepository;
+    private final AuthService authService;
 
     public List<ProjectionTypeEntity> findProjectionTypes(ProjectionTypeSearch search) throws ServiceException {
         Specification<ProjectionTypeEntity> spec = createSpecification(search);
@@ -42,6 +43,7 @@ public class ProjectionTypeSearchService {
 
     private Specification<ProjectionTypeEntity> createSpecification(ProjectionTypeSearch search) throws ServiceException {
         return Specification.allOf(
+                checkFieldUuid(authService.getApiUser().getDomainId(), ProjectionTypeEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, ProjectionTypeEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, ProjectionTypeEntity.Fields.id),
                 checkFieldLikeIn(search.getKeyLikeList(), false, true, ProjectionTypeEntity.Fields.key),

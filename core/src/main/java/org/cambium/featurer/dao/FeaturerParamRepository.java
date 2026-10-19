@@ -16,6 +16,8 @@ public interface FeaturerParamRepository extends CrudRepository<FeaturerParamEnt
 
     List<FeaturerParamEntity> findByFeaturerIdIn(Set<Integer> featurerIds);
 
+    List<FeaturerParamEntity> findByFeaturerIdInOrderByOrderAsc(Set<Integer> featurerIds);
+
     FeaturerParamEntity findByFeaturerIdAndKey(Integer featurerId, String key);
 
     @Transactional

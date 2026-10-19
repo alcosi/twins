@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PERMISSION_GRANT_USER_GROUP_MANAGE, Permissions.PERMISSION_GRANT_USER_GROUP_CREATE})
+@ProtectedBy(Permissions.PERMISSION_GRANT_USER_GROUP_CREATE)
 public class PermissionGrantUserGroupCreateController extends ApiController {
 
     private final PermissionGrantUserGroupCreateRestReverseDTOMapper permissionGrantUserGroupCreateRestReverseDTOMapper;
@@ -51,7 +52,7 @@ public class PermissionGrantUserGroupCreateController extends ApiController {
     @PostMapping(value = "/private/permission_grant/user_group/v1")
     public ResponseEntity<?> permissionGrantUserGroupCreateV1(
             @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapper.class, response = PermissionGrantUserGroupSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody PermissionGrantUserGroupCreateRqDTOv1 request) {
+            @RequestBody @Valid PermissionGrantUserGroupCreateRqDTOv1 request) {
         PermissionGrantUserGroupSaveRsDTOv1 rs = new PermissionGrantUserGroupSaveRsDTOv1();
         try {
             PermissionGrantUserGroupEntity entity = permissionGrantUserGroupCreateRestReverseDTOMapper.convert(request, mapperContext);

@@ -1,23 +1,23 @@
 package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -25,7 +25,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twinflow")
 @FieldNameConstants
-public class TwinflowEntity implements EasyLoggable {
+public class TwinflowEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -36,6 +36,9 @@ public class TwinflowEntity implements EasyLoggable {
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
+
+    @Column(name = "inheritable")
+    private Boolean inheritable;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
@@ -58,51 +61,104 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "initial_sketch_twin_status_id")
     private UUID initialSketchTwinStatusId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
+    private TwinClassEntity twinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity twinClass;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — see TwinClassFieldEntity.nameI18nTranslationsSpecOnly for explanation
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity nameI18n;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity descriptionI18n;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity initialTwinStatusSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity initialTwinStatus;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initial_sketch_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity initialSketchTwinStatusSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity initialSketchTwinStatus;
 
-    //    needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "twinflow_id", referencedColumnName = "id", insertable = false, updatable = false)
-    private Collection<TwinflowSchemaMapEntity> schemaMappings;
+    private Collection<TwinflowSchemaMapEntity> schemaMappingsSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -122,6 +178,16 @@ public class TwinflowEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinflow[id:" + id + "]";
+        return switch (level) {
+            case SHORT -> "twinflow[" + id + "]";
+            case NORMAL -> "twinflow[id:" + id + ", twinClassId:" + twinClassId + "]";
+            default -> "twinflow[id:" + id +
+                    ", twinClassId:" + twinClassId +
+                    ", inheritable:" + inheritable +
+                    ", initialTwinStatusId:" + initialTwinStatusId +
+                    ", initialSketchTwinStatusId:" + initialSketchTwinStatusId +
+                    ", createdByUserId:" + createdByUserId +
+                    ", eraseflowId:" + eraseflowId + "]";
+        };
     }
 }

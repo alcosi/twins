@@ -1,41 +1,26 @@
 package org.twins.core.dto.rest.validator;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.util.Ternary;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
-
-import java.util.Set;
-import java.util.UUID;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.TwinValidatorSetSortField;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinValidatorSetSearchRqV1")
 public class TwinValidatorSetSearchRqDTOv1 extends Request {
+    @Valid
+    @Schema(description = "search params")
+    public TwinValidatorSetSearchDTOv1 search;
 
-    @Schema(description = "idList")
-    public Set<UUID> idList;
+    @Schema(description = "Sort field. Default: name")
+    public TwinValidatorSetSortField sortField;
 
-    @Schema(description = "idExcludeList")
-    public Set<UUID> idExcludeList;
-
-    @Schema(description = "nameLikeList")
-    public Set<String> nameLikeList;
-
-    @Schema(description = "nameNotLikeList")
-    public Set<String> nameNotLikeList;
-
-    @Schema(description = "descriptionLikeList")
-    public Set<String> descriptionLikeList;
-
-    @Schema(description = "descriptionNotLikeList")
-    public Set<String> descriptionNotLikeList;
-
-    @Schema(description = "invert", example = DTOExamples.TERNARY)
-    public Ternary invert;
-
+    @Schema(description = "Sort direction: ASC or DESC. Default: ASC")
+    public SortDirection sortDirection;
 }

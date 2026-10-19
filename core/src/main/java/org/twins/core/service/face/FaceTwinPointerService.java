@@ -8,7 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.service.twin.TwinPointerService;
+import org.twins.core.service.twinpointer.TwinPointerService;
 
 import java.util.UUID;
 

@@ -17,9 +17,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.*;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.domain.DomainUserNoRelationProjection;
+import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.domain.user.DomainUserInitiator;
 import org.twins.core.service.auth.AuthService;
@@ -27,8 +29,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -79,13 +80,22 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         return entity;
     }
 
-    public DomainUserEntity getCurrentUser() throws ServiceException {
-        var entity = domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomainId(), authService.getApiUser().getUserId());
-        if (entity == null)
-            return null;
-        if (isEntityReadDenied(entity))
-            return null;
-        return entity;
+    /**
+     * Bulk locale map: userId → locale for the given domain (absent users map to nothing). Used by batch
+     * notification context collection to resolve per-history i18n locale (the twin creator's locale) in
+     * one query instead of per-history.
+     */
+    public Map<UUID, Locale> getLocaleMap(UUID domainId, Collection<UUID> userIds) {
+        if (domainId == null || userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Locale> localeByUser = new HashMap<>();
+        for (DomainUserEntity domainUser : domainUserRepository.findByDomainIdAndUserIdIn(domainId, userIds)) {
+            if (domainUser.getI18nLocaleId() != null) {
+                localeByUser.put(domainUser.getUserId(), domainUser.getI18nLocaleId());
+            }
+        }
+        return localeByUser;
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -133,13 +143,25 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
         return domainUserRepository.findByDomainIdAndUserId(authService.getApiUser().getDomain().getId(), userId, DomainUserNoRelationProjection.class);
     }
 
-    public DomainUserNoCollectionProjection getDomainUser() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId(), DomainUserNoCollectionProjection.class);
+    public void loadDomain(DomainUserEntity src) throws ServiceException {
+        loadDomain(Collections.singletonList(src));
     }
 
-    public DomainUserEntity getDomainUserV2() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId());
+    public void loadDomain(Collection<DomainUserEntity> srcCollection) throws ServiceException {
+        domainService.load(srcCollection,
+                DomainUserEntity::getDomainId,
+                DomainUserEntity::getDomain,
+                DomainUserEntity::setDomain);
+    }
+
+    public void loadUser(DomainUserEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
+    }
+
+    public void loadUser(Collection<DomainUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                DomainUserEntity::getUserId,
+                DomainUserEntity::getUser,
+                DomainUserEntity::setUser);
     }
 }

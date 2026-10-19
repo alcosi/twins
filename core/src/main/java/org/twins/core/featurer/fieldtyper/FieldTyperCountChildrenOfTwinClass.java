@@ -1,19 +1,15 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
-
-import java.util.Properties;
 
 public interface FieldTyperCountChildrenOfTwinClass {
 
     @FeaturerParam(name = "Twin class ids", description = "", order = 1)
     FeaturerParamUUIDSet twinClassIds = new FeaturerParamUUIDSetTwinsClassId("twinClassIds");
 
-    default Long getCountResult(Properties properties, TwinEntity twinEntity, TwinFieldSimpleRepository twinFieldSimpleRepository) {
-        return twinFieldSimpleRepository.countChildrenTwinsOfTwinClassIdIn(twinEntity.getId(), twinClassIds.extract(properties));
-    }
+    @FeaturerParam(name = "Use extends hierarchy", description = "If true, counts twins from classes that extend the specified twin classes. If false, counts only direct twin class matches.", order = 2, optional = true, defaultValue = "false")
+    FeaturerParamBoolean useExtendsHierarchy = new FeaturerParamBoolean("useExtendsHierarchy");
 }

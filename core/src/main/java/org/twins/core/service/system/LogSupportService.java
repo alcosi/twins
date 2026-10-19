@@ -16,13 +16,15 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Objects;
 
 @Lazy
 @Slf4j
@@ -45,11 +47,34 @@ public class LogSupportService {
 
         var domain = apiUser.getDomain();
         var twinClasses = twinClassSearchService.searchTwinClasses(null);
-        twinStatusService.loadStatusesForTwinClasses(twinClasses);
+        twinStatusService.loadStatuses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
-        linkService.loadLinksForTwinClasses(twinClasses);
+        linkService.loadLinks(twinClasses);
+        linkService.loadTwinClasses(
+                twinClasses.stream()
+                        .map(TwinClassEntity::getLinksKit)
+                        .filter(Objects::nonNull)
+                        .flatMap(linksKit -> linksKit.getCollection().stream())
+                        .toList()
+        );
         twinflowService.loadTwinflows(twinClasses);
         twinflowTransitionService.loadAllTransitions(twinClasses);
+
+        // batch load runtime relations for readable logs (twinflow.twinClass, transition.twinflow/src/dst statuses)
+        var twinflowList = new ArrayList<TwinflowEntity>();
+        for (var twinClass : twinClasses)
+            if (null != twinClass.getTwinflowKit())
+                twinflowList.addAll(twinClass.getTwinflowKit().getCollection());
+        var transitionList = new ArrayList<TwinflowTransitionEntity>();
+        for (var twinClass : twinClasses)
+            if (null != twinClass.getTransitionsKit())
+                transitionList.addAll(twinClass.getTransitionsKit().getCollection());
+        twinflowTransitionService.loadTwinflow(transitionList);
+        twinflowTransitionService.loadTwinStatuses(transitionList);
+        for (TwinflowTransitionEntity transition : transitionList)
+            if (transition.getTwinflow() != null)
+                twinflowList.add(transition.getTwinflow());
+        twinflowService.loadTwinClass(twinflowList);
 
         StringBuilder sb = new StringBuilder();
 

@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest;
 
 
+import org.cambium.common.kit.Kit;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import java.util.*;
@@ -9,6 +10,8 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
     public List<S> convertCollection(Collection<T> srcCollection, MapperContext mapperContext) throws Exception {
         if (srcCollection == null)
             return null;
+        if (srcCollection.isEmpty())
+            return Collections.emptyList();
         beforeCollectionConversion(srcCollection, mapperContext);
         List<S> ret = new ArrayList<>();
         for (T src : srcCollection) {
@@ -26,9 +29,23 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
         return convertCollection(srcList, new MapperContext());
     }
 
+    public List<S> convertCollection(Kit<T, ?> srcKit, MapperContext mapperContext) throws Exception {
+        if (srcKit == null)
+            return null;
+        return convertCollection(srcKit.getCollection(), mapperContext);
+    }
+
+    public List<S> convertCollection(Kit<T, ?> srcKit) throws Exception {
+        if (srcKit == null)
+            return null;
+        return convertCollection(srcKit.getCollection(), new MapperContext());
+    }
+
     public Map<UUID, S> convertMap(Map<UUID, T> srcMap, MapperContext mapperContext) throws Exception {
         if (srcMap == null)
             return null;
+        if (srcMap.isEmpty())
+            return Collections.emptyMap();
         beforeCollectionConversion(srcMap.values(), mapperContext);
         Map<UUID, S> ret = new LinkedHashMap<>();
         for (Map.Entry<UUID, T> src : srcMap.entrySet()) {

@@ -11,20 +11,28 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -37,16 +45,18 @@ public class TwinHeadService {
     private final TwinClassService twinClassService;
     @Lazy
     private final TwinService twinService;
+    @Lazy
+    private final PermissionService permissionService;
     private final FeaturerService featurerService;
     private final TwinSearchService twinSearchService;
+    private final TwinRepository twinRepository;
 
-    public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
-        if (twinClassEntity.getHeadTwinClassId() == null)
-            return PaginationUtils.convertInPaginationResult(pagination);
-        TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
+    public void validHeadsExpandSearch(TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException {
+        twinClassService.loadHeadTwinClass(twinClassEntity);
+        var headTwinClassEntity = twinClassEntity.getHeadTwinClass();
         if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
-            if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId()) // twin.id = user.id
-                    || SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) { // twin.id = business_account_id
+            if (SystemIdLookup.isTwinClassForUser(headTwinClassEntity.getId()) // twin.id = user.id
+                    || SystemIdLookup.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) { // twin.id = business_account_id
                 basicSearch.addTwinClassId(headTwinClassEntity.getId(), false);// DBU check depends on class for which we are searching heads
             } else {
                 throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, headTwinClassEntity.logShort() + " unknown system twin class for head");
@@ -59,6 +69,12 @@ public class TwinHeadService {
             headHunter.expandValidHeadSearch(twinClassEntity.getHeadHunterParams(), twinClassEntity, basicSearch);
         }
         //todo add checkSegmentUniq logic, to exclude heads with segments
+    }
+
+    public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
+        if (twinClassEntity.getHeadTwinClassId() == null)
+            return PaginationUtils.convertInPaginationResult(pagination);
+        validHeadsExpandSearch(twinClassEntity, basicSearch);
         return twinSearchService.findTwins(basicSearch, pagination);
     }
 
@@ -73,30 +89,46 @@ public class TwinHeadService {
     }
 
     public TwinEntity checkValidHeadForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
-        if (subClass.getHeadTwinClassId() == null)
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "No head class configured for " + subClass.logShort());
-        if (headTwinId == null)
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
-        BasicSearch basicSearch = new BasicSearch();
-        basicSearch.addTwinId(headTwinId, false);
-        PaginationResult<TwinEntity> validHead = findValidHeads(subClass, basicSearch, SimplePagination.SINGLE);
-        if (validHead.getTotal() == 0)
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twin[" + headTwinId + "] is not allowed for twinClass[" + subClass.getId() + "]");
-        var head = validHead.getList().getFirst();
-        checkSegmentUniq(head, subClass);
-        return head;
+        var validHeads = checkValidHeadsForClass(Collections.singleton(headTwinId), subClass);
+        return validHeads.isEmpty() ? null : validHeads.getList().getFirst();
     }
 
-    private void checkSegmentUniq(TwinEntity headTwin, TwinClassEntity subClass) throws ServiceException {
+    public Kit<TwinEntity, UUID> checkValidHeadsForClass(Set<UUID> headTwinIds, TwinClassEntity subClass) throws ServiceException {
+        if (subClass.getHeadTwinClassId() == null)
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "No head class configured for " + subClass.logShort());
+        if (CollectionUtils.isEmpty(headTwinIds))
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
+        BasicSearch validHeadsSearch = new BasicSearch();
+        validHeadsSearch.setTwinIdList(headTwinIds);
+        validHeadsExpandSearch(subClass, validHeadsSearch);
+        var validHeads = new Kit<>(twinSearchService.findTwins(validHeadsSearch), TwinEntity::getId);
+        if (headTwinIds.size() != validHeads.size()) {
+            var missedHeads = new StringBuilder();
+            for (var headTwinId : headTwinIds) {
+                if (!validHeads.containsKey(headTwinId))
+                    missedHeads.append(headTwinId).append(",");
+            }
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, "twins[" + missedHeads + "] is not allowed for twinClass[" + subClass.getId() + "]");
+        }
+        checkSegmentUniq(headTwinIds, subClass);
+        return validHeads;
+    }
+
+    private void checkSegmentUniq(Set<UUID> headTwinIds, TwinClassEntity subClass) throws ServiceException {
         if (Boolean.FALSE.equals(subClass.getSegment()))
             return;
         //segments are one-to-one only
         var segmentsSearch = new BasicSearch();
         segmentsSearch
                 .addTwinClassId(subClass.getId(), false)
-                .addHeadTwinId(headTwin.getId());
-        if (twinSearchService.exists(segmentsSearch)) {
-            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_SEGMENT_NOT_UNIQ, "segment of {} is already exists for head {} ", subClass.logShort(), headTwin.logShort());
+                .setHeadTwinIdList(headTwinIds);
+        var existedSegments = twinSearchService.findTwins(segmentsSearch);
+        if (!existedSegments.isEmpty()) {
+            var existedForHeads = new StringBuilder(existedSegments.size() * 37 - 1);
+            for (var existedSegment : existedSegments) {
+                existedForHeads.append(existedSegment.getId()).append(",");
+            }
+            throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_SEGMENT_NOT_UNIQ, "segment of {} is already exists for head {} ", subClass.logShort(), existedForHeads.toString());
         }
     }
 
@@ -112,18 +144,90 @@ public class TwinHeadService {
             needLoad.add(twinEntity);
         }
         twinClassService.loadHeadHierarchyChildClasses(needLoad.getGroupingObjectMap().values());
+        boolean createAnyGranted = permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_CREATE_ANY);
+        Map<TwinEntity, Kit<TwinClassEntity, UUID>> headHunterApproved = new LinkedHashMap<>();
+        Map<PermissionService.PermissionDetectKey, UUID> createPermissionsToCheck = new LinkedHashMap<>();
         for (TwinEntity twinEntity : needLoad.getList()) {
-            Kit<TwinClassEntity, UUID> creatableChildTwinClasses = new Kit<>(TwinClassEntity::getId);
+            Kit<TwinClassEntity, UUID> twinApprovedChildClasses = new Kit<>(TwinClassEntity::getId);
             for (TwinClassEntity childTwinClassEntity : twinEntity.getTwinClass().getHeadHierarchyChildClassKit().getList()) {
                 if (childTwinClassEntity.getHeadHunterFeaturerId() == null)
                     continue;
                 HeadHunter headHunter = featurerService.getFeaturer(childTwinClassEntity.getHeadHunterFeaturerId(), HeadHunter.class);
-                if (headHunter.isCreatableChildClass(childTwinClassEntity.getHeadHunterParams(), twinEntity, childTwinClassEntity)) {
-                    //todo check permission
-                    creatableChildTwinClasses.add(childTwinClassEntity);
-                }
+                if (!headHunter.isCreatableChildClass(childTwinClassEntity.getHeadHunterParams(), twinEntity, childTwinClassEntity))
+                    continue;
+                twinApprovedChildClasses.add(childTwinClassEntity);
+                if (!createAnyGranted && childTwinClassEntity.getCreatePermissionId() != null)
+                    createPermissionsToCheck.putIfAbsent(buildChildCreateDetectKey(twinEntity, childTwinClassEntity), childTwinClassEntity.getCreatePermissionId());
+            }
+            headHunterApproved.put(twinEntity, twinApprovedChildClasses);
+        }
+        Map<PermissionService.PermissionDetectKey, Boolean> createPermissionsChecked = permissionService.hasPermissionBatch(createPermissionsToCheck);
+        for (var approvedEntry : headHunterApproved.entrySet()) {
+            TwinEntity twinEntity = approvedEntry.getKey();
+            Kit<TwinClassEntity, UUID> creatableChildTwinClasses = new Kit<>(TwinClassEntity::getId);
+            for (TwinClassEntity childTwinClassEntity : approvedEntry.getValue().getList()) {
+                if (!createAnyGranted
+                        && childTwinClassEntity.getCreatePermissionId() != null
+                        && Boolean.FALSE.equals(createPermissionsChecked.get(buildChildCreateDetectKey(twinEntity, childTwinClassEntity))))
+                    continue;
+                creatableChildTwinClasses.add(childTwinClassEntity);
             }
             twinEntity.setCreatableChildTwinClasses(creatableChildTwinClasses);
         }
+    }
+
+    private static PermissionService.PermissionDetectKey buildChildCreateDetectKey(TwinEntity headTwin, TwinClassEntity childTwinClass) {
+        return new PermissionService.PermissionDetectKey(
+                childTwinClass.getId(),
+                headTwin.getPermissionSchemaId(),
+                TwinService.getPermissionSchemaSpaceId(headTwin),
+                false,
+                true);
+    }
+
+    public static void setHead(TwinEntity twin, TwinEntity headTwin) {
+        twin
+                .setHeadTwinId(headTwin.getId())
+                .setHeadTwin(headTwin)
+                .setHierarchyTree(headTwin.getHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twin.getId()))
+                .setPermissionSchemaSpaceId(TwinService.getPermissionSchemaSpaceId(headTwin))
+                .setPermissionSchemaId(headTwin.getPermissionSchemaId());
+    }
+
+    /**
+     * Initializes the hierarchy tree for a root / standalone twin (one without a head):
+     * {@code hierarchyTree = <own id>}. This is the canonical counterpart of {@link #setHead} for a
+     * newly created twin that has no head.
+     * <p>
+     * Keeping hierarchyTree populated for every new twin serves two purposes: business logic can read
+     * the hierarchy before flush, and TwinChangesService gets a stable depth key to persist twins in
+     * head-first order (satisfying the non-deferrable twin_head_twin_id_fk). The DB trigger
+     * {@code hierarchyprocesstreeupdate} recalculates hierarchy_tree AFTER INSERT from head_twin_id,
+     * so this value is an in-memory hint rather than the source of truth.
+     */
+    public static void initRootHierarchy(TwinEntity twin) {
+        twin.setHierarchyTree(LTreeUtils.convertToLTreeFormat(twin.getId()));
+    }
+
+    public static UUID resolveHeadTwinId(TwinEntity twin, int depth) {
+        return LTreeUtils.uuidByIndex(twin.getHierarchyTree(), true, depth);
+    }
+
+    public UUID resolveHeadTwinId(TwinEntity twin, UUID headTwinClassId) throws ServiceException {
+        if (headTwinClassId == null) {
+            return twin.getHeadTwinId() != null ? twin.getHeadTwinId() : twin.getId();
+        }
+        TwinEntity current = twin;
+        //soft loop, no db query
+        for (int depth = 0; depth < 10; depth++) {
+            if (current.getHeadTwin() == null) {
+                break;
+            }
+            if (headTwinClassId.equals(current.getHeadTwin().getTwinClassId())) {
+                return current.getHeadTwinId();
+            }
+            current = current.getHeadTwin();
+        }
+        return twinRepository.getHeadTwinIdOfClass(twin.getHeadTwinsIdSet(), headTwinClassId);
     }
 }

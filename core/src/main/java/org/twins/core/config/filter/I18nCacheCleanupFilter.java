@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.holder.I18nCacheHolder;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ public class I18nCacheCleanupFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } finally {
             I18nCacheHolder.clear();
+            EntityRequestCacheHolder.clear();
         }
     }
 }

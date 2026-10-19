@@ -6,11 +6,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -25,7 +29,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.validator.TwinValidatorSetCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.validator.TwinValidatorSetRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinValidatorSetService;
+import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,7 +38,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_VALIDATOR_SET_MANAGE, Permissions.TWIN_VALIDATOR_SET_CREATE})
+@ProtectedBy(Permissions.TWIN_VALIDATOR_SET_CREATE)
 public class TwinValidatorSetCreateController extends ApiController {
     private final TwinValidatorSetService twinValidatorSetService;
     private final TwinValidatorSetCreateRestDTOReverseMapper twinValidatorSetCreateRestDTOReverseMapper;
@@ -52,7 +56,7 @@ public class TwinValidatorSetCreateController extends ApiController {
     public ResponseEntity<?> twinValidatorSetCreateV1(
             @MapperContextBinding(roots = TwinValidatorSetRestDTOMapper.class, response = TwinValidatorSetListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinValidatorSetCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinValidatorSetCreateRqDTOv1 request) {
         TwinValidatorSetListRsDTOv1 rs = new TwinValidatorSetListRsDTOv1();
         try {
             List<TwinValidatorSetCreate> createList = twinValidatorSetCreateRestDTOReverseMapper.convertCollection(request.getValidatorSets());

@@ -13,9 +13,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.TwinClassDynamicMarkerSearch;
+import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @Slf4j
 @Service
@@ -25,6 +27,7 @@ public class TwinClassDynamicMarkerSearchService {
 
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
     private final TwinClassService twinClassService;
+    private final AuthService authService;
 
     public PaginationResult<TwinClassDynamicMarkerEntity> findTwinClassDynamicMarkers(TwinClassDynamicMarkerSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinClassDynamicMarkerEntity> spec = createTwinClassDynamicMarkerSearchSpecification(search);
@@ -34,10 +37,12 @@ public class TwinClassDynamicMarkerSearchService {
 
     private Specification<TwinClassDynamicMarkerEntity> createTwinClassDynamicMarkerSearchSpecification(TwinClassDynamicMarkerSearch search) throws ServiceException {
         return Specification.allOf(
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinClassDynamicMarkerEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.id),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
-                checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinClassDynamicMarkerEntity.Fields.twinClassId),
+                checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdMap()), false, TwinClassDynamicMarkerEntity.Fields.twinClassId, TwinClassDynamicMarkerEntity.Fields.inheritable),
+                checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdExcludeMap()), true, TwinClassDynamicMarkerEntity.Fields.twinClassId, TwinClassDynamicMarkerEntity.Fields.inheritable),
+                checkTernary(search.getInheritable(), TwinClassDynamicMarkerEntity.Fields.inheritable),
                 checkUuidIn(search.getTwinValidatorSetIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.twinValidatorSetId),
                 checkUuidIn(search.getTwinValidatorSetIdExcludeList(), true, false, TwinClassDynamicMarkerEntity.Fields.twinValidatorSetId),
                 checkUuidIn(search.getMarkerDataListOptionIdList(), false, false, TwinClassDynamicMarkerEntity.Fields.markerDataListOptionId),

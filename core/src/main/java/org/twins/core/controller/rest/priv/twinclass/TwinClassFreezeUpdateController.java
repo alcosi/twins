@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_FREEZE_MANAGE, Permissions.TWIN_CLASS_FREEZE_UPDATE})
+@ProtectedBy(Permissions.TWIN_CLASS_FREEZE_UPDATE)
 public class TwinClassFreezeUpdateController extends ApiController {
     private final TwinClassFreezeService twinClassFreezeService;
     private final TwinClassFreezeUpdateRestDTOReverseMapper twinClassFreezeUpdateRestDTOReverseMapper;
@@ -53,7 +54,7 @@ public class TwinClassFreezeUpdateController extends ApiController {
     @PutMapping(value = "/private/twin_class_freeze/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> twinClassFreezeUpdateV1(
             @MapperContextBinding(roots = TwinClassFreezeDTOMapper.class, response = TwinClassFreezeListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassFreezeUpdateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassFreezeUpdateRqDTOv1 request) {
         TwinClassFreezeListRsDTOv1 rs = new TwinClassFreezeListRsDTOv1();
         try {
             List<TwinClassFreezeEntity> twinClassFreezeEntityList = twinClassFreezeService.updateTwinClassFreezeList(twinClassFreezeUpdateRestDTOReverseMapper.convertCollection(request.getTwinClassFreezes()));

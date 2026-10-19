@@ -17,7 +17,10 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSelect;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Slf4j
@@ -34,7 +37,7 @@ public class TwinSorterDataListField extends TwinSorter {
             if (!query.getResultType().equals(Long.class)) {
                 List<Order> orders = new ArrayList<>();
                 // Get or create JOIN to twin_field_data_list
-                Join<TwinEntity, TwinFieldDataListEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsList);
+                Join<TwinEntity, TwinFieldDataListEntity> tfJoin = TwinSpecification.getOrCreateFieldJoin(root, cb, fieldId, TwinEntity.Fields.fieldsListSpecOnly);
                 // Join to data_list_option to get order field
                 Join<TwinFieldDataListEntity, DataListOptionEntity> dloJoin = tfJoin.join(TwinFieldDataListEntity.Fields.dataListOption, JoinType.LEFT);
                 // Get order field for sorting

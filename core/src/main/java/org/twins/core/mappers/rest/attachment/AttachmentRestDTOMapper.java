@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -60,6 +60,7 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
 
     @Lazy
     @Autowired
+    @MapperModePointerBinding(modes = TwinClassFieldMode.Attachment2TwinClassFieldMode.class)
     private TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     @Autowired
@@ -88,34 +89,40 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                     .setStorageLink(attachmentService.getAttachmentUri(src));
         }
         if (mapperContext.hasModeButNot(CommentMode.Attachment2CommentModeMode.HIDE)) {
+            attachmentService.loadComment(src);
             dst.setCommentId(src.getTwinCommentId());
             commentRestDTOMapper.postpone(src.getComment(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(CommentMode.Attachment2CommentModeMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE)) {
             attachmentService.loadAttachmentModifications(src);
             dst.setModifications(new HashMap<>());
-            if (CollectionUtils.isNotEmpty(src.getModifications()))
+            if (KitUtils.isNotEmpty(src.getModifications()))
                 for (TwinAttachmentModificationEntity mod : src.getModifications())
                     dst.getModifications().put(mod.getModificationType(), mod.getStorageFileKey());
         }
         if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
             dst.setTwinflowTransitionId(src.getTwinflowTransitionId());
+            attachmentService.loadTwinflowTransition(src);
             transitionRestDTOMapper.postpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TransitionMode.Attachment2TransitionMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(UserMode.Attachment2UserMode.HIDE)) {
             dst.setAuthorUserId(src.getCreatedByUserId());
+            attachmentService.loadCreatedByUser(src);
             userDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Attachment2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinMode.Attachment2TwinMode.HIDE)) {
             dst.setTwinId(src.getTwinId());
+            attachmentService.loadTwin(src);
             twinRestDTOMapper.postpone(src.getTwin(), mapperContext.forkOnPoint(TwinMode.Attachment2TwinMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassFieldMode.Attachment2TwinClassFieldMode.HIDE)) {
             dst.setTwinClassFieldId(src.getTwinClassFieldId());
+            attachmentService.loadTwinClassField(src);
             twinClassFieldRestDTOMapper.postpone(src.getTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.Attachment2TwinClassFieldMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(PermissionMode.Attachment2PermissionMode.HIDE)) {
             dst.setViewPermissionId(src.getViewPermissionId());
+            attachmentService.loadViewPermission(src);
             permissionRestDTOMapper.postpone(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.Attachment2PermissionMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE)) {
@@ -148,6 +155,18 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
             attachmentActionService.loadAttachmentActions(srcCollection);
         if (mapperContext.hasModeButNot(AttachmentModificationMode.HIDE))
             attachmentService.loadAttachmentModifications(srcCollection);
+        if (mapperContext.hasModeButNot(TwinMode.Attachment2TwinMode.HIDE))
+            attachmentService.loadTwin(srcCollection);
+        if (mapperContext.hasModeButNot(UserMode.Attachment2UserMode.HIDE))
+            attachmentService.loadCreatedByUser(srcCollection);
+        if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE))
+            attachmentService.loadTwinflowTransition(srcCollection);
+        if (mapperContext.hasModeButNot(PermissionMode.Attachment2PermissionMode.HIDE))
+            attachmentService.loadViewPermission(srcCollection);
+        if (mapperContext.hasModeButNot(CommentMode.Attachment2CommentModeMode.HIDE))
+            attachmentService.loadComment(srcCollection);
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.Attachment2TwinClassFieldMode.HIDE))
+            attachmentService.loadTwinClassField(srcCollection);
     }
 
     @Override

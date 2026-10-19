@@ -11,6 +11,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
+import org.twins.core.service.permission.PermissionGrantUserGroupService;
+
+import java.util.Collection;
 
 import static org.cambium.common.util.DateUtils.convertOrNull;
 
@@ -30,6 +33,8 @@ public class PermissionGrantUserGroupRestDTOMapper extends RestSimpleDTOMapper<P
 
     @MapperModePointerBinding(modes = UserMode.PermissionGrantUserGroup2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    private final PermissionGrantUserGroupService permissionGrantUserGroupService;
 
     @Override
     public void map(PermissionGrantUserGroupEntity src, PermissionGrantUserGroupDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -53,16 +58,30 @@ public class PermissionGrantUserGroupRestDTOMapper extends RestSimpleDTOMapper<P
             permissionSchemaRestDTOMapper.postpone(src.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.PermissionGrantUserGroup2PermissionSchemaMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantUserGroup2PermissionMode.HIDE)) {
+            permissionGrantUserGroupService.loadPermission(src);
             dst.setPermissionId(src.getPermissionId());
             permissionRestDTOMapper.postpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantUserGroup2PermissionMode.SHORT));
         }
         if (mapperContext.hasModeButNot(UserGroupMode.PermissionGrantUserGroup2UserGroupMode.HIDE)) {
+            permissionGrantUserGroupService.loadUserGroup(src);
             dst.setUserGroupId(src.getUserGroupId());
             userGroupRestDTOMapper.postpone(src.getUserGroup(), mapperContext.forkOnPoint(UserGroupMode.PermissionGrantUserGroup2UserGroupMode.SHORT));
         }
         if (mapperContext.hasModeButNot(UserMode.PermissionGrantUserGroup2UserMode.HIDE)) {
+            permissionGrantUserGroupService.loadGrantedByUser(src);
             dst.setGrantedByUserId(src.getGrantedByUserId());
             userRestDTOMapper.postpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionGrantUserGroup2UserMode.SHORT));
         }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<PermissionGrantUserGroupEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantUserGroup2PermissionMode.HIDE))
+            permissionGrantUserGroupService.loadPermission(srcCollection);
+        if (mapperContext.hasModeButNot(UserGroupMode.PermissionGrantUserGroup2UserGroupMode.HIDE))
+            permissionGrantUserGroupService.loadUserGroup(srcCollection);
+        if (mapperContext.hasModeButNot(UserMode.PermissionGrantUserGroup2UserMode.HIDE))
+            permissionGrantUserGroupService.loadGrantedByUser(srcCollection);
     }
 }

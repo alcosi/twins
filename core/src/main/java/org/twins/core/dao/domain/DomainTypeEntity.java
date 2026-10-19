@@ -13,7 +13,6 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.idp.IdentityProviderEntity;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
-import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.util.HashMap;
 
@@ -32,6 +31,9 @@ public class DomainTypeEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "default_user_group_manager_featurer_id")
+    private Integer defaultUserGroupManagerFeaturerId;
+
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @FeaturerList(type = DomainInitiator.class)
@@ -48,13 +50,6 @@ public class DomainTypeEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "default_identity_provider_id", insertable = false, updatable = false)
     private IdentityProviderEntity defaultIdentityProvider;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @FeaturerList(type = UserGroupManager.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "default_user_group_manager_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity defaultUserGroupManagerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "default_user_group_manager_params", columnDefinition = "hstore")

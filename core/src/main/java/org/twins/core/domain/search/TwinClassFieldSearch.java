@@ -2,12 +2,14 @@ package org.twins.core.domain.search;
 
 import com.google.common.collect.ImmutableList;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.math.LongRange;
-import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.SetUtils;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 
 import java.util.*;
@@ -18,7 +20,8 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinClassFieldSearch {
+@EqualsAndHashCode(callSuper = false)
+public class TwinClassFieldSearch extends EntitySearch<TwinClassFieldEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Map<UUID, Boolean> twinClassIdMap;
@@ -44,6 +47,7 @@ public class TwinClassFieldSearch {
     private Set<UUID> editPermissionIdExcludeList;
     private Ternary required;
     private Ternary system;
+    private Ternary inheritable;
     private Ternary dependentField;
     private Ternary hasDependentFields;
     private boolean excludeSystemFields = true;
@@ -88,19 +92,15 @@ public class TwinClassFieldSearch {
     }
 
     public TwinClassFieldSearch addId(final UUID id, boolean exclude) {
-        if (exclude)
-            idExcludeList = CollectionUtils.safeAdd(idExcludeList, id);
-        else
-            idList = CollectionUtils.safeAdd(idList, id);
-        return this;
+        return SetUtils.safeAdd(this, id, exclude,
+                this::getIdList, this::setIdList,
+                this::getIdExcludeList, this::setIdExcludeList);
     }
 
     public TwinClassFieldSearch addId(final Collection<UUID> ids, boolean exclude) {
-        if (exclude)
-            idExcludeList = CollectionUtils.safeAdd(idExcludeList, ids);
-        else
-            idList = CollectionUtils.safeAdd(idList, ids);
-        return this;
+        return SetUtils.safeAddAll(this, ids, exclude,
+                this::getIdList, this::setIdList,
+                this::getIdExcludeList, this::setIdExcludeList);
     }
 
     public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>>> SET_FIELDS = ImmutableList.of(

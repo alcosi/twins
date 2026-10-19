@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dto.rest.factory.FactoryPipelineStepDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryPipelineMode;
@@ -29,7 +29,7 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.FactoryPipelineStep2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
     private final FactoryPipelineStepService factoryPipelineStepService;
 
     @Override
@@ -46,6 +46,7 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setOptional(src.getOptional())
                         .setFillerFeaturerId(src.getFillerFeaturerId())
                         .setFillerParams(src.getFillerParams())
+                        .setName(src.getName())
                         .setDescription(src.getDescription());
                 break;
             case SHORT:
@@ -53,29 +54,35 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setId(src.getId())
                         .setFactoryPipelineId(src.getTwinFactoryPipelineId())
                         .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                        .setName(src.getName())
                         .setDescription(src.getDescription());
                 break;
         }
         if (mapperContext.hasModeButNot(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.HIDE)) {
             dst.setFactoryPipelineId(src.getTwinFactoryPipelineId());
+            factoryPipelineStepService.loadPipeline(src);
             factoryPipelineRestDTOMapper.postpone(src.getTwinFactoryPipeline(), mapperContext.forkOnPoint(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.HIDE)) {
             dst.setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+            factoryPipelineStepService.loadConditionSet(src);
             factoryConditionSetRestDTOMapper.postpone(src.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE)) {
             dst.setFillerFeaturerId(src.getFillerFeaturerId());
-            factoryPipelineStepService.loadFiller(src);
-            featurerRestDTOMapper.postpone(src.getFillerFeaturer(), mapperContext.forkOnPoint(FeaturerMode.FactoryPipelineStep2FeaturerMode.SHORT));
+            featurerParametrizedRestDTOMapper.postpone(src.getFillerFeaturerId(), src.getFillerParams(), mapperContext.forkOnPoint(FeaturerMode.FactoryPipelineStep2FeaturerMode.SHORT));
         }
     }
 
     @Override
     public void beforeCollectionConversion(Collection<TwinFactoryPipelineStepEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE)) {
-            factoryPipelineStepService.loadFillers(srcCollection);
+        if (srcCollection.isEmpty()) return;
+        if (mapperContext.hasModeButNot(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.HIDE)) {
+            factoryPipelineStepService.loadPipeline(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.HIDE)) {
+            factoryPipelineStepService.loadConditionSet(srcCollection);
         }
     }
 }

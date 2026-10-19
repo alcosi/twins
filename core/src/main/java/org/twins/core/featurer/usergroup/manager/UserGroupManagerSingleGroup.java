@@ -3,7 +3,6 @@ package org.twins.core.featurer.usergroup.manager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.Featurer;
@@ -43,8 +42,11 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
             groupsToLoad.addAll(userGroupExitList);
         if (CollectionUtils.isEmpty(groupsToLoad))
             return;
-        Kit<UserGroupEntity, UUID> loadedUserGroupsKit = new Kit<>(userGroupRepository.findByIdIn(groupsToLoad), UserGroupEntity::getId);
+        var loadedUserGroupsKit = userGroupService.findEntitiesSafe(groupsToLoad);
         userGroupService.loadGroups(user);
+        var allGroups = new ArrayList<>(user.getUserGroups().getCollection());
+        allGroups.addAll(loadedUserGroupsKit.getCollection());
+        userGroupService.loadUserGroupType(allGroups);
         if (CollectionUtils.isNotEmpty(userGroupEnterList)) {
             if (CollectionUtils.size(userGroupEnterList) != 1)
                 throw new ServiceException(ErrorCodeTwins.USER_GROUP_ENTER_ERROR, "only one group is allowed to be entered");
@@ -61,7 +63,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
         if (CollectionUtils.isNotEmpty(userGroupExitList)) {
             List<UserGroupEntity> exitedGroups = new ArrayList<>(), leftGroups = new ArrayList<>();
             for (UserGroupEntity currentlyEnteredGroup : user.getUserGroups().getList()) {
-                if (userGroupExitList.stream().anyMatch(id -> id.equals(currentlyEnteredGroup.getId())))
+                if (userGroupExitList.contains(currentlyEnteredGroup.getId()))
                     exitedGroups.add(currentlyEnteredGroup);
                 else
                     leftGroups.add(currentlyEnteredGroup);

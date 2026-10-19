@@ -4,6 +4,8 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -11,13 +13,13 @@ import java.util.Set;
 import java.util.UUID;
 
 public class TwinFieldStorageCalcChildrenInStatusCount extends TwinFieldStorageCalc {
-    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private final TwinRepository twinRepository;
     private final Set<UUID> childrenTwinStatusIdSet;
     private final boolean exclude;
 
-    public TwinFieldStorageCalcChildrenInStatusCount(TwinFieldSimpleRepository twinFieldSimpleRepository, UUID twinClassFieldId, Set<UUID> childrenTwinStatusIdSet, boolean exclude) {
+    public TwinFieldStorageCalcChildrenInStatusCount(TwinRepository twinRepository, UUID twinClassFieldId, Set<UUID> childrenTwinStatusIdSet, boolean exclude) {
         super(twinClassFieldId);
-        this.twinFieldSimpleRepository = twinFieldSimpleRepository;
+        this.twinRepository = twinRepository;
         this.childrenTwinStatusIdSet = childrenTwinStatusIdSet;
         this.exclude = exclude;
     }
@@ -25,8 +27,8 @@ public class TwinFieldStorageCalcChildrenInStatusCount extends TwinFieldStorageC
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) {
         List<TwinFieldCalcProjection> calc = exclude ?
-                twinFieldSimpleRepository.countChildrenTwinsWithStatusNotIn(twinsKit.getIdSet(), childrenTwinStatusIdSet) :
-                twinFieldSimpleRepository.countChildrenTwinsWithStatusIn(twinsKit.getIdSet(), childrenTwinStatusIdSet);
+                twinRepository.countChildrenTwinsWithStatusNotIn(twinsKit.getIdSet(), childrenTwinStatusIdSet) :
+                twinRepository.countChildrenTwinsWithStatusIn(twinsKit.getIdSet(), childrenTwinStatusIdSet);
         packResult(twinsKit, calc);
     }
 

@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.UserGroupMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
-import org.twins.core.service.usergroup.UserGroupService;
+import org.twins.core.service.user.UserService;
 
 import java.util.Collection;
 
@@ -20,7 +20,7 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {UserMode.class})
 public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
-    private final UserGroupService userGroupService;
+    private final UserService userService;
 
     @MapperModePointerBinding(modes = UserGroupMode.User2UserGroupMode.class)
     private final UserGroupRestDTOMapper userGroupRestDTOMapper;
@@ -38,7 +38,7 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
                     .setAvatar(src.getAvatar());
         }
         if (mapperContext.hasModeButNot(UserGroupMode.User2UserGroupMode.HIDE)) {
-            userGroupService.loadGroups(src);
+            userService.loadGroups(src);
             dst.setUserGroupIds(userGroupRestDTOMapper.postpone(src.getUserGroups(), mapperContext.forkOnPoint(UserGroupMode.User2UserGroupMode.SHORT)));
         }
     }
@@ -47,7 +47,7 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
     public void beforeCollectionConversion(Collection<UserEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(UserGroupMode.User2UserGroupMode.HIDE)) {
-            userGroupService.loadGroups(srcCollection);
+            userService.loadGroups(srcCollection);
         }
     }
 

@@ -5,9 +5,8 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
@@ -24,7 +23,7 @@ public class FieldTyperCountChildrenByStatusV2 extends FieldTyperSimple<FieldDes
     public static final Integer ID = 1315;
 
     @Autowired
-    TwinFieldSimpleRepository twinFieldSimpleRepository;
+    TwinRepository twinRepository;
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -32,8 +31,9 @@ public class FieldTyperCountChildrenByStatusV2 extends FieldTyperSimple<FieldDes
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, getCountResult(properties, twinFieldEntity.getTwin(), twinFieldSimpleRepository).toString());
+    protected String processValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value) throws ServiceException {
+        // Count fields ignore the incoming value — the stored value is computed from children.
+        return getCountResult(properties, twinFieldEntity.getTwin(), twinRepository).toString();
     }
 
     @Override

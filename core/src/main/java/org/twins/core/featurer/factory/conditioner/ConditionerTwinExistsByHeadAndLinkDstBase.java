@@ -1,0 +1,117 @@
+package org.twins.core.featurer.factory.conditioner;
+
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
+import org.cambium.featurer.params.FeaturerParamUUID;
+import org.hibernate.validator.internal.util.stereotypes.Lazy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.service.twin.TwinHeadService;
+import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinlink.TwinLinkService;
+
+import java.util.List;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Slf4j
+public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditioner {
+
+    @FeaturerParam(name = "Twin class id", description = "Twin class to search", order = 1)
+    public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
+
+    @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 2)
+    public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
+
+    @FeaturerParam(name = "Resolve head root", description = "Resolve head from factory item, else from context twin", order = 9, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean factoryItemElseContext = new FeaturerParamBoolean("factoryItemElseContext");
+
+    @FeaturerParam(name = "Exclude factory input twin", description = "Exclude context and factory input twins from search", order = 10, optional = true, defaultValue = "true")
+    public static final FeaturerParamBoolean excludeFactoryInputTwin = new FeaturerParamBoolean("excludeFactoryInputTwin");
+
+    @FeaturerParam(name = "Match factory item output twin", description = "If true, checks that factory item output twin matches search (for multiplier filter on TwinUpdate)", order = 11, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean matchFactoryItemOutputTwin = new FeaturerParamBoolean("matchFactoryItemOutputTwin");
+
+    @Lazy
+    @Autowired
+    protected TwinSearchServiceV2 twinSearchService;
+    @Lazy
+    @Autowired
+    protected TwinService twinService;
+    @Lazy
+    @Autowired
+    protected TwinHeadService twinHeadService;
+    @Lazy
+    @Autowired
+    protected TwinLinkService twinLinkService;
+
+    @Override
+    public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
+        BasicSearch search = buildSearch(properties, factoryItem);
+        if (search == null) {
+            return false;
+        }
+        return twinSearchService.exists(search);
+    }
+
+    protected abstract UUID resolveHeadTwinId(TwinEntity contextTwin) throws ServiceException;
+
+    protected abstract UUID resolveDstTwinId(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException;
+
+    private BasicSearch buildSearch(Properties properties, FactoryItem factoryItem) throws ServiceException {
+        TwinEntity rootTwin;
+        if (factoryItemElseContext.extract(properties)) {
+            rootTwin = factoryItem.getTwin();
+        } else {
+            rootTwin = factoryItem.checkSingleContextTwin();
+        }
+        UUID headTwinId = resolveHeadTwinId(rootTwin);
+        if (headTwinId == null) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Head twin not found");
+        }
+
+        UUID dstTwinId = resolveDstTwinId(properties, factoryItem, rootTwin);
+        if (dstTwinId == null) {
+            throw new ServiceException(ErrorCodeTwins.FACTORY_CONDITION_ERROR, "Dst twin not found");
+        }
+
+        BasicSearch search = new BasicSearch().setCheckViewPermission(false);
+        search
+                .addTwinClassId(twinClassId.extract(properties), false)
+                .addHeadTwinId(headTwinId)
+                .addLinkDstTwinsId(dstLinkId.extract(properties), List.of(dstTwinId), false, true);
+
+        if (excludeFactoryInputTwin.extract(properties)) {
+            Set<UUID> excludeIds = factoryItem.getFactoryContext().getInputTwinList().stream()
+                    .map(TwinEntity::getId)
+                    .collect(Collectors.toSet());
+            if (rootTwin.getId() != null) {
+                excludeIds.add(rootTwin.getId());
+            }
+            if (!excludeIds.isEmpty()) {
+                search.setTwinIdExcludeList(excludeIds);
+            }
+        }
+
+        if (matchFactoryItemOutputTwin.extract(properties)) {
+            UUID outputTwinId = factoryItem.getOutput().getTwinEntity().getId();
+            if (outputTwinId == null) {
+                log.debug("Factory item output twin has no id, twin exists by head and link dst match skipped");
+                return null;
+            }
+            search.addTwinId(outputTwinId, false);
+        }
+
+        return search;
+    }
+}

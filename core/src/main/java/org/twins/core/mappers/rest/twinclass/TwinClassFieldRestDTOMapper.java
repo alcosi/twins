@@ -14,14 +14,15 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleMapService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.Collection;
 
@@ -41,7 +42,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @Lazy
     @MapperModePointerBinding(modes = TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.class)
@@ -51,7 +52,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     private final FeaturerService featurerService;
     private final PermissionService permissionService;
     private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
-
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -70,6 +71,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setRequired(src.getRequired())
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                         .setTwinClassId(src.getTwinClassId())
+                        .setInheritable(src.getInheritable())
                         .setNameI18nId(src.getNameI18nId())
                         .setDescriptionI18nId(src.getDescriptionI18nId())
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
@@ -87,6 +89,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setBeValidationError(I18nCacheHolder.addId(src.getBeValidationErrorI18nId()))
                         .setExternalId(src.getExternalId())
                         .setSystem(src.getSystem())
+                        .setInheritable(src.getInheritable())
                         .setDependent(src.getDependentField())
                         .setHasDependentFields(src.getHasDependentFields())
                         .setExternalProperties(src.getExternalProperties())
@@ -97,11 +100,12 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                     dst.setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
                     dst.setFieldInitializerFeaturerId(src.getFieldInitializerFeaturerId());
                     dst.setTwinSorterFeaturerId(src.getTwinSorterFeaturerId());
-                    featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldTyperFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
-                    featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getFieldInitializerFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
-                    featurerRestDTOMapper.postpone(featurerService.getFeaturerEntity(src.getTwinSorterFeaturerId()), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerParametrizedRestDTOMapper.postpone(src.getFieldTyperFeaturerId(), src.getFieldTyperParams(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerParametrizedRestDTOMapper.postpone(src.getFieldInitializerFeaturerId(), src.getFieldInitializerParams(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
+                    featurerParametrizedRestDTOMapper.postpone(src.getTwinSorterFeaturerId(), src.getTwinSorterParams(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT));
                 }
                 if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
+                    twinClassFieldService.loadPermissions(src);
                     dst
                             .setViewPermissionId(src.getViewPermissionId())
                             .setEditPermissionId(src.getEditPermissionId());
@@ -138,6 +142,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassField2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
+            twinClassFieldService.loadTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT));
         }
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
@@ -150,9 +155,16 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     @Override
     public void beforeCollectionConversion(Collection<TwinClassFieldEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinClassField2TwinClassMode.HIDE)) {
+            twinClassFieldService.loadTwinClass(srcCollection);
+        }
         if (mapperContext.hasModeButNot(TwinClassFieldRuleMode.TwinClassField2TwinClassFieldRuleMode.HIDE)) {
-            //preload rules for all fields in srcCollection to avoid n+1 problem
-            twinClassFieldRuleMapService.loadRules(srcCollection);
+            twinClassFieldRuleMapService.loadRules(srcCollection, false);
+        }
+        if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
+            twinClassFieldService.loadPermissions(srcCollection);
         }
     }
 

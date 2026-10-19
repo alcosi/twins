@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -33,7 +34,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PERMISSION_GRANT_TWIN_ROLE_MANAGE, Permissions.PERMISSION_GRANT_TWIN_ROLE_CREATE})
+@ProtectedBy(Permissions.PERMISSION_GRANT_TWIN_ROLE_CREATE)
 public class PermissionGrantTwinRoleCreateController extends ApiController {
     private final PermissionGrantTwinRoleService permissionGrantTwinRoleService;
     private final PermissionGrantTwinRoleRestDTOMapper permissionGrantTwinRoleRestDTOMapper;
@@ -50,7 +51,7 @@ public class PermissionGrantTwinRoleCreateController extends ApiController {
     @PostMapping(value = "/private/permission_grant/twin_role/v1")
     public ResponseEntity<?> permissionGrantTwinRoleCreateV1(
             @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapper.class, response = PermissionGrantTwinRoleRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody PermissionGrantTwinRoleCreateRqDTOv1 request) {
+            @RequestBody @Valid PermissionGrantTwinRoleCreateRqDTOv1 request) {
         PermissionGrantTwinRoleRsDTOv1 rs = new PermissionGrantTwinRoleRsDTOv1();
         try {
             PermissionGrantTwinRoleEntity permissionGrantTwinRole = permissionGrantTwinRoleService.createPermissionGrantTwinRole

@@ -1,9 +1,10 @@
 package org.cambium.common.util;
 
 import org.apache.commons.lang3.Range;
+import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class LTreeUtils {
     public static String matchWithDepthRangeBetweenElements(String firstId, String secondId, Range<Integer> depthBetweenIds) {
@@ -50,5 +51,43 @@ public class LTreeUtils {
             }
         }
         return result.toString();
+    }
+
+    public static String buildLQueryFromUuids(Collection<UUID> uuids) {
+        if (uuids == null || uuids.isEmpty()) {
+            return "";
+        }
+        return uuids.stream()
+                .map(LTreeUtils::matchInTheMiddle)
+                .collect(Collectors.joining("|"));
+    }
+
+    public static String convertUuidFromLTreeFormat(String uuidLtreeFormat) {
+        return uuidLtreeFormat.replace("_", "-");
+    }
+
+    public static Set<UUID> toUuidsSortedSet(String uuidLTreeFormat, boolean reverse) {
+        if (StringUtils.isBlank(uuidLTreeFormat))
+            return Collections.emptySet();
+        var idsStr = uuidLTreeFormat.replace("_", "-").split("\\.");
+        var ret = new LinkedHashSet<UUID>();
+        if (reverse) {
+            for (int i = idsStr.length - 1; i >= 0; i--)
+                ret.add(UUID.fromString(idsStr[i]));
+        } else {
+            for (var id : idsStr)
+                ret.add(UUID.fromString(id));
+        }
+        return ret;
+    }
+
+    public static UUID uuidByIndex(String uuidLTreeFormat, boolean reverse, int index) {
+        if (StringUtils.isBlank(uuidLTreeFormat) || index < 0)
+            return null;
+        String[] idsStr = uuidLTreeFormat.replace("_", "-").split("\\.");
+        if (index >= idsStr.length)
+            return null;
+        int targetIndex = reverse ? idsStr.length - 1 - index : index;
+        return UUID.fromString(idsStr[targetIndex]);
     }
 }

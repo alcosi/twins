@@ -1,10 +1,10 @@
 package org.twins.core.dao.i18n.specifications;
 
 import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.Attribute;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.i18n.I18nEntity;
-import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
@@ -16,41 +16,73 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class I18nSpecification<T> {
 
-    public static <T> Specification<T> joinAndSearchByI18NField(final String fieldName, final Collection<String> search, final Locale locale, final boolean or, final boolean not) {
+    /**
+     * Direct join to {@code i18n_translation} via {@code @OneToMany xxxI18nTranslationsSpecOnly}
+     * association on the root entity. Skips the intermediate {@code i18n} table.
+     */
+    public static <T> Specification<T> joinAndSearchByI18NFieldDirect(final String translationsFieldName, final Collection<String> search, final Locale locale, final boolean or, final boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search)) return cb.conjunction();
 
-            // Create joins for I18nEntity and I18nTranslationEntity
-            Join<T, I18nEntity> i18nJoin = root.join(fieldName, JoinType.LEFT);
-            Join<I18nEntity, I18nTranslationEntity> translationJoin = i18nJoin.join(I18nEntity.Fields.translations, JoinType.LEFT);
+            Join<T, I18nTranslationEntity> translationJoin = root.join(translationsFieldName, JoinType.LEFT);
+            translationJoin.on(cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale));
 
-            // Create search predicates
-            Predicate localePredicate = cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale);
             List<Predicate> likePredicates = buildLikePredicates(cb, translationJoin.get(I18nTranslationEntity.Fields.translation), search, not);
-            Predicate searchPredicate = getPredicate(cb, likePredicates, or);
-
-            // Return main condition, checking the existence of translations
-            return cb.and(localePredicate, searchPredicate);
+            return getPredicate(cb, likePredicates, or);
         };
     }
 
-    public static <T, S> Specification<T> doubleJoinAndSearchByI18NField(final String fieldJoin, final String fieldName, final Collection<String> search, final Locale locale, final boolean not, final boolean or) {
+    /**
+     * Direct double join: navigate to the holder entity, then join {@code i18n_translation} directly
+     * via {@code @OneToMany xxxI18nTranslationsSpecOnly}. Produces two LEFT JOINs.
+     */
+    public static <T, S> Specification<T> doubleJoinAndSearchByI18NFieldDirect(final String fieldJoin, final String translationsFieldName, final Collection<String> search, final Locale locale, final boolean not, final boolean or) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search)) return cb.conjunction();
 
-            // Create joins for I18nEntity and I18nTranslationEntity
             Join<T, S> tableJoin = root.join(fieldJoin, JoinType.LEFT);
-            Join<T, I18nEntity> i18nJoin = tableJoin.join(fieldName, JoinType.LEFT);
-            Join<I18nEntity, I18nTranslationEntity> translationJoin = i18nJoin.join(I18nEntity.Fields.translations, JoinType.LEFT);
+            Join<S, I18nTranslationEntity> translationJoin = tableJoin.join(translationsFieldName, JoinType.LEFT);
+            translationJoin.on(cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale));
 
-            // Create search predicates
-            Predicate localePredicate = cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale);
             List<Predicate> likePredicates = buildLikePredicates(cb, translationJoin.get(I18nTranslationEntity.Fields.translation), search, not);
-            Predicate searchPredicate = getPredicate(cb, likePredicates, or);
-
-            // Return main condition, checking the existence of translations
-            return cb.and(localePredicate, searchPredicate);
+            return getPredicate(cb, likePredicates, or);
         };
+    }
+
+    /**
+     * Sort by i18n translation. The last segment of {@code fieldPath} must point to a
+     * {@code @OneToMany} association of type {@link I18nTranslationEntity} (e.g. {@code nameI18nTranslationsSpecOnly}).
+     * All previous segments are normal associations to navigate to the holder entity.
+     * Produces a single LEFT JOIN to {@code i18n_translation} on the leaf step.
+     */
+    public static <T> Specification<T> toSortSpecificationDirect(boolean ascending, Locale locale, String... fieldPath) {
+        if (fieldPath == null || fieldPath.length == 0 || locale == null)
+            return (root, query, cb) -> cb.conjunction();
+        return (root, query, cb) -> {
+            if (query.getResultType().equals(Long.class))
+                return cb.conjunction();
+            From<?, ?> current = root;
+            for (int i = 0; i < fieldPath.length - 1; i++) {
+                current = findOrCreateJoin(current, fieldPath[i], JoinType.LEFT);
+            }
+            Join<?, ?> translationJoin = findOrCreateJoin(current, fieldPath[fieldPath.length - 1], JoinType.LEFT);
+            translationJoin.on(cb.equal(translationJoin.get(I18nTranslationEntity.Fields.locale), locale));
+            Path<String> translationPath = translationJoin.get(I18nTranslationEntity.Fields.translation);
+            List<Order> orders = new ArrayList<>(query.getOrderList());
+            orders.add(ascending ? cb.asc(translationPath) : cb.desc(translationPath));
+            query.orderBy(orders);
+            return cb.conjunction();
+        };
+    }
+
+    private static Join<?, ?> findOrCreateJoin(From<?, ?> from, String attribute, JoinType joinType) {
+        for (Join<?, ?> join : from.getJoins()) {
+            Attribute<?, ?> attr = (Attribute<?, ?>) join.getAttribute();
+            if (attr != null && attr.getName().equals(attribute)) {
+                return join;
+            }
+        }
+        return from.join(attribute, joinType);
     }
 
     private static List<Predicate> buildLikePredicates(CriteriaBuilder cb, Path<String> path, Collection<String> search, boolean not) {

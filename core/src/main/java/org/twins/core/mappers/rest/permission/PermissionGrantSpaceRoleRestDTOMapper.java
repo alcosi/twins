@@ -11,6 +11,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.permission.PermissionGrantSpaceRoleService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -28,6 +31,8 @@ public class PermissionGrantSpaceRoleRestDTOMapper extends RestSimpleDTOMapper<P
 
     @MapperModePointerBinding(modes = UserMode.PermissionGrantSpaceRole2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
+
+    private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
 
     @Override
     public void map(PermissionGrantSpaceRoleEntity src, PermissionGrantSpaceRoleDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -55,19 +60,33 @@ public class PermissionGrantSpaceRoleRestDTOMapper extends RestSimpleDTOMapper<P
         }
 
         if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantSpaceRole2PermissionMode.HIDE)) {
+            permissionGrantSpaceRoleService.loadPermission(src);
             dst.setPermissionId(src.getPermissionId());
             permissionRestDTOMapper.postpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantSpaceRole2PermissionMode.SHORT));
         }
 
         if (mapperContext.hasModeButNot(SpaceRoleMode.PermissionGrantSpaceRole2SpaceRoleMode.HIDE)) {
+            permissionGrantSpaceRoleService.loadSpaceRole(src);
             dst.setSpaceRoleId(src.getSpaceRoleId());
             spaceRoleDTOMapper.postpone(src.getSpaceRole(), mapperContext.forkOnPoint(SpaceRoleMode.PermissionGrantSpaceRole2SpaceRoleMode.SHORT));
         }
 
         if (mapperContext.hasModeButNot(UserMode.PermissionGrantSpaceRole2UserMode.HIDE)) {
+            permissionGrantSpaceRoleService.loadGrantedByUser(src);
             dst.setGrantedByUserId(src.getGrantedByUserId());
             userRestDTOMapper.postpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionGrantSpaceRole2UserMode.SHORT));
         }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<PermissionGrantSpaceRoleEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantSpaceRole2PermissionMode.HIDE))
+            permissionGrantSpaceRoleService.loadPermission(srcCollection);
+        if (mapperContext.hasModeButNot(SpaceRoleMode.PermissionGrantSpaceRole2SpaceRoleMode.HIDE))
+            permissionGrantSpaceRoleService.loadSpaceRole(srcCollection);
+        if (mapperContext.hasModeButNot(UserMode.PermissionGrantSpaceRole2UserMode.HIDE))
+            permissionGrantSpaceRoleService.loadGrantedByUser(srcCollection);
     }
 
     @Override

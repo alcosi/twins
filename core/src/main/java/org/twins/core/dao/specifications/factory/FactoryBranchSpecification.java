@@ -17,12 +17,12 @@ public class FactoryBranchSpecification extends CommonSpecification<TwinFactoryB
             var factoryPredicate = createPredicateWithJoins(
                     root, cb, domainId,
                     (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue),
-                    JoinType.INNER, TwinFactoryBranchEntity.Fields.factory, TwinFactoryEntity.Fields.domainId
+                    JoinType.INNER, TwinFactoryBranchEntity.Fields.factorySpecOnly, TwinFactoryEntity.Fields.domainId
             );
             var nextFactoryPredicate = createPredicateWithJoins(
                     root, cb, domainId,
                     (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue),
-                    JoinType.INNER, TwinFactoryBranchEntity.Fields.nextFactory, TwinFactoryEntity.Fields.domainId
+                    JoinType.INNER, TwinFactoryBranchEntity.Fields.nextFactorySpecOnly, TwinFactoryEntity.Fields.domainId
             );
             return cb.and(factoryPredicate, nextFactoryPredicate);
         };

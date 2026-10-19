@@ -19,6 +19,8 @@ public abstract class TwinOperation {
 
     public enum Launcher {
         direct,
-        factory
+        factory,
+        trigger,
+        link
     }
 }

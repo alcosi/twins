@@ -8,7 +8,7 @@ import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.projection.ProjectionDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -35,7 +35,7 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
     private final ProjectionTypeRestDTOMapper projectionTypeRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.Projection2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @Override
     public void map(ProjectionEntity src, ProjectionDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -69,6 +69,7 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
 
         if (mapperContext.hasModeButNot(ProjectionTypeMode.Projection2ProjectionTypeMode.HIDE)) {
             dst.setProjectionTypeId(src.getProjectionTypeId());
+            projectionService.loadProjectionType(src);
             projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.Projection2ProjectionTypeMode.SHORT)));
         }
 
@@ -76,34 +77,35 @@ public class ProjectionRestDTOMapper extends RestSimpleDTOMapper<ProjectionEntit
             dst
                     .setSrcTwinClassFieldId(src.getSrcTwinClassFieldId())
                     .setDstTwinClassFieldId(src.getDstTwinClassFieldId());
-
+            projectionService.loadSrcTwinClassField(src);
+            projectionService.loadDstTwinClassField(src);
             twinClassFieldRestDTOMapper.postpone(src.getSrcTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.Projection2TwinClassFieldMode.SHORT)));
             twinClassFieldRestDTOMapper.postpone(src.getDstTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.Projection2TwinClassFieldMode.SHORT)));
         }
 
         if (mapperContext.hasModeButNot(TwinClassMode.Projection2TwinClassMode.HIDE)) {
-            dst
-                    .setDstTwinClassId(src.getDstTwinClassId());
-
+            dst.setDstTwinClassId(src.getDstTwinClassId());
+            projectionService.loadDstTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getDstTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Projection2TwinClassMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.Projection2FeaturerMode.HIDE)) {
-            dst
-                    .setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId());
-            projectionService.loadProjectorFeaturer(src);
-            featurerRestDTOMapper.postpone(src.getFieldProjectorFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Projection2FeaturerMode.SHORT)));
+            dst.setFieldProjectorFeaturerId(src.getFieldProjectorFeaturerId());
+            featurerParametrizedRestDTOMapper.postpone(src.getFieldProjectorFeaturerId(), src.getFieldProjectorParams(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Projection2FeaturerMode.SHORT)));
         }
     }
 
     @Override
     public void beforeCollectionConversion(Collection<ProjectionEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (srcCollection.isEmpty()) {
-            return;
+        if (mapperContext.hasModeButNot(ProjectionTypeMode.Projection2ProjectionTypeMode.HIDE)) {
+            projectionService.loadProjectionType(srcCollection);
         }
-        if (mapperContext.hasModeButNot(FeaturerMode.Projection2FeaturerMode.HIDE)) {
-            projectionService.loadProjectorFeaturer(srcCollection);
+        if (mapperContext.hasModeButNot(TwinClassFieldMode.Projection2TwinClassFieldMode.HIDE)) {
+            projectionService.loadSrcTwinClassField(srcCollection);
+            projectionService.loadDstTwinClassField(srcCollection);
         }
-
+        if (mapperContext.hasModeButNot(TwinClassMode.Projection2TwinClassMode.HIDE)) {
+            projectionService.loadDstTwinClass(srcCollection);
+        }
     }
 }

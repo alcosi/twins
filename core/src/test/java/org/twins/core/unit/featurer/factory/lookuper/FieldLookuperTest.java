@@ -1,0 +1,219 @@
+package org.twins.core.unit.featurer.factory.lookuper;
+
+import org.cambium.common.exception.ServiceException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.twins.core.base.BaseUnitTest;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.factory.FactoryContext;
+import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.featurer.factory.lookuper.FieldLookuper;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinlink.TwinLinkService;
+
+import java.lang.reflect.Field;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class FieldLookuperTest extends BaseUnitTest {
+
+    @Mock
+    private TwinService twinService;
+
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
+    @Mock
+    private TwinLinkService twinLinkService;
+
+    private StubLookuper lookuper;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        lookuper = new StubLookuper();
+        setField(lookuper, "twinService", twinService);
+        setField(lookuper, "twinClassFieldService", twinClassFieldService);
+        setField(lookuper, "twinLinkService", twinLinkService);
+    }
+
+    // contract for FieldLookuper.getFreshestValue(twinEntity, twinClassFieldId, factoryContext):
+    //   1. If factoryContext has an output FactoryItem for twinEntity.id, return its uncommitted field.
+    //   2. Otherwise (or if that field is null), fall back to twinService.getTwinFieldValue(twinEntity, fieldId).
+    //   3. If both are null, return null — not-found is the caller's decision (undefined value at the
+    //      batch boundary), not an exception.
+
+    @Nested
+    class GetFreshestValue {
+
+        @Test
+        void getFreshestValue_uncommittedPresent_returnsUncommittedAndSkipsDb() throws Exception {
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID());
+            var ctx = new FactoryContext(null, null);
+            var uncommitted = fieldValue(field.getId(), "uncommitted");
+            registerOutputFieldInContext(ctx, twin.getId(), uncommitted);
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx);
+
+            assertSame(uncommitted, result);
+            verifyNoInteractions(twinService);
+        }
+
+        @Test
+        void getFreshestValue_uncommittedNull_fallsBackToDb() throws ServiceException {
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID());
+            var ctx = new FactoryContext(null, null);
+            var dbValue = fieldValue(field.getId(), "db-val");
+
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinService.getTwinFieldValue(twin, field)).thenReturn(dbValue);
+
+            var result = lookuper.callGetFreshestValue(twin, field.getId(), ctx);
+
+            assertSame(dbValue, result);
+            verify(twinService).getTwinFieldValue(twin, field);
+        }
+
+        @Test
+        void getFreshestValue_uncommittedNullAndDbNull_returnsNull() throws ServiceException {
+            var field = new TwinClassFieldEntity().setId(UUID.randomUUID());
+            var twin = new TwinEntity().setId(UUID.randomUUID());
+            var ctx = new FactoryContext(null, null);
+
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinService.getTwinFieldValue(twin, field)).thenReturn(null);
+
+            assertNull(lookuper.callGetFreshestValue(twin, field.getId(), ctx));
+        }
+    }
+
+    // contract for FieldLookuper.getValueFromOutputLinks(twinClassFieldId, twinSave):
+    //   On TwinCreate with links[] matching the field's configured link, the value is a FieldValueLink whose
+    //   items are the far twins. Batch-internal links arrive with dstTwin already set by the temporal link
+    //   mapper (TemporalIdContext registry); links carrying only dstTwinId are existing twins — loadDstTwin
+    //   bulk-loads them and short-circuits on already-loaded entities. Links with a different linkId, or no
+    //   configured link at all, yield null.
+
+    @Nested
+    class GetValueFromOutputLinks {
+
+        @Test
+        void batchLinkWithPreSetDstTwin_buildsValueFromIt() throws ServiceException {
+            var field = new TwinClassFieldEntity();
+            field.setId(UUID.randomUUID());
+            var linkId = UUID.randomUUID();
+            var batchTwin = new TwinEntity().setId(UUID.randomUUID());
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinClassFieldService.getConfiguredLink(field)).thenReturn(linkId);
+
+            var twinCreate = new TwinCreate();
+            // as prepared by TwinLinkAddTemporalRestDTOReverseMapper from the TemporalIdContext registry
+            twinCreate.addLink(new TwinLinkEntity().setLinkId(linkId).setDstTwinId(batchTwin.getId()).setDstTwin(batchTwin));
+
+            var result = lookuper.callGetValueFromOutputLinks(field.getId(), twinCreate);
+
+            assertInstanceOf(FieldValueLink.class, result);
+            assertEquals(List.of(batchTwin), ((FieldValueLink) result).getItems());
+        }
+
+        @Test
+        void linkWithDstTwinIdOnly_loadsFarTwinThenBuildsValue() throws ServiceException {
+            var field = new TwinClassFieldEntity();
+            field.setId(UUID.randomUUID());
+            var linkId = UUID.randomUUID();
+            var dstTwin = new TwinEntity().setId(UUID.randomUUID());
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinClassFieldService.getConfiguredLink(field)).thenReturn(linkId);
+            var link = new TwinLinkEntity().setLinkId(linkId).setDstTwinId(dstTwin.getId()); // dstTwin NOT set — existing twin
+            doAnswer(invocation -> { // simulate the bulk load the real TwinLinkService performs
+                for (TwinLinkEntity l : (List<TwinLinkEntity>) invocation.getArgument(0))
+                    l.setDstTwin(dstTwin);
+                return null;
+            }).when(twinLinkService).loadDstTwin(anyCollection());
+
+            var twinCreate = new TwinCreate();
+            twinCreate.addLink(link);
+
+            var result = lookuper.callGetValueFromOutputLinks(field.getId(), twinCreate);
+
+            assertInstanceOf(FieldValueLink.class, result);
+            assertEquals(List.of(dstTwin), ((FieldValueLink) result).getItems());
+        }
+
+        @Test
+        void noLinksForConfiguredLink_returnsNull() throws ServiceException {
+            var field = new TwinClassFieldEntity();
+            field.setId(UUID.randomUUID());
+            when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field);
+            when(twinClassFieldService.getConfiguredLink(field)).thenReturn(UUID.randomUUID());
+
+            var twinCreate = new TwinCreate();
+            twinCreate.addLink(new TwinLinkEntity().setLinkId(UUID.randomUUID()).setDstTwinId(UUID.randomUUID()));
+
+            assertNull(lookuper.callGetValueFromOutputLinks(field.getId(), twinCreate));
+            verifyNoInteractions(twinLinkService);
+        }
+    }
+
+    /** Minimal same-package stub so we can invoke the public getFreshestValue directly. */
+    static class StubLookuper extends FieldLookuper {
+        public FieldValue callGetFreshestValue(TwinEntity twinEntity, UUID fieldId, FactoryContext ctx) throws ServiceException {
+            return getFreshestValue(twinEntity, fieldId, ctx);
+        }
+
+        public FieldValue callGetValueFromOutputLinks(UUID fieldId, org.twins.core.domain.twinoperation.TwinSave twinSave) throws ServiceException {
+            return getValueFromOutputLinks(fieldId, twinSave);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private void registerOutputFieldInContext(FactoryContext ctx, UUID twinId, FieldValue fv) throws Exception {
+        var output = new TwinCreate();
+        output.addField(fv);
+        var item = new FactoryItem().setOutput(output).setFactoryContext(ctx);
+        var uniqField = findField(FactoryContext.class, "factoryItemsUniq");
+        uniqField.setAccessible(true);
+        var uniq = (Hashtable<UUID, FactoryItem>) uniqField.get(ctx);
+        uniq.put(twinId, item);
+    }
+
+    private FieldValue fieldValue(UUID fieldId, String value) {
+        var twinClassField = new TwinClassFieldEntity();
+        twinClassField.setId(fieldId);
+        var fv = new FieldValueText(twinClassField);
+        fv.setValue(value);
+        return fv;
+    }
+
+    private void setField(Object target, String fieldName, Object value) throws Exception {
+        var field = findField(target.getClass(), fieldName);
+        field.setAccessible(true);
+        field.set(target, value);
+    }
+
+    private Field findField(Class<?> clazz, String fieldName) {
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new RuntimeException("Field not found: " + fieldName);
+    }
+}

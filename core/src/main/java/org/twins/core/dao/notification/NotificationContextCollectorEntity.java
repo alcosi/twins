@@ -2,14 +2,11 @@ package org.twins.core.dao.notification;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 
@@ -34,21 +31,20 @@ public class NotificationContextCollectorEntity implements EasyLoggable {
     @Column(name = "notification_context_id")
     private UUID notificationContextId;
 
-    @Column(name = "context_collector_featurer_id")
+    @Column(name = "context_collector_featurer_id", nullable = false)
     private Integer contextCollectorFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "context_collector_params", columnDefinition = "hstore")
     private HashMap<String, String> contextCollectorParams;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
-    private NotificationContextEntity historyNotificationContext;
-
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @Transient
-    private FeaturerEntity contextCollectorFeaturer;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
+    private NotificationContextEntity historyNotificationContextSpecOnly;
 
     public String easyLog(Level level) {
         return "notificationContextCollector[id:" + id + "]";

@@ -11,6 +11,8 @@ import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -108,12 +110,12 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
         ClientSideAuthData clientSideAuthData = identityProviderConnector.login(identityProvider.getIdentityProviderConnectorParams(), authLogin.getUsername(), authLogin.getPassword(), authLogin.getFingerPrint());
         TokenMetaData tokenMetaData = resolveAuthTokenMetaData(clientSideAuthData.getAuthToken());
-        authService.getApiUser()
+        var apiUser = authService.getApiUser();
+        apiUser
                 .setUserResolver(new UserResolverGivenId(tokenMetaData.getUserId()))
                 .setBusinessAccountResolver(new BusinessAccountResolverGivenId(tokenMetaData.getBusinessAccountId()));
         if (authService.getApiUser().getDomain().getDomainType() == DomainType.b2b && tokenMetaData.getBusinessAccountId() == null) {
             //looks like we need to switch active BA
-
             DomainUserEntity domainUserEntity = domainUserService.findByUserId(tokenMetaData.getUserId());
             if (domainUserEntity.getLastActiveBusinessAccountId() != null) {
                 switchActiveBusinessAccount(clientSideAuthData.getAuthToken(), tokenMetaData.getUserId(), domainUserEntity.getLastActiveBusinessAccountId());
@@ -136,9 +138,11 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return m2MAuthData;
     }
 
+    @CacheEvict(value = "authTokenCache", key = "#logoutData['authToken']")
     public void logout(ClientLogoutData logoutData) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);
+        identityProviderConnector.resolveAuthTokenMetaData(identityProvider.getIdentityProviderConnectorParams(), logoutData.get("authToken"));
         identityProviderConnector.logout(identityProvider.getIdentityProviderConnectorParams(), logoutData);
     }
 
@@ -170,6 +174,7 @@ public class IdentityProviderService extends TwinsEntitySecureFindService<Identi
         return identityProviderConfig;
     }
 
+    @Cacheable(value = "authTokenCache", key = "#authToken")
     public TokenMetaData resolveAuthTokenMetaData(String authToken) throws ServiceException {
         IdentityProviderEntity identityProvider = getDomainIdentityProviderSafe();
         IdentityProviderConnector identityProviderConnector = featurerService.getFeaturer(identityProvider.getIdentityProviderConnectorFeaturerId(), IdentityProviderConnector.class);

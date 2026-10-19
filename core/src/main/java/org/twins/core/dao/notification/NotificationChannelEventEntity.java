@@ -1,14 +1,14 @@
 package org.twins.core.dao.notification;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -18,7 +18,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "notification_channel_event")
-public class NotificationChannelEventEntity implements EasyLoggable {
+public class NotificationChannelEventEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -39,17 +39,41 @@ public class NotificationChannelEventEntity implements EasyLoggable {
     @Column(name = "unique_in_batch")
     private boolean uniqueInBatch = false;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_channel_id", insertable = false, updatable = false)
+    private NotificationChannelEntity notificationChannelSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
+    private NotificationContextEntity notificationContextSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private NotificationChannelEntity notificationChannel;
 
+    @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
     private NotificationContextEntity notificationContext;
+
+    /**
+     * Transient-runtime: context collectors of this event's notification context (loaded in bulk via
+     * {@code loadContextCollectors}). Grouped by contextId, so several events sharing one context share
+     * the same collector list.
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Kit<NotificationContextCollectorEntity, UUID> collectors;
 
     public String easyLog(Level level) {
         return switch (level) {

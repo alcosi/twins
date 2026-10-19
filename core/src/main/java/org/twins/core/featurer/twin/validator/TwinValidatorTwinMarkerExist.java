@@ -1,7 +1,6 @@
 package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -29,19 +28,20 @@ public class TwinValidatorTwinMarkerExist extends TwinValidator {
     @Lazy
     @Autowired
     TwinMarkerService twinMarkerService;
-    @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        boolean isValid = twinMarkerService.hasMarker(twinEntity, markerId.extract(properties));
-        return buildResult(
-                isValid,
-                invert,
-                twinEntity.logShort() + " does not have marker[" + markerId.extract(properties) + "]",
-                twinEntity.logShort() + " has marker[" + markerId.extract(properties) + "]");
-    }
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
-        twinMarkerService.loadMarkers(twinEntityCollection); // group loading will reduce db query count
-        return super.isValid(properties, twinEntityCollection, invert);
+        var marker = markerId.extract(properties);
+        twinMarkerService.loadMarkers(twinEntityCollection);
+        var result = new CollectionValidationResult();
+        for (var twinEntity : twinEntityCollection) {
+            boolean isValid = twinMarkerService.hasMarker(twinEntity, marker);
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " does not have marker[" + marker + "]",
+                    twinEntity.logShort() + " has marker[" + marker + "]"));
+        }
+        return result;
     }
 }

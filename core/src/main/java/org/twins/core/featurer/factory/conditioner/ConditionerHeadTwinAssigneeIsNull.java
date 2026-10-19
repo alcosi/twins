@@ -28,7 +28,7 @@ public class ConditionerHeadTwinAssigneeIsNull extends Conditioner {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.getTwin();
-        TwinEntity headTwin = twinService.loadHeadForTwin(factoryItemTwin);
+        TwinEntity headTwin = twinService.loadHead(factoryItemTwin);
         if(null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItemTwin.logDetailed());
         return null == headTwin.getAssignerUserId();

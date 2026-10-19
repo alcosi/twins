@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -8,7 +9,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkAddDTOv2;
 import org.twins.core.enums.twin.TwinCreateStrategy;
 
 import java.util.HashMap;
@@ -21,11 +22,14 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinDraftV1")
 public class TwinDraftDTOv1 extends Request {
+    @Schema(description = "Temporary identifier for this twin within the batch request. Used to reference this twin in headTwinId, fields, or links of other twins in the same batch.", example = "PROJECT-1")
+    public String temporalId;
+
     @Schema(description = "class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
 
-    @Schema(description = "head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
-    public UUID headTwinId;
+    @Schema(description = "head twin id (can be UUID or temporalId:XXX reference)", example = DTOExamples.HEAD_TWIN_ID)
+    public String headTwinId;
 
     @Schema(description = "name", example = "Oak")
     public String name;
@@ -33,17 +37,22 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "assigner user id", example = DTOExamples.USER_ID)
     public UUID assignerUserId;
 
+    @Schema(description = "flavor data list option id")
+    public UUID flavorDataListOptionId;
+
     @Schema(description = "description", example = "The biggest tree")
     public String description;
 
     @Schema(description = "fields")
     public Map<String, String> fields;
 
+    @Valid
     @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;
 
-    @Schema(description = "links list")
-    public List<TwinLinkAddDTOv1> links;
+    @Valid
+    @Schema(description = "links list (with temporalId support)")
+    public List<TwinLinkAddDTOv2> links;
 
     @Schema(description = "tags list")
     public TwinTagAddDTOv1 tags;
@@ -58,6 +67,7 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "twin create strategy (isSketch flag replacement)")
     public TwinCreateStrategy createStrategy;
 
+    @Valid
     @Schema(description = "field attributes")
     public List<TwinFieldAttributeCreateDTOv1> fieldAttributes;
 
@@ -72,7 +82,7 @@ public class TwinDraftDTOv1 extends Request {
         return this;
     }
 
-    public TwinDraftDTOv1 addLinksItem(TwinLinkAddDTOv1 item) {
+    public TwinDraftDTOv1 addLinksItem(TwinLinkAddDTOv2 item) {
         this.links = CollectionUtils.safeAdd(this.links, item);
         return this;
     }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
@@ -29,7 +30,8 @@ public class ConditionerContextValueExists extends Conditioner {
 
     public boolean check(Properties properties, FactoryItem factoryItem, FieldLookuperNearest fieldLookuper) throws ServiceException {
         try {
-            return null != fieldLookuper.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+            FieldValue fieldValue = fieldLookuper.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+            return null != fieldValue && fieldValue.isDefined(); // the per-item template converts not-found into an undefined value
         } catch (ServiceException e) {
             return false;
         }

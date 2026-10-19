@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
@@ -21,7 +20,10 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.StringJoiner;
@@ -45,6 +47,10 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
 
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByFieldMode.class)
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
+    private final TwinLinkService twinLinkService;
+    @Lazy
+    private final TwinService twinService;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
@@ -108,12 +114,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
             dst.setValue(statusField.getValue().getId().toString());
         } else if (src instanceof FieldValueLink link) {
             StringJoiner stringJoiner = new StringJoiner(",");
-            TwinEntity linkedTwin;
-            for (TwinLinkEntity twinLinkEntity : link.getItems()) {
-                if (link.isForwardLink())
-                    linkedTwin = twinLinkEntity.getDstTwin();
-                else
-                    linkedTwin = twinLinkEntity.getSrcTwin();
+            for (TwinEntity linkedTwin : link.getItems()) { // items carry the far twins
                 stringJoiner.add(linkedTwin.getId().toString());
                 if (mapperContext.hasModeButNot(RelationTwinMode.TwinByFieldMode.WHITE)) {
                     twinBaseRestDTOMapper.postpone(linkedTwin, mapperContext.forkOnPoint(RelationTwinMode.TwinByFieldMode.GREEN));
@@ -145,6 +146,19 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     public List<FieldValueText> convertCollection(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
         return super.convertCollection(srcList
                 .stream().filter(v -> !(v instanceof FieldValueInvisible) || (v instanceof FieldValueAttachment)).toList(), mapperContext);
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<FieldValue> srcCollection, MapperContext mapperContext) throws Exception {
+        List<TwinEntity> linkedTwins = null;
+        for (FieldValue v : srcCollection) {
+            if (v instanceof FieldValueLink valueLink) { // items carry the far twins
+                if (linkedTwins == null)
+                    linkedTwins = new ArrayList<>();
+                linkedTwins.addAll(valueLink.getItemsOrEmpty());
+            }
+        }
+        twinService.load(linkedTwins);
     }
 
     @Override

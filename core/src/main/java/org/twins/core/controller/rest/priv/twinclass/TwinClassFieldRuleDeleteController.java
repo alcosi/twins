@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleService;
 
 import java.util.UUID;
 
@@ -29,7 +29,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_DELETE})
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_RULE_DELETE)
 public class TwinClassFieldRuleDeleteController extends ApiController {
 
     private final TwinClassFieldRuleService twinClassFieldRuleService;

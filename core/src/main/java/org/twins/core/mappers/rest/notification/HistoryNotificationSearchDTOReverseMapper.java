@@ -18,8 +18,8 @@ public class HistoryNotificationSearchDTOReverseMapper extends RestSimpleDTOMapp
                 .setIdExcludeList(src.getIdExcludeList())
                 .setHistoryTypeIdList(src.getHistoryTypeIdList())
                 .setHistoryTypeIdExcludeList(src.getHistoryTypeIdExcludeList())
-                .setTwinClassIdList(src.getTwinClassIdList())
-                .setTwinClassIdExcludeList(src.getTwinClassIdExcludeList())
+                .setTwinClassIdMap(src.getTwinClassIdMap())
+                .setTwinClassIdExcludeMap(src.getTwinClassIdExcludeMap())
                 .setTwinClassFieldIdList(src.getTwinClassFieldIdList())
                 .setTwinClassFieldIdExcludeList(src.getTwinClassFieldIdExcludeList())
                 .setTwinValidatorSetIdList(src.getTwinValidatorSetIdList())
@@ -30,6 +30,7 @@ public class HistoryNotificationSearchDTOReverseMapper extends RestSimpleDTOMapp
                 .setHistoryNotificationRecipientIdList(src.getHistoryNotificationRecipientIdList())
                 .setHistoryNotificationRecipientIdExcludeList(src.getHistoryNotificationRecipientIdExcludeList())
                 .setNotificationChannelEventIdList(src.getNotificationChannelEventIdList())
-                .setNotificationChannelEventIdExcludeList(src.getNotificationChannelEventIdExcludeList());
+                .setNotificationChannelEventIdExcludeList(src.getNotificationChannelEventIdExcludeList())
+                .setActive(src.getActive());
     }
 }

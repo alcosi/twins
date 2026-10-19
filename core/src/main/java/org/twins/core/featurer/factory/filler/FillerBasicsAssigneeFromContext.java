@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
@@ -24,33 +24,31 @@ import java.util.UUID;
         name = "Basics assignee from context",
         description = "")
 @Slf4j
-public class FillerBasicsAssigneeFromContext extends Filler {
+public class FillerBasicsAssigneeFromContext extends FillerFieldLookup {
     @FeaturerParam(name = "Assignee field", description = "", order = 1)
     public static final FeaturerParamUUID assigneeField = new FeaturerParamUUIDTwinsTwinClassFieldId("assigneeField");
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextFieldsAndContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFieldsAndContextTwinDbFields());
+    protected FieldLookuperNearest lookuper(Properties properties) throws ServiceException {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return assigneeField.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue fieldValue) throws ServiceException {
+        fieldValue.assertIsDefined(fieldValue.getTwinClassField().logNormal() + " is not present in context fields and in context twins");
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        UUID assigneeFieldId = assigneeField.extract(properties);
-        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, assigneeFieldId);
-        if (fieldValue instanceof FieldValueUser fieldValueUser) {
-            if (fieldValueUser.isEmpty())
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");
-            else if (fieldValueUser.size() > 1) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, fieldValue.getTwinClassField().logShort() + " is filled by multiply users");
-            } else {
-                log.info(outputTwinEntity.logShort() + " [assignee] will be filled from context " + fieldValue.getTwinClassField().logShort());
-                UserEntity assignee = fieldValueUser.getItems().getFirst();
-                outputTwinEntity
-                        .setAssignerUser(assignee)
-                        .setAssignerUserId(assignee.getId());
-            }
-        } else
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, fieldValue.getTwinClassField().logShort() + " is not for user");
+        UserEntity assignee = FieldValueUser.getSingleUserSafe(fieldValue);
+        log.info("{} [assignee] will be filled from {}", outputTwinEntity.logShort(), fieldValue.getTwinClassField().logShort());
+        outputTwinEntity
+                .setAssignerUser(assignee)
+                .setAssignerUserId(assignee.getId());
     }
 }

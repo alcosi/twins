@@ -14,7 +14,7 @@ import org.twins.core.domain.search.TwinClassFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.*;
 
@@ -41,7 +41,7 @@ public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
         }
         var twinId = UUID.fromString(namedParamsMap.get(PARAM_CURRENT_TWIN_ID));
         var twin = twinService.findEntitySafe(twinId);
-        twinService.loadHeadForTwin(twin);
+        twinService.loadHead(twin);
         if (twin.getHeadTwin() == null)
             throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, "{} does not have head", twin.logNormal());
         twinClassFieldService.loadTwinClassFields(twin.getTwinClass());
@@ -60,6 +60,8 @@ public class FieldFinderByIdExcludeHeadMatched extends FieldFinder {
     }
 
     private static String getMatchCode(TwinClassFieldEntity classField) {
-        return classField.getKey() + classField.getFieldTyperFeaturerId() + (classField.getFieldTyperParams() == null ? "" : classField.getFieldTyperParams().hashCode());
+        return classField.getKey() + ","
+                + classField.getFieldTyperFeaturerId() + ","
+                + (classField.getFieldTyperParams() == null ? "" : classField.getFieldTyperParams().hashCode());
     }
 }

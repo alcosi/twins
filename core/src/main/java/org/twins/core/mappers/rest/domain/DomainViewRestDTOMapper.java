@@ -8,7 +8,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dto.rest.domain.DomainViewDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
@@ -16,8 +16,6 @@ import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassSchemaDTOMapper;
 import org.twins.core.service.domain.DomainService;
-
-import java.util.Collection;
 
 
 @Component
@@ -30,8 +28,9 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
     @MapperModePointerBinding(modes = FaceMode.DomainNavbar2FaceMode.class)
     protected final FaceRestDTOMapper faceRestDTOMapper;
     @MapperModePointerBinding(modes = {
-            FeaturerMode.DomainUserGroupManager2FeaturerMode.class})
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+            FeaturerMode.DomainUserGroupManager2FeaturerMode.class,
+            FeaturerMode.DomainBusinessAccountInitiator2FeaturerMode.class})
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
     @MapperModePointerBinding(modes = {
             TwinMode.DomainBusinessAccountTemplate2TwinMode.class,
             TwinMode.DomainUserTemplate2TwinMode.class})
@@ -84,8 +83,11 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
         }
         if (mapperContext.hasModeButNot(FeaturerMode.DomainUserGroupManager2FeaturerMode.HIDE)) {
             dst.setUserGroupManagerFeaturerId(src.getUserGroupManagerFeaturerId());
-            domainService.loadUserGroupManager(src);
-            featurerRestDTOMapper.postpone(src.getUserGroupManagerFeaturer(), mapperContext.forkOnPoint(FeaturerMode.DomainUserGroupManager2FeaturerMode.SHORT));
+            featurerParametrizedRestDTOMapper.postpone(src.getUserGroupManagerFeaturerId(), src.getUserGroupManagerParams(), mapperContext.forkOnPoint(FeaturerMode.DomainUserGroupManager2FeaturerMode.SHORT));
+        }
+        if (mapperContext.hasModeButNot(FeaturerMode.DomainBusinessAccountInitiator2FeaturerMode.HIDE)) {
+            dst.setBusinessAccountInitiatorFeaturerId(src.getBusinessAccountInitiatorFeaturerId());
+            featurerParametrizedRestDTOMapper.postpone(src.getBusinessAccountInitiatorFeaturerId(), src.getBusinessAccountInitiatorParams(), mapperContext.forkOnPoint(FeaturerMode.DomainBusinessAccountInitiator2FeaturerMode.SHORT));
         }
         if (mapperContext.hasModeButNot(PermissionSchemaMode.Domain2PermissionSchemaMode.HIDE)) {
             dst.setPermissionSchemaId(src.getPermissionSchemaId());
@@ -110,11 +112,4 @@ public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, D
 
     }
 
-    @Override
-    public void beforeCollectionConversion(Collection<DomainEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(FeaturerMode.DomainUserGroupManager2FeaturerMode.HIDE)) {
-            domainService.loadUserGroupManagers(srcCollection);
-        }
-    }
 }

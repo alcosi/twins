@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.HISTORY_NOTIFICATION_MANAGE, Permissions.HISTORY_NOTIFICATION_CREATE})
+@ProtectedBy(Permissions.HISTORY_NOTIFICATION_CREATE)
 public class HistoryNotificationRecipientCollectorCreateController extends ApiController {
     private final HistoryNotificationRecipientCollectorService historyNotificationRecipientCollectorService;
     private final HistoryNotificationRecipientCollectorDTOMapperV1 historyNotificationRecipientCollectorListRsDTOMapper;
@@ -53,7 +54,7 @@ public class HistoryNotificationRecipientCollectorCreateController extends ApiCo
     @PostMapping(value = "/private/history_notification_recipient_collector/v1")
     public ResponseEntity<?> historyNotificationRecipientCollectorCreateV1(
             @MapperContextBinding(roots = HistoryNotificationRecipientCollectorDTOMapperV1.class, response = HistoryNotificationRecipientCollectorListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody HistoryNotificationRecipientCollectorCreateRqDTOv1 request) {
+            @RequestBody @Valid HistoryNotificationRecipientCollectorCreateRqDTOv1 request) {
         HistoryNotificationRecipientCollectorListRsDTOv1 rs = new HistoryNotificationRecipientCollectorListRsDTOv1();
         try {
             List<HistoryNotificationRecipientCollectorCreate> historyNotificationRecipientCreateList = historyNotificationRecipientCollectorCreateDTOReverseMapper.convertCollection(request.getRecipientCollectors());

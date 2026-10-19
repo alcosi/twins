@@ -2,14 +2,14 @@ package org.twins.core.mappers.rest.space;
 
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.SpaceRoleSearch;
-import org.twins.core.dto.rest.space.SpaceRoleSearchRqDTOv1;
+import org.twins.core.dto.rest.space.SpaceRoleSearchDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
-public class SpaceRoleSearchDTOReverseMapper extends RestSimpleDTOMapper<SpaceRoleSearchRqDTOv1, SpaceRoleSearch> {
+public class SpaceRoleSearchDTOReverseMapper extends RestSimpleDTOMapper<SpaceRoleSearchDTOv1, SpaceRoleSearch> {
     @Override
-    public void map(SpaceRoleSearchRqDTOv1 src, SpaceRoleSearch dst, MapperContext mapperContext) {
+    public void map(SpaceRoleSearchDTOv1 src, SpaceRoleSearch dst, MapperContext mapperContext) {
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())

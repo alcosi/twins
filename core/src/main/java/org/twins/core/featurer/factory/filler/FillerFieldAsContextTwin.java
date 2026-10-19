@@ -22,7 +22,7 @@ import java.util.Properties;
         name = "Field as single context twin",
         description = "Fill link field as single context twin")
 @Slf4j
-public class FillerFieldAsContextTwin extends Filler {
+public class FillerFieldAsContextTwin extends FillerAtomic {
     @FeaturerParam(name = "Twin class field id", description = "Link field witch need to fill", order = 1)
     public static final FeaturerParamUUID twinClassFieldLinkId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldLinkId");
 
@@ -33,7 +33,7 @@ public class FillerFieldAsContextTwin extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         var twin = factoryItem.checkSingleContextTwin();
-        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twin.getId().toString());
+        FieldValue fieldValue = twinService.createFieldValue(twinClassFieldLinkId.extract(properties), twin);
         factoryItem.getOutput().addField(fieldValue);
     }
 }

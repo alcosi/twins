@@ -8,11 +8,10 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.domain.Identifiable;
 import org.cambium.common.PublicCloneable;
-import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassFieldAttributeEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -23,20 +22,10 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_field_attribute")
-public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<TwinFieldAttributeEntity>, Identifiable {
-    @Id
-    private UUID id;
-
-    @PrePersist
-    protected void onCreate() {
-        id = UuidUtils.ifNullGenerate(id);
-    }
-
-    @Column(name = "twin_id")
-    private UUID twinId;
-
-    @Column(name = "twin_class_field_id")
-    private UUID twinClassFieldId;
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class TwinFieldAttributeEntity extends TwinFieldBaseEntity
+        implements PublicCloneable<TwinFieldAttributeEntity> {
 
     @Column(name = "twin_class_field_attribute_id")
     private UUID twinClassFieldAttributeId;
@@ -57,28 +46,52 @@ public class TwinFieldAttributeEntity implements EasyLoggable, PublicCloneable<T
     @JoinColumn(name = "twin_class_field_attribute_id", insertable = false, updatable = false, nullable = false)
     private TwinClassFieldAttributeEntity twinClassFieldAttribute;
 
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity twin;
+    @Override
+    public TwinFieldAttributeEntity setId(UUID id) {
+        super.setId(id);
+        return this;
+    }
 
     @Override
-    public String easyLog(Level level) {
-        return "twinFieldAttribute[id:" + id + "]";
+    public TwinFieldAttributeEntity setTwinId(UUID twinId) {
+        super.setTwinId(twinId);
+        return this;
+    }
+
+    @Override
+    public TwinFieldAttributeEntity setTwinClassFieldId(UUID twinClassFieldId) {
+        super.setTwinClassFieldId(twinClassFieldId);
+        return this;
+    }
+
+    @Override
+    public TwinFieldAttributeEntity setTwin(TwinEntity twin) {
+        super.setTwin(twin);
+        return this;
+    }
+
+    @Override
+    public TwinFieldAttributeEntity setTwinClassField(TwinClassFieldEntity twinClassField) {
+        super.setTwinClassField(twinClassField);
+        return this;
+    }
+
+    @Override
+    public String easyLog(EasyLoggable.Level level) {
+        return "twinFieldAttribute[id:" + getId() + "]";
     }
 
     @Override
     public TwinFieldAttributeEntity clone() {
         return new TwinFieldAttributeEntity()
-                .setId(id)
-                .setTwinId(twinId)
-                .setTwinClassFieldId(twinClassFieldId)
+                .setId(getId())
+                .setTwinId(getTwinId())
+                .setTwinClassFieldId(getTwinClassFieldId())
                 .setTwinClassFieldAttributeId(twinClassFieldAttributeId)
                 .setNoteMsg(noteMsg)
                 .setNoteMsgContext(noteMsgContext)
                 .setChangedAt(changedAt)
                 .setTwinClassFieldAttribute(twinClassFieldAttribute)
-                .setTwin(twin);
+                .setTwin(getTwin());
     }
 }

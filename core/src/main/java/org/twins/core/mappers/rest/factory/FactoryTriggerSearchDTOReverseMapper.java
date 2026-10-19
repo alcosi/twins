@@ -1,0 +1,26 @@
+package org.twins.core.mappers.rest.factory;
+
+import org.springframework.stereotype.Component;
+import org.twins.core.domain.search.TwinFactoryTriggerSearch;
+import org.twins.core.dto.rest.factory.FactoryTriggerSearchDTOv1;
+import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+
+@Component
+public class FactoryTriggerSearchDTOReverseMapper extends RestSimpleDTOMapper<FactoryTriggerSearchDTOv1, TwinFactoryTriggerSearch> {
+
+    @Override
+    public void map(FactoryTriggerSearchDTOv1 src, TwinFactoryTriggerSearch dst, MapperContext mapperContext) throws Exception {
+        dst
+                .setIdList(src.getIdList())
+                .setIdExcludeList(src.getIdExcludeList())
+                .setTwinFactoryIdList(src.getTwinFactoryIdList())
+                .setTwinFactoryIdExcludeList(src.getTwinFactoryIdExcludeList())
+                .setInputTwinClassIdList(src.getInputTwinClassIdList())
+                .setInputTwinClassIdExcludeList(src.getInputTwinClassIdExcludeList())
+                .setTwinTriggerIdList(src.getTwinTriggerIdList())
+                .setTwinTriggerIdExcludeList(src.getTwinTriggerIdExcludeList())
+                .setActive(src.getActive())
+                .setAsync(src.getAsync());
+    }
+}

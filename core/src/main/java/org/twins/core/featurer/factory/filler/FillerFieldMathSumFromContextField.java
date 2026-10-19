@@ -17,8 +17,10 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
@@ -32,7 +34,7 @@ import java.util.UUID;
         description = "")
 @Slf4j
 @RequiredArgsConstructor
-public class FillerFieldMathSumFromContextField extends Filler {
+public class FillerFieldMathSumFromContextField extends FillerFieldLookup {
     @FeaturerParam(name = "Addend twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID addendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("addendTwinClassFieldId");
     @FeaturerParam(name = "Augend twin class field id", description = "", order = 2)
@@ -43,11 +45,24 @@ public class FillerFieldMathSumFromContextField extends Filler {
     @Lazy
     private final TwinService twinService;
 
+    @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextFieldsAndContextTwinDbFields")
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
+
     @Override
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    protected FieldLookuperNearest lookuper(Properties properties) throws ServiceException {
+        return fieldLookupers.getNearestByType(fieldLookuperParam.extract(properties));
+    }
+
+    @Override
+    protected UUID lookupFieldId(Properties properties) throws ServiceException {
+        return addendTwinClassFieldId.extract(properties);
+    }
+
+    @Override
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldValue addendFieldValue) throws ServiceException {
+        addendFieldValue.assertIsDefined(addendFieldValue.getTwinClassField().logNormal() + " is not present in context fields and in context twins");
         UUID paramAddendTwinClassFieldId = addendTwinClassFieldId.extract(properties);
         UUID paramAugendTwinClassFieldId = augendTwinClassFieldId.extract(properties);
-        FieldValue addendFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramAddendTwinClassFieldId);
         if (!(addendFieldValue instanceof FieldValueText)) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "addendTwinClassField[" + paramAddendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         }
@@ -80,4 +95,4 @@ public class FillerFieldMathSumFromContextField extends Filler {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "augendTwinClassField[" + paramAugendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         }
     }
-} 
+}

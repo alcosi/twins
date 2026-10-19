@@ -1,12 +1,12 @@
 package org.twins.core.dao.face;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "face")
-public class FaceEntity implements EasyLoggable {
+public class FaceEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -26,11 +26,21 @@ public class FaceEntity implements EasyLoggable {
     @Column(name = "face_component_id")
     private String faceComponentId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_component_id", nullable = false, insertable = false, updatable = false)
-    private FaceComponentTypeEntity faceComponent;
+    private FaceComponentTypeEntity faceComponentSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
 
     @Column(name = "name")
     private String name;
@@ -43,6 +53,16 @@ public class FaceEntity implements EasyLoggable {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceComponentTypeEntity faceComponent;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity createdByUser;
 
     @Override
     public String easyLog(Level level) {

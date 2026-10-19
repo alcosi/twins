@@ -27,7 +27,7 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpaceRoleUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.service.space.SpaceRoleUserService;
 import org.twins.core.service.user.UserFilterService;
 import org.twins.core.service.user.UserService;
 
@@ -56,12 +56,13 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 3)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
     @Autowired
-    private SpaceUserRoleService spaceUserRoleService;
+    private SpaceRoleUserService spaceRoleUserService;
     @Autowired
     private AuthService authService;
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        twinClassFieldService.loadTwinClass(value.getTwinClassField());
         if (!value.getTwinClassField().getTwinClass().getPermissionSchemaSpace()) {
             return;
         }
@@ -69,7 +70,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
         ApiUser apiUser = authService.getApiUser();
         UUID roleId = spaceRoleId.extract(properties);
 
-        SpaceUserRoleService.SpaceRoleUserChanges spaceRoleUserChanges = spaceUserRoleService
+        SpaceRoleUserService.SpaceRoleUserChanges spaceRoleUserChanges = spaceRoleUserService
                 .calculateSpaceRoleUserChanges(twin.getId(), roleId, value.getItems().stream().map(UserEntity::getId).toList());
 
         if (CollectionUtils.isNotEmpty(spaceRoleUserChanges.getAddUsers())) {
@@ -91,7 +92,7 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
                 twinChangesCollector.getHistoryCollector(twin).add(historyService.spaceRoleUserAdd(twin, value.getTwinClassField(), roleId, listToAdd.stream().map(SpaceRoleUserEntity::getUserId).toList()));
         }
         if (CollectionUtils.isNotEmpty(spaceRoleUserChanges.getDeleteUsers())) {
-            List<SpaceRoleUserEntity> userForDelete = spaceUserRoleService.findAllByTwinIdAndRoleIdAndUserIds(twin.getId(), roleId, spaceRoleUserChanges.getDeleteUsers());
+            List<SpaceRoleUserEntity> userForDelete = spaceRoleUserService.findAllByTwinIdAndRoleIdAndUserIds(twin.getId(), roleId, spaceRoleUserChanges.getDeleteUsers());
             twinChangesCollector.deleteAll(userForDelete);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(twin).add(historyService.spaceRoleUserDelete(value.getTwinClassField(), roleId, userForDelete.stream().map(SpaceRoleUserEntity::getUserId).toList()));
@@ -115,11 +116,11 @@ public class FieldTyperSpaceRoleUsers extends FieldTyper<FieldDescriptorUser, Fi
     @Override
     protected FieldValueUser deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twinEntity = twinField.getTwin();
-        twinService.loadTwinFields(twinEntity);
         UUID roleId = spaceRoleId.extract(properties);
         List<SpaceRoleUserEntity> spaceRoleUserEntityList = twinEntity.getTwinFieldSpaceUserKit().getGrouped(roleId);
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
         if (spaceRoleUserEntityList != null) {
+            spaceRoleUserService.loadUser(spaceRoleUserEntityList);
             ret.setItems(spaceRoleUserEntityList.stream().map(SpaceRoleUserEntity::getUser).toList());
         }
         return ret;

@@ -10,7 +10,6 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 public class TwinSort {
-
     UUID twinClassFieldId;
     TwinClassFieldEntity twinClassField;
     SortDirection direction;

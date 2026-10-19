@@ -1,5 +1,6 @@
 package org.twins.core.dao.validator;
 
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,6 +9,6 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TwinValidatorRepository extends CrudRepository<TwinValidatorEntity, UUID> {
+public interface TwinValidatorRepository extends CrudRepository<TwinValidatorEntity, UUID>, JpaSpecificationExecutor<TwinValidatorEntity> {
     List<TwinValidatorEntity> findByTwinValidatorSetIdIn(Set<UUID> twinValidatorSetIds);
 }

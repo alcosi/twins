@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkAddDTOv2;
 
 import java.util.HashMap;
 
@@ -29,7 +29,7 @@ public class TwinCreateRqDTOv2 extends TwinDraftDTOv1 {
     }
 
     @Override
-    public TwinCreateRqDTOv2 addLinksItem(TwinLinkAddDTOv1 item) {
+    public TwinCreateRqDTOv2 addLinksItem(TwinLinkAddDTOv2 item) {
         this.links = CollectionUtils.safeAdd(this.links, item);
         return this;
     }

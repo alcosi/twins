@@ -8,7 +8,7 @@ import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
@@ -34,10 +34,10 @@ public interface FieldTyperCountChildrenByStatus {
         return result;
     }
 
-    default Long getCountResult(Properties properties, TwinEntity twinEntity, TwinFieldSimpleRepository twinFieldSimpleRepository) {
+    default Long getCountResult(Properties properties, TwinEntity twinEntity, TwinRepository twinRepository) {
         return exclude.extract(properties) ?
-                twinFieldSimpleRepository.countChildrenTwinsWithStatusNotIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties)) :
-                twinFieldSimpleRepository.countChildrenTwinsWithStatusIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties));
+                twinRepository.countChildrenTwinsWithStatusNotIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties)) :
+                twinRepository.countChildrenTwinsWithStatusIn(twinEntity.getId(), childrenTwinStatusIdList.extract(properties));
     }
 
 

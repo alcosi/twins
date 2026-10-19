@@ -35,4 +35,24 @@ public enum FactoryPipelineMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Factory2FactoryPipelineMode implements MapperModePointer<FactoryPipelineMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FactoryPipelineMode point() {
+            return switch (this) {
+                case HIDE -> FactoryPipelineMode.HIDE;
+                case SHORT -> FactoryPipelineMode.SHORT;
+                case DETAILED -> FactoryPipelineMode.DETAILED;
+            };
+        }
+    }
 }

@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 
 import java.util.UUID;
 
@@ -49,6 +50,11 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private TwinValidatorSetEntity twinValidatorSet;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinflowTransitionEntity twinflowTransition;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {

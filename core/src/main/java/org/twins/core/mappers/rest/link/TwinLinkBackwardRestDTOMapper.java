@@ -4,18 +4,27 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.twinlink.TwinLinkService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
+public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkDTOv1> {
 
-    private final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
+    private final TwinLinkService twinLinkService;
+
+    @MapperModePointerBinding(modes = UserMode.TwinLink2UserMode.class)
+    private final UserRestDTOMapper userDTOMapper;
 
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
     private final TwinBaseRestDTOMapper twinBaseV2RestDTOMapper;
@@ -24,15 +33,57 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
     private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
 
     @Override
-    public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        twinLinkRestDTOMapper.map(src, dst, mapperContext);
-        dst
-                .setDstTwinId(src.getSrcTwinId());
+    public void map(TwinLinkEntity src, TwinLinkDTOv1 dst, MapperContext mapperContext) throws Exception {
+        switch (mapperContext.getModeOrUse(TwinLinkMode.DETAILED)) {
+            case DETAILED ->
+                dst
+                        .setId(src.getId())
+                        .setSrcTwinId(src.getDstTwinId())
+                        .setDstTwinId(src.getSrcTwinId())
+                        .setRelationTwinId(src.getRelationTwinId())
+                        .setLinkId(src.getLinkId())
+                        .setCreatedByUserId(src.getCreatedByUserId())
+                        .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null);
+            case SHORT ->
+                dst
+                        .setId(src.getId())
+                        .setSrcTwinId(src.getDstTwinId())
+                        .setDstTwinId(src.getSrcTwinId())
+                        .setRelationTwinId(src.getRelationTwinId())
+                        .setLinkId(src.getLinkId());
+        }
+        if (mapperContext.hasModeButNot(UserMode.TwinLink2UserMode.HIDE)) {
+            dst.setCreatedByUserId(src.getCreatedByUserId());
+            twinLinkService.loadCreatedByUser(src);
+            userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinLink2UserMode.SHORT)));
+        }
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE)) {
+            dst
+                    .setSrcTwinId(src.getDstTwinId())
+                    .setDstTwinId(src.getSrcTwinId())
+                    .setRelationTwinId(src.getRelationTwinId());
+            twinLinkService.loadTwin(src);
             twinBaseV2RestDTOMapper.postpone(src.getSrcTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
+            twinBaseV2RestDTOMapper.postpone(src.getDstTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
+            twinBaseV2RestDTOMapper.postpone(src.getRelationTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN));
         }
         if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE)) {
+            dst.setLinkId(src.getLinkId());
+            twinLinkService.loadLink(src);
             linkBackwardRestDTOMapper.postpone(src.getLink(), mapperContext.forkOnPoint(LinkMode.TwinLink2LinkMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinLinkEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasModeButNot(UserMode.TwinLink2UserMode.HIDE)) {
+            twinLinkService.loadCreatedByUser(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE)) {
+            twinLinkService.loadTwin(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE)) {
+            twinLinkService.loadLink(srcCollection);
         }
     }
 

@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowRepository;
 import org.twins.core.domain.search.TwinflowSearch;
@@ -20,7 +21,8 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Locale;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkSchemas;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
@@ -44,17 +46,21 @@ public class TwinflowSearchService {
     }
 
     private Specification<TwinflowEntity> createTwinflowEntitySearchSpecification(TwinflowSearch search) throws ServiceException {
-        Locale locale = authService.getApiUser().getLocale();
-        return checkSchemas(TwinflowEntity.Fields.schemaMappings, search.getTwinflowSchemaIdList(), true, false)
-                .and(checkSchemas(TwinflowEntity.Fields.schemaMappings, search.getTwinflowSchemaIdExcludeList(), true, true))
+        var apiUser = authService.getApiUser();
+        Locale locale = apiUser.getLocale();
+        return
+                checkSchemas(TwinflowEntity.Fields.schemaMappingsSpecOnly, search.getTwinflowSchemaIdList(), true, false)
+                .and(checkUuid(apiUser.getDomainId(), false, false, TwinflowEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId))
+                .and(checkSchemas(TwinflowEntity.Fields.schemaMappingsSpecOnly, search.getTwinflowSchemaIdExcludeList(), true, true))
                 .and(checkUuidIn(search.getIdList(), false, false, TwinflowEntity.Fields.id))
                 .and(checkUuidIn(search.getIdExcludeList(), false, false, TwinflowEntity.Fields.id))
-                .and(checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdMap()), false, false, TwinflowEntity.Fields.twinClassId))
-                .and(checkUuidIn(twinClassService.loadExtendsHierarchyClasses(search.getTwinClassIdExcludeMap()), true, false, TwinflowEntity.Fields.twinClassId))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, false, false))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, false, false))
-                .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), locale, false, true))
+                .and(checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdMap()), false, TwinflowEntity.Fields.twinClassId, TwinflowEntity.Fields.inheritable))
+                .and(checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdExcludeMap()), true, TwinflowEntity.Fields.twinClassId, TwinflowEntity.Fields.inheritable))
+                .and(checkTernary(search.getInheritable(), TwinflowEntity.Fields.inheritable))
+                .and(joinAndSearchByI18NFieldDirect(TwinflowEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nLikeList(), locale, false, false))
+                .and(joinAndSearchByI18NFieldDirect(TwinflowEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameI18nNotLikeList(), locale, true, true))
+                .and(joinAndSearchByI18NFieldDirect(TwinflowEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nLikeList(), locale, false, false))
+                .and(joinAndSearchByI18NFieldDirect(TwinflowEntity.Fields.descriptionI18nTranslationsSpecOnly, search.getDescriptionI18nNotLikeList(), locale, false, true))
                 .and(checkUuidIn(search.getInitialStatusIdList(), false, false, TwinflowEntity.Fields.initialTwinStatusId))
                 .and(checkUuidIn(search.getInitialStatusIdExcludeList(), true, false, TwinflowEntity.Fields.initialTwinStatusId))
                 .and(checkUuidIn(search.getCreatedByUserIdList(), false, false, TwinflowEntity.Fields.createdByUserId))

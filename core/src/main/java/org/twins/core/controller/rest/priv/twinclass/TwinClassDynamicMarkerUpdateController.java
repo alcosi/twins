@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_DYNAMIC_MARKER_MANAGE, Permissions.TWIN_CLASS_DYNAMIC_MARKER_UPDATE})
+@ProtectedBy(Permissions.TWIN_CLASS_DYNAMIC_MARKER_UPDATE)
 public class TwinClassDynamicMarkerUpdateController extends ApiController {
 
     private final TwinClassDynamicMarkerService twinClassDynamicMarkerService;
@@ -55,7 +56,7 @@ public class TwinClassDynamicMarkerUpdateController extends ApiController {
     public ResponseEntity<?> twinClassDynamicMarkerUpdateV1(
             @MapperContextBinding(roots = TwinClassDynamicMarkerDTOMapper.class, response = TwinClassDynamicMarkerListRsDTOv1.class)
             @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinClassDynamicMarkerUpdateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassDynamicMarkerUpdateRqDTOv1 request) {
         TwinClassDynamicMarkerListRsDTOv1 rs = new TwinClassDynamicMarkerListRsDTOv1();
         try {
             List<TwinClassDynamicMarkerEntity> twinClassDynamicMarkerEntityList = twinClassDynamicMarkerService.updateTwinClassDynamicMarkerList(

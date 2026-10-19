@@ -1,7 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.ValidationResult;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -16,7 +15,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldValueSearchText;
 import org.twins.core.enums.twinclass.OwnerType;
@@ -56,12 +54,12 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
+    protected String processValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value) {
+        return value.getValue();
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ?
                         twinFieldEntity.getValue() : null);
@@ -69,7 +67,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     public Specification<TwinEntity> searchBy(TwinFieldValueSearchText search) {
-        return TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimple, TwinFieldSimpleEntity.Fields.value);
+        return TwinSpecification.checkFieldText(search, TwinEntity.Fields.fieldsSimpleSpecOnly, TwinFieldSimpleEntity.Fields.value);
     }
 
     private void checkForUniqueness(TwinEntity twin, FieldValueText value) throws ServiceException {
@@ -96,16 +94,17 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
 
     @Override
     public ValidationResult validate(Properties properties, TwinEntity twin, FieldValueText fieldValue) {
+        String pattern = regexp.extract(properties);
+        if (!fieldValue.getValue().matches(pattern)) {
+            return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
+        }
         try {
-            String pattern = regexp.extract(properties);
-            if (!fieldValue.getValue().matches(pattern)) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, fieldValue.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + fieldValue.getValue() + "] does not match pattern[" + pattern + "]");
-            }
             if (unique.extract(properties).equals(true)) {
                 checkForUniqueness(twin, fieldValue);
             }
         } catch (ServiceException e) {
-            return new ValidationResult(false, i18nService.translateToLocale(fieldValue.getTwinClassField().getBeValidationErrorI18nId()));
+            //todo get message from db
+            return new ValidationResult(false, e.getMessage());
         }
         return ValidationResult.VALID;
     }

@@ -3,15 +3,16 @@ package org.twins.core.dao.history.context.snapshot;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.service.i18n.I18nService;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.service.i18n.I18nService;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class StatusSnapshot {
+public class StatusSnapshot implements Serializable {
     private UUID id;
     private String key;
     private String name;

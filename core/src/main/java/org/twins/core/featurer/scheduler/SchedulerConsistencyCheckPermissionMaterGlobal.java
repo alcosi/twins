@@ -9,7 +9,7 @@ import org.twins.core.featurer.FeaturerTwins;
 @Service
 @RequiredArgsConstructor
 @Featurer(
-        id = FeaturerTwins.ID_5010,
+        id = FeaturerTwins.ID_5016,
         name = "SchedulerConsistencyCheckPermissionMaterGlobal",
         description = "Scheduler to check permission materialization global grants count is not less then 0"
 )

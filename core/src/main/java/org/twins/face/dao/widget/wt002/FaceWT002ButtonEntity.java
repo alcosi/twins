@@ -66,6 +66,11 @@ public class FaceWT002ButtonEntity implements EasyLoggable, FaceVariantEntity {
     @ToString.Exclude
     private FaceEntity modalFace;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceWT002Entity faceWT002;
+
     @Override
     public String easyLog(Level level) {
         return "faceWT002Button[" + id + "]";

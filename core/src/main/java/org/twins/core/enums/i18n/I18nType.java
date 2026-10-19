@@ -39,6 +39,8 @@ public enum I18nType  {
     DATA_LIST_OPTION_VALUE("dataListOptionValue", "Data list option value", Category.TEXT),
     DATA_LIST_OPTION_DESCRIPTION("dataListOptionDescription", "Data list option description", Category.TEXT),
     DATA_LIST_ATTRIBUTE_NAME("dataListAttributeName", "Data list attribute name", Category.TEXT),
+    DATA_LIST_SUBSET_NAME("dataListSubsetName", "Data list subset name", Category.TEXT),
+    DATA_LIST_SUBSET_DESCRIPTION("dataListSubsetDescription", "Data list subset description", Category.TEXT),
     USER_GROUP_NAME("userGroupName", "User group name", Category.TEXT),
     USER_GROUP_DESCRIPTION("userGroupDescription", "User group description", Category.TEXT),
     FACE_ELEMENT("faceElement", "Face element", Category.TEXT),
@@ -46,8 +48,10 @@ public enum I18nType  {
     NOTIFICATION_EMAIL_SUBJECT("notificationEmailSubject","notification email subject", Category.TEXT),
     NOTIFICATION_EMAIL_BODY("notificationEmailBody","notification email body", Category.TEXT),
     NOTIFICATION_SCHEMA_NAME("notificationSchemaName","notification schema name", Category.TEXT),
+    NOTIFICATION_SCHEMA_DESCRIPTION("notificationSchemaDescription","notification schema description", Category.TEXT),
     HISTORY_NOTIFICATION_RECIPIENT_NAME("recipientName", "recipient name", Category.TEXT),
-    HISTORY_NOTIFICATION_RECIPIENT_DESCRIPTION("recipientDescription", "recipient description", Category.TEXT)
+    HISTORY_NOTIFICATION_RECIPIENT_DESCRIPTION("recipientDescription", "recipient description", Category.TEXT),
+    ACTION_RESTRICTION_REASON_DESCRIPTION("actionRestrictionReasonDescription", "Action restriction reason description", Category.TEXT)
     ;
 
     private final String id;

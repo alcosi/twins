@@ -18,14 +18,17 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamBasicsSetTwinBasicField;
 import org.twins.core.service.user.UserService;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.Set;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2327,
         name = "Twin basic fields from context basics",
         description = "")
 @Slf4j
-public class FillerTwinBasicFieldsFromContextBasics extends Filler {
+public class FillerTwinBasicFieldsFromContextBasics extends FillerAtomic {
 
     @FeaturerParam(name = "Fields", description = "List of basic fields to fill", order = 1)
     public static final FeaturerParamBasicsSetTwinBasicField fields = new FeaturerParamBasicsSetTwinBasicField("fields");
@@ -34,6 +37,7 @@ public class FillerTwinBasicFieldsFromContextBasics extends Filler {
     @Autowired
     private UserService userService;
 
+    //todo fix N+1 userLoad
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();

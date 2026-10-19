@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -11,8 +12,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.*;
 
@@ -21,24 +21,20 @@ import java.util.*;
         name = "Fields from context all",
         description = "")
 @Slf4j
-public class FillerFieldsFromContextAll extends Filler {
+public class FillerFieldsFromContextAll extends FillerAtomic {
     @Lazy
     @Autowired
-    TwinClassService twinClassService;
-
-    @Lazy
-    @Autowired
-    TwinService twinService;
+    TwinClassFieldService twinClassFieldService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         Map<UUID, FieldValue> contextFields = factoryItem.getFactoryContext().getFields();
-        if (contextFields == null)
+        if (CollectionUtils.isEmpty(contextFields))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No context fields present. Please check pipeline config");
         List<String> logMsgs = new ArrayList<>();
         for (Map.Entry<UUID, FieldValue> fieldValue : contextFields.entrySet()) {
-            if (twinClassService.isInstanceOf(outputTwinEntity.getTwinClass(), fieldValue.getValue().getTwinClassField().getTwinClassId())) {
+            if (twinClassFieldService.isValidForClass(outputTwinEntity.getTwinClass(), fieldValue.getValue().getTwinClassField())) {
                 logMsgs.add(outputTwinEntity.logShort() + " " + fieldValue.getValue().getTwinClassField().logNormal() + " will be filled from context");
                 factoryItem.getOutput().addField(fieldValue.getValue().clone());
             }

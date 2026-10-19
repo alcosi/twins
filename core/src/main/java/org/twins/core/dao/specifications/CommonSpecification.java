@@ -21,6 +21,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.DataTimeRange;
 import org.twins.core.domain.apiuser.DBUMembershipCheck;
+import org.twins.core.service.SystemIdLookup;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -41,11 +43,11 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * The method supports filtering based on a list of UUIDs, negating the condition,
      * finding root elements by NULLIFY_MARKER, and limiting the hierarchy depth.
      *
-     * @param <T>               The type of the entities being queried.
-     * @param ids               A collection of UUIDs representing the hierarchy roots to validate against.
-     * @param not               A flag indicating whether to negate the result of the condition.
-     * @param depthLimit        The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
-     * @param ltreeFieldPath    The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
+     * @param <T>            The type of the entities being queried.
+     * @param ids            A collection of UUIDs representing the hierarchy roots to validate against.
+     * @param not            A flag indicating whether to negate the result of the condition.
+     * @param depthLimit     The maximum depth of the hierarchy to consider for the query. If null, defaults to unlimit.
+     * @param ltreeFieldPath The path to the ltree field in the entity. Can be one or more strings representing a nested field path.
      * @return A Specification object that can be used in a JPA Criteria query to apply the hierarchy child check based on the given parameters.
      */
     public static <T> Specification<T> checkHierarchyChildren(Collection<UUID> ids, boolean not, Integer depthLimit, final String... ltreeFieldPath) {
@@ -197,8 +199,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             switch (dbuMembershipCheck) {
                 case DBU_FOR_USER:
                     domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
-                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
-                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsersSpecOnly, JoinType.INNER);
+                    Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwinsSpecOnly, JoinType.INNER);
                     Subquery<DomainBusinessAccountEntity> subqueryUsers = cb.createQuery().subquery(DomainBusinessAccountEntity.class);
                     Root<DomainBusinessAccountEntity> subRootUsers = subqueryUsers.from(DomainBusinessAccountEntity.class);
                     subqueryUsers.select(subRootUsers);
@@ -221,8 +223,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                             cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId),
                             cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId))
                     );
-                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwins, JoinType.INNER);
-                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwinsSpecOnly, JoinType.INNER);
+                    Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccountsSpecOnly, JoinType.INNER);
                     Subquery<DomainUserEntity> subqueryBusinessAccount = cb.createQuery().subquery(DomainUserEntity.class);
                     Root<DomainUserEntity> subRootBusinessAccount = subqueryBusinessAccount.from(DomainUserEntity.class);
                     subqueryBusinessAccount.select(subRootBusinessAccount);
@@ -242,7 +244,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case DB:
                     // Join for business accounts linked to domain
-                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccounts, JoinType.INNER);
+                    Join domainBusinessAccountMap = fromTwin.join(TwinEntity.Fields.domainBusinessAccountsSpecOnly, JoinType.INNER);
                     List<Predicate> dbPredicates = new java.util.ArrayList<>();
                     dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.domainId), finalDomainId));
                     dbPredicates.add(cb.equal(domainBusinessAccountMap.get(DomainBusinessAccountEntity.Fields.businessAccountId), fromTwin.get(TwinEntity.Fields.id)));
@@ -250,7 +252,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case DU:
                     // Join for users linked to domain
-                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsers, JoinType.INNER);
+                    Join domainUserDU = fromTwin.join(TwinEntity.Fields.domainUsersSpecOnly, JoinType.INNER);
                     systemLevelPredicate = cb.and(
                             cb.equal(domainUserDU.get(DomainUserEntity.Fields.domainId), finalDomainId)
 //                            cb.equal(domainUserDU.get(DomainUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
@@ -258,11 +260,18 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case BU:
                     // Join for users linked to business account
-                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwins, JoinType.INNER);
+                    Join businessAccountUserBU = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwinsSpecOnly, JoinType.INNER);
                     systemLevelPredicate = cb.and(
                             cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.businessAccountId), finalBusinessAccountId)
 //                            cb.equal(businessAccountUserBU.get(BusinessAccountUserEntity.Fields.userId), fromTwin.get(TwinEntity.Fields.id))
                     );
+                    break;
+                case SYSTEM_PUBLIC:
+                    // System-global metadata (glossary etc.) — no domain, no DBU membership.
+                    // Visible to any authenticated user, provided the TwinClass is SYSTEM-owned
+                    // and has no domain (defensive: matches what bootstrap persists).
+                    domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
+                    systemLevelPredicate = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
                     break;
             }
 
@@ -301,15 +310,15 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
 
-            Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpace, JoinType.LEFT);
+            Join<TwinEntity, TwinEntity> permissionSchemaSpaceJoin = joinTwin.join(TwinEntity.Fields.permissionSchemaSpaceSpecOnly, JoinType.LEFT);
 
             Join<TwinEntity, PermissionEntity> viewPermissionJoin = joinTwin.join(TwinEntity.Fields.viewPermission, JoinType.LEFT);
 
             Join<PermissionEntity, PermissionMaterGlobalEntity> permissionMaterGlobalJoin = viewPermissionJoin.join(PermissionEntity.Fields.permissionMaterGlobals, JoinType.LEFT);
             permissionMaterGlobalJoin.on(
                     cb.and(
-                        cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
-                        cb.gt(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.grantsCount), 0)
+                            cb.equal(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.userGroupFootprintId), userGroupsFootprint),
+                            cb.gt(permissionMaterGlobalJoin.get(PermissionMaterGlobalEntity.Fields.grantsCount), 0)
                     )
             );
 
@@ -438,8 +447,71 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNull ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
-            Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
+            String arrayString = collectionUuidsToSqlArray(uuids);
+            Expression<Boolean> anyExpression = cb.function("native_uuid_any", Boolean.class, fieldPath, cb.literal(arrayString));
+            Predicate predicate = not ? cb.isFalse(anyExpression) : cb.isTrue(anyExpression);
             return includeNull ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+        };
+    }
+
+    /**
+     * Membership filter against a related collection table (markers, tags, …) via EXISTS.
+     * Must not JOIN the collection: a twin matching several values would be multiplied,
+     * which breaks offset pagination and inflates {@code count(*)}.
+     */
+    public static <T, E> Specification<T> checkUuidExistsInRelated(final Collection<UUID> uuids, boolean not,
+                                                                   Class<E> relatedEntityClass, String relatedTwinIdField,
+                                                                   String relatedUuidField, String... twinIdFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
+            Path<UUID> twinIdPath = getFieldPath(root, JoinType.INNER, twinIdFieldPath);
+            Subquery<Long> subquery = query.subquery(Long.class);
+            Root<E> subRoot = subquery.from(relatedEntityClass);
+            String arrayString = collectionUuidsToSqlArray(uuids);
+            Expression<Boolean> anyExpression = cb.function("native_uuid_any", Boolean.class, subRoot.get(relatedUuidField), cb.literal(arrayString));
+            subquery.select(cb.literal(1L)).where(
+                    cb.equal(subRoot.get(relatedTwinIdField), twinIdPath),
+                    cb.isTrue(anyExpression)
+            );
+            Predicate exists = cb.exists(subquery);
+            return not ? cb.not(exists) : exists;
+        };
+    }
+
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String twinClassIdFieldPath, final String inheritableFieldPath) {
+        return checkTwinClassAndInheritable(classes, not, new String[]{twinClassIdFieldPath}, new String[]{inheritableFieldPath});
+    }
+
+    public static <T> Specification<T> checkTwinClassAndInheritable(final Collection<TwinClassService.ClassWithExtends> classes, boolean not,
+                                                                    final String[] twinClassIdFieldPath, final String[] inheritableFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(classes))
+                return cb.conjunction();
+
+            Set<UUID> baseIds = new HashSet<>();
+            Set<UUID> extendsIds = new HashSet<>();
+            for (TwinClassService.ClassWithExtends item : classes) {
+                baseIds.add(item.twinClassId());
+                extendsIds.addAll(item.extendsTwinClassIds());
+            }
+
+            Path<UUID> twinClassPath = getFieldPath(root, JoinType.LEFT, twinClassIdFieldPath);
+            Path<Boolean> inheritablePath = getFieldPath(root, JoinType.LEFT, inheritableFieldPath);
+
+            Predicate baseIn = twinClassPath.in(baseIds);
+            Predicate extendsInheritable = null;
+            if (!extendsIds.isEmpty()) {
+                Predicate inExtends = twinClassPath.in(extendsIds);
+                Predicate inheritableTrue = cb.isTrue(inheritablePath);
+                extendsInheritable = cb.and(inExtends, inheritableTrue);
+            }
+
+            Predicate result = extendsInheritable != null
+                    ? cb.or(baseIn, extendsInheritable)
+                    : baseIn;
+
+            return not ? cb.not(result) : result;
         };
     }
 
@@ -485,12 +557,50 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> createPredicateWithJoins(root, cb, fieldValue, (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue), JoinType.INNER, filedPath);
     }
 
+    /**
+     * Combined {@code twinClass.id IN (...)} + {@code twinClass.domain_id} filter in one pass.
+     *
+     * <p>Single INNER join to {@code twinClass} (vs. two separate specifications each creating
+     * their own join). Domain predicate widens to {@code OR domain_id IS NULL} when the requested
+     * class set contains a system-public class ({@link SystemIdLookup#isTwinClassForSystemPublic}),
+     * so global metadata Twins (e.g. TWINS_GLOSSARY) are returned alongside tenant-scoped ones.</p>
+     *
+     * @param twinClassUuids the classes to filter by; null/empty applies domain filter only
+     * @param apiUser        the caller — supplies the domain id
+     * @param twinEntityFieldPath optional path to navigate from the row root to the TwinEntity
+     *                            (e.g. {@code "head"} when filtering head Twins); empty means
+     *                            the row root itself is the TwinEntity
+     */
+    public static <T> Specification<T> checkClassWithDomain(
+            Collection<UUID> twinClassUuids, ApiUser apiUser, String... twinEntityFieldPath) throws ServiceException {
+        UUID domainId = apiUser.getDomainId();
+        boolean includesSystemPublic = CollectionUtils.isNotEmpty(twinClassUuids)
+                && twinClassUuids.stream().anyMatch(SystemIdLookup::isTwinClassForSystemPublic);
+        return (root, query, cb) -> {
+            From<?, ?> fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
+            Join<?, ?> twinClass = getOrCreateJoin(fromTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
+            Expression<UUID> twinClassDomainId = twinClass.get(TwinClassEntity.Fields.domainId);
+            Predicate classPredicate = CollectionUtils.isEmpty(twinClassUuids)
+                    ? cb.conjunction()
+                    : getPredicate(cb,
+                            twinClassUuids.stream()
+                                    .map(id -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), id))
+                                    .toList(),
+                            true);
+            Predicate domainPredicate = cb.equal(twinClassDomainId, domainId);
+            if (includesSystemPublic) {
+                domainPredicate = cb.or(domainPredicate, cb.isNull(twinClassDomainId));
+            }
+            return cb.and(classPredicate, domainPredicate);
+        };
+    }
+
 
     //    Use checkFieldLikeIn
     @Deprecated
     public static <T> Specification<T> checkFieldLikeContainsIn(final Collection<String> search,
                                                                 final boolean not, final boolean or, final String... fieldPath) {
-        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%" ).collect(Collectors.toSet()), not, or, fieldPath);
+        return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%").collect(Collectors.toSet()), not, or, fieldPath);
     }
 
     public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not,
@@ -526,8 +636,25 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
-    public static <T> Specification<T> checkFieldIn(final Collection<String> search, final boolean not,
-                                                        final boolean or, boolean includeNullValues, final String... fieldPath) {
+    /**
+     * Same matching semantics as {@link #checkFieldLikeIn(Collection, boolean, boolean, String...)}, but a pattern matches
+     * when it hits the string field OR the integer field cast to text. Patterns are combined with OR.
+     * Intended for "search by name or id" use cases.
+     */
+    public static <T> Specification<T> checkNameOrIdLikeIn(final Collection<String> search, final String nameField, final String idField) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            List<Predicate> predicates = search.stream().map(pattern -> cb.or(
+                    cb.like(cb.lower(root.get(nameField)), pattern.toLowerCase(), escapeChar),
+                    cb.like(cb.lower(root.get(idField).as(String.class)), pattern.toLowerCase(), escapeChar))).toList();
+            return getPredicate(cb, predicates, true);
+        };
+    }
+
+    public static <T> Specification<T> checkFieldIn(final Collection<?> search, final boolean not,
+                                                    final boolean or, boolean includeNullValues, final String... fieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
@@ -538,6 +665,14 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 return predicate;
             }).toList();
             return getPredicate(cb, predicates, or);
+        };
+    }
+
+    public static <T> Specification<T> checkFieldIn(final Collection<?> values, boolean not, final String field) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(values))
+                return cb.conjunction();
+            return not ? cb.not(root.get(field).in(values)) : root.get(field).in(values);
         };
     }
 
@@ -611,6 +746,25 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             }
 
             return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    public static <T, S extends SortField<?>> Specification<T> toSortSpecification(final SortOption<S> sort) {
+        if (sort == null) return (root, query, cb) -> cb.conjunction();
+        return sort.toSortSpecification();
+    }
+
+    public static <T> Specification<T> toSortSpecification(boolean ascending, String... fieldPath) {
+        if (fieldPath == null)
+            return (root, query, cb) -> cb.conjunction();
+        return (root, query, cb) -> {
+            if (query.getResultType().equals(Long.class))
+                return cb.conjunction();
+            Path<?> sortPath = getFieldPath(root, JoinType.LEFT, fieldPath);
+            List<Order> orders = new ArrayList<>(query.getOrderList());
+            orders.add(ascending ? cb.asc(sortPath) : cb.desc(sortPath));
+            query.orderBy(orders);
+            return cb.conjunction();
         };
     }
 }

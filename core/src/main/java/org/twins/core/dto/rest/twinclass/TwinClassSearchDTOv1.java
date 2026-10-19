@@ -62,6 +62,12 @@ public class TwinClassSearchDTOv1 {
     @Schema(description = "marker data list id exclude list")
     public Set<UUID> markerDatalistIdExcludeList;
 
+    @Schema(description = "flavor data list id list")
+    public Set<UUID> flavorDatalistIdList;
+
+    @Schema(description = "flavor data list id exclude list")
+    public Set<UUID> flavorDatalistIdExcludeList;
+
     @Schema(description = "tag data list id list")
     public Set<UUID> tagDatalistIdList;
 
@@ -113,18 +119,6 @@ public class TwinClassSearchDTOv1 {
     @Schema(description = "create permission id exclude list")
     public Set<UUID> createPermissionIdExcludeList;
 
-    @Schema(description = "edit permission id list")
-    public Set<UUID> editPermissionIdList;
-
-    @Schema(description = "edit permission id exclude list")
-    public Set<UUID> editPermissionIdExcludeList;
-
-    @Schema(description = "delete permission id list")
-    public Set<UUID> deletePermissionIdList;
-
-    @Schema(description = "delete permission id exclude list")
-    public Set<UUID> deletePermissionIdExcludeList;
-
     @Schema(description = "external id like list")
     public Set<String> externalIdLikeList;
 
@@ -133,4 +127,22 @@ public class TwinClassSearchDTOv1 {
 
     @Schema(description = "Filter by twin class twin counter (range: from, to)")
     public IntegerRangeDTOv1 twinCounterRange;
+
+    @Schema(description = "head hunter featurer id list")
+    public Set<Integer> headHunterFeaturerIdList;
+
+    @Schema(description = "has dynamic markers", example = DTOExamples.TERNARY)
+    public Ternary hasDynamicMarkers;
+
+    @Schema(description = "bread crumbs face id list")
+    public Set<UUID> breadCrumbsFaceIdList;
+
+    @Schema(description = "bread crumbs face id exclude list")
+    public Set<UUID> breadCrumbsFaceIdExcludeList;
+
+    @Schema(description = "page face id list")
+    public Set<UUID> pageFaceIdList;
+
+    @Schema(description = "page face id exclude list")
+    public Set<UUID> pageFaceIdExcludeList;
 }

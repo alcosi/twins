@@ -12,14 +12,17 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.Properties;
 
-public abstract class FieldTyperImmutable<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldValueSearch> extends FieldTyper<D, T, S, A>{
-    @Override
-    public void serializeValue(TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "direct change of {} is not allowed", value.getTwinClassField().logNormal());
-    }
+/**
+ * Immutable fields never reach the protected serializeValue: values are blocked at parse time
+ * (canSerialize = false, see TwinClassFieldService.notSerializable), echoes are skipped by the
+ * unchanged guard in FieldTyper.serializeValue, and real changes are rejected by validation
+ * (updateRestricted -> isFieldImmutable returns true for base fields via notSerializable).
+ */
+public abstract class FieldTyperImmutable<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldValueSearch> extends FieldTyper<D, T, S, A> {
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_IMMUTABLE, "direct change of {} is not allowed", value.getTwinClassField().logNormal());
     }
 
     @Override

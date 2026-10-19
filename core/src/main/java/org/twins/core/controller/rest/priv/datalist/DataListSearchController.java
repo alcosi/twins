@@ -20,7 +20,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.*;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListSearchDTOReverseMapper;
@@ -52,10 +52,10 @@ public class DataListSearchController extends ApiController {
     public ResponseEntity<?> dataListSearchV1(
             @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-            @RequestBody DataListSearchRqDTOv1 request) {
+            @RequestBody DataListSearchRqDTOv2 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
-            PaginationResult<DataListEntity> dataListsList = dataListSearchService.findDataListsForDomain(dataListSearchDTOReverseMapper.convert(request), pagination);
+            PaginationResult<DataListEntity> dataListsList = dataListSearchService.search(dataListSearchDTOReverseMapper.convert(request.getSearch(), mapperContext), pagination, request.getSortField(), request.getSortDirection());
             rs
                     .setDataListList(dataListRestDTOMapper.convertCollection(dataListsList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListsList));

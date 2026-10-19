@@ -47,12 +47,7 @@ public class TwinChangeTaskService extends EntitySecureFindServiceImpl<TwinChang
 
     @Override
     public boolean isEntityReadDenied(TwinChangeTaskEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied=!entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-        }
-        return readDenied;
+        return checkDomainAccessDenied(entity.getTwin().getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override

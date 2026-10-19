@@ -7,7 +7,9 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
@@ -37,6 +39,7 @@ public class FactoryContext {
     Map<UUID, UUID> afterCommitFactories = new HashMap<>();
     private UUID runLimitedByOwnerBusinessAccount; //this will help to protect from multi business_account run
     private UUID requestId; //this will help analyze what exactly launched factory
+    private PostponedTriggers postponedTriggers = new PostponedTriggers(); // for postponed trigger tasks
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;
@@ -85,11 +88,16 @@ public class FactoryContext {
                 .setFactoryContext(this)
                 .setOutput(twinUpdate);
         // we have to do so, because all data for items can be looked up only from context
-        // see TwinFactoryService.lookupFieldValue
+        // see FactoryService.lookupFieldValue
         factoryItem
                 .setContextFactoryItemList(List.of(rootItem))
                 .setFactoryInputItem(true);
         add(factoryItem);
+    }
+
+    public void addInput(FactoryItem factoryItem) throws ServiceException {
+        add(factoryItem);
+        inputTwinList = CollectionUtils.safeAdd(inputTwinList, factoryItem.getTwin());
     }
 
     public void add(FactoryItem factoryItem) throws ServiceException {
@@ -121,6 +129,10 @@ public class FactoryContext {
         if (fields == null)
             fields = new HashMap<>(); //to be sure that no one set in to null
         return fields;
+    }
+
+    public FieldValue getField(TwinClassFieldEntity twinClassField) {
+        return getFields().get(twinClassField.getId());
     }
 
     @Override

@@ -7,12 +7,13 @@ import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.service.i18n.I18nService;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class DataListOptionSnapshot {
+public class DataListOptionSnapshot implements Serializable {
     private UUID id;
     private String option;
     private String optionI18n;

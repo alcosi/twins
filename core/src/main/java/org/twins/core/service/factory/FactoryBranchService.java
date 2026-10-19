@@ -9,16 +9,17 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -28,9 +29,21 @@ import java.util.function.Function;
 public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
+    @Lazy
+    private final FactoryConditionSetService factoryConditionSetService;
+    @Lazy
+    private final FactoryService factoryService;
 
     public TwinFactoryBranchEntity createFactoryBranch(TwinFactoryBranchEntity branchEntity) throws ServiceException {
         return saveSafe(branchEntity);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryBranchEntity> createFactoryBranches(List<TwinFactoryBranchEntity> branchEntities) throws ServiceException {
+        List<TwinFactoryBranchEntity> created = new ArrayList<>(branchEntities.size());
+        for (TwinFactoryBranchEntity branchEntity : branchEntities)
+            created.add(createFactoryBranch(branchEntity));
+        return created;
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -44,6 +57,14 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         updateFactoryBranchNextFactoryId(dbFactoryBranchEntity, branchUpdate.getNextTwinFactoryId(), changesHelper);
         updateFactoryBranchDescription(dbFactoryBranchEntity, branchUpdate.getDescription(), changesHelper);
         return updateSafe(dbFactoryBranchEntity, changesHelper);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<TwinFactoryBranchEntity> updateFactoryBranches(List<TwinFactoryBranchEntity> branchEntities) throws ServiceException {
+        List<TwinFactoryBranchEntity> updated = new ArrayList<>(branchEntities.size());
+        for (TwinFactoryBranchEntity branchEntity : branchEntities)
+            updated.add(updateFactoryBranch(branchEntity));
+        return updated;
     }
 
     private void updateFactoryBranchConditionSetId(TwinFactoryBranchEntity dbFactoryBranchEntity, UUID twinFactoryConditionSetId, ChangesHelper changesHelper) {
@@ -90,16 +111,70 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryBranchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getFactory().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
-        }
-        return readDenied;
+//        DomainEntity domain = authService.getApiUser().getDomain();
+//        boolean readDenied = !entity.getFactory().getDomainId().equals(domain.getId());
+//        if (readDenied) {
+//            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
+//        }
+//        return readDenied;
+        return false;
     }
 
     @Override
     public boolean validateEntity(TwinFactoryBranchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public List<TwinFactoryBranchEntity> findByTwinFactoryIdIn(Collection<UUID> factoryIds) {
+        return twinFactoryBranchRepository.findByTwinFactoryIdIn(factoryIds);
+    }
+
+    public void loadFactoryBranches(TwinFactoryEntity factory) {
+        loadFactoryBranches(Collections.singletonList(factory));
+    }
+
+    public void loadFactoryBranches(Collection<TwinFactoryEntity> factories) {
+        loadKit(
+                factories,
+                TwinFactoryEntity::getId,
+                TwinFactoryEntity::getTwinFactoryBranchKit,
+                TwinFactoryEntity::setTwinFactoryBranchKit,
+                twinFactoryBranchRepository::findByTwinFactoryIdIn,
+                TwinFactoryBranchEntity::getId,
+                TwinFactoryBranchEntity::getTwinFactoryId,
+                TwinFactoryBranchEntity::setFactory);
+    }
+
+    public void loadConditionSet(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadConditionSet(Collections.singleton(branch));
+    }
+
+    public void loadConditionSet(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryConditionSetService.load(branches,
+                TwinFactoryBranchEntity::getTwinFactoryConditionSetId,
+                TwinFactoryBranchEntity::getTwinFactoryConditionSet,
+                TwinFactoryBranchEntity::setTwinFactoryConditionSet);
+    }
+
+    public void loadFactory(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadFactory(Collections.singleton(branch));
+    }
+
+    public void loadFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryService.load(branches,
+                TwinFactoryBranchEntity::getTwinFactoryId,
+                TwinFactoryBranchEntity::getFactory,
+                TwinFactoryBranchEntity::setFactory);
+    }
+
+    public void loadNextFactory(TwinFactoryBranchEntity branch) throws ServiceException {
+        loadNextFactory(Collections.singleton(branch));
+    }
+
+    public void loadNextFactory(Collection<TwinFactoryBranchEntity> branches) throws ServiceException {
+        factoryService.load(branches,
+                TwinFactoryBranchEntity::getNextTwinFactoryId,
+                TwinFactoryBranchEntity::getNextFactory,
+                TwinFactoryBranchEntity::setNextFactory);
     }
 }

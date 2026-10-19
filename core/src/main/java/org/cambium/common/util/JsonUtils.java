@@ -1,10 +1,11 @@
 package org.cambium.common.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.json.JsonReadFeature;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import files.logging.HttpRegexJsonBodyMasking;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.json.JsonReadFeature;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,10 +24,11 @@ public class JsonUtils {
         }};
     }
 
-    private static final ObjectMapper DEFAULT_MAPPER = new ObjectMapper();
-    private static final ObjectMapper LENIENT_MAPPER = new ObjectMapper()
-            .configure(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER.mappedFeature(), true)
-            .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true);
+    private static final ObjectMapper DEFAULT_MAPPER = JsonMapper.builder().build();
+    private static final ObjectMapper LENIENT_MAPPER = JsonMapper.builder()
+            .enable(JsonReadFeature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER)
+            .enable(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS)
+            .build();
 
 
     public String mask(String message) {
@@ -42,7 +44,7 @@ public class JsonUtils {
                 .collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
         try {
             return DEFAULT_MAPPER.writeValueAsString(stringKeyMap);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return null;
         }
     }
@@ -53,7 +55,7 @@ public class JsonUtils {
             Map<String, String> rawTranslations = LENIENT_MAPPER.readValue(json, new TypeReference<>(){});
             return rawTranslations.entrySet().stream()
                     .collect(Collectors.toMap(e -> Locale.of(e.getKey()), Map.Entry::getValue));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return null;
         }
     }

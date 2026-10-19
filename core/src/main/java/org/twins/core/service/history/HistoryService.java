@@ -8,7 +8,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -22,7 +21,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
@@ -41,7 +39,9 @@ import org.twins.core.enums.history.HistoryType;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.user.UserService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -62,6 +62,10 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     private final TwinActionService twinActionService;
     private final AuthService authService;
     private final I18nService i18nService;
+    @Lazy
+    private final UserService userService;
+    @Lazy
+    private final TwinService twinService;
 
     @Override
     public CrudRepository<HistoryEntity, UUID> entityRepository() {
@@ -75,12 +79,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-        }
-        return readDenied;
+        loadTwin(entity);
+        return checkDomainAccessDenied(entity.getTwin().getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
@@ -225,6 +225,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     public HistoryItem<HistoryContextUserChange> assigneeUnassigned(UserEntity fromUser) {
         return new HistoryItem<>(HistoryType.assigneeUnassigned, new HistoryContextUserChange()
                 .shotFromUser(fromUser));
+    }
+
+    public HistoryItem<HistoryContextUserChange> assigneeAssigned(UserEntity toUser) {
+        return new HistoryItem<>(HistoryType.assigneeAssigned, new HistoryContextUserChange()
+                .shotToUser(toUser));
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
@@ -497,5 +502,57 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     public boolean existsByHistoryBatchIdAndHistoryType(UUID historyBatchId, HistoryType type) {
         return historyRepository.existsByHistoryBatchIdAndHistoryType(historyBatchId, type);
+    }
+
+    public void loadUser(HistoryEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
+    }
+
+    public void loadUser(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                new LoadedField<>(
+                        HistoryEntity::getActorUserId,
+                        HistoryEntity::getActorUser,
+                        HistoryEntity::setActorUser),
+                new LoadedField<>(
+                        HistoryEntity::getMachineUserId,
+                        HistoryEntity::getMachineUser,
+                        HistoryEntity::setMachineUser)
+        );
+    }
+
+    public void loadTwin(HistoryEntity src) throws ServiceException {
+        loadTwin(Collections.singletonList(src));
+    }
+
+    public void loadTwin(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinService.load(srcCollection,
+                HistoryEntity::getTwinId,
+                HistoryEntity::getTwin,
+                HistoryEntity::setTwin);
+    }
+
+    /**
+     * Unchecked (no permission check / no validation) variant of {@link #loadTwin(Collection)} — for
+     * scheduler-thread bulk loads that run without an ApiUser / request context, where the secure path
+     * (TwinService.isEntityReadDenied → AuthService.getApiUser) cannot work. Domain isolation is enforced
+     * later by the notification chunk grouping (one chunk = one domain).
+     */
+    public void loadTwinUnsafe(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinService.loadUnsafe(srcCollection,
+                HistoryEntity::getTwinId,
+                HistoryEntity::getTwin,
+                HistoryEntity::setTwin);
+    }
+
+    public void loadTwinClassField(HistoryEntity src) throws ServiceException {
+        loadTwinClassField(Collections.singletonList(src));
+    }
+
+    public void loadTwinClassField(Collection<HistoryEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                HistoryEntity::getTwinClassFieldId,
+                HistoryEntity::getTwinClassField,
+                HistoryEntity::setTwinClassField);
     }
 }

@@ -7,7 +7,6 @@ import jakarta.persistence.criteria.Root;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
@@ -60,9 +59,9 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
 
     public static Join<DataListEntity, ?> getOrCreateJoin(Root<DataListEntity> root) {
         return root.getJoins().stream()
-                .filter(j -> j.getAttribute().getName().equals(DataListEntity.Fields.dataListOptions))
+                .filter(j -> j.getAttribute().getName().equals(DataListEntity.Fields.dataListOptionsSpecOnly))
                 .findFirst()
-                .orElseGet(() -> root.join(DataListEntity.Fields.dataListOptions, JoinType.LEFT));
+                .orElseGet(() -> root.join(DataListEntity.Fields.dataListOptionsSpecOnly, JoinType.LEFT));
     }
 
 }

@@ -43,16 +43,19 @@ public class UserGroupInvolveActAsUserEntity implements EasyLoggable {
     @Column(name = "added_by_user_id")
     private UUID addedByUserId;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "added_by_user_id", insertable = false, updatable = false)
+    private UserEntity machineUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity addedByUser;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
     private UserGroupEntity userGroup;
 
     public String easyLog(Level level) {

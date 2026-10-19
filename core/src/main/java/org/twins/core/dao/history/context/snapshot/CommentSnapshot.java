@@ -5,12 +5,13 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.comment.TwinCommentEntity;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class CommentSnapshot {
+public class CommentSnapshot implements Serializable {
     private UUID id;
     private String text;
 

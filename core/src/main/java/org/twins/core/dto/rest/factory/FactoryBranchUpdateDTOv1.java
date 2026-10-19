@@ -1,0 +1,33 @@
+package org.twins.core.dto.rest.factory;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
+
+import java.util.UUID;
+
+@Data
+@Accessors(chain = true)
+@Schema(name = "FactoryBranchUpdateV1")
+public class FactoryBranchUpdateDTOv1 {
+    @NotNull
+    @Schema(description = "factory branch id", example = DTOExamples.FACTORY_BRANCH_ID)
+    public UUID id;
+
+    @Schema(description = "factory condition set id", example = DTOExamples.FACTORY_CONDITION_SET_ID)
+    public UUID factoryConditionSetId;
+
+    @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean factoryConditionSetInvert;
+
+    @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean active;
+
+    @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
+    public UUID nextFactoryId;
+
+    @Schema(description = "description", example = DTOExamples.DESCRIPTION)
+    public String description;
+}

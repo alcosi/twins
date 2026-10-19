@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamDuration;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -22,7 +21,6 @@ public abstract class SchedulerCleaner extends Scheduler {
     )
     public static final FeaturerParamDuration intervalParam = new FeaturerParamDuration("interval");
 
-    @Transactional
     protected String processTask(Properties properties) {
         try {
             LoggerUtils.logController(getLogSource());
@@ -40,7 +38,7 @@ public abstract class SchedulerCleaner extends Scheduler {
 
             return deletedCount + " task(s) from db was deleted";
         } catch (Exception e) {
-            log.error("Exception: ", e);
+            log.error("Scheduler cleaner [{}] failed", getLogSource(), e);
 
             return "Processing tasks failed with exception: " + e;
         } finally {
@@ -57,11 +55,11 @@ public abstract class SchedulerCleaner extends Scheduler {
 
     // maybe use 1 db request
     private long deleteRecordsAfterInterval(Duration interval) {
-        Timestamp createdAfter = Timestamp.valueOf(LocalDateTime.now().minus(interval));
-        long count = countAllByCreatedAtBefore(createdAfter);
+        Timestamp createdBefore = Timestamp.valueOf(LocalDateTime.now().minus(interval));
+        long count = countAllByCreatedAtBefore(createdBefore);
 
         log.info("Deleting {} records from database", count);
-        deleteAllByCreatedAtBefore(createdAfter);
+        deleteAllByCreatedAtBefore(createdBefore);
 
         return count;
     }

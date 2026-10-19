@@ -1,17 +1,20 @@
 package org.twins.core.featurer.notificator.context;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
-public abstract class ContextCollectorUser extends ContextCollector {
+public abstract class ContextCollectorUser extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect id", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectId = new FeaturerParamBoolean("collectId");
@@ -37,25 +40,42 @@ public abstract class ContextCollectorUser extends ContextCollector {
     @FeaturerParam(name = "Collect avatar key", description = "", order = 8, optional = true, defaultValue = "USER_AVATAR")
     public static final FeaturerParamString collectAvatarKey = new FeaturerParamString("collectAvatarKey");
 
+    @Autowired
+    private TwinService twinService;
+
+    /**
+     * Bulk-load the twin→user relation for the whole batch so {@link #collectData} reads it in-memory
+     * (was a per-history {@code loadUser} call — N+1).
+     */
     @Override
-    protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) {
+    protected void beforeCollect(ContextCollectorBatch batch) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadUser(batch.getTwins());
+        }
+    }
+
+    @Override
+    protected Map<String, String> collectData(HistoryEntity history, Map<String, String> context, Properties properties) throws ServiceException {
         UserEntity user = getUser(history, properties);
 
-        if (collectId.extract(properties)) {
-            context.put(collectIdKey.extract(properties), user.getId().toString());
+        if (user != null) { //todo logic if null
+            if (collectId.extract(properties)) {
+                context.put(collectIdKey.extract(properties), user.getId().toString());
+            }
+            if (collectName.extract(properties)) {
+                if (user.getName() != null) //todo logic if null
+                    context.put(collectNameKey.extract(properties), user.getName());
+            }
+            if (collectEmail.extract(properties)) {
+                if (user.getEmail() != null) //todo logic if null
+                    context.put(collectEmailKey.extract(properties), user.getEmail());
+            }
+            if (collectAvatar.extract(properties)) {
+                if (user.getAvatar() != null) //todo logic if null
+                    context.put(collectAvatarKey.extract(properties), user.getAvatar());
+            }
         }
-        if (collectName.extract(properties)) {
-            if (user.getName() != null) //todo logic if null
-                context.put(collectNameKey.extract(properties), user.getName());
-        }
-        if (collectEmail.extract(properties)) {
-            if (user.getEmail() != null) //todo logic if null
-                context.put(collectEmailKey.extract(properties), user.getEmail());
-        }
-        if (collectAvatar.extract(properties)) {
-            if (user.getAvatar() != null) //todo logic if null
-                context.put(collectAvatarKey.extract(properties), user.getAvatar());
-        }
+
         return context;
     }
 

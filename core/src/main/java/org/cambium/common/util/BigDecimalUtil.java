@@ -25,4 +25,10 @@ public class BigDecimalUtil {
         }
         return difference.toString();
     }
+
+    public static int toPercentValue(BigDecimal value) {
+        return value.multiply(BigDecimal.valueOf(100))
+                .setScale(0, RoundingMode.HALF_UP)
+                .intValue();
+    }
 }

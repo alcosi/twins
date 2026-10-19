@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.UUID;
 
@@ -33,7 +33,7 @@ import java.util.UUID;
 @ProtectedBy(Permissions.SPACE_ROLE_MANAGE)
 public class SpaceRoleUserManageController extends ApiController {
     private final UserRestDTOMapper userRestDTOMapper;
-    private final SpaceUserRoleService spaceUserRoleService;
+    private final SpaceRoleUserService spaceRoleUserService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "spaceRoleUserManageV1", summary = "Adding/removing a user to the space by role")
@@ -50,9 +50,9 @@ public class SpaceRoleUserManageController extends ApiController {
             @RequestBody SpaceRoleUserRqDTOv1 request) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
-            spaceUserRoleService.manageSpaceRoleForUsers(spaceId, roleId, request.spaceRoleUserEnterList, request.spaceRoleUserExitList);
+            spaceRoleUserService.manageSpaceRoleForUsers(spaceId, roleId, request.spaceRoleUserEnterList, request.spaceRoleUserExitList);
             rs.userList = userRestDTOMapper.convertCollection(
-                    spaceUserRoleService.findUserBySpaceIdAndRoleId(spaceId, roleId), mapperContext);
+                    spaceRoleUserService.findUserBySpaceIdAndRoleId(spaceId, roleId), mapperContext);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }

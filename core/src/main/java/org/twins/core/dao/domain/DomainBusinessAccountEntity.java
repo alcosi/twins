@@ -1,9 +1,7 @@
 package org.twins.core.dao.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -61,26 +59,78 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Column(name = "attachments_storage_used_size")
     private Long attachmentsStorageUsedSize;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private DomainEntity domainSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private BusinessAccountEntity businessAccountSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private PermissionSchemaEntity permissionSchemaSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "tier_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TierEntity tierSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notification_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private NotificationSchemaEntity notificationSchemaSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinflowSchemaEntity twinflowSchemaSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassSchemaEntity twinClassSchemaSpecOnly;
+
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private DomainEntity domain;
 
-    @ManyToOne
-    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private BusinessAccountEntity businessAccount;
 
-    @ManyToOne
-    @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private PermissionSchemaEntity permissionSchema;
 
-    @ManyToOne
-    @JoinColumn(name = "tier_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TierEntity tier;
@@ -88,7 +138,7 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private NotificationSchemaEntity notificationSchema;
+    private TwinClassSchemaEntity twinClassSchema;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -98,7 +148,7 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinClassSchemaEntity twinClassSchema;
+    private NotificationSchemaEntity notificationSchema;
 
     @Transient
     private Long twinsCount;

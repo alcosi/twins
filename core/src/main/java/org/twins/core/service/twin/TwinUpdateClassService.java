@@ -20,9 +20,10 @@ import org.twins.core.dto.rest.twin.TwinChangeClassStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 
 import java.util.*;
 
@@ -171,7 +172,7 @@ public class TwinUpdateClassService {
             UUID currentStatusId = dbTwinEntity.getTwinStatusId();
 
             // Load statuses for the new class
-            twinStatusService.loadStatusesForTwinClasses(newTwinClass);
+            twinStatusService.loadStatuses(newTwinClass);
             // Check if the current status is valid for the new class
             boolean statusIsValid = false;
             if (newTwinClass.getTwinStatusKit() != null) {

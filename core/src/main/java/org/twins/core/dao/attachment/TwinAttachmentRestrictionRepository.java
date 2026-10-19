@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface TwinAttachmentRestrictionRepository extends CrudRepository<TwinAttachmentRestrictionEntity, UUID>, JpaSpecificationExecutor<TwinAttachmentEntity> {
+public interface TwinAttachmentRestrictionRepository extends CrudRepository<TwinAttachmentRestrictionEntity, UUID>, JpaSpecificationExecutor<TwinAttachmentRestrictionEntity> {
 }

@@ -12,9 +12,10 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFreezeMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twinclass.TwinClassFreezeService;
+
+import java.util.Collection;
 
 @Slf4j
 @Component
@@ -25,7 +26,7 @@ public class TwinClassFreezeDTOMapper extends RestSimpleDTOMapper<TwinClassFreez
     @MapperModePointerBinding(modes = {StatusMode.TwinClassFreeze2StatusMode.class})
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
-    private final I18nService i18nService;
+    private final TwinClassFreezeService twinClassFreezeService;
 
     @Override
     public void map(TwinClassFreezeEntity src, TwinClassFreezeDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -48,7 +49,18 @@ public class TwinClassFreezeDTOMapper extends RestSimpleDTOMapper<TwinClassFreez
 
         if (mapperContext.hasModeButNot(StatusMode.TwinClassFreeze2StatusMode.HIDE)) {
             dst.setStatusId(src.getTwinStatusId());
+            twinClassFreezeService.loadTwinStatus(src);
             twinStatusRestDTOMapper.postpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinClassFreezeEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
+        if (mapperContext.hasModeButNot(StatusMode.TwinClassFreeze2StatusMode.HIDE)) {
+            twinClassFreezeService.loadTwinStatus(srcCollection);
         }
     }
 

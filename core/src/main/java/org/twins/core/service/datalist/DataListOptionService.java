@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.*;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.AdvancedEntityManager;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
@@ -31,6 +33,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 
 import java.sql.Timestamp;
@@ -57,6 +60,11 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     private DataListService dataListService;
     @Autowired
     private DataListOptionSearchService dataListOptionSearchService;
+    @Autowired
+    private AdvancedEntityManager advancedEntityManager;
+    @Lazy
+    @Autowired
+    private BusinessAccountService businessAccountService;
 
     @Override
     public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
@@ -72,9 +80,10 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     public boolean isEntityReadDenied(DataListOptionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         DomainEntity domain = apiUser.getDomain();
-        boolean readDenied = (!entity.getDataList().getDomainId().equals(domain.getId()) || (apiUser.isBusinessAccountSpecified()
+        //todo check domain in findQuery
+        boolean readDenied = (apiUser.isBusinessAccountSpecified()
                 && entity.getBusinessAccountId() != null
-                && !entity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId())));
+                && !entity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId()));
         if (readDenied) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
         }
@@ -120,7 +129,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     .setFontColor(dataListOptionCreate.getFontColor())
                     .setExternalId(dataListOptionCreate.getExternalId())
                     .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-            if (Boolean.TRUE.equals(dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified())) {
+            if (dataListOptionCreate.getCustom() && apiUser.isBusinessAccountSpecified()) {
                 dataListOption.setCustom(true);
                 dataListOption.setBusinessAccountId(apiUser.getBusinessAccountId());
             } else {
@@ -171,7 +180,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
         ChangesHelperMulti<DataListOptionEntity> changes = new ChangesHelperMulti<>();
         List<DataListOptionEntity> allEntities = new ArrayList<>(optionUpdates.size());
-
+        var dbEntities = findEntitiesSafe(optionUpdates.stream().map(DataListOptionUpdate::getId).collect(Collectors.toSet()));
+        loadDataList(dbEntities.getCollection());
         for (DataListOptionUpdate update : optionUpdates) {
             DataListOptionEntity dbOption = findEntitySafe(update.getId());
             allEntities.add(dbOption);
@@ -244,14 +254,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         List<UUID> idsForReload = new ArrayList<>();
 
         for (var option : valueSelect.getItemsOrEmpty()) {
-            if (option.getId() != null && (null == option.getDataList() || null == option.getDataListId())) {
+            if (option.getId() != null && null == option.getDataListId()) {
                 idsForReload.add(option.getId());
             }
         }
 
         if (!idsForReload.isEmpty()) {
             var loadedOptions = findEntities(idsForReload, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.afterRead);
-            valueSelect.setItems(loadedOptions);
+            valueSelect.setItems(loadedOptions.getCollection());
         }
     }
 
@@ -265,6 +275,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
 
+    @Transactional
     public void processIncompleteOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId, boolean supportCustomValue) throws ServiceException {
         processIncompleteByExternalIdOptions(dataListId, options, businessAccountId, supportCustomValue);
         processIncompleteByKeyOptions(dataListId, options, businessAccountId, supportCustomValue);
@@ -304,12 +315,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                     UUID i18nId = UuidUtils.generate();
 
                     DataListOptionEntity option = incompleteOptionKit.get(missed)
+                            .setId(UuidUtils.generate())
                             .setBusinessAccountId(businessAccountId)
                             .setDataListId(dataListId)
                             .setCustom(true)
                             .setExternalId(missed)
                             .setStatus(DataListStatus.active)
-                            .setOptionI18nId(i18nId);
+                            .setOptionI18nId(i18nId)
+                            .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
 
                     optionsForSave.add(option);
 
@@ -324,8 +337,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 i18nService.createI18nAndTranslationsLight(translationsToSave);
 
                 log.info("Creating {} new datalist options with externalIds: {}", optionsForSave.size(), missedList);
-                Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
-                savedOptions.forEach(options::add);
+                advancedEntityManager.insertOnConflictDoNothing(optionsForSave, List.of(DataListOptionEntity.Fields.dataListId, DataListOptionEntity.Fields.externalId, DataListOptionEntity.Fields.businessAccountId));
+
+                dataListOptionSearch
+                        .setExternalIdList(new HashSet<>(missedList));
+                //retry
+                List<DataListOptionEntity> createdOrExistedOptions = dataListOptionSearchService.findDataListOptions(dataListOptionSearch);
+                options.addAll(createdOrExistedOptions);
+
                 evictOptionsCloudCache(dataListId, businessAccountId);
             } else {
                 String formattedIds = missedList.stream().collect(Collectors.joining(",", "[", "]"));
@@ -352,11 +371,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 .setOptionLikeList(incompleteOptionKit.getIdSet());
         if (businessAccountId != null)
             dataListOptionSearch.addBusinessAccountId(businessAccountId, false);
-        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(dataListOptionSearchService.findDataListOptions(dataListOptionSearch), DataListOptionEntity::getOption);
+        Kit<DataListOptionEntity, String> existedOptions = new Kit<>(
+                dataListOptionSearchService.findDataListOptions(dataListOptionSearch),
+                DataListOptionEntity::getOption, String::toLowerCase, DuplicateKeyMode.THROW);
         options.addAll(existedOptions.getCollection());
 
         List<String> missedList = incompleteOptionKit.getIdSet().stream()
-                .filter(incomplete -> !existedOptions.containsKeyIgnoreCase(incomplete))
+                .filter(incomplete -> !existedOptions.containsKey(incomplete))
                 .collect(Collectors.toList());
 
         if (!missedList.isEmpty()) {
@@ -416,4 +437,26 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         }
     }
     //todo move *options methods from  DataListService
+
+    public void loadDataList(DataListOptionEntity src) throws ServiceException {
+        loadDataList(Collections.singletonList(src));
+    }
+
+    public void loadDataList(Collection<DataListOptionEntity> srcCollection) throws ServiceException {
+        dataListService.load(srcCollection,
+                DataListOptionEntity::getDataListId,
+                DataListOptionEntity::getDataList,
+                DataListOptionEntity::setDataList);
+    }
+
+    public void loadBusinessAccount(DataListOptionEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<DataListOptionEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                DataListOptionEntity::getBusinessAccountId,
+                DataListOptionEntity::getBusinessAccount,
+                DataListOptionEntity::setBusinessAccount);
+    }
 }

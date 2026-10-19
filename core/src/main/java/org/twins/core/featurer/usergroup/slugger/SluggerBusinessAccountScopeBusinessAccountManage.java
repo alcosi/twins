@@ -50,7 +50,7 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
     protected boolean exitGroup(Properties properties, UserEntity user, UserGroupEntity userGroup) throws ServiceException {
         //todo no need for select, cause data is already loaded in user
         UserGroupMapEntity entityToDelete = userGroupMapRepository
-                .findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountId(user.getId(), userGroup.getId(), authService.getApiUser().getBusinessAccountId());
+                .findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountId(user.getId(), userGroup.getId(), authService.getApiUser().getBusinessAccountId());
         if (entityToDelete == null)
             return false;
         entitySmartService.deleteAndLog(entityToDelete.getId(), userGroupMapRepository);

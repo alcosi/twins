@@ -23,4 +23,7 @@ public class TwinValidatorSetDTOv1 {
     @Schema(description = "invert")
     public Boolean invert;
 
+    @Schema(description = "Number of times this validator set is referenced from configuration tables (read-only, maintained by DB triggers)")
+    public Integer usageCount;
+
 }

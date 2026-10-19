@@ -1,6 +1,7 @@
 package org.twins.core.featurer.factory.multiplier;
 
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsCreateStrategy;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twinclass.TwinClassSearchService;
 
 import java.sql.Timestamp;
@@ -60,12 +62,12 @@ public class MultiplierIsolatedOnContextTwinChildClass extends Multiplier {
             }
 
             TwinEntity twinEntity = new TwinEntity()
+                    .setId(UuidUtils.generate())
                     .setName("")
                     .setTwinClass(entityList.getFirst())
                     .setTwinClassId(entityList.getFirst().getId())
-                    .setHeadTwinId(inputFactoryItem.getTwin().getId())
-                    .setHeadTwin(inputFactoryItem.getTwin())
                     .setCreatedAt(Timestamp.from(Instant.now()));
+            TwinHeadService.setHead(twinEntity, inputFactoryItem.getTwin());
 
             TwinCreate twinCreate = new TwinCreate();
             twinCreate

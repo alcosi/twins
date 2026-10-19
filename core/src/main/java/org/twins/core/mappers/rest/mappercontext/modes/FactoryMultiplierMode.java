@@ -35,4 +35,24 @@ public enum FactoryMultiplierMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Factory2FactoryMultiplierMode implements MapperModePointer<FactoryMultiplierMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FactoryMultiplierMode point() {
+            return switch (this) {
+                case HIDE -> FactoryMultiplierMode.HIDE;
+                case SHORT -> FactoryMultiplierMode.SHORT;
+                case DETAILED -> FactoryMultiplierMode.DETAILED;
+            };
+        }
+    }
 }

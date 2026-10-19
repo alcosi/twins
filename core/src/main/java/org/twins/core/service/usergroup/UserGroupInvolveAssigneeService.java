@@ -7,26 +7,31 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeRepository;
+import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeCreate;
+import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeUpdate;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
-import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.twinstatus.TwinStatusService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @Service
@@ -55,12 +60,7 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
 
     @Override
     public boolean isEntityReadDenied(UserGroupInvolveAssigneeEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getTwinClass().getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-        }
-        return readDenied;
+        return checkDomainAccessDenied(entity.getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
@@ -86,26 +86,124 @@ public class UserGroupInvolveAssigneeService extends EntitySecureFindServiceImpl
         return true;
     }
 
-    public UserGroupInvolveAssigneeEntity create(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
-        entity
-                .setCreatedByUserId(authService.getApiUser().getUserId())
-                .setCreatedAt(Timestamp.from(Instant.now()));
-        return saveSafe(entity);
+    public void loadUserGroup(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        userGroupService.load(entities,
+                UserGroupInvolveAssigneeEntity::getUserGroupId,
+                UserGroupInvolveAssigneeEntity::getUserGroup,
+                UserGroupInvolveAssigneeEntity::setUserGroup);
+    }
+
+    public void loadTwinClass(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        twinClassService.load(entities,
+                UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId,
+                UserGroupInvolveAssigneeEntity::getTwinClass,
+                UserGroupInvolveAssigneeEntity::setTwinClass);
+    }
+
+    public void loadTwinStatus(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        twinStatusService.load(entities,
+                UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId,
+                UserGroupInvolveAssigneeEntity::getTwinStatus,
+                UserGroupInvolveAssigneeEntity::setTwinStatus);
+    }
+
+    public void loadCreatedByUser(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
+        loadCreatedByUser(Collections.singletonList(entity));
+    }
+
+    public void loadCreatedByUser(Collection<UserGroupInvolveAssigneeEntity> entities) throws ServiceException {
+        userService.load(entities,
+                UserGroupInvolveAssigneeEntity::getCreatedByUserId,
+                UserGroupInvolveAssigneeEntity::getCreatedByUser,
+                UserGroupInvolveAssigneeEntity::setCreatedByUser);
+    }
+
+    @Override
+    public boolean validateEntities(Collection<UserGroupInvolveAssigneeEntity> entities, EntitySmartService.EntityValidateMode entityValidateMode) {
+        switch (entityValidateMode) {
+            case beforeSave -> {
+                try {
+                    loadUserGroup(entities);
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("Failed to load user groups");
+                }
+                try {
+                    loadTwinClass(entities);
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("Failed to load twin classes");
+                }
+                try {
+                    loadTwinStatus(entities);
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("Failed to load twin statuses");
+                }
+                try {
+                    loadCreatedByUser(entities);
+                } catch (ServiceException e) {
+                    return logErrorAndReturnFalse("Failed to load created by users");
+                }
+            }
+        }
+        return true;
+    }
+
+
+    @Transactional(rollbackFor = Throwable.class)
+    public List<UserGroupInvolveAssigneeEntity> createUserGroupInvolveAssignee(Collection<UserGroupInvolveAssigneeCreate> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
+
+        UUID currentUserId = authService.getApiUser().getUserId();
+        Timestamp currentTime = Timestamp.from(Instant.now());
+
+        List<UserGroupInvolveAssigneeEntity> entitiesToSave = new ArrayList<>(entities.size());
+        for (UserGroupInvolveAssigneeCreate userGroupInvolveAssignee : entities) {
+            UserGroupInvolveAssigneeEntity entity = new UserGroupInvolveAssigneeEntity()
+                    .setUserGroupId(userGroupInvolveAssignee.getUserGroupId())
+                    .setPropagationByTwinClassId(userGroupInvolveAssignee.getPropagationByTwinClassId())
+                    .setPropagationByTwinStatusId(userGroupInvolveAssignee.getPropagationByTwinStatusId())
+                    .setCreatedByUserId(currentUserId)
+                    .setCreatedAt(currentTime);
+            entitiesToSave.add(entity);
+        }
+
+        return StreamSupport.stream(saveSafe(entitiesToSave).spliterator(), false).toList();
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public UserGroupInvolveAssigneeEntity update(UserGroupInvolveAssigneeEntity entity) throws ServiceException {
-        UserGroupInvolveAssigneeEntity dbEntity = findEntitySafe(entity.getId());
-        ChangesHelper changesHelper = new ChangesHelper();
+    public List<UserGroupInvolveAssigneeEntity> updateUserGroupInvolveAssignee(Collection<UserGroupInvolveAssigneeUpdate> entities) throws ServiceException {
+        if (CollectionUtils.isEmpty(entities)) {
+            return Collections.emptyList();
+        }
 
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getUserGroupId,
-                UserGroupInvolveAssigneeEntity::setUserGroupId, UserGroupInvolveAssigneeEntity.Fields.userGroupId ,changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId,
-                UserGroupInvolveAssigneeEntity::setPropagationByTwinClassId, UserGroupInvolveAssigneeEntity.Fields.propagationByTwinClassId ,changesHelper);
-        updateEntityFieldByEntity(entity, dbEntity, UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId,
-                UserGroupInvolveAssigneeEntity::setPropagationByTwinStatusId, UserGroupInvolveAssigneeEntity.Fields.propagationByTwinStatusId ,changesHelper);
+        Kit<UserGroupInvolveAssigneeEntity, UUID> entitiesKit = findEntitiesSafe(
+                entities.stream()
+                        .map(UserGroupInvolveAssigneeUpdate::getId)
+                        .toList()
+        );
 
-        return updateSafe(dbEntity, changesHelper);
+        ChangesHelperMulti<UserGroupInvolveAssigneeEntity> changes = new ChangesHelperMulti<>();
+
+        for (UserGroupInvolveAssigneeUpdate userGroupInvolveAssignee : entities) {
+            UserGroupInvolveAssigneeEntity dbEntity = entitiesKit.get(userGroupInvolveAssignee.getId());
+
+            ChangesHelper changesHelper = new ChangesHelper();
+            updateEntityFieldByValue(userGroupInvolveAssignee.getUserGroupId(), dbEntity,
+                    UserGroupInvolveAssigneeEntity::getUserGroupId, UserGroupInvolveAssigneeEntity::setUserGroupId,
+                    UserGroupInvolveAssigneeEntity.Fields.userGroupId, changesHelper);
+            updateEntityFieldByValue(userGroupInvolveAssignee.getPropagationByTwinClassId(), dbEntity,
+                    UserGroupInvolveAssigneeEntity::getPropagationByTwinClassId, UserGroupInvolveAssigneeEntity::setPropagationByTwinClassId,
+                    UserGroupInvolveAssigneeEntity.Fields.propagationByTwinClassId, changesHelper);
+            updateEntityFieldByValue(userGroupInvolveAssignee.getPropagationByTwinStatusId(), dbEntity,
+                    UserGroupInvolveAssigneeEntity::getPropagationByTwinStatusId, UserGroupInvolveAssigneeEntity::setPropagationByTwinStatusId,
+                    UserGroupInvolveAssigneeEntity.Fields.propagationByTwinStatusId, changesHelper);
+
+            changes.add(dbEntity, changesHelper);
+        }
+
+        updateSafe(changes);
+        return entitiesKit.getList();
     }
 
     @Transactional

@@ -1,8 +1,11 @@
 package org.twins.core.domain.search;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.enums.link.LinkStrength;
 import org.twins.core.enums.link.LinkType;
 
@@ -12,7 +15,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class LinkSearch {
+@EqualsAndHashCode(callSuper = false)
+public class LinkSearch extends EntitySearch<LinkEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> srcTwinClassIdList;
@@ -29,4 +33,6 @@ public class LinkSearch {
     private Set<LinkType> typeNotLikeList;
     private Set<LinkStrength> strengthLikeList;
     private Set<LinkStrength> strengthNotLikeList;
+    private Ternary srcTwinClassInheritable;
+    private Ternary dstTwinClassInheritable;
 }

@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
@@ -41,17 +42,21 @@ public class TwinEraserService {
         return draftService.draftErase(twinEntity);
     }
 
-    public DraftEntity eraseTwins(TwinEntity... twinEntityList) throws ServiceException {
-        for (TwinEntity twinEntity : twinEntityList)
-            twinService.checkDeletePermission(twinEntity);
+    public DraftEntity eraseTwins(TwinEntity twinEntity) throws ServiceException {
+        twinService.checkDeletePermission(twinEntity);
+        DraftEntity draftEntity = draftService.draftErase(twinEntity);
+        draftCommitService.commitNowOrInQueue(draftEntity);
+        return draftEntity;
+    }
+
+    public DraftEntity eraseTwins(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        twinService.checkDeletePermission(twinEntityList);
         DraftEntity draftEntity = draftService.draftErase(twinEntityList);
         draftCommitService.commitNowOrInQueue(draftEntity);
         return draftEntity;
     }
 
     public DraftEntity eraseTwins(Set<UUID> twinIds) throws ServiceException {
-        return eraseTwins(twinService.findEntitiesSafe(twinIds).getList().toArray(TwinEntity[]::new));
+        return eraseTwins(twinService.findEntitiesSafe(twinIds).getList());
     }
-
-
 }

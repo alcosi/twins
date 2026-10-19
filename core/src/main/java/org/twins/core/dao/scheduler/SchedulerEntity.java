@@ -3,15 +3,14 @@ package org.twins.core.dao.scheduler;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -24,11 +23,15 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 @FieldNameConstants
 @Data
-public class SchedulerEntity implements EasyLoggable {
+public class SchedulerEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -62,11 +65,6 @@ public class SchedulerEntity implements EasyLoggable {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Timestamp updatedAt;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FeaturerEntity schedulerFeaturer;
 
 
     @Override

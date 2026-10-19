@@ -5,11 +5,11 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
@@ -21,9 +21,12 @@ import org.twins.core.domain.apiuser.DomainResolverHeaders;
 import org.twins.core.domain.apiuser.LocaleResolverDomainUser;
 import org.twins.core.domain.apiuser.LocaleResolverHeader;
 import org.twins.core.domain.apiuser.MainResolverAuthToken;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.List;
+import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.twins.core.domain.ApiUser.NOT_SPECIFIED;
@@ -39,7 +42,11 @@ public class ApiUserResolverService {
     final DomainBusinessAccountRepository domainBusinessAccountRepository;
     final BusinessAccountRepository businessAccountRepository;
     final BusinessAccountUserRepository businessAccountUserRepository;
+    final DomainBusinessAccountUserRepository domainBusinessAccountUserRepository;
     final UserRepository userRepository;
+    @Getter
+    @Value("${app.last-activity.throttle-interval-minutes:5}")
+    long activityThrottleMinutes;
     @Getter
     final DomainResolverHeaders domainResolverHeaders;
     @Getter
@@ -65,16 +72,29 @@ public class ApiUserResolverService {
         loadDBU(domainId, businessAccountId, userId, new DBU(), true);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public void loadDBU(UUID domainId, UUID businessAccountId, UUID userId, DBU dbu, boolean checkMembershipMode) throws ServiceException {
+        if (isSystemUser(userId)) {
+            checkMembershipMode = false;
+        }
         if (checkMembershipMode) {
             if (isUserSpecified(userId) && isDomainSpecified(domainId) && isBusinessAccountSpecified(businessAccountId) && (dbu.getDomain() == null || dbu.getBusinessAccount() == null || dbu.getUser() == null)) {
-                List<Object[]> dbuList = userRepository.findDBU_ByUserIdAndBusinessAccountIdAndDomainId(userId, businessAccountId, domainId);
-                if (CollectionUtils.isEmpty(dbuList) || dbuList.size() != 1 || ArrayUtils.isEmpty(dbuList.get(0)) || dbuList.get(0).length != 3)
+                var dbuEntity = domainBusinessAccountUserRepository.findByDomainIdAndBusinessAccountIdAndUserId(domainId, businessAccountId, userId);
+                if (dbuEntity == null)
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + domainId + "] or business account[" + businessAccountId + "]");
                 dbu
-                        .setDomain((DomainEntity) dbuList.get(0)[0])
-                        .setBusinessAccount((BusinessAccountEntity) dbuList.get(0)[1])
-                        .setUser((UserEntity) dbuList.get(0)[2]);
+                        .setDomain(dbuEntity.getDomain())
+                        .setBusinessAccount(dbuEntity.getBusinessAccount())
+                        .setUser(dbuEntity.getUser())
+                        .setDomainBusinessAccount(dbuEntity.getDomainBusinessAccount())
+                        .setDomainUser(dbuEntity.getDomainUser())
+                        .setBusinessAccountUser(dbuEntity.getBusinessAccountUser());
+                updateActivityThrottled(dbuEntity.getLastActivityAt(),
+                        () -> {
+                            domainBusinessAccountUserRepository.updateLastActivityAt(domainId, businessAccountId, userId);
+                            domainUserRepository.updateLastActivityAt(dbuEntity.getDomainUserId());
+                            businessAccountUserRepository.updateLastActivityAt(dbuEntity.getBusinessAccountUserId());
+                        });
                 return;
             } else if (isDomainSpecified(domainId) && isBusinessAccountSpecified(businessAccountId) && (dbu.getDomain() == null || dbu.getBusinessAccount() == null)) {
                 DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
@@ -82,23 +102,30 @@ public class ApiUserResolverService {
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "Business account[" + businessAccountId + "] is not registered in domain[" + domainId + "]");
                 dbu
                         .setDomain(domainBusinessAccountEntity.getDomain())
-                        .setBusinessAccount(domainBusinessAccountEntity.getBusinessAccount());
+                        .setBusinessAccount(domainBusinessAccountEntity.getBusinessAccount())
+                        .setDomainBusinessAccount(domainBusinessAccountEntity);
                 return;
             } else if (isDomainSpecified(domainId) && isUserSpecified(userId) && (dbu.getDomain() == null || dbu.getUser() == null)) {
-                DomainUserNoCollectionProjection domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoCollectionProjection.class);
+                DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId);
                 if (domainUserEntity == null)
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + domainId + "]");
                 dbu
-                        .setDomain(domainUserEntity.domain())
-                        .setUser(domainUserEntity.user());
+                        .setDomain(domainUserEntity.getDomain())
+                        .setUser(domainUserEntity.getUser())
+                        .setDomainUser(domainUserEntity);
+                updateActivityThrottled(domainUserEntity.getLastActivityAt(),
+                        () -> domainUserRepository.updateLastActivityAt(domainUserEntity.getId()));
                 return;
             } else if (isBusinessAccountSpecified(businessAccountId) && isUserSpecified(userId) && (dbu.getBusinessAccount() == null || dbu.getUser() == null)) {
-                BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserEntity.class);
+                BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId);
                 if (businessAccountUserEntity == null)
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in business account[" + businessAccountId + "]");
                 dbu
                         .setBusinessAccount(businessAccountUserEntity.getBusinessAccount())
-                        .setUser(businessAccountUserEntity.getUser());
+                        .setUser(businessAccountUserEntity.getUser())
+                        .setBusinessAccountUser(businessAccountUserEntity);
+                updateActivityThrottled(businessAccountUserEntity.getLastActivityAt(),
+                        () -> businessAccountUserRepository.updateLastActivityAt(businessAccountUserEntity.getId()));
                 return;
             }
         }
@@ -122,6 +149,16 @@ public class ApiUserResolverService {
         return userId != null && !NOT_SPECIFIED.equals(userId);
     }
 
+    private void updateActivityThrottled(Timestamp lastActivityAt, Runnable updateAction) {
+        if (lastActivityAt == null || Duration.between(lastActivityAt.toInstant(), Instant.now()).toMinutes() >= activityThrottleMinutes) {
+            updateAction.run();
+        }
+    }
+
+    public static boolean isSystemUser(UUID userId) {
+        return SystemIds.User.ALL_SYSTEM_USERS_SET.contains(userId);
+    }
+
     @Data
     @Accessors(chain = true)
     @AllArgsConstructor
@@ -130,5 +167,8 @@ public class ApiUserResolverService {
         private DomainEntity domain;
         private BusinessAccountEntity businessAccount;
         private UserEntity user;
+        private DomainUserEntity domainUser;
+        private BusinessAccountUserEntity businessAccountUser;
+        private DomainBusinessAccountEntity domainBusinessAccount;
     }
 }

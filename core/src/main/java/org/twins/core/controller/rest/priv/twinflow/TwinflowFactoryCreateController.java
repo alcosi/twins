@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWINFLOW_FACTORY_MANAGE, Permissions.TWINFLOW_FACTORY_CREATE})
+@ProtectedBy(Permissions.TWINFLOW_FACTORY_CREATE)
 public class TwinflowFactoryCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -54,7 +55,7 @@ public class TwinflowFactoryCreateController extends ApiController {
     @PostMapping(value = "/private/twinflow/factory/v1")
     public ResponseEntity<?> twinflowFactoryCreateV1(
             @MapperContextBinding(roots = TwinflowFactoryRestDTOMapperV1.class, response = TwinflowFactoryCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody TwinflowFactoryCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinflowFactoryCreateRqDTOv1 request) {
         TwinflowFactoryCreateRsDTOv1 rs = new TwinflowFactoryCreateRsDTOv1();
 
         try {

@@ -14,12 +14,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.enums.user.UserStatus;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserUpdateRqDTOv1;
+import org.twins.core.enums.user.UserStatus;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
@@ -30,8 +34,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserUpdateController extends ApiController {
     private final UserService userService;
+    private final AuthService authService;
+    private final PermissionService permissionService;
 
-    @ParameterChannelHeader
+    @ParametersApiUserHeaders
+//    @ProtectedBy(Permissions.USER_UPDATE) // uncomment this if some default group with this permission will be assigned for all users
     @Operation(operationId = "userUpdateV1", summary = "Update user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was updated", content = {
@@ -39,11 +46,15 @@ public class UserUpdateController extends ApiController {
                     @Schema(implementation = Response.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/user/{userId}/v1")
-    public ResponseEntity<?> userCreate(
+    public ResponseEntity<?> userUpdate(
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestBody UserUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {
+            var currentUserId = authService.getApiUser().getUserId();
+            if (!currentUserId.equals(userId) && !permissionService.currentUserHasPermission(Permissions.USER_UPDATE)) {
+                throw new ServiceException(ErrorCodeTwins.NO_REQUIRED_PERMISSION, "missed permission");
+            }
             UserEntity userEntity = new UserEntity()
                     .setId(userId)
                     .setName(request.fullName())
@@ -59,4 +70,31 @@ public class UserUpdateController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
+    @ParametersApiUserHeaders
+//    @ProtectedBy(Permissions.USER_UPDATE) // uncomment this if some default group with this permission will be assigned for all users
+    @Operation(operationId = "currentUserUpdateV1", summary = "Update current user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Current user was updated", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class)) }),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PutMapping(value = "/private/user/v1")
+    public ResponseEntity<?> currentUserUpdate(
+            @RequestBody UserUpdateRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            UserEntity userEntity = new UserEntity()
+                    .setId(authService.getApiUser().getUserId())
+                    .setName(request.fullName())
+                    .setEmail(request.email())
+                    .setAvatar(request.avatar())
+                    .setUserStatusId(UserStatus.ACTIVE);
+            userService.updateUser(userEntity);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
 }

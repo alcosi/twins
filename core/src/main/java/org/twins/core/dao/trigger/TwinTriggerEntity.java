@@ -1,0 +1,82 @@
+package org.twins.core.dao.trigger;
+
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
+import jakarta.persistence.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Type;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
+
+import java.util.HashMap;
+import java.util.UUID;
+
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
+@Entity
+@Table(name = "twin_trigger")
+public class TwinTriggerEntity implements EasyLoggable, Identifiable<UUID> {
+    @Id
+    private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
+
+    @Column(name = "domain_id")
+    private UUID domainId;
+
+    @Column(name = "twin_trigger_featurer_id")
+    private Integer twinTriggerFeaturerId;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "twin_trigger_param", columnDefinition = "hstore")
+    private HashMap<String, String> twinTriggerParam;
+
+    @Column(name = "active")
+    private Boolean active;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "job_twin_class_id")
+    private UUID jobTwinClassId;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassEntity jobTwinClass;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity jobTwinClassSpecOnly;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_trigger_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity twinTriggerFeaturerSpecOnly;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "twinTrigger[" + id + "]";
+            default -> "twinTrigger[id:" + id + ", domainId:" + domainId + ", name:" + name + ", active:" + active + "]";
+        };
+    }
+}

@@ -10,12 +10,13 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.Properties;
 
@@ -25,7 +26,7 @@ import java.util.Properties;
         name = "Field user from output twin head assignee",
         description = "Fill the user field with assignee own head twin assignee")
 @Slf4j
-public class FillerFieldUserFromOutputTwinHeadAssignee extends Filler {
+public class FillerFieldUserFromOutputTwinHeadAssignee extends FillerAtomic {
 
     @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
@@ -39,13 +40,22 @@ public class FillerFieldUserFromOutputTwinHeadAssignee extends Filler {
     private TwinClassFieldService twinClassFieldService;
 
     @Override
+    protected void beforeFill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadHead(batch.getTwins()); // one query for the whole batch
+            twinService.loadUser(twinService.getHead(batch.getTwins()));
+        }
+    }
+
+    @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity factoryItemTwin = factoryItem.getTwin();
-        TwinEntity headTwin = twinService.loadHeadForTwin(factoryItemTwin);
+        TwinEntity headTwin = twinService.loadHead(factoryItemTwin);
         if(null == headTwin)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItemTwin.logDetailed());
         if(null == headTwin.getAssignerUserId())
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No assignee for head[" + headTwin.logShort() + "]twin detected for twin: " + factoryItemTwin.logDetailed());
+        twinService.loadUser(headTwin); // assignerUser is transient, filled in batch
         FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
         fieldValue.add(headTwin.getAssignerUser());
         factoryItem.getOutput().addField(fieldValue);

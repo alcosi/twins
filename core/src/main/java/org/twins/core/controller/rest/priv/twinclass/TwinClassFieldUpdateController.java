@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -30,7 +31,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldUpdateRestDTOReverseMapperV2;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +40,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_UPDATE})
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_UPDATE)
 public class TwinClassFieldUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TwinClassFieldService twinClassFieldService;
@@ -64,7 +65,7 @@ public class TwinClassFieldUpdateController extends ApiController {
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.updateFields(twinClassFieldUpdateRestDTOReverseMapper.convert(request.setTwinClassFieldId(twinClassFieldId)));
             rs
-                    .field(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext))
+                    .setField(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -83,7 +84,7 @@ public class TwinClassFieldUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class_field/v1")
     public ResponseEntity<?> twinClassFieldUpdateV2(
-            @RequestBody TwinClassFieldUpdateRqDTOv2 request) {
+            @RequestBody @Valid TwinClassFieldUpdateRqDTOv2 request) {
         Response rs = new Response();
         try {
             List<TwinClassFieldSave> twinClassFieldSaves = twinClassFieldUpdateRestDTOReverseMapperV2.convertCollection(request.getTwinClassFields());

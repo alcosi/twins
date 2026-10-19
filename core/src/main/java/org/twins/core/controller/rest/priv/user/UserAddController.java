@@ -115,7 +115,7 @@ public class UserAddController extends ApiController {
     }
 
 
-    @ProtectedBy({Permissions.USER_MANAGE, Permissions.USER_CREATE})
+    @ProtectedBy(Permissions.USER_CREATE)
     @ParametersApiUserHeaders
     @Operation(operationId = "userAddV2", summary = "User add protected API for clients with M2M tokens")
     @ApiResponses(value = {

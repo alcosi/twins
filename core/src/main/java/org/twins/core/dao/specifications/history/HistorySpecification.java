@@ -7,10 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.enums.history.HistoryType;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.enums.history.HistoryType;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -28,7 +28,7 @@ public class HistorySpecification extends CommonSpecification<HistoryEntity> {
             // we check for the presence of child twins ONLY for twins INCLUDE in the list
             // if NOT is ture (don't supporting)
             if (include && !not) {
-                Join<HistoryEntity, TwinEntity> twinJoin = root.join(HistoryEntity.Fields.twin, JoinType.LEFT);
+                Join<HistoryEntity, TwinEntity> twinJoin = root.join(HistoryEntity.Fields.twinSpecOnly, JoinType.LEFT);
                 childTwinIdPredicate = twinJoin.get(TwinEntity.Fields.headTwinId).in(twinIds);
             }
 

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.SPACE_ROLE_MANAGE, Permissions.SPACE_ROLE_UPDATE})
+@ProtectedBy(Permissions.SPACE_ROLE_UPDATE)
 public class SpaceRoleUpdateController extends ApiController {
     private final SpaceRoleUpdateDTOReverseMapper spaceRoleUpdateDTOReverseMapper;
     private final SpaceRoleDTOMapper spaceRoleDTOMapper;
@@ -53,7 +54,7 @@ public class SpaceRoleUpdateController extends ApiController {
     @PutMapping(value = "/private/space_role/v1")
     public ResponseEntity<?> spaceRoleUpdateV1(
             @MapperContextBinding(roots = SpaceRoleDTOMapper.class, response = SpaceRoleListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody SpaceRoleUpdateRqDTOv1 request) {
+            @RequestBody @Valid SpaceRoleUpdateRqDTOv1 request) {
         SpaceRoleListRsDTOv1 rs = new SpaceRoleListRsDTOv1();
         try {
             List<SpaceRoleUpdate> updateList = spaceRoleUpdateDTOReverseMapper.convertCollection(request.getSpaceRoles());

@@ -11,6 +11,9 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.NotificationChannelEventMode;
 import org.twins.core.mappers.rest.mappercontext.modes.NotificationChannelMode;
 import org.twins.core.mappers.rest.mappercontext.modes.NotificationContextMode;
+import org.twins.core.service.notification.NotificationChannelEventService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -21,6 +24,8 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
 
     @MapperModePointerBinding(modes = NotificationContextMode.NotificationChannelEvent2NotificationContextMode.class)
     private final NotificationContextRestDTOMapper notificationContextRestDTOMapper;
+
+    private final NotificationChannelEventService notificationChannelEventService;
 
     @Override
     public void map(NotificationChannelEventEntity src, NotificationChannelEventDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -42,6 +47,7 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
         if (mapperContext.hasModeButNot(NotificationChannelMode.NotificationChannelEvent2NotificationChannelMode.HIDE)) {
             dst.setNotificationChannelId(src.getNotificationChannelId());
 
+            notificationChannelEventService.loadNotificationChannel(src);
             notificationChannelRestDTOMapper.postpone(src.getNotificationChannel(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(NotificationChannelMode.NotificationChannelEvent2NotificationChannelMode.SHORT)));
         }
@@ -49,8 +55,20 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
         if (mapperContext.hasModeButNot(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.HIDE)) {
             dst.setNotificationContextId(src.getNotificationContextId());
 
+            notificationChannelEventService.loadNotificationContext(src);
             notificationContextRestDTOMapper.postpone(src.getNotificationContext(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.SHORT)));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<NotificationChannelEventEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(NotificationChannelMode.NotificationChannelEvent2NotificationChannelMode.HIDE)) {
+            notificationChannelEventService.loadNotificationChannel(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.HIDE)) {
+            notificationChannelEventService.loadNotificationContext(srcCollection);
         }
     }
 }

@@ -56,6 +56,7 @@ public class TwinFieldStorageCalcSumOfDivisionsByHead extends TwinFieldStorageCa
                 && Objects.equals(this.secondFieldId, ((TwinFieldStorageCalcSumOfDivisionsByHead) o).secondFieldId)
                 && Objects.equals(this.childrenTwinStatusIdSet, ((TwinFieldStorageCalcSumOfDivisionsByHead) o).childrenTwinStatusIdSet)
                 && Objects.equals(this.childrenTwinOfClassIdSet, ((TwinFieldStorageCalcSumOfDivisionsByHead) o).childrenTwinOfClassIdSet)
-                && Objects.equals(this.exclude, ((TwinFieldStorageCalcSumOfDivisionsByHead) o).exclude);
+                && Objects.equals(this.exclude, ((TwinFieldStorageCalcSumOfDivisionsByHead) o).exclude)
+                && Objects.equals(this.divisionByZeroIgnore, ((TwinFieldStorageCalcSumOfDivisionsByHead) o).divisionByZeroIgnore);
     }
 }

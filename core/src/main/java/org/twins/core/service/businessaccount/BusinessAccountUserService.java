@@ -84,8 +84,27 @@ public class BusinessAccountUserService extends EntitySecureFindServiceImpl<Busi
         entitySmartService.deleteAndLog(businessAccountUserEntity.id(), businessAccountUserRepository);
     }
 
-    public void loadBusinessAccounts(DomainUserEntity domainUser) {
-        loadBusinessAccounts(Collections.singletonList(domainUser));
+    public List<UUID> findUserIdsByBusinessAccountId(UUID businessAccountId) {
+        return businessAccountUserRepository.findUserIdByBusinessAccountId(businessAccountId);
+    }
+
+    /**
+     * Bulk variant of {@link #findUserIdsByBusinessAccountId(UUID)}: one query for many business
+     * accounts, result grouped by businessAccountId (absent ids map to an empty set). For batch
+     * recipient resolving where the whole chunk shares resolvers.
+     */
+    public Map<UUID, Set<UUID>> findUserIdsByBusinessAccountIdIn(Collection<UUID> businessAccountIds) {
+        if (CollectionUtils.isEmpty(businessAccountIds)) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Set<UUID>> byBusinessAccount = new HashMap<>();
+        for (UUID businessAccountId : businessAccountIds) {
+            byBusinessAccount.put(businessAccountId, new HashSet<>());
+        }
+        for (BusinessAccountUserEntity businessAccountUser : businessAccountUserRepository.findByBusinessAccountIdIn(businessAccountIds)) {
+            byBusinessAccount.get(businessAccountUser.getBusinessAccountId()).add(businessAccountUser.getUserId());
+        }
+        return byBusinessAccount;
     }
 
     public void loadBusinessAccounts(Collection<DomainUserEntity> domainUserList) {
@@ -101,5 +120,27 @@ public class BusinessAccountUserService extends EntitySecureFindServiceImpl<Busi
                 businessAccountUserRepository.findByUserIdIn(needLoad.keySet()), BusinessAccountUserEntity::getId, BusinessAccountUserEntity::getUserId);
         for (Map.Entry<UUID, DomainUserEntity> entry : needLoad.entrySet())
             entry.getValue().setBusinessAccountUserKit(new Kit<>(businessAccountUserKit.getGrouped(entry.getKey()), BusinessAccountUserEntity::getId));
+    }
+
+    public void loadBusinessAccount(BusinessAccountUserEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<BusinessAccountUserEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                BusinessAccountUserEntity::getBusinessAccountId,
+                BusinessAccountUserEntity::getBusinessAccount,
+                BusinessAccountUserEntity::setBusinessAccount);
+    }
+
+    public void loadUser(BusinessAccountUserEntity src) throws ServiceException {
+        loadUser(Collections.singletonList(src));
+    }
+
+    public void loadUser(Collection<BusinessAccountUserEntity> srcCollection) throws ServiceException {
+        userService.load(srcCollection,
+                BusinessAccountUserEntity::getUserId,
+                BusinessAccountUserEntity::getUser,
+                BusinessAccountUserEntity::setUser);
     }
 }

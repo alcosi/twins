@@ -22,8 +22,8 @@ import org.twins.core.dto.rest.attachment.AttachmentQuotasRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentQuotasRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.domain.TierService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.tier.TierService;
 
 @Tag(description = "", name = ApiTag.ATTACHMENT)
 @RestController

@@ -1,18 +1,21 @@
 package org.twins.core.domain.search;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.math.LongRange;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.domain.DataTimeRange;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @FieldNameConstants
-public class AttachmentSearch {
+public class AttachmentSearch extends EntitySearch<TwinAttachmentEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> twinIdList;

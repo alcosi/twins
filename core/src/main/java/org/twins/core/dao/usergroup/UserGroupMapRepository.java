@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -51,16 +52,16 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
             "where coalesce(a.involves_count, 0) <> coalesce(e.expected_involves, 0);", nativeQuery = true)
     long countInvalidInvolvesCount();
 
-    @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroup.domainId = :domainId and ugm.userGroup.userGroupTypeId = :type")
+    @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroupSpecOnly.domainId = :domainId and ugm.userGroupSpecOnly.userGroupTypeId = :type")
     List<UUID> findAllByBusinessAccountIdAndDomainIdAndType(UUID businessAccountId, UUID domainId, String type);
 
     UserGroupMapEntity findByUserIdAndUserGroupIdAndBusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
 
-    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountIdAndUserGroup_DomainId(UUID userId, UUID userGroupId, UUID businessAccountId, UUID domainId);
+    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountIdAndUserGroupSpecOnly_DomainId(UUID userId, UUID userGroupId, UUID businessAccountId, UUID domainId);
 
-    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
+    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
 
-    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroup_DomainId(UUID userId, UUID userGroupId, UUID domainId);
+    UserGroupMapEntity findByUserIdAndUserGroupIdAndUserGroupSpecOnly_DomainId(UUID userId, UUID userGroupId, UUID domainId);
 
     UserGroupMapEntity findByUserIdAndUserGroupIdAndDomainId(UUID userId, UUID userGroupId, UUID domainId);
 
@@ -77,6 +78,25 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
             """)
     Set<UUID> getUsers(UUID domainId, UUID businessAccountId, Set<UUID> userGroupIds);
 
+    /**
+     * Bulk variant of {@link #getUsers}: returns group memberships for many business accounts of one
+     * domain in a single query. Rows with {@code businessAccountId = null} (domain-level groups) match
+     * every requested business account — the caller distributes them to all. Used by batch recipient
+     * resolvers where a whole chunk shares the same resolver params (fixed groupIds) and domain.
+     */
+    @Query("""
+                select ugm.businessAccountId, ugm.userId
+                from UserGroupMapEntity ugm
+                where ugm.userGroupId in :userGroupIds
+                  and (ugm.addedManually or ugm.involvesCount > 0)
+                  and ugm.domainId = :domainId
+                  and (
+                        ugm.businessAccountId is null
+                        or ugm.businessAccountId in :businessAccountIds
+                      )
+            """)
+    List<Object[]> getUsersIn(UUID domainId, Collection<UUID> businessAccountIds, Set<UUID> userGroupIds);
+
     @Query("""
                 select ugm
                 from UserGroupMapEntity ugm
@@ -89,4 +109,15 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
                       )
             """)
     List<UserGroupMapEntity> getGroups(UUID domainId, UUID businessAccountId, Set<UUID> userIdSet);
+
+    @Query("""
+                select ugm
+                from UserGroupMapEntity ugm
+                where ugm.userId in :userIdSet
+                  and (ugm.addedManually or ugm.involvesCount > 0)
+                  and ugm.domainId = :domainId
+                  and ugm.businessAccountId = :businessAccountId
+
+            """)
+    List<UserGroupMapEntity> getGroupsStrict(UUID domainId, UUID businessAccountId, Set<UUID> userIdSet);
 }

@@ -1,17 +1,15 @@
 package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.domain.Identifiable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -21,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
-public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable, Identifiable {
+public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -45,29 +43,83 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    // Redundant by design: == id. Hosts the FK to twin(id) for referential integrity + reverse cascade;
+    // the value equals the relation twin id, which (ID equality) equals this twin_link id.
+    @Column(name = "relation_twin_id")
+    private UUID relationTwinId;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false, nullable = false)
+    private TwinEntity srcTwinSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity srcTwin;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false, nullable = false)
+    private TwinEntity dstTwinSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinEntity dstTwin;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "link_id", insertable = false, updatable = false, nullable = false)
+    private LinkEntity linkSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private LinkEntity link;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUserSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "relation_twin_id", insertable = false, updatable = false)
+    private TwinEntity relationTwinSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private UserEntity createdByUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinEntity relationTwin;
+
+    // Same semantic as TwinEntity.createElseUpdate: true = create operation (set in prepareTwinLinks for
+    // fresh links), false = update of an existing twin_link (relink flips it in processAlreadyExisted).
+    // Drives the relation-twin REUSE decision in TwinLinkService.createRelationTwins.
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private boolean createElseUpdate = false;
 
     public String easyLog(Level level) {
         return switch (level) {
@@ -89,6 +141,9 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
                 .setLink(link)
                 .setSrcTwinId(srcTwinId)
                 .setSrcTwin(srcTwin)
-                .setCreatedByUserId(createdByUserId);
+                .setRelationTwinId(relationTwinId)
+                .setRelationTwin(relationTwin)
+                .setCreatedByUserId(createdByUserId)
+                .setCreatedByUser(createdByUser);
     }
 }

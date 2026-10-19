@@ -5,10 +5,10 @@ import org.cambium.common.util.KitUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.LinkedHashMap;
 

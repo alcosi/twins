@@ -1,7 +1,8 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -28,6 +29,9 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "assigner user id", example = DTOExamples.USER_ID)
     public UUID assignerUserId;
 
+    @Schema(description = "flavor data list option id")
+    public UUID flavorDataListOptionId;
+
     @Schema(description = "external id")
     public String externalId;
 
@@ -52,9 +56,12 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "TwinTags for updating")
     public TwinTagManageDTOv1 tagsUpdate;
 
+    //todo uncommit when the GW switches to batch updates
+    //@NotNull
     @Schema(description = "twin id")
     public UUID twinId;
 
+    @Valid
     @Schema(description = "fields attributes")
     public TwinFieldAttributeCudDTOv1 fieldsAttributes;
 

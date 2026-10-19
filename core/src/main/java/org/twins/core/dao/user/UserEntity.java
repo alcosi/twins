@@ -1,14 +1,14 @@
 package org.twins.core.dao.user;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.user.UserStatus;
 
 import java.sql.Timestamp;
@@ -22,7 +22,7 @@ import static org.twins.core.service.user.UserService.maskEmail;
 @Accessors(chain = true)
 @Table(name = "user")
 @FieldNameConstants
-public class UserEntity implements EasyLoggable {
+public class UserEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -49,15 +49,19 @@ public class UserEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private UserStatus userStatusId;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<UserGroupMapEntity> userGroupMaps;
+    @ToString.Exclude
+    @OneToMany(mappedBy = UserGroupMapEntity.Fields.userSpecOnly, fetch = FetchType.LAZY)
+    private Set<UserGroupMapEntity> userGroupMapsSpecOnly;
 
-    @Deprecated //for specification only
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    private Set<SpaceRoleUserEntity> spaceRoleUsers;
+    @ToString.Exclude
+    @OneToMany(mappedBy = SpaceRoleUserEntity.Fields.userSpecOnly, fetch = FetchType.LAZY)
+    private Set<SpaceRoleUserEntity> spaceRoleUsersSpecOnly;
 
 
     @Transient
@@ -68,6 +72,9 @@ public class UserEntity implements EasyLoggable {
 
     @Transient
     private Set<UUID> permissions;
+
+    @Transient
+    private UUID detectedPermissionSchemaId;
 
     public String easyLog(Level level) {
         return "user[id:" + id + ", email:" + maskEmail(email) + "]";

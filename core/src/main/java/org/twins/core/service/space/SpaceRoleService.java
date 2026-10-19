@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.space.SpaceRoleRepository;
 import org.twins.core.domain.ApiUser;
@@ -30,10 +29,7 @@ import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
@@ -55,6 +51,8 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
     private final I18nService i18nService;
     private final TwinClassService twinClassService;
     private final DomainBusinessAccountService domainBusinessAccountService;
+    @Lazy
+    private final BusinessAccountService businessAccountService;
 
     public void forceDeleteRoles(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -62,6 +60,28 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
 
         List<UUID> rolesToDelete = spaceRoleRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(rolesToDelete, spaceRoleRepository);
+    }
+
+    public void loadTwinClass(SpaceRoleEntity src) throws ServiceException {
+        loadTwinClass(Collections.singletonList(src));
+    }
+
+    public void loadTwinClass(Collection<SpaceRoleEntity> srcCollection) throws ServiceException {
+        twinClassService.load(srcCollection,
+                SpaceRoleEntity::getTwinClassId,
+                SpaceRoleEntity::getTwinClass,
+                SpaceRoleEntity::setTwinClass);
+    }
+
+    public void loadBusinessAccount(SpaceRoleEntity src) throws ServiceException {
+        loadBusinessAccount(Collections.singletonList(src));
+    }
+
+    public void loadBusinessAccount(Collection<SpaceRoleEntity> srcCollection) throws ServiceException {
+        businessAccountService.load(srcCollection,
+                SpaceRoleEntity::getBusinessAccountId,
+                SpaceRoleEntity::getBusinessAccount,
+                SpaceRoleEntity::setBusinessAccount);
     }
 
     @Override
@@ -75,12 +95,7 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
 
     @Override
     public boolean isEntityReadDenied(SpaceRoleEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + apiUser.getDomain().logNormal());
-            return true;
-        }
-        return false;
+        return checkDomainAccessDenied(entity.getTwinClass().getDomainId(), entity.logNormal(), readPermissionCheckMode);
     }
 
     @Override
@@ -102,11 +117,7 @@ public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEnti
                     UUID domainId = apiUser.getDomainId();
 
                     // Verify business account is registered in current domain
-                    DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountService.getDomainBusinessAccountEntitySafe(domainId, entity.getBusinessAccountId());
-
-                    if (entity.getBusinessAccount() == null) {
-                        entity.setBusinessAccount(domainBusinessAccountEntity.getBusinessAccount());
-                    }
+                    domainBusinessAccountService.getDomainBusinessAccountEntitySafe(domainId, entity.getBusinessAccountId());
                 }
         }
         return true;

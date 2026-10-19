@@ -10,10 +10,8 @@ import org.cambium.common.file.FileData;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -26,6 +24,7 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.domain.DomainStatus;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -35,7 +34,6 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.storage.StorageService;
-import org.twins.core.service.usergroup.UserGroup;
 import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
@@ -63,6 +61,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final DomainLocaleService domainLocaleService;
+    private final DomainBusinessAccountService domainBusinessAccountService;
 
 
     @Override
@@ -115,7 +114,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // welcome to new domain!
         domainLocaleService.addDomainLocale(domainEntity.getId(), apiUser.getLocale());
         domainUserService.addUser(apiUser.getUser(), false);
-        userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
+        userGroupService.enterGroup(SystemIds.UserGroup.DOMAIN_ADMIN);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
 
@@ -179,44 +178,19 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     public void updateBusinessAccountInitiatorFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbDomainEntity.getBusinessAccountInitiatorFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(DomainEntity.Fields.businessAccountInitiatorFeaturerId, dbDomainEntity.getBusinessAccountInitiatorFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newBusinessAccountInitiatorFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, BusinessAccountInitiator.class);
-            dbDomainEntity
-                    .setBusinessAccountInitiatorFeaturerId(newBusinessAccountInitiatorFeaturer.getId());
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams)) {
-            changesHelper.add(DomainEntity.Fields.businessAccountInitiatorParams, dbDomainEntity.getBusinessAccountInitiatorParams(), newFeaturerParams);
-            dbDomainEntity
-                    .setBusinessAccountInitiatorParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbDomainEntity, newFeaturerId, newFeaturerParams,
+                DomainEntity::getBusinessAccountInitiatorFeaturerId, DomainEntity::setBusinessAccountInitiatorFeaturerId,
+                DomainEntity::getBusinessAccountInitiatorParams, DomainEntity::setBusinessAccountInitiatorParams,
+                DomainEntity.Fields.businessAccountInitiatorFeaturerId, DomainEntity.Fields.businessAccountInitiatorParams,
+                BusinessAccountInitiator.class, changesHelper);
     }
 
     public void updateUserGroupManagerFeaturerId(DomainEntity dbDomainEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (newFeaturerId == null || newFeaturerId == 0) {
-            if (MapUtils.isEmpty(newFeaturerParams))
-                return; //nothing was changed
-            else
-                newFeaturerId = dbDomainEntity.getUserGroupManagerFeaturerId(); // only params where changed
-        }
-        if (changesHelper.isChanged(DomainEntity.Fields.userGroupManagerFeaturerId, dbDomainEntity.getUserGroupManagerFeaturerId(), newFeaturerId)) {
-            FeaturerEntity newUserGroupManagerFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, UserGroupManager.class);
-            dbDomainEntity
-                    .setUserGroupManagerFeaturerId(newUserGroupManagerFeaturer.getId())
-                    .setUserGroupManagerFeaturer(newUserGroupManagerFeaturer);
-        }
-        featurerService.prepareForStore(newFeaturerId, newFeaturerParams);
-        if (!MapUtils.areEqual(dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams)) {
-            changesHelper.add(DomainEntity.Fields.userGroupManagerParams, dbDomainEntity.getUserGroupManagerParams(), newFeaturerParams);
-            dbDomainEntity
-                    .setUserGroupManagerParams(newFeaturerParams);
-        }
+        updateEntityFeaturerField(dbDomainEntity, newFeaturerId, newFeaturerParams,
+                DomainEntity::getUserGroupManagerFeaturerId, DomainEntity::setUserGroupManagerFeaturerId,
+                DomainEntity::getUserGroupManagerParams, DomainEntity::setUserGroupManagerParams,
+                DomainEntity.Fields.userGroupManagerFeaturerId, DomainEntity.Fields.userGroupManagerParams,
+                UserGroupManager.class, changesHelper);
     }
 
     protected DomainEntity processIcons(DomainEntity domainEntity, FileData lightIcon, FileData darkIcon) throws ServiceException {
@@ -301,16 +275,11 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!apiUser.isBusinessAccountSpecified())
-            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
-        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
-        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
-        attachmentQuotas
-                .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
-                .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
-                .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
-                .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
-        return attachmentQuotas;
+        return switch (apiUser.getDomain().getDomainType()) {
+            case b2b -> domainBusinessAccountService.getTierQuotas();
+            case basic -> getDomainQuotas();
+            default -> throw new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED);
+        };
     }
 
     public AttachmentQuotas getDomainQuotas() throws ServiceException {
@@ -360,6 +329,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .collect(Collectors.toSet());
         Map<UUID, StorageEntity> storages = storageService
                 .findEntities(resourceIdList, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none)
+                .getCollection()
                 .stream()
                 .collect(Collectors.toMap(StorageEntity::getId, e -> e));
         domains.forEach(domain -> {
@@ -368,15 +338,4 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         });
     }
 
-    public void loadUserGroupManager(DomainEntity src) {
-        loadUserGroupManagers(Collections.singletonList(src));
-    }
-
-    public void loadUserGroupManagers(Collection<DomainEntity> srcCollection) {
-        featurerService.loadFeaturers(srcCollection,
-                DomainEntity::getId,
-                DomainEntity::getUserGroupManagerFeaturerId,
-                DomainEntity::getUserGroupManagerFeaturer,
-                DomainEntity::setUserGroupManagerFeaturer);
-    }
 }

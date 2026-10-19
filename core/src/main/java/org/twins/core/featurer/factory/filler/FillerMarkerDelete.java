@@ -20,7 +20,7 @@ import java.util.Properties;
         name = "Marker delete",
         description = "")
 @Slf4j
-public class FillerMarkerDelete extends Filler {
+public class FillerMarkerDelete extends FillerAtomic {
 
     @FeaturerParam(name = "Marker id", description = "", order = 1)
     public static final FeaturerParamUUID markerId = new FeaturerParamUUIDTwinsMarkerId("markerId");

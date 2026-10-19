@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -20,7 +21,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.twinclass.TwinClassFieldConditionEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldConditionRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -28,7 +28,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldConditionRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldConditionService;
+import org.twins.core.service.twinclassfield.TwinClassFieldConditionService;
 
 import java.util.List;
 
@@ -36,7 +36,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_UPDATE})
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_RULE_UPDATE)
 public class TwinClassFieldConditionCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -54,7 +54,7 @@ public class TwinClassFieldConditionCreateController extends ApiController {
     @PostMapping(value = "/private/twin_class_field_condition/v1")
     public ResponseEntity<?> twinClassFieldConditionCreateV1(
             @MapperContextBinding(roots = TwinClassFieldConditionRestDTOMapper.class, response = TwinClassFieldConditionRsDTOv1.class) MapperContext mapperContext,
-            @RequestBody TwinClassFieldConditionCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassFieldConditionCreateRqDTOv1 request) {
         TwinClassFieldConditionRsDTOv1 rs = new TwinClassFieldConditionRsDTOv1();
         try {
             List<TwinClassFieldConditionEntity> conditionEntities = twinClassFieldConditionService.createConditions(twinClassFieldConditionCreateRestDTOReverseMapper.convertCollection(request.getConditions(), mapperContext));

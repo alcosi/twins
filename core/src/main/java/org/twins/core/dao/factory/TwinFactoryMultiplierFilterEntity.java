@@ -1,14 +1,13 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -17,7 +16,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_multiplier_filter")
-public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
+public class TwinFactoryMultiplierFilterEntity implements EasyLoggable, Identifiable<UUID>, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -36,7 +35,7 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
     private UUID twinFactoryConditionSetId;
 
     @Column(name = "twin_factory_condition_invert")
-    private boolean twinFactoryConditionInvert;
+    private Boolean twinFactoryConditionInvert;
 
     @Column(name = "active")
     private boolean active;
@@ -44,23 +43,44 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_multiplier_id", insertable = false, updatable = false)
-    private TwinFactoryMultiplierEntity multiplier;
+    private TwinFactoryMultiplierEntity multiplierSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity conditionSetSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryMultiplierEntity multiplier;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity inputTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {

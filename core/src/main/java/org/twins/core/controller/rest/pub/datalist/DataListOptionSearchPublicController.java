@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -54,16 +55,16 @@ public class DataListOptionSearchPublicController extends ApiController {
     @PostMapping(value = "/public/data_list_option/search/v1")
     public ResponseEntity<?> dataListOptionSearchPublicListV1(
             @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DataListOptionSearchRqDTOv1 request,
+            @RequestBody @Valid DataListOptionSearchRqDTOv1 request,
             @SimplePaginationParams(sortField = {DataListOptionEntity.Fields.option, DataListOptionEntity.Fields.externalId}) SimplePagination pagination) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
-                    .findDataListOptionForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
+                    .search(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListOptionList))
+                    .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

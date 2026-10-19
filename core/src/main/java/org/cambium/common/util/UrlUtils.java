@@ -1,6 +1,6 @@
 package org.cambium.common.util;
 
-import lombok.SneakyThrows;
+import org.springframework.web.util.InvalidUrlException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -26,9 +26,45 @@ public class UrlUtils {
         }
     }
 
-    @SneakyThrows
     public static URI toURI(String uriString) {
-        return UriComponentsBuilder.fromUriString(uriString).encode().build().toUri();
+        try {
+            return UriComponentsBuilder.fromUriString(uriString).encode().build().toUri();
+        } catch (InvalidUrlException e) {
+            return UriComponentsBuilder
+                    .fromUriString(escapeInvalidPercentEncoding(uriString))
+                    .encode()
+                    .build()
+                    .toUri();
+        }
+    }
+
+    private static String escapeInvalidPercentEncoding(String url) {
+        if (url == null || url.isEmpty()) {
+            return url;
+        }
+
+        StringBuilder result = new StringBuilder(url.length());
+        for (int i = 0; i < url.length(); i++) {
+            char current = url.charAt(i);
+            if (current == '%') {
+                boolean hasTwoCharsAfter = i + 2 < url.length();
+                boolean validHexPair = hasTwoCharsAfter
+                        && isHexDigit(url.charAt(i + 1))
+                        && isHexDigit(url.charAt(i + 2));
+                if (!validHexPair) {
+                    result.append("%25");
+                    continue;
+                }
+            }
+            result.append(current);
+        }
+        return result.toString();
+    }
+
+    private static boolean isHexDigit(char character) {
+        return (character >= '0' && character <= '9')
+                || (character >= 'a' && character <= 'f')
+                || (character >= 'A' && character <= 'F');
     }
 
 }

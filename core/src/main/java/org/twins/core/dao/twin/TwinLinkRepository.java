@@ -24,6 +24,16 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
             "where twinLink.id in (:linkIdList) and (twinLink.srcTwinId = :twinId or twinLink.dstTwinId = :twinId)")
     void deleteNotMandatory(@Param("twinId") UUID twinId, @Param("linkIdList") List<UUID> twinLinksDeleteUUIDList);
 
+    /**
+     * Wipe every outgoing link of the given type for a set of source Twins in one statement.
+     * Used by system-bootstrap reconciliation (e.g. glossary {@code see_also}) where markdown is
+     * the source of truth and the desired link set is rebuilt from scratch each pass — bulk form
+     * keeps reconciliation O(1) DELETEs regardless of how many Twins participate.
+     */
+    @Modifying
+    @Query("delete from TwinLinkEntity tl where tl.linkId = :linkId and tl.srcTwinId in :srcTwinIds")
+    int deleteByLinkIdAndSrcTwinIdIn(@Param("linkId") UUID linkId, @Param("srcTwinIds") Collection<UUID> srcTwinIds);
+
     <T> List<T> findBySrcTwinId(UUID srcTwinId, Class<T> type);
     <T> List<T> findBySrcTwinIdAndLinkIdIn(UUID srcTwinId, Collection<UUID> linkIdList,  Class<T> type);
 
@@ -36,6 +46,42 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     boolean existsByDstTwinIdAndLinkId(UUID srcTwinId, UUID linkId);
 
     <T> T findBySrcTwinIdAndDstTwinIdAndLinkId(UUID srcTwinId, UUID dstTwinId, UUID linkId, Class<T> type);
+
+    @Query("""
+            select (count(tl) > 0)
+            from TwinLinkEntity tl
+            join TwinEntity src on src.id = tl.srcTwinId
+            join TwinFieldDecimalEntity tfd on tfd.twinId = src.id
+            where tl.dstTwinId = :dstTwinId
+              and tl.linkId = :linkId
+              and src.twinStatusId in :srcStatusIds
+              and tfd.twinClassFieldId = :twinClassFieldId
+              and tfd.value > 0
+            """)
+    boolean existsDstTwinLinkedFromSrcWithStatusAndPositiveDecimalField(
+            @Param("dstTwinId") UUID dstTwinId,
+            @Param("linkId") UUID linkId,
+            @Param("srcStatusIds") Collection<UUID> srcStatusIds,
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
+
+    @Query("""
+            select distinct tl.dstTwinId
+            from TwinLinkEntity tl
+            join TwinEntity src on src.id = tl.srcTwinId
+            join TwinFieldDecimalEntity tfd on tfd.twinId = src.id
+            where tl.dstTwinId in :dstTwinIds
+              and tl.linkId = :linkId
+              and src.twinStatusId in :srcStatusIds
+              and tfd.twinClassFieldId = :twinClassFieldId
+              and tfd.value > 0
+            """)
+    Set<UUID> findDstTwinIdsLinkedFromSrcWithStatusAndPositiveDecimalField(
+            @Param("dstTwinIds") Collection<UUID> dstTwinIds,
+            @Param("linkId") UUID linkId,
+            @Param("srcStatusIds") Collection<UUID> srcStatusIds,
+            @Param("twinClassFieldId") UUID twinClassFieldId
+    );
 
     @Query(value = "select distinct srcTwinId from TwinLinkEntity where linkId = :linkId")
     Set<UUID> findSrcTwinIdsByLinkId(@Param("linkId") UUID linkId);
@@ -116,4 +162,99 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
               )
             """, nativeQuery = true)
     Set<TwinLinkEntity> findAllWithinHierarchiesAndLinkIdInAndTwinsInStatusIds(@Param("hierarchyTwinIds") Collection<UUID> hierarchyTwinIds, @Param("linkIds") Collection<UUID> linkIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
+
+    /**
+     * Forward links whose both endpoints are in {@code twinIds} (membership in the set, no ltree scope).
+     */
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsIn(@Param("twinIds") Collection<UUID> twinIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND src.twin_status_id IN :twinStatusIds
+              AND dst.twin_status_id IN :twinStatusIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndTwinsInStatusIds(@Param("twinIds") Collection<UUID> twinIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND tl.link_id IN :linkIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdIn(@Param("twinIds") Collection<UUID> twinIds, @Param("linkIds") Collection<UUID> linkIds);
+
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND tl.link_id IN :linkIds
+              AND src.twin_status_id IN :twinStatusIds
+              AND dst.twin_status_id IN :twinStatusIds
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds(@Param("twinIds") Collection<UUID> twinIds, @Param("linkIds") Collection<UUID> linkIds, @Param("twinStatusIds") Collection<UUID> twinStatusIds);
+
+    /**
+     * Same as {@link #findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIds}, but each endpoint may instead be
+     * one of {@code inputTwinIds} (status check waived for pipeline inputs).
+     */
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            JOIN twin src ON tl.src_twin_id = src.id
+            JOIN twin dst ON tl.dst_twin_id = dst.id
+            WHERE tl.src_twin_id IN :twinIds
+              AND tl.dst_twin_id IN :twinIds
+              AND tl.link_id IN :linkIds
+              AND (
+                  src.twin_status_id IN :twinStatusIds
+                  OR src.id IN :inputTwinIds
+              )
+              AND (
+                  dst.twin_status_id IN :twinStatusIds
+                  OR dst.id IN :inputTwinIds
+              )
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllBetweenTwinsInAndLinkIdInAndTwinsInStatusIdsOrInputTwins(
+            @Param("twinIds") Collection<UUID> twinIds,
+            @Param("linkIds") Collection<UUID> linkIds,
+            @Param("twinStatusIds") Collection<UUID> twinStatusIds,
+            @Param("inputTwinIds") Collection<UUID> inputTwinIds);
+
+    @Query("select tl.dstTwinId as id, count(tl) as cnt from TwinLinkEntity tl where tl.linkId = :linkId and tl.dstTwinId in :dstTwinIdList group by tl.dstTwinId")
+    List<Object[]> countBackwardLinks(@Param("dstTwinIdList") Collection<UUID> dstTwinIdList, @Param("linkId") UUID linkId);
+
+    /**
+     * Links where src OR dst is in twinIds and linkId is in linkIds.
+     * Use this to find connected twins that may be outside the collected set.
+     */
+    @Query(value = """
+            SELECT tl.*
+            FROM twin_link tl
+            WHERE tl.link_id IN :linkIds
+              AND (tl.src_twin_id IN :twinIds OR tl.dst_twin_id IN :twinIds)
+            """, nativeQuery = true)
+    Set<TwinLinkEntity> findAllByLinkIdInAndSrcTwinIdInOrDstTwinIdIn(@Param("linkIds") Collection<UUID> linkIds, @Param("twinIds") Collection<UUID> twinIds);
+
+    @Query(value = """
+            SELECT tl.dst_twin_id
+            FROM twin_link tl
+            WHERE tl.src_twin_id = :srcTwinId
+              AND tl.link_id = :linkId
+            """, nativeQuery = true)
+    List<UUID> findDstTwinIdsBySrcTwinIdAndLinkId(@Param("srcTwinId") UUID srcTwinId, @Param("linkId") UUID linkId);
 }

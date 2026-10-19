@@ -5,7 +5,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.twins.core.dao.EntryCount;
 
 import java.util.Collection;
 import java.util.List;
@@ -31,11 +30,27 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and domainUser.domainId = :domainId")
     List<UUID> findUserIdByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
-    @Query(value = "select domainUser.userId from DomainUserEntity domainUser join BusinessAccountUserEntity businessAccountUser on domainUser.userId = businessAccountUser.userId " +
-            "where businessAccountUser.businessAccountId = :businessAccountId " +
-            "and domainUser.domainId = :domainId " +
-            "and domainUser.userId in :userIds")
+    @Query(value = "select dbau.userId " +
+            "from DomainBusinessAccountUserEntity dbau " +
+            "where dbau.businessAccountId = :businessAccountId " +
+            "and dbau.domainId = :domainId " +
+            "and dbau.userId in :userIds")
     Set<UUID> findUserIdByBusinessAccountIdAndDomainIdFiltered(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId, @Param("userIds") Collection<UUID> userIds);
+
+    /**
+     * Bulk variant of {@link #findUserIdByBusinessAccountIdAndDomainIdFiltered}: filters {@code userIds}
+     * against many business accounts of one domain in a single query, returning {@code (businessAccountId, userId)}
+     * pairs to group by business account. Backed by the materialized {@code domain_business_account_user}
+     * link table (a row exists only when user is in both the domain and the business account), so no JOIN
+     * is needed. Used by batch recipient resolvers where a whole chunk shares the same resolver params
+     * (fixed userIds) and domain.
+     */
+    @Query(value = "select dbau.businessAccountId, dbau.userId " +
+            "from DomainBusinessAccountUserEntity dbau " +
+            "where dbau.domainId = :domainId " +
+            "and dbau.businessAccountId in :businessAccountIds " +
+            "and dbau.userId in :userIds")
+    List<Object[]> findUserIdByBusinessAccountIdInAndDomainIdFiltered(@Param("businessAccountIds") Collection<UUID> businessAccountIds, @Param("domainId") UUID domainId, @Param("userIds") Collection<UUID> userIds);
 
     @Query(value = "select user from UserEntity user join DomainUserEntity domainUser on user.id = domainUser.userId join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
             "where businessAccountUser.businessAccountId = :businessAccountId " +
@@ -64,7 +79,7 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
     boolean existsUserInDomain(@Param("userId") UUID userId, @Param("domainId") UUID domainId);
 
 
-    @Query(value = "select dba.domain, dba.businessAccount, user from UserEntity user " +
+    @Query(value = "select dba.domainSpecOnly, dba.businessAccountSpecOnly, user from UserEntity user " +
             "join DomainUserEntity domainUser on user.id = domainUser.userId " +
             "join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
             "join DomainBusinessAccountEntity dba on dba.domainId = domainUser.domainId and dba.businessAccountId = businessAccountUser.businessAccountId " +
@@ -104,8 +119,4 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "left join DomainUserEntity du on u.id = du.userId and du.domainId = :domainId " +
             "where u.id in :userIds and (bau.userId is null or du.userId is null)")
     List<UUID> getUsersOutOfDomainAndBusinessAccount(@Param("userIds") Set<UUID> userIds, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
-
-    @Query(value = "SELECT dbu.business_account_id AS id, COUNT(dbu) AS count FROM business_account_user dbu JOIN domain_business_account dba ON dba.business_account_id in :businessAccountIds INNER JOIN \"user\" u " +
-            "ON u.id = dbu.user_id WHERE dbu.business_account_id IN :businessAccountIds AND u.user_status_id = 'ACTIVE' and dba.domain_id = :domainId GROUP BY dbu.business_account_id", nativeQuery = true)
-    List<EntryCount> countUsersInBusinessAccounts(@Param("businessAccountIds") Collection<UUID> businessAccountIds, @Param("domainId") UUID domainId);
 }

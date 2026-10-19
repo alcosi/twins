@@ -19,7 +19,7 @@ import java.util.UUID;
 @Featurer(id = FeaturerTwins.ID_4704,
         name = "Recipient Resolver Twin Base",
         description = "Resolve users from history and history twin")
-public class RecipientResolverTwinBase extends RecipientResolver {
+public class RecipientResolverTwinBase extends RecipientResolverAtomic {
 
     @FeaturerParam(name = "resolve history actor user", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean resolveActor = new FeaturerParamBoolean("resolveActor");
@@ -50,18 +50,27 @@ public class RecipientResolverTwinBase extends RecipientResolver {
             SetUtils.safeAdd(userIds, history.getTwin().getAssignerUserId());
         }
 
-        if (history.getHistoryType().equals(HistoryType.assigneeChanged)) {
+        HistoryType historyType = history.getHistoryType();
+        if (historyType.equals(HistoryType.assigneeChanged)
+                || historyType.equals(HistoryType.assigneeAssigned)
+                || historyType.equals(HistoryType.assigneeUnassigned)) {
             HistoryContextUserChange historyContext = (HistoryContextUserChange) history.getContext();
             if (resolveOldAssignee.extract(properties)) {
-                String userId = historyContext.getFromUser().getUserId();
-                if (userId != null) {
-                    userIds.add(UUID.fromString(userId));
+                var fromUser = historyContext.getFromUser();
+                if (fromUser != null) {
+                    String userId = fromUser.getUserId();
+                    if (userId != null) {
+                        userIds.add(UUID.fromString(userId));
+                    }
                 }
             }
             if (resolveNewAssignee.extract(properties)) {
-                String userId = historyContext.getToUser().getUserId();
-                if (userId != null) {
-                    userIds.add(UUID.fromString(userId));
+                var toUser = historyContext.getToUser();
+                if (toUser != null) {
+                    String userId = toUser.getUserId();
+                    if (userId != null) {
+                        userIds.add(UUID.fromString(userId));
+                    }
                 }
             }
         }

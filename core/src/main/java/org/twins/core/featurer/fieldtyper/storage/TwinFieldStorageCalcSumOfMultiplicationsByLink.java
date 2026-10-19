@@ -16,18 +16,18 @@ public class TwinFieldStorageCalcSumOfMultiplicationsByLink extends TwinFieldSto
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
     private final UUID firstFieldId;
     private final UUID secondFieldId;
-    private final UUID linkId;
+    private final Set<UUID> linkIds;
     private final boolean srcElseDst;
     private final Set<UUID> linkedTwinInStatusIdList;
     private final Set<UUID> linkedTwinOfClassIds;
     private final boolean statusExclude;
 
-    public TwinFieldStorageCalcSumOfMultiplicationsByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, UUID firstFieldId, UUID secondFieldId, UUID linkId, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude) {
+    public TwinFieldStorageCalcSumOfMultiplicationsByLink(UUID twinClassFieldId, TwinFieldDecimalRepository twinFieldDecimalRepository, UUID firstFieldId, UUID secondFieldId, Set<UUID> linkIds, boolean srcElseDst, Set<UUID> linkedTwinInStatusIdList, Set<UUID> linkedTwinOfClassIds, boolean statusExclude) {
         super(twinClassFieldId);
         this.twinFieldDecimalRepository = twinFieldDecimalRepository;
         this.firstFieldId = firstFieldId;
         this.secondFieldId = secondFieldId;
-        this.linkId = linkId;
+        this.linkIds = linkIds;
         this.srcElseDst = srcElseDst;
         this.linkedTwinInStatusIdList = linkedTwinInStatusIdList;
         this.linkedTwinOfClassIds = linkedTwinOfClassIds;
@@ -43,6 +43,7 @@ public class TwinFieldStorageCalcSumOfMultiplicationsByLink extends TwinFieldSto
                 linkedTwinOfClassIds,
                 firstFieldId,
                 secondFieldId,
+                linkIds,
                 statusExclude
         );
 
@@ -56,7 +57,7 @@ public class TwinFieldStorageCalcSumOfMultiplicationsByLink extends TwinFieldSto
                 && Objects.equals(this.twinClassFieldId, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).twinClassFieldId)
                 && Objects.equals(this.firstFieldId, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).firstFieldId)
                 && Objects.equals(this.secondFieldId, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).secondFieldId)
-                && Objects.equals(this.linkId, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).linkId)
+                && Objects.equals(this.linkIds, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).linkIds)
                 && Objects.equals(this.srcElseDst, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).srcElseDst)
                 && Objects.equals(this.linkedTwinInStatusIdList, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).linkedTwinInStatusIdList)
                 && Objects.equals(this.linkedTwinOfClassIds, ((TwinFieldStorageCalcSumOfMultiplicationsByLink) o).linkedTwinOfClassIds)

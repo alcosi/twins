@@ -104,6 +104,16 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @ToString.Exclude
     Kit<FaceNB001MenuItemEntity, UUID> childs;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceNB001Entity faceNB001;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceNB001MenuItemEntity parentFaceMenuItem;
+
     @Override
     public String easyLog(Level level) {
         return "faceNB001MenuItem[id:" + id + "]";

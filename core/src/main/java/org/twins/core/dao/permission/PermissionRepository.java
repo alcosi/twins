@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Repository
 public interface PermissionRepository extends CrudRepository<PermissionEntity, UUID>, JpaSpecificationExecutor<PermissionEntity> {
-    @Query(value = "select function('permission_check_mater', :permissionSchemaId, :permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isAssignee, :isCreator)")
+    @Query(value = "select function('permission_check_mater', :permissionSchemaId, :permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isCreator, :isAssignee)")
     boolean hasPermission(
             @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("permissionId") UUID permissionId,
@@ -24,6 +24,26 @@ public interface PermissionRepository extends CrudRepository<PermissionEntity, U
             @Param("twinClassId") UUID twinClassId,
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
+
+    @Query(value = "select * from permission_check_mater_batch(cast(:permissionSchemaIds as uuid[]), cast(:permissionIds as uuid[]), " +
+            "cast(:permissionSpaceIds as uuid[]), cast(:twinClassIds as uuid[]), :isCreator, :isAssignee, :userId, :userGroupFootprintId)", nativeQuery = true)
+    List<PermissionMaterBatchResult> hasPermissionBatch(
+            @Param("permissionSchemaIds") String permissionSchemaIds,
+            @Param("permissionIds") String permissionIds,
+            @Param("permissionSpaceIds") String permissionSpaceIds,
+            @Param("twinClassIds") String twinClassIds,
+            @Param("isCreator") boolean isCreator,
+            @Param("isAssignee") boolean isAssignee,
+            @Param("userId") UUID userId,
+            @Param("userGroupFootprintId") UUID userGroupFootprintId);
+
+    interface PermissionMaterBatchResult {
+        UUID getPermissionSchemaId();
+        UUID getPermissionId();
+        UUID getPermissionSpaceId();
+        UUID getTwinClassId();
+        boolean isAllowed();
+    }
 
     boolean existsByIdAndPermissionGroup_DomainId(UUID permissionId, UUID domainId);
 

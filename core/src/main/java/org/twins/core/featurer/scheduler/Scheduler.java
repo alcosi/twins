@@ -13,6 +13,7 @@ import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.holder.EntityRequestCacheHolder;
 
 import java.util.Properties;
 
@@ -32,19 +33,26 @@ public abstract class Scheduler extends FeaturerTwins {
 
     public Runnable getRunnableForScheduling(Properties properties, SchedulerEntity schedulerEntity) {
         return () -> {
-            LoggerUtils.logSession();
-            SchedulerLogEntity schedulerLog = new SchedulerLogEntity();
-            long startTime = System.currentTimeMillis();
-            // using getBean here to prevent errors with Spring proxy (processTask with @Transactional)
-            String result = applicationContext.getBean(this.getClass()).processTask(properties);
+            // Schedulers run on virtual threads (virtualThreadTaskScheduler) with no web-request scope, so
+            // EntitySecureFindServiceImpl's REQUEST cache falls back to a thread-local holder. Clear it in
+            // finally so the next scheduled tick (and any reused thread) never sees stale cached entities.
+            try {
+                LoggerUtils.logSession();
+                SchedulerLogEntity schedulerLog = new SchedulerLogEntity();
+                long startTime = System.currentTimeMillis();
+                // using getBean here to prevent errors with Spring proxy (processTask with @Transactional)
+                String result = applicationContext.getBean(this.getClass()).processTask(properties);
 
-            if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
-                schedulerLog
-                        .setSchedulerId(schedulerEntity.getId())
-                        .setExecutionTime(System.currentTimeMillis() - startTime)
-                        .setResult(result);
+                if (!result.isEmpty() && schedulerEntity.getLogEnabled()) {
+                    schedulerLog
+                            .setSchedulerId(schedulerEntity.getId())
+                            .setExecutionTime(System.currentTimeMillis() - startTime)
+                            .setResult(result);
 
-                schedulerLogRepo.save(schedulerLog);
+                    schedulerLogRepo.save(schedulerLog);
+                }
+            } finally {
+                EntityRequestCacheHolder.clear();
             }
         };
     }

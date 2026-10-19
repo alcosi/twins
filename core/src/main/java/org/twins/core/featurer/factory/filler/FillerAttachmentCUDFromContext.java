@@ -16,7 +16,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_2320,
         name = "Attachment CUD from context",
         description = "")
-public class FillerAttachmentCUDFromContext extends Filler {
+public class FillerAttachmentCUDFromContext extends FillerAtomic {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         if (factoryItem.getFactoryContext().getAttachmentCUD() == null)

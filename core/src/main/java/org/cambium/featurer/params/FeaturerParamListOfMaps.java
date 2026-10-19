@@ -1,9 +1,10 @@
 package org.cambium.featurer.params;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.cambium.featurer.annotations.FeaturerParamType;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Properties;
 )
 public class FeaturerParamListOfMaps extends FeaturerParam<List<Map<String, String>>>{
 
-    final ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = JsonMapper.builder().build();
     TypeReference<List<Map<String, String>>> typeRef = new TypeReference<>() {};
 
     public FeaturerParamListOfMaps(String key) {

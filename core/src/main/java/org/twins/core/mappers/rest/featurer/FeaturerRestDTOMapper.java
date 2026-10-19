@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.featurer;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
@@ -10,6 +11,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerParamMode;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerTypeMode;
 
 import java.util.Collection;
 
@@ -17,11 +19,13 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
         FeaturerMode.class,
-        FeaturerParamMode.class
+        FeaturerParamMode.class,
+        FeaturerTypeMode.class
 })
 public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, FeaturerDTOv1> {
 
     private final FeaturerParamRestDTOMapper featurerParamRestDTOMapper;
+    private final FeaturerTypeRestDTOMapper featurerTypeRestDTOMapper;
     private final FeaturerService featurerService;
 
     @Override
@@ -39,10 +43,15 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setId(src.getId())
                         .setName(src.getName());
         }
+        if (showFeaturerType(mapperContext)) {
+            featurerService.loadFeaturerTypes(src);
+            dst.setFeaturerTypeId(src.getFeaturerTypeId());
+            featurerTypeRestDTOMapper.postpone(src.getFeaturerType(), mapperContext);
+        }
         if (showFeaturerParams(mapperContext)) {
             featurerService.loadFeaturerParams(src);
             dst
-                    .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams(), mapperContext));
+                    .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams().getCollection(), mapperContext));
         }
     }
 
@@ -50,11 +59,18 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         return mapperContext.hasModeButNot(FeaturerParamMode.HIDE);
     }
 
+    private static boolean showFeaturerType(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(FeaturerTypeMode.HIDE);
+    }
+
     @Override
     public void beforeCollectionConversion(Collection<FeaturerEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         if (showFeaturerParams(mapperContext))
             featurerService.loadFeaturerParams(srcCollection);
+        if (showFeaturerType(mapperContext)) {
+            featurerService.loadFeaturerTypes(srcCollection);
+        }
     }
 
     @Override
@@ -62,4 +78,9 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         return mapperContext.hasModeOrEmpty(FeaturerMode.HIDE);
     }
 
+    public void postpone(Integer featurerId, MapperContext mapperContext) throws ServiceException {
+        if (featurerId != null) {
+            postpone(featurerService.findEntitySafe(featurerId), mapperContext);
+        }
+    }
 }

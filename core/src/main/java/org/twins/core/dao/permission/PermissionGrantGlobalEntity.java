@@ -1,9 +1,7 @@
 package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
@@ -38,22 +36,43 @@ public class PermissionGrantGlobalEntity implements EasyLoggable {
     @Column(name = "granted_at")
     private Timestamp grantedAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permission_id", insertable = false, updatable = false, nullable = false)
+    private PermissionEntity permissionSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
+    private UserGroupEntity userGroupSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity grantedByUserSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private PermissionEntity permission;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "user_group_id", insertable = false, updatable = false, nullable = false)
     private UserGroupEntity userGroup;
 
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity grantedByUser;
 
     public String easyLog(EasyLoggable.Level level) {

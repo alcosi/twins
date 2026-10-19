@@ -1,0 +1,110 @@
+package org.twins.core.service.comment;
+
+import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Service;
+import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.comment.TwinCommentRepository;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.CommentSearch;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.CommentGroupField;
+import org.twins.core.enums.sort.CommentSortField;
+import org.twins.core.service.EntitySearchService;
+import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinAccessSpecificationFactory;
+
+import java.util.Locale;
+import java.util.UUID;
+
+import static org.twins.core.dao.specifications.CommonSpecification.*;
+
+@Service
+@Lazy
+@RequiredArgsConstructor
+public class CommentSearchService extends EntitySearchService<CommentSearch, TwinCommentEntity, CommentSortField, CommentGroupField> {
+
+    private final AuthService authService;
+    private final TwinAccessSpecificationFactory twinAccessSpecificationFactory;
+    private final TwinCommentRepository commentRepository;
+
+    @Override
+    public JpaSpecificationExecutor<TwinCommentEntity> jpaSpecificationExecutor() {
+        return commentRepository;
+    }
+
+    @Override
+    public CommentSearch emptySearch() {
+        return new CommentSearch();
+    }
+
+    @Override
+    protected Class<TwinCommentEntity> entityClass() {
+        return TwinCommentEntity.class;
+    }
+
+    @Override
+    protected TwinCommentEntity newEntity() {
+        return new TwinCommentEntity();
+    }
+
+    @Override
+    public Specification<TwinCommentEntity> createFilterSpecification(
+            CommentSearch search, UUID domainId, Locale locale) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        Specification<TwinCommentEntity> specification = Specification.allOf(
+                twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinCommentEntity.Fields.twinSpecOnly),
+                checkUuidIn(search.getIdList(), false, false, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getTwinIdList(), false, false, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getTwinIdExcludeList(), true, true, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getCreatedByUserIdList(), false, false, TwinCommentEntity.Fields.createdByUserId),
+                checkUuidIn(search.getCreatedByUserIdExcludeList(), true, true, TwinCommentEntity.Fields.createdByUserId),
+                checkFieldLikeIn(search.getTextLikeList(), false, false, TwinCommentEntity.Fields.text),
+                checkFieldLikeIn(search.getTextNotLikeList(), true, false, TwinCommentEntity.Fields.text),
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinCommentEntity.Fields.createdAt),
+                checkFieldLocalDateTimeBetween(search.getUpdatedAt(), TwinCommentEntity.Fields.changedAt)
+        );
+        return specification;
+    }
+
+    @Override
+    protected CommentSortField defaultSortField() {
+        return CommentSortField.createdAt;
+    }
+
+    @Override
+    public Specification<TwinCommentEntity> createSortSpecification(
+            CommentSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
+        boolean ascending = sortDirection != SortDirection.DESC;
+        return switch (sortField) {
+            case createdAt -> toSortSpecification(ascending, TwinCommentEntity.Fields.createdAt);
+            case changedAt -> toSortSpecification(ascending, TwinCommentEntity.Fields.changedAt);
+            case authorUserName ->
+                    toSortSpecification(ascending, TwinCommentEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
+            case twinName ->
+                    toSortSpecification(ascending, TwinCommentEntity.Fields.twinSpecOnly, TwinEntity.Fields.name);
+        };
+    }
+
+    @Override
+    public String convertToEntityField(CommentGroupField groupField) throws ServiceException {
+        return switch (groupField) {
+            case twinId -> TwinCommentEntity.Fields.twinId;
+            case createdByUserId -> TwinCommentEntity.Fields.createdByUserId;
+        };
+    }
+
+    @Override
+    public void mapGroupedField(TwinCommentEntity entity, CommentGroupField field, Object o) {
+        switch (field) {
+            case twinId -> entity.setTwinId((UUID) o);
+            case createdByUserId -> entity.setCreatedByUserId((UUID) o);
+        }
+    }
+}

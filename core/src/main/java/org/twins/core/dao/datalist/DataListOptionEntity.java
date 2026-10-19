@@ -1,17 +1,17 @@
 package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datalist.DataListStatus;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -22,7 +22,7 @@ import java.util.function.Function;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "data_list_option")
-public class DataListOptionEntity implements EasyLoggable {
+public class DataListOptionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -85,34 +85,56 @@ public class DataListOptionEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private DataListEntity dataList;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
+    private DataListEntity dataListSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
-    private BusinessAccountEntity businessAccount;
+    private BusinessAccountEntity businessAccountSpecOnly;
 
-
-    @Deprecated //for specification only
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-    private I18nEntity optionI18n;
+    private DataListEntity dataList;
 
-    @Deprecated //for specification only
+    @Transient
     @EqualsAndHashCode.Exclude
-    @OneToMany(mappedBy = "dataListOption", fetch = FetchType.LAZY)
-    private Set<DataListSubsetOptionEntity> subsetOptions;
+    @ToString.Exclude
+    private BusinessAccountEntity businessAccount;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity optionI18n;
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "option_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> optionI18nTranslationsSpecOnly;
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @OneToMany(mappedBy = DataListSubsetOptionEntity.Fields.dataListOption, fetch = FetchType.LAZY)
+    private Set<DataListSubsetOptionEntity> subsetOptionsSpecOnly;
 
     public String easyLog(Level level) {
         return switch (level) {

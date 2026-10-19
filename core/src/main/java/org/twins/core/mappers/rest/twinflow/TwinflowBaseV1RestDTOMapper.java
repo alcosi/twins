@@ -17,6 +17,9 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.twinflow.TwinflowService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -24,6 +27,8 @@ import org.twins.core.service.i18n.I18nService;
 public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEntity, TwinflowBaseDTOv1> {
 
     private final I18nService i18nService;
+
+    private final TwinflowService twinflowService;
 
     @MapperModePointerBinding(modes = StatusMode.TwinflowInitStatus2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
@@ -43,6 +48,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
                         .setName(I18nCacheHolder.addId(src.getNameI18NId()))
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18NId()))
                         .setTwinClassId(src.getTwinClassId())
+                        .setInheritable(src.getInheritable())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId())
                         .setInitialStatusId(src.getInitialTwinStatusId())
@@ -55,17 +61,36 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
         }
         if (mapperContext.hasModeButNot(TwinClassMode.Twinflow2TwinClassMode.HIDE)) {
             dst.setTwinClassId(src.getTwinClassId());
+            twinflowService.loadTwinClass(src);
             twinClassRestDTOMapper.postpone(src.getTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Twinflow2TwinClassMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(UserMode.Twinflow2UserMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setCreatedByUserId(src.getCreatedByUserId());
+            twinflowService.loadCreatedByUser(src);
             userRestDTOMapper.postpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twinflow2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(StatusMode.TwinflowInitStatus2StatusMode.HIDE) && src.getCreatedByUserId() != null) {
             dst.setInitialStatusId(src.getInitialTwinStatusId());
             dst.setInitialSketchStatusId(src.getInitialSketchTwinStatusId());
+            twinflowService.loadStatuses(src);
             twinStatusRestDTOMapper.postpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinflowInitStatus2StatusMode.SHORT)));
             twinStatusRestDTOMapper.postpone(src.getInitialSketchTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinflowInitStatus2StatusMode.SHORT)));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinflowEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (srcCollection.isEmpty())
+            return;
+        if (mapperContext.hasModeButNot(UserMode.Twinflow2UserMode.HIDE)) {
+            twinflowService.loadCreatedByUser(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(TwinClassMode.Twinflow2TwinClassMode.HIDE)) {
+            twinflowService.loadTwinClass(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(StatusMode.TwinflowInitStatus2StatusMode.HIDE)) {
+            twinflowService.loadStatuses(srcCollection);
         }
     }
 

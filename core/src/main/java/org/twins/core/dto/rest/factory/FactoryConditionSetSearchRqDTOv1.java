@@ -4,42 +4,21 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.util.Ternary;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
-
-import java.util.Set;
-import java.util.UUID;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.FactoryConditionSetSortField;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "FactoryConditionSetSearchRqV1")
+@Schema(name = "FactoryConditionSetSearchRqV1")
 public class FactoryConditionSetSearchRqDTOv1 extends Request {
-    @Schema(description = "id list")
-    public Set<UUID> idList;
+    @Schema(description = "search params")
+    public FactoryConditionSetSearchDTOv1 search;
 
-    @Schema(description = "id exclude list")
-    public Set<UUID> idExcludeList;
+    @Schema(description = "Sort field. Default: createdAt")
+    public FactoryConditionSetSortField sortField;
 
-    @Schema(description = "twin factory id list")
-    public Set<UUID> twinFactoryIdList;
-
-    @Schema(description = "twin factory id exclude list")
-    public Set<UUID> twinFactoryIdExcludeList;
-
-    @Schema(description = "name like list")
-    public Set<String> nameLikeList;
-
-    @Schema(description = "name like exclude list")
-    public Set<String> nameNotLikeList;
-
-    @Schema(description = "description like list")
-    public Set<String> descriptionLikeList;
-
-    @Schema(description = "description like exclude list")
-    public Set<String> descriptionNotLikeList;
-
-    @Schema(description = "cachable", example = DTOExamples.TERNARY)
-    public Ternary cachable;
+    @Schema(description = "Sort direction: ASC or DESC. Default: ASC")
+    public SortDirection sortDirection;
 }

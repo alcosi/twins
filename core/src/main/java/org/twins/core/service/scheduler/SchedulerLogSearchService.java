@@ -7,9 +7,11 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
 import org.twins.core.domain.search.SchedulerLogSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -19,6 +21,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 public class SchedulerLogSearchService {
 
     private final SchedulerLogRepository schedulerLogRepository;
+    private final AuthService authService;
 
     public PaginationResult<SchedulerLogEntity> search(SchedulerLogSearch schedulerLogSearch, SimplePagination pagination) throws Exception {
         if (schedulerLogSearch == null) {
@@ -30,6 +33,7 @@ public class SchedulerLogSearchService {
 
     private Specification<SchedulerLogEntity> createSchedulerLogEntitySearchSpecification(SchedulerLogSearch search) throws Exception {
         return allOf(
+                checkFieldUuid(authService.getApiUser().getDomainId(), SchedulerLogEntity.Fields.schedulerSpecOnly, SchedulerEntity.Fields.domainId),
                 checkUuidIn(search.getIdSet(), false, false, SchedulerLogEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, false, SchedulerLogEntity.Fields.id),
                 checkUuidIn(search.getSchedulerIdSet(), false, false, SchedulerLogEntity.Fields.schedulerId),

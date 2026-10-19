@@ -1,9 +1,7 @@
 package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -11,14 +9,16 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -26,7 +26,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twinflow_transition")
 @FieldNameConstants
-public class TwinflowTransitionEntity implements EasyLoggable {
+public class TwinflowTransitionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -61,7 +61,6 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     private TwinflowTransitionType twinflowTransitionTypeId;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -89,42 +88,95 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "twinflow_transition_alias_id")
     private UUID twinflowTransitionAliasId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twinflow_transition_alias_id", insertable = false, updatable = false, nullable = false)
+    private TwinflowTransitionAliasEntity twinflowTransitionAliasSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinflowTransitionAliasEntity twinflowTransitionAlias;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
+    private TwinflowEntity twinflowSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinflowEntity twinflow;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — see TwinClassFieldEntity.nameI18nTranslationsSpecOnly for explanation
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity nameI18n;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity descriptionI18n;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP
+    }
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false)
+    private TwinStatusEntity srcTwinStatusSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity srcTwinStatus;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity dstTwinStatusSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinStatusEntity dstTwinStatus;
 
     @Transient
@@ -147,16 +199,30 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @ToString.Exclude
     private UserEntity createdByUser;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "inbuilt_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity inbuiltFactorySpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinFactoryEntity inbuiltFactory;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "drafting_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity draftingFactorySpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinFactoryEntity draftingFactory;
 
     @Override

@@ -4,7 +4,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
+import org.twins.core.enums.history.HistoryType;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -14,10 +16,10 @@ import java.util.UUID;
 public class HistoryNotificationSearch {
     public Set<UUID> idList;
     public Set<UUID> idExcludeList;
-    public Set<String> historyTypeIdList;
-    public Set<String> historyTypeIdExcludeList;
-    public Set<UUID> twinClassIdList;
-    public Set<UUID> twinClassIdExcludeList;
+    public Set<HistoryType> historyTypeIdList;
+    public Set<HistoryType> historyTypeIdExcludeList;
+    public Map<UUID, Boolean> twinClassIdMap;
+    public Map<UUID, Boolean> twinClassIdExcludeMap;
     public Set<UUID> twinClassFieldIdList;
     public Set<UUID> twinClassFieldIdExcludeList;
     public Set<UUID> twinValidatorSetIdList;
@@ -29,4 +31,5 @@ public class HistoryNotificationSearch {
     public Set<UUID> historyNotificationRecipientIdExcludeList;
     public Set<UUID> notificationChannelEventIdList;
     public Set<UUID> notificationChannelEventIdExcludeList;
+    public Ternary active;
 }

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -28,6 +29,10 @@ public class TwinBaseDTOv1 {
     @RelatedObject(type = TwinDTOv2.class, name = "headTwin")
     @Schema(description = "headTwinId", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
+
+    @RelatedObject(type = TwinDTOv2.class, name = "headTwins")
+    @Schema(description = "head twin id set")
+    public Set<UUID> headTwinIdSet;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
@@ -60,6 +65,10 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "owner user id", example = DTOExamples.USER_ID)
     public UUID ownerUserId;
+
+    @RelatedObject(type = DataListOptionDTOv1.class, name = "flavorDataListOption")
+    @Schema(description = "flavor data list option id")
+    public UUID flavorDataListOptionId;
 
     @Schema(description = "page id")
     public UUID pageFaceId;

@@ -14,6 +14,9 @@ import org.twins.core.mappers.rest.mappercontext.modes.ProjectionTypeMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.datalist.DataListOptionProjectionService;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +30,8 @@ public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<D
 
     @MapperModePointerBinding(modes = UserMode.DataListOptionProjection2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapperV2;
+
+    private final DataListOptionProjectionService dataListOptionProjectionService;
 
     @Override
     public void map(DataListOptionProjectionEntity src, DataListOptionProjectionDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -45,6 +50,7 @@ public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<D
 
         if (mapperContext.hasModeButNot(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.HIDE)) {
             dst.setProjectionTypeId(src.getProjectionTypeId());
+            dataListOptionProjectionService.loadProjectionTypes(src);
             projectionTypeRestDTOMapper.postpone(src.getProjectionType(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.SHORT)));
         }
 
@@ -52,7 +58,7 @@ public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<D
             dst
                     .setSrcDataListOptionId(src.getSrcDataListOptionId())
                     .setDstDataListOptionId(src.getDstDataListOptionId());
-
+            dataListOptionProjectionService.loadDataListOptions(src);
             dataListOptionRestDTOMapper.postpone(src.getSrcDataListOption(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.DataListOptionProjection2DataListOptionMode.SHORT)));
             dataListOptionRestDTOMapper.postpone(src.getDstDataListOption(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.DataListOptionProjection2DataListOptionMode.SHORT)));
         }
@@ -60,6 +66,16 @@ public class DataListOptionProjectionRestDTOMapper extends RestSimpleDTOMapper<D
         if (mapperContext.hasModeButNot(UserMode.DataListOptionProjection2UserMode.HIDE)) {
             dst.setSavedByUserId(src.getSavedByUserId());
             userRestDTOMapperV2.postpone(src.getSavedByUser(), mapperContext.forkOnPoint((mapperContext.getModeOrUse(UserMode.DataListOptionProjection2UserMode.SHORT))));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<DataListOptionProjectionEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        if (mapperContext.hasModeButNot(ProjectionTypeMode.DataListOptionProjection2ProjectionTypeMode.HIDE)) {
+            dataListOptionProjectionService.loadProjectionTypes(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(DataListOptionMode.DataListOptionProjection2DataListOptionMode.HIDE)) {
+            dataListOptionProjectionService.loadDataListOptions(srcCollection);
         }
     }
 }

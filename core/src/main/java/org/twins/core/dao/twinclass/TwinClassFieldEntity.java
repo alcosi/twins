@@ -2,31 +2,33 @@ package org.twins.core.dao.twinclass;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
+import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
+import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
+import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.SystemIdLookup;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 @FieldNameConstants
-public class TwinClassFieldEntity implements EasyLoggable {
+public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
     private UUID id;
@@ -40,6 +42,9 @@ public class TwinClassFieldEntity implements EasyLoggable {
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;
+
+    @Column(name = "inheritable")
+    private Boolean inheritable;
 
     @Column(name = "key")
     private String key;
@@ -112,53 +117,116 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Column(name = "has_projected_fields")
     private Boolean hasProjectedFields;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
+    private TwinClassEntity twinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity twinClass;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table.
+    // HACK: @Access(PROPERTY) + NOOP getter/setter — Hibernate sees null in FlushVisitor.processCollection,
+    // does early return (value == null branch), PersistentBag is never instantiated in field,
+    // so "Found shared references to a collection" can't trigger on non-unique referencedColumnName.
+    // Criteria API still works — association metadata is preserved by @OneToMany/@JoinColumn.
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18n;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "name_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> nameI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getNameI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setNameI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+    }
+
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
     @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18n;
+    @Access(AccessType.PROPERTY)
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "description_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> descriptionI18nTranslationsSpecOnly;
 
+    public List<I18nTranslationEntity> getDescriptionI18nTranslationsSpecOnly() {
+        return null;
+    }
+
+    public void setDescriptionI18nTranslationsSpecOnly(List<I18nTranslationEntity> value) {
+        // NOOP — never store PersistentBag, so Hibernate flush visitor sees null
+    }
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
-    private PermissionEntity viewPermission;
+    private PermissionEntity viewPermissionSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
-    private PermissionEntity editPermission;
+    private PermissionEntity editPermissionSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "field_typer_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity fieldTyperFeaturerSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "field_initializer_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity fieldInitializerFeaturerSpecOnly;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_sorter_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity twinSorterFeaturerSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_twin_class_field_id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Collection<ProjectionEntity> projectionsBySrc;
+    private Collection<ProjectionEntity> projectionsBySrcSpecOnly;
 
-    //needed for specification
-    @Deprecated
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @OneToMany(fetch = FetchType.LAZY)
     @JoinColumn(name = "dst_twin_class_field_id", insertable = false, updatable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Collection<ProjectionEntity> projectionsByDst;
+    private Collection<ProjectionEntity> projectionsByDstSpecOnly;
 
     @Transient
     @ToString.Exclude
@@ -168,13 +236,58 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    private PermissionEntity viewPermission;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity editPermission;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldRuleEntity, UUID> ruleKit;
 
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinClassFieldActionValidatorRuleEntity, UUID, TwinClassFieldAction> twinClassFieldActionValidationRules;
+
+    /**
+     * OnField recompute rules (TWINS-893 new {@code twin_recompute_on_field} table) where this field is the
+     * publisher (operand). Loaded via {@code TwinClassFieldService.loadRecomputeOnFieldV2(...)}; null until
+     * loaded. Empty kit means "no rules listen to this field" — distinct from null "not loaded yet".
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinRecomputeOnFieldEntity, UUID> recomputeOnField;
+
+    /**
+     * Backend value validators attached to this field ({@code twin_class_field_validator} table).
+     * Loaded via {@code TwinClassFieldService.loadFieldValidators(...)}; null until loaded.
+     * Empty kit means "no validators configured" — distinct from null "not loaded yet".
+     */
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassFieldValidatorEntity, UUID> fieldValidatorKit;
+
     public String easyLog(Level level) {
-        return "twinClassField[id:" + id + ", key:" + key + "]";
+        return switch (level) {
+            case SHORT -> "twinClassField[" + id + "]";
+            case NORMAL -> "twinClassField[id:" + id + ", key:" + key + "]";
+            default -> "twinClassField[id:" + id +
+                    ", key:" + key +
+                    ", twinClassId:" + twinClassId +
+                    ", inheritable:" + inheritable +
+                    ", required:" + required +
+                    ", system:" + system +
+                    ", order:" + order + "]";
+        };
     }
 
     public boolean isBaseField() {
-        return SystemEntityService.isSystemField(id);
+        return SystemIdLookup.isSystemField(id);
     }
 }

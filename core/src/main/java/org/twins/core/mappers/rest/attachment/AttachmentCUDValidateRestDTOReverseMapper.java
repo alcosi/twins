@@ -35,6 +35,8 @@ public class AttachmentCUDValidateRestDTOReverseMapper extends RestSimpleDTOMapp
 
     @Override
     public void map(AttachmentCUDValidateRqDTOv1 src, EntityCUD<TwinAttachmentEntity> dst, MapperContext mapperContext) throws Exception {
+        if (src.getAttachments() == null)
+            return;
         dst
                 .setUpdateList(attachmentUpdateRestDTOReverseMapper.convertCollection(src.getAttachments().getUpdate()))
                 .setCreateList(attachmentCreateRestDTOReverseMapper.convertCollection(src.getAttachments().getCreate()))

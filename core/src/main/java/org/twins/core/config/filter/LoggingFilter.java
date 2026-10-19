@@ -2,7 +2,6 @@ package org.twins.core.config.filter;
 
 import ch.qos.logback.classic.Logger;
 import com.zaxxer.hikari.HikariDataSource;
-import javax.sql.DataSource;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,7 +26,7 @@ import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import org.twins.core.controller.rest.annotation.Loggable;
 
-import java.io.ByteArrayInputStream;
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -153,10 +152,8 @@ public class LoggingFilter extends OncePerRequestFilter {
                 return "<File. Size:" + getSize(part) + ">";
             }
             InputStream inputStream = part.getInputStream();
-            if (!(inputStream instanceof ByteArrayInputStream)) {
-                return "<File. Size:" + getSize(part) + ">";
-            }
-            return new String(inputStream.readAllBytes(), characterEncoding);
+            byte[] bytes = inputStream.readAllBytes();
+            return new String(bytes, characterEncoding);
         }
 
         public long getSize(Part part) {
@@ -297,7 +294,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         if (request instanceof ContentCachingRequestWrapper) {
             return (ContentCachingRequestWrapper) request;
         } else {
-            return new ContentCachingRequestWrapper(request);
+            return new ContentCachingRequestWrapper(request, Integer.MAX_VALUE);
         }
     }
 

@@ -1,9 +1,10 @@
 package org.cambium.featurer.params;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.cambium.featurer.annotations.FeaturerParamType;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +16,7 @@ import java.util.Properties;
         regexp = ".*", //todo correct regexp
         example = "{\"name\": \"John\", \"surname\": \"Doe\"}")
 public class FeaturerParamMap extends FeaturerParam<Map<String, String>> {
-    final ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = JsonMapper.builder().build();
     TypeReference<HashMap<String, String>> typeRef = new TypeReference<>() {};
 
     public FeaturerParamMap(String key) {

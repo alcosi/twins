@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
@@ -39,6 +40,7 @@ import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twin.TemporalIdContext;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
@@ -48,7 +50,7 @@ import java.util.*;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_CREATE})
+@ProtectedBy(Permissions.TWIN_CREATE)
 public class TwinCreateController extends ApiController {
     private final AuthService authService;
     private final TwinService twinService;
@@ -60,6 +62,7 @@ public class TwinCreateController extends ApiController {
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final TemporalIdContext temporalIdContext;
 
     @Deprecated
     @ParametersApiUserHeaders
@@ -90,10 +93,11 @@ public class TwinCreateController extends ApiController {
                             .setCreatedByUserId(apiUser.getUser().getId())
                             .setHeadTwinId(request.getHeadTwinId())
                             .setAssignerUserId(userService.checkId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
+                            .setFlavorDataListOptionId(request.getFlavorDataListOptionId())
                             .setDescription(request.getDescription()));
             twinCreate
                     .setAttachmentEntityList(attachmentCreateRestDTOReverseMapper.convertCollection(request.getAttachments()))
-                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
+                    .setLinksCreateList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
                     .setCheckCreatePermission(true)
                     .setLauncher(TwinOperation.Launcher.direct);
 
@@ -123,7 +127,7 @@ public class TwinCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")
     })
     @PostMapping(value = "/private/twin/v2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> twinCreateV2(@RequestBody TwinCreateRqDTOv2 request) {
+    public ResponseEntity<?> twinCreateV2(@RequestBody @Valid TwinCreateRqDTOv2 request) {
         return createTwinV2(request, Collections.emptyMap());
     }
 
@@ -220,18 +224,23 @@ public class TwinCreateController extends ApiController {
             request.getTwins().forEach(twinCreateRqDTOv1 -> {
                 attachmentCreateRestDTOReverseMapper.preProcessAttachments(twinCreateRqDTOv1.attachments, filesMap);
             });
+
             List<TwinCreate> twinCreates = twinCreateRqRestDTOReverseMapper.convertCollection(request.getTwins());
             for (TwinCreate twinCreate : twinCreates) {
                 twinCreate
                         .setCheckCreatePermission(true)
                         .setLauncher(TwinOperation.Launcher.direct);
             }
-            List<TwinEntity> twinEntities = twinService.createTwinsAsyncBatch(twinCreates);
-            rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinEntities, mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+
+            var twinBatchCreateResult = twinService.createTwinsAsync(twinCreates);
+            var createdTwins = twinBatchCreateResult.getTwinCreateResultList().stream().map(TwinService.TwinCreateResult::getCreatedTwin).toList();
+            rs.setTemporalIdMap(temporalIdContext.getTemporalIdMap())
+              .setTwinList(twinRestDTOMapperV2.convertCollection(createdTwins, mapperContext))
+              .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (TwinBatchFieldValidationException ve) {
             return createErrorRs(ve, rs, null);
+        } catch (TwinFieldValidationException ve) {
+            return createErrorRs(ve, new TwinSaveRsV1(), null);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

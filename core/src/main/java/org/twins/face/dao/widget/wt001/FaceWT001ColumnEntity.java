@@ -57,6 +57,11 @@ public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariantEntity {
     @ToString.Exclude
     private I18nEntity labelI18n;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceWT001Entity faceWT001;
+
     @Override
     public String easyLog(Level level) {
         return "faceWT001Column[" + id + "]";

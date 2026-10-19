@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import org.twins.core.service.permission.Permissions;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.LINK_MANAGE, Permissions.LINK_CREATE})
+@ProtectedBy(Permissions.LINK_CREATE)
 public class LinkCreateController extends ApiController {
     private final LinkService linkService;
     private final LinkCreateRestDTOReverseMapper linkCreateRestDTOReverseMapper;
@@ -54,7 +55,7 @@ public class LinkCreateController extends ApiController {
     @PostMapping(value = "/private/link/v1")
     public ResponseEntity<?> linkCreateV1(
             @MapperContextBinding(roots = {LinkForwardRestDTOV2Mapper.class}, response = LinkCreateRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody LinkCreateDTOv1 request) {
+            @RequestBody @Valid LinkCreateDTOv1 request) {
         LinkCreateRsDTOv1 rs = new LinkCreateRsDTOv1();
         try {
             I18nEntity forwardNameI18n = i18NSaveRestDTOReverseMapper.convert(request.getForwardNameI18n());

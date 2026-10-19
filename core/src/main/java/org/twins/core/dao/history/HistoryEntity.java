@@ -2,9 +2,7 @@ package org.twins.core.dao.history;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -13,6 +11,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.history.HistoryType;
 
@@ -63,23 +62,57 @@ public class HistoryEntity implements EasyLoggable {
     @Column(name = "snapshot_message")
     private String snapshotMessage;
 
-    @EqualsAndHashCode.Exclude
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    @ManyToOne
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    private TwinEntity twinSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinEntity twin;
 
-    @EqualsAndHashCode.Exclude
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ToString.Exclude
-    @ManyToOne
-    @JoinColumn(name = "actor_user_id", insertable = false, updatable = false, nullable = false)
-    private UserEntity actorUser;
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "actor_user_id", insertable = false, updatable = false)
+    private UserEntity actorUserSpecOnly;
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @Transient
+    private UserEntity actorUser;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "machine_user_id", insertable = false, updatable = false)
+    private UserEntity machineUserSpecOnly;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Transient
     private UserEntity machineUser;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false)
+    private TwinClassFieldEntity twinClassFieldSpecOnly;
+
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @Transient
+    private TwinClassFieldEntity twinClassField;
 
     @Override
     public String easyLog(Level level) {

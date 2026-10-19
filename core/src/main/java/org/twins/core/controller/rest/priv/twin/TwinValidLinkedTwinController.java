@@ -29,8 +29,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchSimpleDTOReverseMapper;
-import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.UUID;
 

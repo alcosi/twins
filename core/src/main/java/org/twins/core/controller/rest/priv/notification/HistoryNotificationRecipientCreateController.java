@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -24,8 +25,8 @@ import org.twins.core.domain.notification.HistoryNotificationRecipientCreate;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientCreateRqDTOv1;
 import org.twins.core.dto.rest.notification.HistoryNotificationRecipientListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
 import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientCreateDTOReverseMapper;
+import org.twins.core.mappers.rest.notification.HistoryNotificationRecipientDTOMapperV1;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.notification.HistoryNotificationRecipientService;
 import org.twins.core.service.permission.Permissions;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.HISTORY_NOTIFICATION_MANAGE, Permissions.HISTORY_NOTIFICATION_CREATE, Permissions.HISTORY_NOTIFICATION_VIEW})
+@ProtectedBy(Permissions.HISTORY_NOTIFICATION_CREATE)
 public class HistoryNotificationRecipientCreateController extends ApiController {
 
     private final HistoryNotificationRecipientService historyNotificationRecipientService;
@@ -54,7 +55,7 @@ public class HistoryNotificationRecipientCreateController extends ApiController 
     @PostMapping(value = "/private/history_notification_recipient/v1")
     public ResponseEntity<?> historyNotificationRecipientCreateV1(
             @MapperContextBinding(roots = HistoryNotificationRecipientDTOMapperV1.class, response = HistoryNotificationRecipientListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody HistoryNotificationRecipientCreateRqDTOv1 request) {
+            @RequestBody @Valid HistoryNotificationRecipientCreateRqDTOv1 request) {
         HistoryNotificationRecipientListRsDTOv1 rs = new HistoryNotificationRecipientListRsDTOv1();
         try {
             List<HistoryNotificationRecipientCreate> createList = historyNotificationRecipientCreateDTOReverseMapper.convertCollection(request.getRecipients());

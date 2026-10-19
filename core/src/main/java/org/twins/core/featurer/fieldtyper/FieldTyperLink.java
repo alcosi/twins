@@ -18,6 +18,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
+import org.twins.core.domain.twinlink.TwinLinkCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
@@ -25,7 +26,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -73,6 +74,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     }
 
     protected boolean allowMultiply(LinkEntity linkEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        twinClassFieldService.loadTwinClass(twinClassFieldEntity);
         return linkEntity.getType().isMany() && linkService.isBackwardLink(linkEntity, twinClassFieldEntity.getTwinClass());
     }
 
@@ -80,14 +82,23 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueLink value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
-        List<TwinLinkEntity> newTwinLinks = value.getItems() != null ? value.getItems() : new ArrayList<>();
-        for (TwinLinkEntity newTwinLinkEntity : newTwinLinks) //we have to set link, because it can be empty
-            newTwinLinkEntity
+        List<TwinEntity> farTwins = value.getItems() != null ? value.getItems() : new ArrayList<>();
+        List<TwinLinkEntity> newTwinLinks = new ArrayList<>(farTwins.size());
+        for (TwinEntity farTwin : farTwins) // the field value carries only the far twins, the twin_link to each is built here
+            newTwinLinks.add(new TwinLinkEntity()
                     .setLinkId(linkEntity.getId())
-                    .setLink(linkEntity);
+                    .setLink(linkEntity)
+                    .setDstTwinId(farTwin.getId())
+                    .setDstTwin(farTwin));
         if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, value.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
-        twinLinkService.prepareTwinLinks(twin, newTwinLinks);
+        if (linkEntity.getRelationTwinClassId() != null && !newTwinLinks.isEmpty())
+            // link-field writes create/update twin_links directly, bypassing the relation twin lifecycle
+            // (no relationTwinFields carrier here, no relink relationTwinId wiring) — fail fast instead of a silent half-entity.
+            // Pure deletion (empty list) stays allowed: the twin_link AFTER DELETE trigger removes the relation twin.
+            throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT,
+                    linkEntity.logShort() + " with relation_twin_class_id is not supported via link-typed fields: use the twin links[] API");
+        twinLinkService.prepareTwinLinks(twin, TwinLinkCreate.wrapAll(newTwinLinks));
         LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twin.getTwinClass());
         Collection<TwinLinkEntity> storedLinksList;
         twinLinkService.loadTwinLinks(twin); //todo optimize loading for backward links
@@ -107,21 +118,21 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.logShort() + " can not detect link direction for " + twin.getTwinClass().logShort());
         }
         if (FieldValueChangeHelper.isSingleValueAdd(newTwinLinks, storedLinksMap)) {
-            TwinLinkEntity twinLinkEntity = newTwinLinks.get(0);
+            TwinLinkEntity twinLinkEntity = newTwinLinks.getFirst();
             twinChangesCollector.add(twinLinkEntity);
             twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
             return;
         }
         if (FieldValueChangeHelper.isAnyToSingleValueUpdate(newTwinLinks, storedLinksMap)) {
-            TwinLinkEntity newLink = newTwinLinks.get(0); //wh have only one element
+            TwinLinkEntity newLink = newTwinLinks.getFirst(); //wh have only one element
             TwinLinkEntity storedLink = MapUtils.pullAny(storedLinksMap); // we will update any of existed link it doesn't matter which one. all other will be deleted
             if (!TwinLinkService.equalsInSrcTwinIdAndDstTwinId(newLink, storedLink)) {
                 newLink.setId(storedLink.getId());
                 if (linkDirection == LinkService.LinkDirection.forward) {
-                    log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and dstTwin will be updated to " + newLink.getDstTwinId());
+                    log.info("{} is already exists and dstTwin will be updated to {}", storedLink.logShort(), newLink.getDstTwinId());
                     twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getDstTwin(), true));
                 } else {
-                    log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and srcTwin will be updated to " + newLink.getSrcTwinId());
+                    log.info("{} is already exists and srcTwin will be updated to {}", storedLink.logShort(), newLink.getSrcTwinId());
                     twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getSrcTwin(), false));
                 }
                 twinChangesCollector.add(newLink);
@@ -187,8 +198,29 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         else
             twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getGrouped(linkEntity.getId());
         FieldValueLink ret = new FieldValueLink(twinField.getTwinClassField());
-        ret.setItems(twinLinkEntityList);
+        if (CollectionUtils.isNotEmpty(twinLinkEntityList)) {
+            // the far twins ARE the field value — the twin_link to each is rebuilt on serialize
+            if (linkDirection == LinkService.LinkDirection.forward)
+                twinLinkService.loadDstTwin(twinLinkEntityList);
+            else
+                twinLinkService.loadSrcTwin(twinLinkEntityList);
+            List<TwinEntity> farTwins = new ArrayList<>(twinLinkEntityList.size());
+            for (TwinLinkEntity twinLinkEntity : twinLinkEntityList)
+                farTwins.add(linkDirection == LinkService.LinkDirection.forward ? twinLinkEntity.getDstTwin() : twinLinkEntity.getSrcTwin());
+            ret.setItems(farTwins);
+        } else {
+            ret.undefine();
+        }
         ret.setForwardLink(linkDirection == LinkService.LinkDirection.forward);
         return ret;
+    }
+
+    public UUID getLinkId(HashMap<String, String> fieldTyperParams) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, fieldTyperParams);
+        return getLinkId(properties);
+    }
+
+    public UUID getLinkId(Properties properties) throws ServiceException {
+        return linkUUID.extract(properties);
     }
 }

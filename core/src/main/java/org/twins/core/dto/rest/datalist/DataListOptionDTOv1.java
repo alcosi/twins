@@ -1,13 +1,16 @@
 package org.twins.core.dto.rest.datalist;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.related.RelatedObject;
 import org.twins.core.enums.datalist.DataListStatus;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -52,4 +55,8 @@ public class DataListOptionDTOv1 {
 
     @Schema(description = "flag for custom field", example = DTOExamples.BOOLEAN_TRUE)
     public Boolean custom;
+
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
+    public LocalDateTime createdAt;
 }

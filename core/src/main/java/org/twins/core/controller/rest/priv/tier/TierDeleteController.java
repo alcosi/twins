@@ -21,8 +21,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.domain.TierService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.tier.TierService;
 
 import java.util.UUID;
 
@@ -30,7 +30,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TIER_MANAGE, Permissions.TIER_DELETE})
+@ProtectedBy(Permissions.TIER_DELETE)
 public class TierDeleteController extends ApiController {
     private final TierService tierService;
 

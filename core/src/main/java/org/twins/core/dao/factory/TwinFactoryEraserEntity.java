@@ -1,14 +1,13 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.factory.FactoryEraserAction;
 
 import java.util.UUID;
@@ -18,7 +17,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_eraser")
-public class TwinFactoryEraserEntity implements EasyLoggable {
+public class TwinFactoryEraserEntity implements EasyLoggable, Identifiable<UUID>, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -49,23 +48,44 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
     @Convert(converter = TwinFactoryEraserActionConverter.class)
     private FactoryEraserAction eraserAction;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity twinFactory;
+    private TwinFactoryEntity twinFactorySpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity conditionSetSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClassSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinClassEntity inputTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity twinFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     @Override
     public String easyLog(Level level) {

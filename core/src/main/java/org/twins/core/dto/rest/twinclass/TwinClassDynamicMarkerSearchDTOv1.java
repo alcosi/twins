@@ -3,6 +3,8 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +26,9 @@ public class TwinClassDynamicMarkerSearchDTOv1 {
 
     @Schema(description = "twin class id exclude map")
     public Map<UUID, Boolean> twinClassIdExcludeMap;
+
+    @Schema(description = "inheritable", example = DTOExamples.TERNARY)
+    public Ternary inheritable;
 
     @Schema(description = "twin validator set id list")
     public Set<UUID> twinValidatorSetIdList;

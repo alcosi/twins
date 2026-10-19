@@ -1,6 +1,8 @@
 package org.twins.core.featurer.twin.sorter;
 
-import jakarta.persistence.criteria.*;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
@@ -12,7 +14,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
-import org.twins.core.service.SystemEntityService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,28 +50,7 @@ public class TwinSorterTwinField extends TwinSorter {
     }
 
     private String getTwinEntityField(UUID fieldId) {
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_NAME.equals(fieldId))
-            return TwinEntity.Fields.name;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_DESCRIPTION.equals(fieldId))
-            return TwinEntity.Fields.description;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_EXTERNAL_ID.equals(fieldId))
-            return TwinEntity.Fields.externalId;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_OWNER_USER.equals(fieldId))
-            return TwinEntity.Fields.ownerUserId;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_ASSIGNEE_USER.equals(fieldId))
-            return TwinEntity.Fields.assignerUserId;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATOR_USER.equals(fieldId))
-            return TwinEntity.Fields.createdByUserId;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_HEAD.equals(fieldId))
-            return TwinEntity.Fields.headTwinId;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_STATUS.equals(fieldId))
-            return TwinEntity.Fields.twinStatusId;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_CREATED_AT.equals(fieldId))
-            return TwinEntity.Fields.createdAt;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_ID.equals(fieldId))
-            return TwinEntity.Fields.id;
-        if (SystemEntityService.TWIN_CLASS_FIELD_TWIN_TWIN_CLASS_ID.equals(fieldId))
-            return TwinEntity.Fields.twinClassId;
-        return null;
+        var basicField = TwinEntity.BasicField.convertOrNull(fieldId);
+        return basicField != null ? basicField.getName() : null;
     }
 }

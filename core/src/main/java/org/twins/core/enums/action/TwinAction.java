@@ -1,6 +1,7 @@
 package org.twins.core.enums.action;
 
 public enum TwinAction {
+    CREATE,
     EDIT,
     DELETE,
     MOVE,

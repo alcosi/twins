@@ -1,0 +1,186 @@
+package org.twins.core.unit.featurer.factory.filler;
+
+import org.cambium.common.exception.ServiceException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.twins.core.base.BaseUnitTest;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.factory.filler.FillerFieldMathDivisionFromContextField;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperFromItemOutputDbFields;
+import org.twins.core.featurer.factory.lookuper.FieldLookupers;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
+
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.Properties;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
+class FillerFieldMathDivisionFromContextFieldTest extends BaseUnitTest {
+
+    @Mock
+    private FieldLookupers fieldLookupers;
+
+    @Mock
+    private FieldLookuperFromItemOutputDbFields dbLookuper;
+
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
+    private FillerFieldMathDivisionFromContextField filler;
+
+    private static final UUID DIVIDEND_FIELD_ID = UUID.randomUUID();
+    private static final UUID DIVISOR_FIELD_ID = UUID.randomUUID();
+    private static final UUID TARGET_FIELD_ID = UUID.randomUUID();
+
+    @BeforeEach
+    void setUp() throws Exception {
+        filler = new FillerFieldMathDivisionFromContextField(twinClassFieldService);
+        inject(filler, "fieldLookupers", fieldLookupers);
+        when(fieldLookupers.getNearestByType(FieldLookupers.Type.fromItemOutputDbFields)).thenReturn(dbLookuper);
+    }
+
+    private void inject(Object target, String name, Object value) throws Exception {
+        Field f = findField(target.getClass(), name);
+        f.setAccessible(true);
+        f.set(target, value);
+    }
+
+    private Field findField(Class<?> clazz, String name) {
+        while (clazz != null) {
+            try {
+                return clazz.getDeclaredField(name);
+            } catch (NoSuchFieldException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        throw new RuntimeException("field not found: " + name);
+    }
+
+    private Properties props() {
+        var p = new Properties();
+        p.setProperty("dividendTwinClassFieldId", DIVIDEND_FIELD_ID.toString());
+        p.setProperty("fieldLookuper", "fromItemOutputDbFields");
+        p.setProperty("divisorTwinClassFieldId", DIVISOR_FIELD_ID.toString());
+        p.setProperty("targetTwinClassFieldId", TARGET_FIELD_ID.toString());
+        return p;
+    }
+
+    private FactoryItem buildFactoryItem(FieldValue... outputFields) {
+        var twinClass = new TwinClassEntity().setId(UUID.randomUUID());
+        var twin = new TwinEntity().setTwinClass(twinClass);
+        var output = new TwinCreate();
+        output.setTwinEntity(twin);
+        for (FieldValue fv : outputFields) {
+            output.addField(fv);
+        }
+        return new FactoryItem().setOutput(output);
+    }
+
+    private TwinClassFieldEntity field(UUID id) {
+        return new TwinClassFieldEntity().setId(id).setTwinClassId(UUID.randomUUID());
+    }
+
+    /** The batch entry resolves both db fields once per batch; the results are only consulted when the output field is missing. */
+    private void stubDbBatchResults() throws ServiceException {
+        when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), any(UUID.class)))
+                .thenReturn(LookupResult.empty(1));
+    }
+
+    @Nested
+    class Fill {
+
+        @Test
+        void fill_dividesOutputDividendByOutputDivisor_writesToTarget() throws ServiceException {
+            // NAME promises: DIVISION = OUTPUT's dividend / OUTPUT's divisor (HALF_UP, scale 2), written to TARGET.
+            var dividend = new FieldValueText(field(DIVIDEND_FIELD_ID)).setValue("10");
+            var divisor = new FieldValueText(field(DIVISOR_FIELD_ID)).setValue("4");
+            var target = new FieldValueText(field(TARGET_FIELD_ID));
+            var factoryItem = buildFactoryItem(dividend, divisor, target);
+            stubDbBatchResults();
+
+            filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false);
+
+            FieldValueText result = (FieldValueText) factoryItem.getOutput().getField(TARGET_FIELD_ID);
+            // 10 / 4 = 2.50 (HALF_UP, scale 2)
+            assertEquals(new BigDecimal("2.50"), new BigDecimal(result.getValue()));
+        }
+
+        @Test
+        void fill_divisorMissing_throwsStepError() throws ServiceException {
+            var dividend = new FieldValueText(field(DIVIDEND_FIELD_ID)).setValue("10");
+            var target = new FieldValueText(field(TARGET_FIELD_ID));
+            var factoryItem = buildFactoryItem(dividend, target);
+            // divisor not on output -> its db batch result carries the undefined value the batch
+            // entry creates for a not-found lookup (new lookuper contract).
+            var undefinedDivisor = new FieldValueText(field(DIVISOR_FIELD_ID)); // undefined
+            var divisorResult = LookupResult.empty(1);
+            divisorResult.values().put(factoryItem, undefinedDivisor);
+            when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), any(UUID.class)))
+                    .thenReturn(LookupResult.empty(1));
+            when(dbLookuper.lookupFieldValue(any(FactoryItemsBatch.class), eq(DIVISOR_FIELD_ID)))
+                    .thenReturn(divisorResult);
+
+            var ex = assertThrows(ServiceException.class,
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+        }
+
+        @Test
+        void fill_divisionByZero_throwsStepError() throws ServiceException {
+            var dividend = new FieldValueText(field(DIVIDEND_FIELD_ID)).setValue("10");
+            var divisor = new FieldValueText(field(DIVISOR_FIELD_ID)).setValue("0");
+            var target = new FieldValueText(field(TARGET_FIELD_ID));
+            var factoryItem = buildFactoryItem(dividend, divisor, target);
+            stubDbBatchResults();
+
+            var ex = assertThrows(ServiceException.class,
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+        }
+
+        @Test
+        void fill_divisorNotTextField_throwsStepError() throws ServiceException {
+            var dividend = new FieldValueText(field(DIVIDEND_FIELD_ID)).setValue("10");
+            // divisor on output but not a FieldValueText
+            var nonTextDivisor = new org.twins.core.featurer.fieldtyper.value.FieldValueUser(field(DIVISOR_FIELD_ID));
+            var target = new FieldValueText(field(TARGET_FIELD_ID));
+            var factoryItem = buildFactoryItem(dividend, nonTextDivisor, target);
+            stubDbBatchResults();
+
+            var ex = assertThrows(ServiceException.class,
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+        }
+
+        @Test
+        void fill_targetNotTextField_throwsStepError() throws ServiceException {
+            // Target present on output but not a FieldValueText -> FACTORY_PIPELINE_STEP_ERROR.
+            var dividend = new FieldValueText(field(DIVIDEND_FIELD_ID)).setValue("10");
+            var divisor = new FieldValueText(field(DIVISOR_FIELD_ID)).setValue("4");
+            var nonTextTarget = new org.twins.core.featurer.fieldtyper.value.FieldValueUser(field(TARGET_FIELD_ID));
+            var factoryItem = buildFactoryItem(dividend, divisor, nonTextTarget);
+            stubDbBatchResults();
+
+            var ex = assertThrows(ServiceException.class,
+                    () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
+            assertEquals(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR.getCode(), ex.getErrorCode());
+        }
+    }
+}

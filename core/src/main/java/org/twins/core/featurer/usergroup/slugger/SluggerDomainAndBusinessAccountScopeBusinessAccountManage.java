@@ -44,7 +44,7 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
             return null;
         }
         var apiUser = authService.getApiUser();
-        return new UserGroupMapEntity()
+        UserGroupMapEntity ret = new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
                 .setUserId(user.getId())
@@ -52,6 +52,9 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
                 .setAddedByUserId(apiUser.getUser().getId())
                 .setAddedByUser(apiUser.getUser())
                 .setAddedAt(Timestamp.from(Instant.now()));
+        userGroupMapRepository.save(ret);
+
+        return ret;
     }
 
     @Override
@@ -59,7 +62,7 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
         //todo no need for select, cause data is already loaded in user
         var apiUser = authService.getApiUser();
         UserGroupMapEntity entityToDelete = userGroupMapRepository
-                .findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountIdAndUserGroup_DomainId(user.getId(), userGroup.getId(), apiUser.getBusinessAccountId(), apiUser.getDomainId());
+                .findByUserIdAndUserGroupIdAndUserGroupSpecOnly_BusinessAccountIdAndUserGroupSpecOnly_DomainId(user.getId(), userGroup.getId(), apiUser.getBusinessAccountId(), apiUser.getDomainId());
         if (entityToDelete == null)
             return false;
         entitySmartService.deleteAndLog(entityToDelete.getId(), userGroupMapRepository);

@@ -7,11 +7,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.*;
@@ -131,6 +131,26 @@ public class FactoryItem implements EasyLoggable {
                     .append(factoryItem.toString(currentDepth + 1, limit, visited));
         }
         return ret + "]";
+    }
+
+    public TwinEntity lookupTwinOfClass(UUID twinClassId) {
+        return lookupTwinOfClass(this, twinClassId, 0);
+    }
+
+    public static TwinEntity lookupTwinOfClass(FactoryItem factoryItem, UUID twinClassId, int depth) {
+        if (factoryItem == null || twinClassId == null || depth > 5) return null;
+
+        TwinEntity currentTwin = factoryItem.getTwin();
+        if (currentTwin != null && twinClassId.equals(currentTwin.getTwinClassId())) return currentTwin;
+
+        List<FactoryItem> contextItems = factoryItem.getContextFactoryItemList();
+        if (!org.apache.commons.collections4.CollectionUtils.isEmpty(contextItems)) {
+            for (FactoryItem subItem : contextItems) {
+                TwinEntity foundTwin = lookupTwinOfClass(subItem, twinClassId, depth + 1);
+                if (foundTwin != null) return foundTwin;
+            }
+        }
+        return null;
     }
 
 

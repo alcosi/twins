@@ -41,7 +41,6 @@ public class TwinTouchEntity implements EasyLoggable {
     private UUID userId;
 
     @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

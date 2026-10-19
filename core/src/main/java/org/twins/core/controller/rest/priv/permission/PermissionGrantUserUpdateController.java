@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.PERMISSION_GRANT_USER_MANAGE, Permissions.PERMISSION_GRANT_USER_UPDATE})
+@ProtectedBy(Permissions.PERMISSION_GRANT_USER_UPDATE)
 public class PermissionGrantUserUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final PermissionGrantUserUpdateDTOReverseMapper permissionGrantUserUpdateDTOReverseMapper;
@@ -54,7 +55,7 @@ public class PermissionGrantUserUpdateController extends ApiController {
     public ResponseEntity<?> permissionGrantUserUpdateV1(
             @MapperContextBinding(roots = FactoryEraserRestDTOMapper.class, response = FactoryEraserSaveRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_ID) @PathVariable UUID permissionGrantUserId,
-            @RequestBody PermissionGrantUserUpdateRqDTOv1 request) {
+            @RequestBody @Valid PermissionGrantUserUpdateRqDTOv1 request) {
         PermissionGrantUserSaveRsDTOV1 rs = new PermissionGrantUserSaveRsDTOV1();
         try {
             PermissionGrantUserEntity entity = permissionGrantUserUpdateDTOReverseMapper.convert(request.getPermissionGrantUser());

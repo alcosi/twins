@@ -3,8 +3,11 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.dto.rest.related.RelatedObject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -30,6 +33,13 @@ public class TwinClassFieldRuleDTOv1 {
 
     @Schema(description = "priority – lower value means the rule will be evaluated earlier")
     public Integer rulePriority;
+
+    @Schema(description = "field overwriter featurer id", example = "")
+    @RelatedObject(type = FeaturerDTOv1.class, name = "overwriter")
+    public Integer fieldOverwriterFeaturerId;
+
+    @Schema(description = "field overwriter params", example = "")
+    public Map<String, String> fieldOverwriterParams;
 
     @Schema(description = "rule overwritten field descriptor", example = "")
     public TwinClassFieldDescriptorDTO overwrittenDescriptor;

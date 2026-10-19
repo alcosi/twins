@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -27,7 +28,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRuleRestDTOMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twinclass.TwinClassFieldRuleService;
+import org.twins.core.service.twinclassfield.TwinClassFieldRuleService;
 
 import java.util.List;
 
@@ -43,7 +44,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_FIELD_RULE_MANAGE, Permissions.TWIN_CLASS_FIELD_RULE_CREATE})
+@ProtectedBy(Permissions.TWIN_CLASS_FIELD_RULE_CREATE)
 public class TwinClassFieldRuleCreateController extends ApiController {
 
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -61,7 +62,7 @@ public class TwinClassFieldRuleCreateController extends ApiController {
     @PostMapping(value = "/private/twin_class_field_rule/v1")
     public ResponseEntity<?> twinClassFieldRuleCreateV1(
             @MapperContextBinding(roots = TwinClassFieldRuleRestDTOMapper.class, response = TwinClassFieldRuleRsDTOv1.class) MapperContext mapperContext,
-            @RequestBody TwinClassFieldRuleCreateRqDTOv1 request) {
+            @RequestBody @Valid TwinClassFieldRuleCreateRqDTOv1 request) {
         TwinClassFieldRuleRsDTOv1 rs = new TwinClassFieldRuleRsDTOv1();
         try {
             List<TwinClassFieldRuleEntity> ruleEntities = twinClassFieldRuleService.createRules(twinClassFieldRuleCreateDTOReverseMapper.convertCollection(request.getRules(), mapperContext));

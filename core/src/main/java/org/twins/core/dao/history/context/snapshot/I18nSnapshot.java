@@ -4,12 +4,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Locale;
 
 @Data
 @Accessors(chain = true)
-public class I18nSnapshot {
+public class I18nSnapshot implements Serializable {
     private Locale locale;
     private String translation;
 

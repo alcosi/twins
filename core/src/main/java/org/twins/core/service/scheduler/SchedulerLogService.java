@@ -55,7 +55,6 @@ public class SchedulerLogService extends EntitySecureFindServiceImpl<SchedulerLo
     public void loadSchedulers(Collection<SchedulerLogEntity> entities) throws ServiceException {
         schedulerService.load(
                 entities,
-                SchedulerLogEntity::getId,
                 SchedulerLogEntity::getSchedulerId,
                 SchedulerLogEntity::getScheduler,
                 SchedulerLogEntity::setScheduler

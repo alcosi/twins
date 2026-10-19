@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.DATA_LIST_OPTION_MANAGE, Permissions.DATA_LIST_OPTION_UPDATE})
+@ProtectedBy(Permissions.DATA_LIST_OPTION_UPDATE)
 public class DataListOptionProjectionUpdateController extends ApiController {
     private final DataListOptionProjectionUpdateDTOReverseMapper dataListOptionProjectionUpdateDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
@@ -53,7 +54,7 @@ public class DataListOptionProjectionUpdateController extends ApiController {
     @PutMapping(value = "/private/data_list_option_projection/v1")
     public ResponseEntity<?> dataListOptionProjectionUpdateV1(
             @MapperContextBinding(roots = DataListOptionProjectionRestDTOMapper.class, response = DataListOptionProjectionListRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @RequestBody DataListOptionProjectionUpdateRqDTOv1 request) {
+            @RequestBody @Valid DataListOptionProjectionUpdateRqDTOv1 request) {
         DataListOptionProjectionListRsDTOv1 rs = new DataListOptionProjectionListRsDTOv1();
         try {
             List<DataListOptionProjectionEntity> dataListOptionProjectionEntities = dataListOptionProjectionService.updateDataListOptionProjections(dataListOptionProjectionUpdateDTOReverseMapper.convertCollection(request.getDataListOptionProjections()));

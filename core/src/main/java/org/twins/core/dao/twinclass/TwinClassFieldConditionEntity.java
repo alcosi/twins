@@ -2,9 +2,7 @@ package org.twins.core.dao.twinclass;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -62,10 +60,17 @@ public class TwinClassFieldConditionEntity implements EasyLoggable {
     @Column(name = "condition_evaluator_params", columnDefinition = "hstore")
     private HashMap<String, String> conditionEvaluatorParams;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "twin_class_field_rule_id", insertable = false, updatable = false)
+    private TwinClassFieldRuleEntity twinClassFieldRuleSpecOnly;
+
+    @Transient
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private TwinClassFieldRuleEntity twinClassFieldRule;
 
     @Transient

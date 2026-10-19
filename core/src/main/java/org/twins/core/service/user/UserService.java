@@ -4,7 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -12,8 +11,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.EntryCount;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
@@ -22,6 +19,7 @@ import org.twins.core.enums.user.UserStatus;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -36,6 +34,8 @@ import java.util.function.Function;
 public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     private final DomainBusinessAccountService domainBusinessAccountService;
     private final UserRepository userRepository;
+    @Lazy
+    private final UserGroupService userGroupService;
 
     @Lazy
     private final AuthService authService;
@@ -187,23 +187,37 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         return userRepository.findUserIdByBusinessAccountIdAndDomainIdFiltered(businessAccountId, domainId, userIds);
     }
 
+    /**
+     * Bulk variant of {@link #filterUsersByBusinessAccountAndDomain}: filters {@code userIds} against
+     * many business accounts of one domain in a single query, result grouped by businessAccountId
+     * (absent ids map to an empty set). For batch recipient resolving where a whole chunk shares the
+     * same resolver params (fixed userIds) and domain.
+     */
+    public Map<UUID, Set<UUID>> filterUsersByBusinessAccountAndDomainIn(Collection<UUID> userIds, Collection<UUID> businessAccountIds, UUID domainId) {
+        if (businessAccountIds == null || businessAccountIds.isEmpty() || domainId == null || userIds == null || userIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        Map<UUID, Set<UUID>> byBusinessAccount = new HashMap<>();
+        for (UUID businessAccountId : businessAccountIds) {
+            byBusinessAccount.put(businessAccountId, new HashSet<>());
+        }
+        for (Object[] row : userRepository.findUserIdByBusinessAccountIdInAndDomainIdFiltered(businessAccountIds, domainId, userIds)) {
+            UUID businessAccountId = (UUID) row[0];
+            UUID userId = (UUID) row[1];
+            byBusinessAccount.get(businessAccountId).add(userId);
+        }
+        return byBusinessAccount;
+    }
+
     public UserEntity findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    public void loadUserCountForDomainBusinessAccount(DomainBusinessAccountEntity dba) throws ServiceException {
-        loadUserCountForDomainBusinessAccounts(Collections.singletonList(dba));
+    public void loadGroups(UserEntity src) throws ServiceException {
+        userGroupService.loadGroups(src);
     }
 
-    public void loadUserCountForDomainBusinessAccounts(Collection<DomainBusinessAccountEntity> srcCollection) throws ServiceException {
-        var needLoad = domainBusinessAccountService.getNeedLoad(srcCollection, DomainBusinessAccountEntity::getUsersCount);
-        if (MapUtils.isEmpty(needLoad))
-            return;
-
-        List<EntryCount> entryCounts = userRepository.countUsersInBusinessAccounts(needLoad.keySet(), authService.getApiUser().getDomainId());
-        for (EntryCount entryCount : entryCounts) {
-            needLoad.get(entryCount.id()).setUsersCount(entryCount.count());
-        }
+    public void loadGroups(Collection<UserEntity> srcCollection) throws ServiceException {
+        userGroupService.loadGroups(srcCollection);
     }
-
 }

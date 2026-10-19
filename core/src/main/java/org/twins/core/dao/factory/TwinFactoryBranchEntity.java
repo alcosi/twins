@@ -1,13 +1,12 @@
 package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -16,7 +15,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory_branch")
-public class TwinFactoryBranchEntity implements EasyLoggable {
+public class TwinFactoryBranchEntity implements EasyLoggable, Identifiable<UUID>, ContainsFactoryConditionSet {
     @Id
     private UUID id;
 
@@ -43,23 +42,44 @@ public class TwinFactoryBranchEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
-    private TwinFactoryEntity factory;
+    private TwinFactoryEntity factorySpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
-    private TwinFactoryConditionSetEntity conditionSet;
+    private TwinFactoryConditionSetEntity conditionSetSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false, nullable = false)
+    private TwinFactoryEntity nextFactorySpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryEntity factory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinFactoryEntity nextFactory;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {

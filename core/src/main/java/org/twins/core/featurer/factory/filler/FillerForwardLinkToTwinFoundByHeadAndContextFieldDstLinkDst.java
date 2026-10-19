@@ -1,0 +1,76 @@
+package org.twins.core.featurer.factory.filler;
+
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryItemsBatch;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
+import org.twins.core.featurer.factory.lookuper.LookupResult;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+
+import java.util.Properties;
+import java.util.UUID;
+
+@Component
+@Featurer(
+        id = FeaturerTwins.ID_2359,
+        name = "Forward link to twin found by head and field dst",
+        description = "Finds twin by head and optional link dst; dst twin id from field. " +
+                "Search link id from optional dst link id param. Creates forward link from twin."
+)
+@Slf4j
+public class FillerForwardLinkToTwinFoundByHeadAndContextFieldDstLinkDst extends FillerForwardLinkToTwinFoundByHeadAndLinkDstBase {
+
+    @FeaturerParam(name = "Dst link id", description = "Link id for search by link dst twin", order = 5)
+    public static final FeaturerParamUUID dstLinkId = new FeaturerParamUUIDTwinsLinkId("dstLinkId");
+
+    @FeaturerParam(name = "Dst field lookuper", description = "Dst field lookuper", order = 6, optional = true)
+    public static final FeaturerParamStringTwinsFactoryFieldLookuper dstFieldLookuper = new FeaturerParamStringTwinsFactoryFieldLookuper("dstFieldLookuper");
+
+    @FeaturerParam(name = "Dst twin class field id", description = "Field to read link dst twin id from context (link field or transition field)", order = 7)
+    public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
+
+    /**
+     * Direct batch override (not the default per-item loop of {@code FillerLinks}): the dynamic
+     * lookuper is resolved once and called once per batch (bulk preloads + entity resolution once),
+     * then the per-item distribution — the lookup failure is re-thrown at the exact point where the
+     * per-item body resolved the dst twin — see featurer_design_pattern.md.
+     */
+    @Override
+    public void fill(Properties properties, FactoryItemsBatch batch, TwinEntity templateTwin, boolean optionalStep) throws ServiceException {
+        UUID dstFieldId = dstTwinClassFieldId.extract(properties);
+        FieldLookuperNearest dstLookuper = fieldLookupers.getNearestByType(dstFieldLookuper.extract(properties));
+        LookupResult dstFieldValue = dstLookuper.lookupFieldValue(batch, dstFieldId);
+        for (FactoryItem factoryItem : batch.getFactoryItems()) {
+            try {
+                fillWith(properties, factoryItem, templateTwin, dstFieldValue);
+            } catch (Exception ex) {
+                handleItemError(factoryItem, optionalStep, ex);
+            }
+        }
+    }
+
+    @Override
+    protected TwinEntity resolveDstTwin(Properties properties, FactoryItem factoryItem, TwinEntity contextTwin) throws ServiceException {
+        UUID dstFieldId = dstTwinClassFieldId.extract(properties);
+        FieldValue dstFieldValue = fieldLookupers.getNearestByType(dstFieldLookuper.extract(properties))
+                .lookupFieldValue(factoryItem, dstFieldId);
+        return FieldValueLink.getSingleLinkedTwinSafe(dstFieldValue);
+    }
+
+    @Override
+    protected UUID getLinkId(Properties properties) throws ServiceException {
+        return dstLinkId.extract(properties);
+    }
+
+}

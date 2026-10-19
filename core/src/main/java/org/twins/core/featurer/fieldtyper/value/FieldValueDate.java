@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.DateUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -23,7 +24,7 @@ public class FieldValueDate extends FieldValueStated {
     }
 
     public String getDateStr() {
-        return DateUtils.formatDate(date, pattern);
+        return date == null ? null : DateUtils.formatDate(date, pattern);
     }
 
     public FieldValueDate setDate(String dateStr) throws ServiceException {
@@ -55,7 +56,7 @@ public class FieldValueDate extends FieldValueStated {
 
     @Override
     public boolean hasValue(String value) {
-        return StringUtils.equals(getDateStr(), value);
+        return Strings.CS.equals(getDateStr(), value);
     }
 
     @Override

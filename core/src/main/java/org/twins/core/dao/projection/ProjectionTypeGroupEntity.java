@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "projection_type_group")
-public class ProjectionTypeGroupEntity {
+public class ProjectionTypeGroupEntity implements Identifiable<UUID> {
     @Id
     private UUID id;
 

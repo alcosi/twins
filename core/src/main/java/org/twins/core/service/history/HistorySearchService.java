@@ -13,9 +13,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.HistorySearch;
 import org.twins.core.service.auth.AuthService;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.history.HistorySpecification.*;
 
@@ -25,7 +28,6 @@ import static org.twins.core.dao.specifications.history.HistorySpecification.*;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class HistorySearchService {
-
     private final HistoryRepository historyRepository;
     private final AuthService authService;
 
@@ -35,16 +37,21 @@ public class HistorySearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) {
-        return checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
+    private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) throws ServiceException {
+        Specification<HistoryEntity> domainSpec = checkUuid(authService.getApiUser().getDomainId(), false, true, HistoryEntity.Fields.twinSpecOnly, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId);
+        return domainSpec
+                .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false))
                 .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
                 .and(checkUuidIn(search.getIdList(), false, false, HistoryEntity.Fields.id))
                 .and(checkUuidIn(search.getIdExcludeList(), true, false, HistoryEntity.Fields.id))
+                .and(checkUuidIn(search.getTwinIdList(), false, false, HistoryEntity.Fields.twinId))
+                .and(checkUuidIn(search.getTwinIdExcludeList(), true, false, HistoryEntity.Fields.twinId))
                 .and(checkUuidIn(search.getActorUseridList(), false, false, HistoryEntity.Fields.actorUserId))
                 .and(checkUuidIn(search.getActorUserIdExcludeList(), true, false, HistoryEntity.Fields.actorUserId))
+                .and(checkUuidIn(search.getTwinClassFieldIdList(), false, false, HistoryEntity.Fields.twinClassFieldId))
+                .and(checkUuidIn(search.getTwinClassFieldIdExcludeList(), true, false, HistoryEntity.Fields.twinClassFieldId))
                 .and(checkType(search.getTypeList(), false))
                 .and(checkType(search.getTypeExcludeList(), true))
                 .and(createdAtBetween(search.getCreatedAt()));
     }
-
 }

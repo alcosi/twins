@@ -58,6 +58,10 @@ public class TwinClassDTOv1 {
     @Schema(description = "head class id or empty if class is not linked to any head", example = DTOExamples.TWIN_CLASS_HEAD_CLASS_ID)
     public UUID headClassId;
 
+    @RelatedObject(type = TwinClassDTOv1.class, name = "headClasses")
+    @Schema(description = "head class id set ")
+    public Set<UUID> headClassIdSet;
+
     @RelatedObject(type = DataListDTOv1.class, name = "markersDataList")
     @Schema(description = "some markers for twins. Are domain level and not editable by user")
     public UUID markersDataListId;
@@ -66,6 +70,10 @@ public class TwinClassDTOv1 {
     @Schema(description = "some tags for twins. Can be business account level and editable by user")
     public UUID tagsDataListId;
 
+    @RelatedObject(type = DataListDTOv1.class, name = "flavorsDataList")
+    @Schema(description = "flavor data list for twins. Restricts the flavorDataListOptionId that can be set on twins of this class")
+    public UUID flavorsDataListId;
+
     @Schema(description = "twin class owner type")
     public OwnerType ownerType;
 
@@ -73,6 +81,7 @@ public class TwinClassDTOv1 {
     @Schema(description = "extends class id (direct) or empty if class is not extends any classes")
     public UUID extendsClassId;
 
+    @RelatedObject(type = TwinClassDTOv1.class, name = "extendsClasses")
     @Schema(description = "extends class id set ")
     public Set<UUID> extendsClassIdSet;
 
@@ -101,14 +110,6 @@ public class TwinClassDTOv1 {
     @RelatedObject(type = PermissionDTOv1.class, name = "createPermission")
     @Schema(description = "create permission id")
     public UUID createPermissionId;
-
-    @RelatedObject(type = PermissionDTOv1.class, name = "editPermission")
-    @Schema(description = "edit permission id")
-    public UUID editPermissionId;
-
-    @RelatedObject(type = PermissionDTOv1.class, name = "deletePermission")
-    @Schema(description = "delete permission id")
-    public UUID deletePermissionId;
 
     @Schema(description = "uuid of name in I18n table")
     public UUID nameI18nId;
@@ -187,7 +188,4 @@ public class TwinClassDTOv1 {
     @Schema(description = "Map of markers." + DTOExamples.LAZY_RELATION_MODE_ON)
     public Map<UUID, DataListOptionDTOv1> markerMap;
 
-    @Deprecated
-    @Schema(description = "Map of tags." + DTOExamples.LAZY_RELATION_MODE_ON)
-    public Map<UUID, DataListOptionDTOv1> tagMap;
 }

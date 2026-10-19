@@ -5,17 +5,16 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStoragePointedHead;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
 
@@ -26,11 +25,7 @@ import java.util.Properties;
         description = "")
 public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, FieldValue, TwinFieldStoragePointedHead, TwinFieldSearchNotImplemented> {
     @FeaturerParam(name = "Head twin field", description = "", order = 3)
-    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("headTwinClassFieldId");
-
-    @Lazy
-    @Autowired
-    private TwinClassFieldService twinClassFieldService;
+    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("headTwinClassFieldId");
 
     @Override
     public Class<FieldValue> getValueType(TwinClassFieldEntity twinClassField) throws ServiceException {
@@ -53,11 +48,24 @@ public class FieldTyperPointedHead extends FieldTyperImmutable<FieldDescriptor, 
     @Override
     protected FieldValue deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         var headTwinClassField = getHeadTwinClassFieldSafe(properties);
-        var headTwinFieldValue = twinField.getTwin().getHeadTwin().getFieldValuesKit().get(headTwinClassField.getId());
-        return headTwinFieldValue.clone(twinField.getTwinClassField());
+        FieldValue headTwinFieldValue = null;
+        var headTwin = twinField.getTwin().getHeadTwin();
+        if (headTwin.getFieldValuesKit() != null) {
+            headTwinFieldValue = headTwin.getFieldValuesKit().get(headTwinClassField.getId());
+        } else { //more balanced way, not all fields should be loaded
+            headTwinFieldValue = twinService.getTwinFieldValue(twinService.wrapField(headTwin, headTwinClassField));
+        }
+        return headTwinFieldValue != null ? headTwinFieldValue.clone(twinField.getTwinClassField()) : twinService.createFieldValue(twinField.getTwinClassField());
     }
 
     protected TwinClassFieldEntity getHeadTwinClassFieldSafe(Properties properties) throws ServiceException {
         return twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
+    }
+
+    @Override
+    public TwinFieldStorage getStorage(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
+        var headTwinClassField = getHeadTwinClassFieldSafe(properties);
+        var headFieldTyper = featurerService.getFeaturer(headTwinClassField.getFieldTyperFeaturerId(), FieldTyper.class);
+        return new TwinFieldStoragePointedHead(twinService, headFieldTyper.getStorage(headTwinClassField));
     }
 }

@@ -1,12 +1,11 @@
 package org.twins.core.dao.scheduler;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
@@ -20,8 +19,12 @@ import java.util.UUID;
 public class SchedulerLogEntity implements EasyLoggable {
 
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        id = UuidUtils.ifNullGenerate(id);
+    }
 
     @Column(name = "scheduler_id")
     private UUID schedulerId;
@@ -40,6 +43,14 @@ public class SchedulerLogEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private SchedulerEntity scheduler;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "scheduler_id", insertable = false, updatable = false)
+    private SchedulerEntity schedulerSpecOnly;
 
     @Override
     public String easyLog(Level level) {

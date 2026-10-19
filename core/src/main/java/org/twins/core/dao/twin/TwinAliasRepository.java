@@ -30,6 +30,15 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
                                 @Param("businessAccountId") UUID businessAccountId,
                                 @Param("userId") UUID userId);
 
+    @Query("SELECT t.twinSpecOnly FROM TwinAliasEntity t WHERE t.alias = :alias AND " +
+            "(t.domainId = :domainId OR t.domainId IS NULL) AND " +
+            "(t.businessAccountId = :businessAccountId OR t.businessAccountId IS NULL) AND " +
+            "(t.userId = :userId OR t.userId IS NULL)")
+    TwinEntity findTwinByAlias(@Param("alias") String alias,
+                                @Param("domainId") UUID domainId,
+                                @Param("businessAccountId") UUID businessAccountId,
+                                @Param("userId") UUID userId);
+
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +

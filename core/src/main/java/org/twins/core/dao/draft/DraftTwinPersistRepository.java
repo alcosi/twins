@@ -42,13 +42,13 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
     @Modifying
     @Query(nativeQuery = true, value =
             "update twin " +
-                    "set twin_status_id     = nullifyIfNecessary(dtp.twin_status_id, twin_status_id), " +
-                    "    head_twin_id       = nullifyIfNecessary(dtp.head_twin_id, head_twin_id), " +
-                    "    external_id        = nullifyIfNecessary(dtp.external_id, external_id), " +
-                    "    name               = nullifyIfNecessary(dtp.name, name), " +
-                    "    description        = nullifyIfNecessary(dtp.description, description), " +
-                    "    assigner_user_id   = nullifyIfNecessary(dtp.assigner_user_id, assigner_user_id), " +
-                    "    view_permission_id = nullifyIfNecessary(dtp.view_permission_id, view_permission_id) " +
+                    "set twin_status_id     = nullifyIfNecessary(dtp.twin_status_id, twin.twin_status_id), " +
+                    "    head_twin_id       = nullifyIfNecessary(dtp.head_twin_id, twin.head_twin_id), " +
+                    "    external_id        = nullifyIfNecessary(dtp.external_id, twin.external_id), " +
+                    "    name               = nullifyIfNecessary(dtp.name, twin.name), " +
+                    "    description        = nullifyIfNecessary(dtp.description, twin.description), " +
+                    "    assigner_user_id   = nullifyIfNecessary(dtp.assigner_user_id, twin.assigner_user_id), " +
+                    "    view_permission_id = nullifyIfNecessary(dtp.view_permission_id, twin.view_permission_id) " +
                     "from draft_twin_persist dtp " +
                     "where draft_id = :draftId " +
                     "  and dtp.twin_id = twin.id " +

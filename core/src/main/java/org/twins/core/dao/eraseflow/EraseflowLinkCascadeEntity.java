@@ -1,9 +1,7 @@
 package org.twins.core.dao.eraseflow;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -44,10 +42,17 @@ public class EraseflowLinkCascadeEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "eraseflow_id", insertable = false, updatable = false, nullable = false)
+    private EraseflowEntity eraseflowSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private EraseflowEntity eraseflow;
 
     @Override

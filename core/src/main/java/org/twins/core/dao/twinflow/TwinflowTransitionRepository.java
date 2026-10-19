@@ -21,7 +21,7 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
         This logic can be done with postgres sql "distinct on" operator, but it's not supported in hibernate
         */
     @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
-            " and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isAssignee, :isCreator)")
+            " and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isCreator, :isAssignee)")
     List<TwinflowTransitionEntity> findValidTransitions(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
@@ -34,7 +34,7 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("isCreator") boolean isCreator);
 
     @Query(value = "select tt from TwinflowTransitionEntity tt where tt.id = :transitionId " +
-            " and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isAssignee, :isCreator)")
+            " and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isCreator, :isAssignee)")
     TwinflowTransitionEntity findTransition(
             @Param("transitionId") UUID transitionId,
             @Param("permissionSchemaId") UUID permissionSchemaId,
@@ -47,14 +47,14 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
 
     @Query(value = "select tt from TwinflowTransitionEntity tt " +
             "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or (tt.srcTwinStatusId is null and tt.dstTwinStatusId != :srcTwinStatusId)) " +
-            "and tt.twinflowTransitionAlias.alias = :alias " +
-            "and tt.twinflowTransitionTypeId != :twinflowTransitionType " +
-            "and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isAssignee, :isCreator)")
+            "and tt.twinflowTransitionAliasSpecOnly.alias = :alias " +
+            "and tt.twinflowTransitionTypeId not in :excludedTransitionTypes " +
+            "and true = function('permission_check_mater', :permissionSchemaId, tt.permissionId, :permissionSpaceId, :userId, :userGroupFootprintId, :twinClassId, :isCreator, :isAssignee)")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("alias") String alias,
-            @Param("twinflowTransitionType") TwinflowTransitionType twinflowTransitionType,
+            @Param("excludedTransitionTypes") Collection<TwinflowTransitionType> excludedTransitionTypes,
             @Param("permissionSchemaId") UUID permissionSchemaId,
             @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
             @Param("userId") UUID userId,

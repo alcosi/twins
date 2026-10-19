@@ -18,6 +18,9 @@ public class ContextCollectorTwinCreatorUser extends ContextCollectorUser {
 
     @Override
     protected UserEntity getUser(HistoryEntity history, Properties properties) {
+        if (history.getTwin() == null) //todo logic if null
+            return null;
+
         return history.getTwin().getCreatedByUser();
     }
 }

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -40,7 +41,7 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.DATA_LIST_OPTION_MANAGE, Permissions.DATA_LIST_OPTION_UPDATE})
+@ProtectedBy(Permissions.DATA_LIST_OPTION_UPDATE)
 public class DataListOptionUpdateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final DataListOptionUpdateDTOReverseMapper dataListOptionUpdateDTOReverseMapper;
@@ -84,7 +85,7 @@ public class DataListOptionUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list_option/v2")
     public ResponseEntity<?> dataListOptionUpdateV2(
-            @RequestBody DataListOptionUpdateRqDTOv2 request) {
+            @RequestBody @Valid DataListOptionUpdateRqDTOv2 request) {
         DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             List<DataListOptionUpdate> dataListOptionUpdates = dataListOptionUpdateDTOReverseMapperV2.convertCollection(request.getDataListOptions());

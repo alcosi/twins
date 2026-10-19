@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Map;
@@ -17,22 +19,34 @@ import java.util.UUID;
 public class TwinStatusSearchRqDTOv1 extends Request {
     @Schema(description = "id list")
     public Set<UUID> idList;
+
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
+
     @Schema(description = "twin class id map")
     public Map<UUID, Boolean> twinClassIdMap;
+
     @Schema(description = "twin class id exclude map")
     public Map<UUID, Boolean> twinClassIdExcludeMap;
+
+    @Schema(description = "inheritable", example = DTOExamples.TERNARY)
+    public Ternary inheritable;
+
     @Schema(description = "key like list")
     public Set<String> keyLikeList;
+
     @Schema(description = "key not like list")
     public Set<String> keyNotLikeList;
+
     @Schema(description = "name i18n like list")
     public Set<String> nameI18nLikeList;
+
     @Schema(description = "name i18n not like list")
     public Set<String> nameI18nNotLikeList;
+
     @Schema(description = "description i18n like list")
     public Set<String> descriptionI18nLikeList;
+
     @Schema(description = "description i18n not like list")
     public Set<String> descriptionI18nNotLikeList;
 }

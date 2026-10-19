@@ -99,6 +99,26 @@ public enum FeaturerMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinClassFieldValidator2FeaturerMode implements MapperModePointer<FeaturerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FeaturerMode point() {
+            return switch (this) {
+                case HIDE -> FeaturerMode.HIDE;
+                case SHORT -> FeaturerMode.SHORT;
+                case DETAILED -> FeaturerMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum FactoryPipelineStep2FeaturerMode implements MapperModePointer<FeaturerMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -239,6 +259,106 @@ public enum FeaturerMode implements MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum HistoryNotificationRecipientCollector2FeaturerMode implements MapperModePointer<FeaturerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FeaturerMode point() {
+            return switch (this) {
+                case HIDE -> FeaturerMode.HIDE;
+                case SHORT -> FeaturerMode.SHORT;
+                case DETAILED -> FeaturerMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinTrigger2FeaturerMode implements MapperModePointer<FeaturerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FeaturerMode point() {
+            return switch (this) {
+                case HIDE -> FeaturerMode.HIDE;
+                case SHORT -> FeaturerMode.SHORT;
+                case DETAILED -> FeaturerMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinClassFieldRule2FeaturerMode implements MapperModePointer<FeaturerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FeaturerMode point() {
+            return switch (this) {
+                case HIDE -> FeaturerMode.HIDE;
+                case SHORT -> FeaturerMode.SHORT;
+                case DETAILED -> FeaturerMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinPointer2FeaturerMode implements MapperModePointer<FeaturerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FeaturerMode point() {
+            return switch (this) {
+                case HIDE -> FeaturerMode.HIDE;
+                case SHORT -> FeaturerMode.SHORT;
+                case DETAILED -> FeaturerMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum NotificationChannel2FeaturerMode implements MapperModePointer<FeaturerMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FeaturerMode point() {
+            return switch (this) {
+                case HIDE -> FeaturerMode.HIDE;
+                case SHORT -> FeaturerMode.SHORT;
+                case DETAILED -> FeaturerMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainBusinessAccountInitiator2FeaturerMode implements MapperModePointer<FeaturerMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

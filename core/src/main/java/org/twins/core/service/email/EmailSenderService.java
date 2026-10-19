@@ -50,12 +50,7 @@ public class EmailSenderService extends EntitySecureFindServiceImpl<EmailSenderE
 
     @Override
     public boolean isEntityReadDenied(EmailSenderEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
-            return true;
-        }
-        return false;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
     @Override

@@ -86,10 +86,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(twin)
                         .add(historyService.fieldChangeDataList(value.getTwinClassField(), null, dataListOptionEntity));
-            twinChangesCollector.add(new TwinFieldDataListEntity()
-                    .setTwin(twin)
-                    .setTwinId(twin.getId())
-                    .setTwinClassFieldId(value.getTwinClassField().getId())
+            twinChangesCollector.add(TwinFieldDataListEntity.of(twin, value.getTwinClassField())
                     .setDataListOptionId(checkOptionAllowed(twin, value.getTwinClassField(), dataListOptionEntity)) //todo move to validate method
                     .setDataListOption(dataListOptionEntity));
             return;
@@ -112,10 +109,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             if (FieldValueChangeHelper.notSaved(dataListOptionEntity.getId(), storedOptions)) { // no values were saved before
                 if (twinChangesCollector.isHistoryCollectorEnabled())
                     historyItem.getContext().shotAddedDataListOption(dataListOptionEntity, i18nService);
-                twinChangesCollector.add(new TwinFieldDataListEntity()
-                        .setTwin(twin)
-                        .setTwinId(twin.getId())
-                        .setTwinClassFieldId(value.getTwinClassField().getId())
+                twinChangesCollector.add(TwinFieldDataListEntity.of(twin, value.getTwinClassField())
                         .setDataListOptionId(checkOptionAllowed(twin, value.getTwinClassField(), dataListOptionEntity)) //todo move to validate method
                         .setDataListOption(dataListOptionEntity));
             } else {
@@ -140,8 +134,15 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             return new ValidationResult(false, fieldValue.getTwinClassField().logNormal() + " multiply options are not allowed");
         }
         UUID fieldListId = dataListId.extract(properties);
-        dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
         var ret = new ValidationResult(true);
+        try {
+            dataListOptionService.reloadOptionsOnDataListAbsent(fieldValue);
+        } catch (ServiceException e) {
+            ret
+                    .setValid(false)
+                    .addMessage(fieldValue.getTwinClassField().logNormal() + " " + e.getMessage());
+        }
+
         for (var option : fieldValue.getItemsOrEmpty()) {
             // Skip incomplete options (created with externalId but not yet resolved from DB)
             if (option.getId() == null) {
@@ -176,7 +177,6 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @Override
     protected FieldValueSelect deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         TwinEntity twinEntity = twinField.getTwin();
-        twinService.loadTwinFields(twinEntity);
         List<TwinFieldDataListEntity> twinFieldDataListEntityList = twinEntity.getTwinFieldDatalistKit().getGrouped(twinField.getTwinClassField().getId());
         FieldValueSelect ret = new FieldValueSelect(twinField.getTwinClassField());
         if (twinFieldDataListEntityList != null)

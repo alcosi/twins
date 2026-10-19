@@ -17,7 +17,7 @@ import java.util.Properties;
         name = "Context collector comment from history",
         description = "Collect form twin (status)")
 @Slf4j
-public class ContextCollectorHistoryComment extends ContextCollector {
+public class ContextCollectorHistoryComment extends ContextCollectorAtomic {
 
     @FeaturerParam(name = "Collect message from comment", description = "", order = 1, optional = true, defaultValue = "COMMENT")
     public static final FeaturerParamString collectCommentKey = new FeaturerParamString("collectCommentKey");

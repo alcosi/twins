@@ -10,6 +10,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.NotificationSchemaMode;
 
+import java.sql.Timestamp;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = NotificationSchemaMode.class)
@@ -21,15 +23,15 @@ public class NotificationSchemaRestDTOMapper extends RestSimpleDTOMapper<Notific
             case DETAILED:
                 dst
                     .setId(src.getId())
-                    .setNameI18nId(src.getNameI18nId())
-                    .setDescriptionI18nId(src.getDescriptionI18nId())
+                    .setCreatedByUserId(src.getCreatedByUserId())
+                    .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
                     .setName(I18nCacheHolder.addId(src.getNameI18nId()))
                     .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()));
             case SHORT:
                 dst
                     .setId(src.getId())
-                    .setNameI18nId(src.getNameI18nId())
-                    .setDescriptionI18nId(src.getDescriptionI18nId());
+                    .setCreatedByUserId(src.getCreatedByUserId())
+                    .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null);
         }
     }
 }

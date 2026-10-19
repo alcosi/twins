@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dto.rest.factory.FactoryConditionDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
@@ -26,7 +26,7 @@ public class FactoryConditionRestDTOMapper extends RestSimpleDTOMapper<TwinFacto
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
     @MapperModePointerBinding(modes = FeaturerMode.FactoryCondition2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @Override
     public void map(TwinFactoryConditionEntity src, FactoryConditionDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -47,25 +47,22 @@ public class FactoryConditionRestDTOMapper extends RestSimpleDTOMapper<TwinFacto
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.HIDE)) {
             dst
                     .setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+            factoryConditionService.loadConditionSet(src);
             factoryConditionSetRestDTOMapper.postpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.SHORT));
         }
         if (mapperContext.hasModeButNot(FeaturerMode.FactoryCondition2FeaturerMode.HIDE)) {
             dst
                     .setConditionerFeaturerId(src.getConditionerFeaturerId());
-            factoryConditionService.loadConditioner(src);
-            featurerRestDTOMapper.postpone(src.getConditionerFeaturer(), mapperContext.forkOnPoint(FeaturerMode.FactoryCondition2FeaturerMode.SHORT));
+            featurerParametrizedRestDTOMapper.postpone(src.getConditionerFeaturerId(), src.getConditionerParams(), mapperContext.forkOnPoint(FeaturerMode.FactoryCondition2FeaturerMode.SHORT));
         }
     }
 
     @Override
     public void beforeCollectionConversion(Collection<TwinFactoryConditionEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-
-        if (srcCollection.isEmpty()) {
-            return;
-        }
-        if (mapperContext.hasModeButNot(FeaturerMode.FactoryCondition2FeaturerMode.HIDE)) {
-            factoryConditionService.loadConditioners(srcCollection);
+        if (srcCollection.isEmpty()) return;
+        if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryCondition2FactoryConditionSetMode.HIDE)) {
+            factoryConditionService.loadConditionSet(srcCollection);
         }
     }
 }

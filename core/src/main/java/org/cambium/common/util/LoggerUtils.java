@@ -66,6 +66,13 @@ public class LoggerUtils {
         return th.toString() + System.lineSeparator() + getShortTrace(th, 3);
     }
 
+    public static String errorSnippet(Throwable th, int maxLength) {
+        if (th == null)
+            return "unknown error";
+        String message = th.getMessage() != null ? th.getMessage() : th.getClass().getSimpleName();
+        return message.length() > maxLength ? message.substring(0, maxLength) : message;
+    }
+
     public static String prettyLog(String key, Object value) {
         return key + "[" + value + "] ";
     }

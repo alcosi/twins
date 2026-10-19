@@ -17,7 +17,8 @@ public enum ErrorCodeCommon implements ErrorCode {
     FEATURER_INCORRECT_TYPE(602, "featurer type is incorrect"),
     FEATURER_WRONG_PARAMS(604, "featurer params are incorrect"),
     CACHE_WRONG_KEY(701, "cache is incorrect"),
-    CACHE_TYPE_UNSUPPORTED(702, "cache type is not supported");
+    CACHE_TYPE_UNSUPPORTED(702, "cache type is not supported"),
+    MULTIPART_FILE_IS_NOT_PRESENTED(800, "multipart file is not presented");
 
     private final int code;
     private final String message;

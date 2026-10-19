@@ -6,11 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.AdvancedEntityManager;
 import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentModificationEntity;
@@ -20,12 +21,18 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
+import org.twins.core.dao.trigger.TwinTriggerTaskEntity;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.EntityKey;
+import org.twins.core.domain.PostponedTriggers;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinChangeTaskService;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twintrigger.TwinTriggerTaskService;
 
 import java.util.*;
 
@@ -55,17 +62,25 @@ public class TwinChangesService {
     private final TwinCommentRepository twinCommentRepository;
     private final SpaceRoleUserRepository spaceRoleUserRepository;
     private final TwinFieldDecimalRepository twinFieldDecimalRepository;
+    private final AdvancedEntityManager advancedEntityManager;
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangeTaskService twinChangeTaskService;
+    private final TwinTriggerTaskService twinTriggerTaskService;
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinChangesApplyResult changesApplyResult = new TwinChangesApplyResult();
-        if (!twinChangesCollector.hasChanges())
+        if (!twinChangesCollector.hasChanges() &&
+            twinChangesCollector.getPostponedChanges().isEmpty() &&
+            twinChangesCollector.getPostponedTriggers().isEmpty())
             return changesApplyResult;
+        // Clear→refill in one collector may leave delete+insert for the same (twin, field).
+        // Prefer UPDATE of the existing row before flush (unique on twin_id + twin_class_field_id).
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector);
         //we have to flush new twins save because of "Not-null property references a transient value - transient instance must be saved before current operation" in other related entities
-        saveEntitiesAndFlush(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
+        saveTwinEntitiesAndFlush(twinChangesCollector, changesApplyResult);
+        applyDecimalIncrements(twinChangesCollector);
         saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldSimpleNonIndexedEntity.class, twinFieldSimpleNonIndexedRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository, changesApplyResult);
@@ -113,10 +128,67 @@ public class TwinChangesService {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
             }
         savePostponedChanges(twinChangesCollector);
+        savePostponedTriggers(twinChangesCollector.getPostponedTriggers());
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
         twinChangesCollector.clear();
         return changesApplyResult;
+    }
+
+    /**
+     * Safety net for single-value mater twin fields that have UNIQUE (twin_id, twin_class_field_id).
+     * If the same field is both deleted and saved in one collector (clear then refill without
+     * {@link TwinChangesCollector#pullDeletedTwinField}), drop the delete and reuse the existing
+     * row id on the save so flush becomes UPDATE instead of DELETE+INSERT.
+     * Does not apply to multi-row storages (datalist / user / twin-class).
+     */
+    private void reconcileSingleValueTwinFieldDeletes(TwinChangesCollector twinChangesCollector) {
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldTimestampEntity.class);
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldDecimalEntity.class);
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldBooleanEntity.class);
+        reconcileSingleValueTwinFieldDeletes(twinChangesCollector, TwinFieldSimpleEntity.class);
+    }
+
+    private <T extends TwinFieldBaseEntity> void reconcileSingleValueTwinFieldDeletes(
+            TwinChangesCollector twinChangesCollector, Class<T> entityClass) {
+        Set<Object> deletes = twinChangesCollector.getDeleteEntityMap().get(entityClass);
+        Map<EntityKey, ChangesHelper> saves = twinChangesCollector.getSaveEntityMap().get(entityClass);
+        if (deletes == null || deletes.isEmpty() || saves == null || saves.isEmpty()) {
+            return;
+        }
+        Map<String, TwinFieldBaseEntity> deletedByTwinAndField = new HashMap<>();
+        for (Object deleted : deletes) {
+            TwinFieldBaseEntity field = (TwinFieldBaseEntity) deleted;
+            deletedByTwinAndField.put(twinFieldKey(field.getTwinId(), field.getTwinClassFieldId()), field);
+        }
+        for (Map.Entry<EntityKey, ChangesHelper> entry : List.copyOf(saves.entrySet())) {
+            TwinFieldBaseEntity saveField = (TwinFieldBaseEntity) entry.getKey().entity();
+            TwinFieldBaseEntity deletedField = deletedByTwinAndField.remove(
+                    twinFieldKey(saveField.getTwinId(), saveField.getTwinClassFieldId()));
+            if (deletedField == null) {
+                continue;
+            }
+            deletes.remove(deletedField);
+            if (!Objects.equals(saveField.getId(), deletedField.getId())) {
+                ChangesHelper changesHelper = entry.getValue();
+                saves.remove(entry.getKey());
+                UUID existingId = deletedField.getId();
+                saveField.setId(existingId);
+                saves.put(new EntityKey(existingId, saveField), changesHelper);
+                log.info("Reconciled clear -> refill for {} twin[{}] field[{}]: reuse id[{}] (cancel delete+insert)",
+                        entityClass.getSimpleName(), saveField.getTwinId(), saveField.getTwinClassFieldId(), existingId);
+            } else {
+                log.info("Reconciled clear -> refill for {} twin[{}] field[{}]: cancel delete of id[{}]",
+                        entityClass.getSimpleName(), saveField.getTwinId(), saveField.getTwinClassFieldId(), deletedField.getId());
+            }
+        }
+        if (deletes.isEmpty()) {
+            twinChangesCollector.getDeleteEntityMap().remove(entityClass);
+        }
+    }
+
+    private static String twinFieldKey(UUID twinId, UUID twinClassFieldId) {
+        return twinId + ":" + twinClassFieldId;
     }
 
     private void savePostponedChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -133,6 +205,23 @@ public class TwinChangesService {
         twinChangeTaskService.addTasks(changeTaskList);
     }
 
+    public void savePostponedTriggers(PostponedTriggers postponedTriggers) throws ServiceException {
+        if (CollectionUtils.isEmpty(postponedTriggers))
+            return;
+        List<TwinTriggerTaskEntity> triggerTaskList = new ArrayList<>();
+
+        for (PostponedTriggers.PostponedTrigger postponedTrigger : postponedTriggers) {
+            triggerTaskList.add(new TwinTriggerTaskEntity()
+                    .setTwinId(postponedTrigger.twinId())
+                    .setTwinTriggerId(postponedTrigger.triggerId())
+                    .setPreviousTwinStatusId(postponedTrigger.statusId())
+                    .setStatusId(TwinTriggerTaskStatus.NEED_START));
+        }
+
+        log.info("Saving {} postponed triggers", triggerTaskList.size());
+        twinTriggerTaskService.addTasks(triggerTaskList);
+    }
+
     private void invalidate(Map<Object, Set<TwinChangesCollector.TwinInvalidate>> invalidationMap) {
         for (var entry : invalidationMap.entrySet()) {
             if (entry.getKey() instanceof TwinEntity twinEntity) {
@@ -144,14 +233,19 @@ public class TwinChangesService {
                         case twinFieldSimpleNonIndexedKit -> twinEntity.setTwinFieldSimpleNonIndexedKit(null);
                         case twinFieldUserKit -> twinEntity.setTwinFieldUserKit(null);
                         case twinFieldDatalistKit -> twinEntity.setTwinFieldDatalistKit(null);
-                        case twinLinks -> twinEntity.setTwinLinks(null);
-                        case fieldValuesKit -> twinEntity.setFieldValuesKit(null);
-                        case twinAttachments -> twinEntity.setAttachmentKit(null);
+                        case twinFieldDecimalKit -> twinEntity.setTwinFieldDecimalKit(null);
+                        case twinFieldCalculatedKit -> {
+                            twinEntity.setTwinFieldCalculated(null);
+                            twinEntity.setTwinFieldCalcStorageLoaded(null);
+                        }
                         case twinFieldI18nKit -> twinEntity.setTwinFieldI18nKit(null);
                         case twinFieldBooleanKit -> twinEntity.setTwinFieldBooleanKit(null);
                         case twinFieldTwinClassKit -> twinEntity.setTwinFieldTwinClassKit(null);
                         case twinFieldAttributeKit -> twinEntity.setTwinFieldAttributeKit(null);
                         case twinFieldTimestampKit -> twinEntity.setTwinFieldTimestampKit(null);
+                        case twinLinks -> twinEntity.setTwinLinks(null);
+                        case fieldValuesKit -> twinEntity.setFieldValuesKit(null);
+                        case twinAttachments -> twinEntity.setAttachmentKit(null);
                     }
                 }
             } else if (entry.getKey() instanceof TwinAttachmentEntity twinAttachmentEntity) {
@@ -183,17 +277,36 @@ public class TwinChangesService {
         }
     }
 
-    private <T> void saveEntitiesAndFlush(TwinChangesCollector twinChangesCollector, Class<T> entityClass, JpaRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) throws ServiceException {
-        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(entityClass);
-        if (entityKeyMap != null) {
-            // Convert EntityKey map to entity map for EntitySmartService
-            Map<T, ChangesHelper> entityMap = new HashMap<>();
-            for (var entry : entityKeyMap.entrySet()) {
-                entityMap.put((T) entry.getKey().entity(), entry.getValue());
-            }
-            changesApplyResult.put(entityClass, entitySmartService.saveAllAndFlushAndLogChanges((Map) entityMap, repository));
-            twinChangesCollector.getSaveEntityMap().remove(entityClass);
+    // TwinEntity is special: rows can reference each other via head_twin_id within the same batch, and
+    // twin_head_twin_id_fk is NOT DEFERRABLE. A plain saveAllAndFlush iterates the collector's
+    // ConcurrentHashMap in arbitrary order, so a child may be INSERTed before its head parent and violate
+    // the FK. We sort by hierarchyTree depth first (head-first), so a parent is always persisted before
+    // its children. hierarchyTree is guaranteed populated for new twins by the canonical rule in
+    // TwinHeadService (setHead for a twin with a head, initRootHierarchy for a root twin); the DB trigger
+    // hierarchyprocesstreeupdate recalculates hierarchy_tree AFTER INSERT regardless.
+    private void saveTwinEntitiesAndFlush(TwinChangesCollector twinChangesCollector, TwinChangesApplyResult changesApplyResult) throws ServiceException {
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(TwinEntity.class);
+        if (entityKeyMap == null || entityKeyMap.isEmpty()) {
+            return;
         }
+        List<TwinEntity> twins = new ArrayList<>(entityKeyMap.size());
+        for (var entry : entityKeyMap.entrySet()) {
+            var twin = (TwinEntity) entry.getKey().entity();
+            if (twin.getHeadTwinId() != null && twin.getHierarchyTree() == null) {
+                throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID,
+                        "{}} has headTwinId set but hierarchyTree is null — setHead/initRootHierarchy must be called before save",
+                        twin.logNormal());
+            }
+            twins.add(twin);
+        }
+
+        TwinService.sortByHierarchyDepth(twins);
+        // ChangesHelper values from the Map variant are never read (EntitySmartService marks it "todo
+        // collect and log changes"), so pass the ordered List straight to the Iterable overload, which
+        // preserves List iteration order through repository.saveAllAndFlush.
+        changesApplyResult.put(TwinEntity.class,
+                (Iterable) entitySmartService.saveAllAndFlushAndLog(twins, twinRepository));
+        twinChangesCollector.getSaveEntityMap().remove(TwinEntity.class);
     }
 
     private <T> void deleteEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository) {
@@ -201,6 +314,39 @@ public class TwinChangesService {
         if (entities != null) {
             entitySmartService.deleteAllEntitiesAndLog(entities, repository);
             twinChangesCollector.getDeleteEntityMap().remove(entityClass);
+        }
+    }
+
+    private void applyDecimalIncrements(TwinChangesCollector twinChangesCollector) {
+        Map<EntityKey, ChangesHelper> entityKeyMap = twinChangesCollector.getSaveEntityMap().get(TwinFieldDecimalIncrement.class);
+        if (entityKeyMap == null || entityKeyMap.isEmpty()) {
+            return;
+        }
+
+        // Collect all increment operations and affected twins
+        List<TwinFieldDecimalIncrement> incrementList = new ArrayList<>();
+        Set<UUID> affectedTwinIds = new HashSet<>();
+
+        for (var entry : entityKeyMap.entrySet()) {
+            TwinFieldDecimalIncrement increment = (TwinFieldDecimalIncrement) entry.getKey().entity();
+            incrementList.add(increment);
+            affectedTwinIds.add(increment.getTwinId());
+        }
+
+        // Remove increment operations from collector (handled via JDBC)
+        twinChangesCollector.getSaveEntityMap().remove(TwinFieldDecimalIncrement.class);
+
+        // Apply batch increments via JDBC using specialized method
+        advancedEntityManager.incrementDecimalFields(incrementList);
+
+        // Invalidate cache for affected twins so next read fetches updated values from DB
+        for (UUID twinId : affectedTwinIds) {
+            TwinEntity twin = new TwinEntity().setId(twinId);
+
+            Set<TwinInvalidate> invalidations = twinChangesCollector.getInvalidationMap()
+                    .computeIfAbsent(twin, k -> new HashSet<>());
+            invalidations.add(TwinInvalidate.twinFieldDecimalKit);
+            invalidations.add(TwinInvalidate.twinFieldCalculatedKit);
         }
     }
 }

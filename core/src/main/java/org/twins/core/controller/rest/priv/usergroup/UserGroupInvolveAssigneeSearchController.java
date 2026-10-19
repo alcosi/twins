@@ -1,7 +1,6 @@
 package org.twins.core.controller.rest.priv.usergroup;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,7 +12,10 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -21,10 +23,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeSearchRqDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeSearchRsDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupInvolveAssigneeViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -32,9 +32,6 @@ import org.twins.core.mappers.rest.usergroup.UserGroupInvolveAssigneeRestDTOMapp
 import org.twins.core.mappers.rest.usergroup.UserGroupInvolveAssigneeSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.usergroup.UserGroupInvolveAssigneeSearchService;
-import org.twins.core.service.usergroup.UserGroupInvolveAssigneeService;
-
-import java.util.UUID;
 
 @Tag(description = "Search user group by assignee propagation", name = ApiTag.USER_GROUP)
 @RestController
@@ -48,7 +45,6 @@ public class UserGroupInvolveAssigneeSearchController extends ApiController {
     private final UserGroupInvolveAssigneeSearchService userGroupInvolveAssigneeSearchService;
     private final UserGroupInvolveAssigneeSearchDTOReverseMapper userGroupInvolveAssigneeSearchDTOReverseMapper;
     private final UserGroupInvolveAssigneeRestDTOMapper userGroupInvolveAssigneeRestDTOMapper;
-    private final UserGroupInvolveAssigneeService userGroupInvolveAssigneeService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userGroupInvolveAssigneeSearchV1", summary = "User group by assignee propagation search")
@@ -69,32 +65,6 @@ public class UserGroupInvolveAssigneeSearchController extends ApiController {
             rs
                     .setUserGroupInvolveAssignee(userGroupInvolveAssigneeRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))
-                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "userGroupInvolveAssigneeViewV1", summary = "User group by assignee propagation view")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User group by assignee propagation", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserGroupInvolveAssigneeViewRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission_grant/assignee_propagation/{grantId}/v1")
-    public ResponseEntity<?> userGroupInvolveAssigneeViewV1(
-            @MapperContextBinding(roots = UserGroupInvolveAssigneeRestDTOMapper.class, response = UserGroupInvolveAssigneeViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.USER_GROUP_INVOLVE_ASSIGNEE_ID) @PathVariable("grantId") UUID grentId) {
-        UserGroupInvolveAssigneeViewRsDTOv1 rs = new UserGroupInvolveAssigneeViewRsDTOv1();
-        try {
-            UserGroupInvolveAssigneeEntity permissionGrant = userGroupInvolveAssigneeService.findEntitySafe(grentId);
-
-            rs
-                    .setUserGroupInvolveAssignee(userGroupInvolveAssigneeRestDTOMapper.convert(permissionGrant, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

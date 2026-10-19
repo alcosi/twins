@@ -2,12 +2,14 @@ package org.twins.core.featurer.params;
 
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 
 @FeaturerParamType(
         id = "UUID:TWINS:TWINFLOW_SCHEMA_ID",
         description = "",
         regexp = FeaturerParamUUID.UUID_REGEXP,
-        example = FeaturerParamUUID.UUID_EXAMPLE)
+        example = FeaturerParamUUID.UUID_EXAMPLE,
+        targetEntity = TwinflowSchemaEntity.class)
 public class FeaturerParamUUIDTwinsTwinflowSchemaId extends FeaturerParamUUID {
     public FeaturerParamUUIDTwinsTwinflowSchemaId(String key) {
         super(key);

@@ -16,9 +16,11 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.i18n.I18nService;
+import org.twins.core.service.link.LinkService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+
+import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
     @MapperModePointerBinding(modes = TwinClassMode.LinkDst2TwinClassMode.class)
     private TwinClassRestDTOMapper twinClassRestDTOMapper;
 
-    private final I18nService i18nService;
+    private final LinkService linkService;
 
     @Lazy
     private final PermissionService permissionService;
@@ -55,6 +57,7 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
         }
 
         if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
+            linkService.loadTwinClasses(src);
             dst.setDstTwinClassId(src.getSrcTwinClassId());
             twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT));
         }
@@ -68,5 +71,13 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
     @Override
     public String getObjectCacheId(LinkEntity src) {
         return src.getId().toString() + "-backward"; //postfix is important, forward and backward object are different, and should not have same objectCacheId
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<LinkEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE)) {
+            linkService.loadTwinClasses(srcCollection);
+        }
     }
 }

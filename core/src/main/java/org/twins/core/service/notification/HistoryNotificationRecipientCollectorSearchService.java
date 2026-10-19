@@ -18,10 +18,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.HistoryNotificationRecipientCollectorSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
-import static org.twins.core.dao.specifications.CommonSpecification.checkIntegerIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkTernary;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
@@ -40,7 +37,7 @@ public class HistoryNotificationRecipientCollectorSearchService {
     private Specification<HistoryNotificationRecipientCollectorEntity> createDataListOptionSearchSpecification(HistoryNotificationRecipientCollectorSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFieldUuid(apiUser.getDomainId(), HistoryNotificationRecipientCollectorEntity.Fields.historyNotificationRecipientEntity, HistoryNotificationRecipientEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(), HistoryNotificationRecipientCollectorEntity.Fields.historyNotificationRecipientSpecOnly, HistoryNotificationRecipientEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, HistoryNotificationRecipientCollectorEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, HistoryNotificationRecipientCollectorEntity.Fields.id),
                 checkUuidIn(search.getRecipientIdList(), false, false, HistoryNotificationRecipientCollectorEntity.Fields.historyNotificationRecipientId),

@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
@@ -36,7 +37,7 @@ import java.util.*;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.ATTACHMENT_MANAGE, Permissions.ATTACHMENT_CREATE})
+@ProtectedBy(Permissions.ATTACHMENT_CREATE)
 public class AttachmentAddController extends ApiController {
     private final AttachmentService attachmentService;
     private final TwinService twinService;
@@ -52,7 +53,7 @@ public class AttachmentAddController extends ApiController {
     @PostMapping(value = "/private/twin/{twinId}/attachment/v1", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> attachmentCreateV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestBody AttachmentCreateRqDTOv1 request) {
+            @RequestBody @Valid AttachmentCreateRqDTOv1 request) {
         return createAttachment(twinId, request, Collections.emptyMap());
     }
 

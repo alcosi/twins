@@ -10,6 +10,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleMode;
 import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleUserMode;
+import org.twins.core.service.space.SpaceRoleUserService;
+
+import java.util.Collection;
 
 
 @Component
@@ -19,6 +22,8 @@ public class SpaceRoleUserDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEnt
 
     @MapperModePointerBinding(modes = SpaceRoleMode.SpaceRoleUser2SpaceRoleMode.class)
     private final SpaceRoleDTOMapper spaceRoleDTOMapper;
+
+    private final SpaceRoleUserService spaceRoleUserService;
 
     @Override
     public void map(SpaceRoleUserEntity src, SpaceRoleUserDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -41,7 +46,16 @@ public class SpaceRoleUserDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEnt
         }
         if (mapperContext.hasModeButNot(SpaceRoleMode.SpaceRoleUser2SpaceRoleMode.HIDE)) {
             dst.setSpaceRoleId(src.getSpaceRoleId());
+            spaceRoleUserService.loadSpaceRole(src);
             spaceRoleDTOMapper.postpone(src.getSpaceRole(), mapperContext.forkOnPoint(SpaceRoleMode.SpaceRoleUser2SpaceRoleMode.SHORT));
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<SpaceRoleUserEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(SpaceRoleMode.SpaceRoleUser2SpaceRoleMode.HIDE)) {
+            spaceRoleUserService.loadSpaceRole(srcCollection);
         }
     }
 

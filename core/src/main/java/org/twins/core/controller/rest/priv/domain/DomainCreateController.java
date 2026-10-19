@@ -1,12 +1,12 @@
 package org.twins.core.controller.rest.priv.domain;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -18,9 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
-import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
-import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverNotSpecified;
@@ -34,6 +33,7 @@ import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.permission.Permissions;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
@@ -43,7 +43,7 @@ import static org.cambium.common.util.MultipartFileUtils.convert;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.DOMAIN_MANAGE, Permissions.DOMAIN_CREATE})
+@ProtectedBy(Permissions.DOMAIN_CREATE)
 @Slf4j
 public class DomainCreateController extends ApiController {
     private final DomainService domainService;
@@ -62,7 +62,7 @@ public class DomainCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/domain/v1", consumes = "application/json")
     public ResponseEntity<?> domainCreateV1(
-            @RequestBody DomainCreateRqDTOv1 request) {
+            @RequestBody @Valid DomainCreateRqDTOv1 request) {
         return processCreationRequest(request, null, null);
     }
 

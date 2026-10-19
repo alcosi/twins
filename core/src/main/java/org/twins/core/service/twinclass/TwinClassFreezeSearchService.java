@@ -17,7 +17,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassFreezeSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
@@ -44,10 +44,10 @@ public class TwinClassFreezeSearchService {
                 checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFreezeEntity.Fields.key),
                 checkUuidIn(search.getStatusIdList(), false, false, TwinClassFreezeEntity.Fields.twinStatusId),
                 checkUuidIn(search.getStatusIdExcludeList(), true, false, TwinClassFreezeEntity.Fields.twinStatusId),
-                joinAndSearchByI18NField(TwinClassFreezeEntity.Fields.nameI18NId, search.getNameLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(TwinClassFreezeEntity.Fields.nameI18NId, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
-                joinAndSearchByI18NField(TwinClassFreezeEntity.Fields.descriptionI18NId, search.getDescriptionLikeList(), apiUser.getLocale(), true, false),
-                joinAndSearchByI18NField(TwinClassFreezeEntity.Fields.descriptionI18NId, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true)
+                joinAndSearchByI18NFieldDirect(TwinClassFreezeEntity.Fields.nameI18NTranslationsSpecOnly, search.getNameLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NFieldDirect(TwinClassFreezeEntity.Fields.nameI18NTranslationsSpecOnly, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NFieldDirect(TwinClassFreezeEntity.Fields.descriptionI18NTranslationsSpecOnly, search.getDescriptionLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NFieldDirect(TwinClassFreezeEntity.Fields.descriptionI18NTranslationsSpecOnly, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true)
         );
     }
 }

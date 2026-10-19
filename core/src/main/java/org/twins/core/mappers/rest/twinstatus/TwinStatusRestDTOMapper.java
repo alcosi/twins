@@ -38,6 +38,7 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
                         .setName(I18nCacheHolder.addId(src.getNameI18nId()))
                         .setKey(src.getKey())
                         .setTwinClassId(src.getTwinClassId())
+                        .setInheritable(src.getInheritable()) //todo move to managed mode
                         .setType(src.getType())
                         .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                         .setIconDark(resourceService.getResourceUri(src.getIconDarkResource()))

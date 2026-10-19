@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.cambium.common.exception.ServiceException;
@@ -44,7 +45,7 @@ import static org.cambium.common.util.MultipartFileUtils.convert;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_UPDATE})
+@ProtectedBy(Permissions.TWIN_CLASS_UPDATE)
 public class TwinClassUpdateController extends ApiController {
     private final TwinClassService twinClassService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
@@ -88,7 +89,7 @@ public class TwinClassUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class/v2")
     public ResponseEntity<?> twinClassUpdateV2(
-            @RequestBody TwinClassUpdateRqDTOv2 request) {
+            @RequestBody @Valid TwinClassUpdateRqDTOv2 request) {
         return processUpdateBatch(request, null, null);
     }
 

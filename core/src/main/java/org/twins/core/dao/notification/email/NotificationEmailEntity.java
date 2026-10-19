@@ -1,9 +1,7 @@
 package org.twins.core.dao.notification.email;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -11,10 +9,11 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.email.EmailSenderEntity;
 import org.twins.core.dao.event.EventEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.template.generator.TemplateGeneratorEntity;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -87,17 +86,23 @@ public class NotificationEmailEntity implements EasyLoggable {
     @JoinColumn(name = "body_template_generator_id", insertable = false, updatable = false)
     private TemplateGeneratorEntity bodyTemplateGenerator;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "subject_i18n_id", insertable = false, updatable = false)
-    private I18nEntity subjectI18n;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "subject_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> subjectI18nTranslationsSpecOnly;
 
+    // Direct join to i18n_translation by raw FK — skips intermediate i18n table
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "body_i18n_id", insertable = false, updatable = false)
-    private I18nEntity bodyI18n;
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "i18n_id", referencedColumnName = "body_i18n_id", insertable = false, updatable = false)
+    private List<I18nTranslationEntity> bodyI18nTranslationsSpecOnly;
 
     public String easyLog(Level level) {
         return "notificationEmail[id:" + id + "]";

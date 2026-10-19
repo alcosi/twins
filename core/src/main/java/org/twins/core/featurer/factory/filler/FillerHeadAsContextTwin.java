@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.twin.TwinHeadService;
 
 import java.util.Properties;
 
@@ -13,13 +14,12 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_2301,
         name = "Head as context twin",
         description = "")
-public class FillerHeadAsContextTwin extends Filler {
+public class FillerHeadAsContextTwin extends FillerAtomic {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        factoryItem.getOutput().getTwinEntity()
-                .setHeadTwin(contextTwin)
-                .setHeadTwinId(contextTwin.getId());
+        var contextTwin = factoryItem.checkSingleContextTwin();
+        var outputTwin = factoryItem.getOutput().getTwinEntity();
+        TwinHeadService.setHead(outputTwin, contextTwin);
     }
 
     @Override

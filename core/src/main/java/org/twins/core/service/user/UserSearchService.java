@@ -23,13 +23,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.user.finder.UserFinder;
 import org.twins.core.featurer.user.sorter.UserSorter;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
@@ -65,12 +64,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
 
     @Override
     public boolean isEntityReadDenied(UserSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
-            return true;
-        }
-        return false;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
     @Override
@@ -79,7 +73,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     }
 
     public PaginationResult<UserEntity> findUsers(UUID searchId, UserSearch narrowSearch, Map<String, String> namedParamsMap, SimplePagination pagination) throws ServiceException {
-        if (SystemEntityService.USER_SEARCH_UNLIMITED.equals(searchId)) {
+        if (SystemIds.UserSearch.UNLIMITED.equals(searchId)) {
             return findUsers(narrowSearch, pagination);
         }
         UserSearchEntity searchEntity = findEntitySafe(searchId);

@@ -2,10 +2,8 @@ package org.twins.core.dao.twin;
 
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Repository
-public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDecimalEntity, UUID>, JpaSpecificationExecutor<TwinFieldDecimalEntity> {
+public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFieldDecimalEntity> {
 
     List<TwinFieldDecimalEntity> findByTwinId(UUID twinId);
     boolean existsByTwinClassFieldId(UUID twinClassFieldId);
@@ -23,15 +21,15 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
 
     @Query(value = """
             select field.twinClassFieldId
-            from TwinFieldDecimalEntity field where field.twin.twinClassId = :twinClassId and field.twinClassFieldId in (:twinClassFields)
+            from TwinFieldDecimalEntity field where field.twinSpecOnly.twinClassId = :twinClassId and field.twinClassFieldId in (:twinClassFields)
             """)
     List<UUID> findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
 
-    void deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
+    void deleteByTwinSpecOnly_TwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
 
     @Transactional
     @Modifying
-    @Query(value = "update TwinFieldDecimalEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
+    @Query(value = "update TwinFieldDecimalEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twinSpecOnly.twinClassId = :twinClassId")
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
@@ -58,7 +56,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
     @Query("""
     select new org.twins.core.dao.twin.TwinFieldHeadSumCountProjection(t.headTwinId, sum(tfd.value), count(tfd.id))
     from TwinFieldDecimalEntity tfd
-    join tfd.twin t
+    join tfd.twinSpecOnly t
     where t.headTwinId in :headTwinIdSet
       and tfd.twinClassFieldId = :twinClassFieldId
     group by t.headTwinId
@@ -177,6 +175,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
                 string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
                 string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
                 string_to_array(:twinClassFieldIdsStr, ',')::uuid[],
+                string_to_array(:linkIdsStr, ',')::uuid[],
                 :statusExclude
             )
             """, nativeQuery = true)
@@ -186,7 +185,34 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             @Param("linkedFromInTwinStatusIdsStr") String linkedFromInTwinStatusIdsStr,
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("twinClassFieldIdsStr") String twinClassFieldIdsStr,
+            @Param("linkIdsStr") String linkIdsStr,
             @Param("statusExclude") boolean statusExclude);
+
+    @Query(value = """
+            SELECT * FROM twin_field_decimal_calc_sum_children_of_linked(
+                string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+                :srcElseDst,
+                string_to_array(:linkedFromInTwinStatusIdsStr, ',')::uuid[],
+                string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+                :linkedStatusExclude,
+                string_to_array(:linkIdsStr, ',')::uuid[],
+                string_to_array(:childrenOfTwinClassIdsStr, ',')::uuid[],
+                string_to_array(:childrenInTwinStatusIdsStr, ',')::uuid[],
+                :childrenStatusExclude,
+                string_to_array(:twinClassFieldIdsStr, ',')::uuid[]
+            )
+            """, nativeQuery = true)
+    List<Object[]> _sumChildrenFieldsOfLinkedTwins(
+            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
+            @Param("srcElseDst") boolean srcElseDst,
+            @Param("linkedFromInTwinStatusIdsStr") String linkedFromInTwinStatusIdsStr,
+            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
+            @Param("linkedStatusExclude") boolean linkedStatusExclude,
+            @Param("linkIdsStr") String linkIdsStr,
+            @Param("childrenOfTwinClassIdsStr") String childrenOfTwinClassIdsStr,
+            @Param("childrenInTwinStatusIdsStr") String childrenInTwinStatusIdsStr,
+            @Param("childrenStatusExclude") boolean childrenStatusExclude,
+            @Param("twinClassFieldIdsStr") String twinClassFieldIdsStr);
 
     @Query(value = """
             SELECT * FROM twin_field_decimal_calc_sum_of_divisions_by_link(
@@ -196,6 +222,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
                 string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
+                string_to_array(:linkIdsStr, ',')::uuid[],
                 :statusExclude,
                 :throwOnDivisionByZero
             )
@@ -207,6 +234,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("linkIdsStr") String linkIdsStr,
             @Param("statusExclude") boolean statusExclude,
             @Param("throwOnDivisionByZero") boolean throwOnDivisionByZero);
 
@@ -218,6 +246,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
                 string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
+                string_to_array(:linkIdsStr, ',')::uuid[],
                 :statusExclude
             )
             """, nativeQuery = true)
@@ -228,6 +257,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("linkIdsStr") String linkIdsStr,
             @Param("statusExclude") boolean statusExclude);
 
     @Query(value = """
@@ -238,6 +268,7 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
                 string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
                 :firstTwinClassFieldId,
                 :secondTwinClassFieldId,
+                string_to_array(:linkIdsStr, ',')::uuid[],
                 :statusExclude
             )
             """, nativeQuery = true)
@@ -248,7 +279,30 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
             @Param("firstTwinClassFieldId") UUID firstTwinClassFieldId,
             @Param("secondTwinClassFieldId") UUID secondTwinClassFieldId,
+            @Param("linkIdsStr") String linkIdsStr,
             @Param("statusExclude") boolean statusExclude);
+
+    @Query(value = """
+            SELECT * FROM twin_field_decimal_calc_sum_by_link_with_twin_flavor(
+                string_to_array(:linkedToTwinIdsStr, ',')::uuid[],
+                string_to_array(:linkIdsStr, ',')::uuid[],
+                CAST(:fieldIdByTwinFlavor AS jsonb),
+                :srcElseDst,
+                string_to_array(:linkedTwinInStatusIdsStr, ',')::uuid[],
+                string_to_array(:linkedTwinOfClassIdsStr, ',')::uuid[],
+                :statusExclude,
+                :skipIfNotFound
+            )
+            """, nativeQuery = true)
+    List<Object[]> _sumLinkedTwinFieldValuesByLinkWithTwinFlavor(
+            @Param("linkedToTwinIdsStr") String linkedToTwinIdsStr,
+            @Param("linkIdsStr") String linkIdsStr,
+            @Param("fieldIdByTwinFlavor") String fieldIdByTwinFlavor,
+            @Param("srcElseDst") boolean srcElseDst,
+            @Param("linkedTwinInStatusIdsStr") String linkedTwinInStatusIdsStr,
+            @Param("linkedTwinOfClassIdsStr") String linkedTwinOfClassIdsStr,
+            @Param("statusExclude") boolean statusExclude,
+            @Param("skipIfNotFound") boolean skipIfNotFound);
 
     default List<TwinFieldCalcProjection> sumChildrenTwinFieldValuesByHead(
             Collection<UUID> headTwinIdList,
@@ -333,15 +387,52 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             Collection<UUID> linkedFromInTwinStatusIds,
             Collection<UUID> linkedTwinOfClassIds,
             Collection<UUID> twinClassFieldIds,
+            Collection<UUID> linkIds,
             boolean statusExclude) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
         String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
         String fieldsStr = StringUtils.collectionToString(twinClassFieldIds);
+        String linkIdsStr = StringUtils.collectionToString(linkIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesByLink(
-                linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, statusExclude
+                linkedToStr, srcElseDst, statusStr, classStr, fieldsStr, linkIdsStr, statusExclude
+        );
+        return mapNativeQueryResults(results);
+    }
+
+    default List<TwinFieldCalcProjection> sumChildrenFieldsOfLinkedTwins(
+            Collection<UUID> linkedToTwinIds,
+            boolean srcElseDst,
+            Collection<UUID> linkedFromInTwinStatusIds,
+            Collection<UUID> linkedTwinOfClassIds,
+            boolean linkedStatusExclude,
+            Collection<UUID> linkIds,
+            Collection<UUID> childrenOfTwinClassIds,
+            Collection<UUID> childrenInTwinStatusIds,
+            boolean childrenStatusExclude,
+            Collection<UUID> twinClassFieldIds) {
+
+        String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
+        String linkedStatusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
+        String linkedClassStr = StringUtils.collectionToString(linkedTwinOfClassIds);
+        String linkIdsStr = StringUtils.collectionToString(linkIds);
+        String childrenClassStr = StringUtils.collectionToString(childrenOfTwinClassIds);
+        String childrenStatusStr = StringUtils.collectionToString(childrenInTwinStatusIds);
+        String fieldsStr = StringUtils.collectionToString(twinClassFieldIds);
+
+        List<Object[]> results = _sumChildrenFieldsOfLinkedTwins(
+                linkedToStr,
+                srcElseDst,
+                linkedStatusStr,
+                linkedClassStr,
+                linkedStatusExclude,
+                linkIdsStr,
+                childrenClassStr,
+                childrenStatusStr,
+                childrenStatusExclude,
+                fieldsStr
         );
         return mapNativeQueryResults(results);
     }
@@ -353,16 +444,18 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             Collection<UUID> linkedTwinOfClassIds,
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
+            Collection<UUID> linkIds,
             boolean statusExclude,
             boolean throwOnDivisionByZero) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
         String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
+        String linkIdsStr = StringUtils.collectionToString(linkIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfDivisionsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId,
+                firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr,
                 statusExclude, throwOnDivisionByZero
         );
         return mapNativeQueryResults(results);
@@ -375,15 +468,17 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             Collection<UUID> linkedTwinOfClassIds,
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
+            Collection<UUID> linkIds,
             boolean statusExclude) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
         String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
+        String linkIdsStr = StringUtils.collectionToString(linkIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfMultiplicationsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, statusExclude
+                firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr, statusExclude
         );
         return mapNativeQueryResults(results);
     }
@@ -395,15 +490,17 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
             Collection<UUID> linkedTwinOfClassIds,
             UUID firstTwinClassFieldId,
             UUID secondTwinClassFieldId,
+            Collection<UUID> linkIds,
             boolean statusExclude) {
 
         String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
         String statusStr = StringUtils.collectionToString(linkedFromInTwinStatusIds);
         String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
+        String linkIdsStr = StringUtils.collectionToString(linkIds);
 
         List<Object[]> results = _sumLinkedTwinFieldValuesOfSubtractionsByLink(
                 linkedToStr, srcElseDst, statusStr, classStr,
-                firstTwinClassFieldId, secondTwinClassFieldId, statusExclude
+                firstTwinClassFieldId, secondTwinClassFieldId, linkIdsStr, statusExclude
         );
         return mapNativeQueryResults(results);
     }
@@ -422,5 +519,27 @@ public interface TwinFieldDecimalRepository extends CrudRepository<TwinFieldDeci
                     return new TwinFieldCalcProjection(twinId, value);
                 })
                 .collect(Collectors.toList());
+    }
+
+    default List<TwinFieldCalcProjection> sumLinkedTwinFieldValuesByLinkWithTwinFlavor(
+            Collection<UUID> linkedToTwinIds,
+            Collection<UUID> linkIds,
+            String fieldIdByTwinFlavor,
+            boolean srcElseDst,
+            Collection<UUID> linkedTwinInStatusIds,
+            Collection<UUID> linkedTwinOfClassIds,
+            boolean statusExclude,
+            boolean skipIfNotFound) {
+
+        String linkedToStr = StringUtils.collectionToString(linkedToTwinIds);
+        String linkIdsStr = StringUtils.collectionToString(linkIds);
+        String statusStr = StringUtils.collectionToString(linkedTwinInStatusIds);
+        String classStr = StringUtils.collectionToString(linkedTwinOfClassIds);
+
+        List<Object[]> results = _sumLinkedTwinFieldValuesByLinkWithTwinFlavor(
+                linkedToStr, linkIdsStr, fieldIdByTwinFlavor, srcElseDst,
+                statusStr, classStr, statusExclude, skipIfNotFound
+        );
+        return mapNativeQueryResults(results);
     }
 }

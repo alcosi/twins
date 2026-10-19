@@ -11,6 +11,6 @@ import java.util.UUID;
 
 @Repository
 public interface UserGroupInvolveActAsUserRepository extends CrudRepository<UserGroupInvolveActAsUserEntity, UUID>, JpaSpecificationExecutor<UserGroupInvolveActAsUserEntity> {
-    @Query(value = "select userGroup from UserGroupInvolveActAsUserEntity where machineUserId = :userId and domainId = :domainId")
+    @Query(value = "select ug from UserGroupEntity ug join UserGroupInvolveActAsUserEntity ugiau on ug.id = ugiau.userGroupId where ugiau.machineUserId = :userId and ugiau.domainId = :domainId")
     List<UserGroupEntity> findByMachineUserIdAndDomainId(UUID userId, UUID domainId);
 }
