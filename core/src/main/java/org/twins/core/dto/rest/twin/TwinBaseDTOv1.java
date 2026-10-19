@@ -81,4 +81,8 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "aliases")
     public Set<String> aliases;
+
+    @Schema(description = "user defined order key within siblings of the same head (lexicographic string, "
+            + "sort ASC nulls last); null means twin is not manually ordered")
+    public String sortOrder;
 }
