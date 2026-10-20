@@ -140,6 +140,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- DELETE core for the AFTER wrappers. A row born inside the current window and deleted in it
+-- leaves the window with zero net effect — the same closing record as the identical-content
+-- resurrection: RESTORE with after NULL. Everything else (soft-deleted published rows removed
+-- by the release cleanup, import reconcile) is a plain DELETE.
+CREATE OR REPLACE FUNCTION domain_version_after_delete_core(
+    p_table text, p_domain_id uuid, p_version_id uuid, p_row_id uuid, p_before jsonb) RETURNS void AS
+$$
+BEGIN
+    PERFORM domain_version_audit_write(p_table, p_domain_id, p_version_id, p_row_id,
+        CASE WHEN domain_version_row_is_born_in_window(p_table, p_domain_id, p_row_id)
+             THEN 'RESTORE' ELSE 'DELETE' END,
+        p_before, NULL);
+END;
+$$ LANGUAGE plpgsql;
+
 -- UPDATE core: protection of the versioning columns + restamp on a meaningful change.
 -- Returns the new stamp, or NULL when the update is a no-op (nothing is restamped, no audit).
 CREATE OR REPLACE FUNCTION domain_version_before_update_core(
@@ -264,10 +279,11 @@ CREATE OR REPLACE FUNCTION twin_class_after_update_domain_version_wrapper() RETU
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+            'DELETE', to_jsonb(OLD), NULL);
     ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
           AND NEW.domain_version_id IS DISTINCT FROM
               (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
@@ -293,8 +309,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION twin_class_after_delete_domain_version_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    PERFORM domain_version_audit_write(
-        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, 'DELETE', to_jsonb(OLD), NULL);
+    PERFORM domain_version_after_delete_core(
+        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -389,10 +405,11 @@ CREATE OR REPLACE FUNCTION twin_class_field_after_update_wrapper() RETURNS trigg
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+            'DELETE', to_jsonb(OLD), NULL);
     ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
           AND NEW.domain_version_id IS DISTINCT FROM
               (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
@@ -418,8 +435,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION twin_class_field_after_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    PERFORM domain_version_audit_write(
-        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, 'DELETE', to_jsonb(OLD), NULL);
+    PERFORM domain_version_after_delete_core(
+        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -513,10 +530,11 @@ CREATE OR REPLACE FUNCTION twin_status_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+            'DELETE', to_jsonb(OLD), NULL);
     ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
           AND NEW.domain_version_id IS DISTINCT FROM
               (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
@@ -542,8 +560,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION twin_status_after_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    PERFORM domain_version_audit_write(
-        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, 'DELETE', to_jsonb(OLD), NULL);
+    PERFORM domain_version_after_delete_core(
+        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -632,10 +650,11 @@ CREATE OR REPLACE FUNCTION data_list_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+            'DELETE', to_jsonb(OLD), NULL);
     ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
           AND NEW.domain_version_id IS DISTINCT FROM
               (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
@@ -661,8 +680,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_after_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    PERFORM domain_version_audit_write(
-        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, 'DELETE', to_jsonb(OLD), NULL);
+    PERFORM domain_version_after_delete_core(
+        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -756,10 +775,11 @@ CREATE OR REPLACE FUNCTION data_list_option_after_update_wrapper() RETURNS trigg
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+            'DELETE', to_jsonb(OLD), NULL);
     ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
           AND NEW.domain_version_id IS DISTINCT FROM
               (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
@@ -785,8 +805,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_option_after_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    PERFORM domain_version_audit_write(
-        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, 'DELETE', to_jsonb(OLD), NULL);
+    PERFORM domain_version_after_delete_core(
+        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -880,10 +900,11 @@ CREATE OR REPLACE FUNCTION data_list_subset_after_update_wrapper() RETURNS trigg
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+            'DELETE', to_jsonb(OLD), NULL);
     ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
           AND NEW.domain_version_id IS DISTINCT FROM
               (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
@@ -909,8 +930,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_subset_after_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    PERFORM domain_version_audit_write(
-        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, 'DELETE', to_jsonb(OLD), NULL);
+    PERFORM domain_version_after_delete_core(
+        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -1006,10 +1027,11 @@ CREATE OR REPLACE FUNCTION data_list_subset_option_after_update_wrapper() RETURN
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+            'DELETE', to_jsonb(OLD), NULL);
     ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
           AND NEW.domain_version_id IS DISTINCT FROM
               (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
@@ -1035,8 +1057,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_subset_option_after_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    PERFORM domain_version_audit_write(
-        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, 'DELETE', to_jsonb(OLD), NULL);
+    PERFORM domain_version_after_delete_core(
+        TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;

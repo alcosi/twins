@@ -71,33 +71,35 @@ $$ LANGUAGE plpgsql;
 
 -- Does the window still carry net changes? Collapse precondition for rollback/import ends.
 -- ONE query over the audit journal (no per-table probing). A row group counts as net-zero when
--- its LAST record in the window slice closes the history:
---   - physical DELETE (after IS NULL): a row born and deleted inside the window;
---   - RESTORE: the row returned to a previous state and left the window (identical-content
---     resurrection, rollback apply); carries the restored image, hence no after-NULL requirement.
--- DISTINCT ON takes the last record of each group straight from the window index
+-- its LAST record is RESTORE — the row left the window with zero net effect. RESTORE is written
+-- by the AFTER wrappers at the moment the row leaves: identical-content resurrection, rollback
+-- apply, born-and-deleted inside the window. Everything else (last INSERT/UPDATE/DELETE) is a
+-- live change. DISTINCT ON takes the last record of each group straight from the window index
 -- (domain_id, domain_version_id, table_name, row_id, seq DESC): one index entry per changed row,
--- no array aggregation. Backfilled rows carry synthetic INSERT records (03_backfill), so the
--- baseline V1 correctly counts as non-empty. Safety net: the stamp FK is ON DELETE RESTRICT.
+-- no aggregation. Backfilled rows carry synthetic INSERT records (03_backfill), so the baseline
+-- V1 correctly counts as non-empty. Safety net: the stamp FK is ON DELETE RESTRICT.
 CREATE OR REPLACE FUNCTION domain_version_window_has_stamped_rows(p_domain_id uuid, p_window_id uuid)
     RETURNS boolean AS
 $$
     SELECT p_window_id IS NOT NULL AND EXISTS (
         SELECT 1
           FROM (SELECT DISTINCT ON (a.table_name, a.row_id)
-                       a.operation, a.after
+                       a.operation
                   FROM domain_version_audit a
                  WHERE a.domain_id = p_domain_id
                    AND a.domain_version_id = p_window_id
                  ORDER BY a.table_name, a.row_id, a.seq DESC) last_per_row
          WHERE last_per_row.operation <> 'RESTORE'
-           AND NOT (last_per_row.operation = 'DELETE' AND last_per_row.after IS NULL)
     )
 $$ LANGUAGE sql;
 
--- Physical cleanup of soft-deleted rows (release time). Runs under twins.version_op, so the
--- before-delete wrappers let the physical delete through; business AFTER DELETE triggers keep
--- i18n/counters consistent, the audit wrappers record the deletes with the RELEASING stage.
+-- Physical cleanup of soft-deleted rows (release time ONLY: the DELETED rows must survive until
+-- release_end collects them into the delta as delete-ops, a premature purge loses those ops).
+-- Guarded by twins.version_op the same way as the other internal writes — release_end sets it
+-- around its call; a direct invocation without the GUC is rejected. The cleanup deletes run under
+-- version_op, so the before-delete wrappers let the physical delete through; business AFTER
+-- DELETE triggers keep i18n/counters consistent, the audit wrappers record the deletes with the
+-- RELEASING stage.
 CREATE OR REPLACE FUNCTION domain_version_deleted_rows_cleanup(p_domain_id uuid) RETURNS integer AS
 $$
 DECLARE
@@ -105,6 +107,9 @@ DECLARE
     v_total   integer := 0;
     v_deleted integer;
 BEGIN
+    IF current_setting('twins.version_op', true) IS DISTINCT FROM 'on' THEN
+        RAISE EXCEPTION 'domain_version_deleted_rows_cleanup is a release-time internal step of domain_operation_release_end, it cannot be called directly';
+    END IF;
     FOR r IN SELECT table_name FROM domain_version_tables() LOOP
         EXECUTE format('DELETE FROM %I WHERE domain_id = $1 AND row_status = ''DELETED''', r.table_name)
             USING p_domain_id;

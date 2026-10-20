@@ -144,8 +144,12 @@ CREATE TABLE domain_version_audit (
     domain_version_id       uuid NOT NULL,           -- окно-штамп; без FK — окна сворачиваются и удаляются
     table_name              varchar NOT NULL,
     row_id                  uuid NOT NULL,           -- PK изменённой строки (у всех версионируемых таблиц есть uuid id)
-    operation               varchar NOT NULL,        -- INSERT / UPDATE / DELETE (soft)
-    domain_operation_status varchar NOT NULL,        -- этап записи: IDLE / IMPORTING / RELEASING / ROLLBACK
+    operation               varchar NOT NULL         -- INSERT / UPDATE / DELETE / RESTORE
+        CONSTRAINT domain_version_audit_operation_ck
+            CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'RESTORE')),
+    domain_operation_status varchar NOT NULL         -- этап записи: IDLE / IMPORTING / RELEASING / ROLLBACK
+        CONSTRAINT domain_version_audit_status_ck
+            CHECK (domain_operation_status IN ('IDLE', 'IMPORTING', 'RELEASING', 'ROLLBACK')),
     before                  jsonb,                   -- to_jsonb(OLD); NULL только для INSERT
     after                   jsonb,                   -- to_jsonb(NEW); NULL для физического DELETE
     changed_at              timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -597,10 +601,13 @@ SELECT r.id
   импортной версией, `current_domain_version_id` → импортная RELEASED-версия.
 - **Rollback сворачивает пустое окно**: если после отката у OPEN-версии не осталось нетто-изменений
   — версия удаляется, `current_domain_version_id` возвращается на RELEASED-версию. Нетто-проверка —
-  одним запросом по журналу аудита (группа строки = нетто-ноль, если её последняя запись в срезе
-  окна — физический DELETE): бэкфилл заполняет аудит синтетическими INSERT-записями базовой линии,
-  «рождено+удалено в одном окне» и воскрешение-без-изменений (дописывает закрывающий DELETE-маркер
-  в срез окна) дают нетто-ноль без опроса таблиц.
+  одним запросом по журналу аудита (группа строки = нетто-ноль, если её последняя запись
+  RESTORE — строка покинула окно с нулевым нетто-эффектом): бэкфилл заполняет аудит
+  синтетическими INSERT-записями базовой линии. Запись RESTORE дописывается в момент события
+  (after-обёртками): воскрешение-без-изменений, применение открата, «рождено+удалено в одном
+  окне» (after=NULL). Словарь операций — админ-ориентированный (INSERT/UPDATE/DELETE/RESTORE):
+  мягкое/физическое удаление — подкапотная механика, в журнале не различается; у DELETE образ
+  в before, after всегда NULL.
 - **`domain_version.order`** — монотонный счётчик домена (при релизе/импорте): сортировка и walk
   цепочки; в критериях родства не используется.
 - **`domain_version_reconcile(domain_id)`** — DB-функция чистки «сирот» (строки со штампами вне

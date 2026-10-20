@@ -74,9 +74,15 @@ CREATE TABLE IF NOT EXISTS domain_version_audit
     operation               varchar NOT NULL
         CONSTRAINT domain_version_audit_operation_ck
             CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'RESTORE')),
-    domain_operation_status varchar NOT NULL,        -- IDLE / IMPORTING / RELEASING / ROLLBACK: stage of the write
+        -- the admin-facing vocabulary; soft vs physical delete is internal mechanics, derived
+        -- from the group history (first=INSERT + last=DELETE = born and deleted in the window),
+        -- never from a separate operation value. RESTORE = the row returned to a previous
+        -- state and left the window
+    domain_operation_status varchar NOT NULL
+        CONSTRAINT domain_version_audit_status_ck
+            CHECK (domain_operation_status IN ('IDLE', 'IMPORTING', 'RELEASING', 'ROLLBACK')),
     before                  jsonb,                   -- to_jsonb(OLD); NULL only for INSERT
-    after                   jsonb,                   -- to_jsonb(NEW); NULL for a physical DELETE
+    after                   jsonb,                   -- to_jsonb(NEW); NULL for DELETE and physical removal
     changed_at              timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actor_user_id           uuid
         CONSTRAINT domain_version_audit_actor_user_id_fk
@@ -85,7 +91,8 @@ CREATE TABLE IF NOT EXISTS domain_version_audit
 );
 
 -- net-state / window queries: serves DISTINCT ON (table_name, row_id) ... ORDER BY seq DESC with
--- one index entry per changed row; also the prefix for any window-slice lookup
+-- one index entry per changed row; the first-record lookups (born check, resurrection) scan the
+-- row's few entries within the group run instead — a deliberate trade towards the net check
 CREATE INDEX IF NOT EXISTS domain_version_audit_window_idx
     ON domain_version_audit (domain_id, domain_version_id, table_name, row_id, seq DESC);
 

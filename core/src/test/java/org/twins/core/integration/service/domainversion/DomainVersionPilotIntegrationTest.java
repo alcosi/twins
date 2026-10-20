@@ -461,7 +461,7 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
         assertEquals(1, jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM domain_version_audit WHERE domain_id = ? AND operation = 'UPDATE'" +
                 "     AND domain_operation_status = 'IDLE'", Integer.class, domainId));
-        // the release cleanup physically removing the DELETED row carries the RELEASING tag
+        // the release cleanup physically removing the DELETED row is a DELETE with the RELEASING tag
         assertEquals(1, jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM domain_version_audit WHERE domain_id = ? AND operation = 'DELETE'" +
                 "     AND domain_operation_status = 'RELEASING' AND after IS NULL", Integer.class, domainId));
