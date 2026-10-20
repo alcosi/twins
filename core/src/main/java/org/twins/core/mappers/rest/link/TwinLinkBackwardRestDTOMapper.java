@@ -12,6 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinSortOrderGenerator;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twinlink.TwinLinkService;
 
@@ -34,6 +35,8 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
 
     @Override
     public void map(TwinLinkEntity src, TwinLinkDTOv1 dst, MapperContext mapperContext) throws Exception {
+        //TODO: remove fallback generation when twin_link.sort_order is persisted
+        dst.setSortOrder(TwinSortOrderGenerator.generate(src.getCreatedAt()));
         switch (mapperContext.getModeOrUse(TwinLinkMode.DETAILED)) {
             case DETAILED ->
                 dst
