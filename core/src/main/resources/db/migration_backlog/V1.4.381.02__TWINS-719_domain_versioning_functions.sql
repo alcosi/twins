@@ -100,7 +100,7 @@ $$ LANGUAGE sql;
 -- version_op, so the before-delete wrappers let the physical delete through; business AFTER
 -- DELETE triggers keep i18n/counters consistent, the audit wrappers record the deletes with the
 -- RELEASING stage.
-CREATE OR REPLACE FUNCTION domain_version_deleted_rows_cleanup(p_domain_id uuid) RETURNS integer AS
+CREATE OR REPLACE FUNCTION domain_version_deleted_rows_cleanup(p_domain_id uuid, p_version_id uuid) RETURNS integer AS
 $$
 DECLARE
     r         record;
@@ -110,9 +110,22 @@ BEGIN
     IF current_setting('twins.version_op', true) IS DISTINCT FROM 'on' THEN
         RAISE EXCEPTION 'domain_version_deleted_rows_cleanup is a release-time internal step of domain_operation_release_end, it cannot be called directly';
     END IF;
-    FOR r IN SELECT table_name FROM domain_version_tables() LOOP
-        EXECUTE format('DELETE FROM %I WHERE domain_id = $1 AND row_status = ''DELETED''', r.table_name)
-            USING p_domain_id;
+    -- the audit journal routes the cleanup, the row is the truth: only tables that recorded
+    -- soft deletes in this release's slice are visited (at >100 versioned tables a typical
+    -- release touches a few); the DELETE itself trusts row_status='DELETED', because a DELETE
+    -- record alone does not mean the row is still deleted (it may have been resurrected since —
+    -- an extra visited table is harmless, its bulk DELETE just matches nothing). The routing is
+    -- evaluated once before any delete runs, so the RELEASING records written by the cleanup
+    -- itself cannot interfere. Born-deletes never pollute the routing: they close with RESTORE.
+    FOR r IN SELECT DISTINCT a.table_name
+               FROM domain_version_audit a
+              WHERE a.domain_id = p_domain_id
+                AND a.domain_version_id = p_version_id
+                AND a.operation = 'DELETE'
+              LOOP
+        EXECUTE format('DELETE FROM %I WHERE domain_id = $1 AND domain_version_id = $2 AND row_status = ''DELETED''',
+                       r.table_name)
+            USING p_domain_id, p_version_id;
         GET DIAGNOSTICS v_deleted = ROW_COUNT;
         v_total := v_total + v_deleted;
     END LOOP;
@@ -389,7 +402,7 @@ BEGIN
            release_duration = p_release_duration
      WHERE id = v_version_id;
 
-    PERFORM domain_version_deleted_rows_cleanup(p_domain_id);
+    PERFORM domain_version_deleted_rows_cleanup(p_domain_id, v_version_id);
 
     PERFORM set_config('twins.version_op', '', true);
     UPDATE domain SET operation_status = 'IDLE', operation_started_at = NULL WHERE id = p_domain_id;
