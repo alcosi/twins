@@ -47,7 +47,7 @@ BEGIN
      WHERE a.table_name = p_table
        AND a.row_id = p_row_id
        AND a.domain_version_id = v_window
-     ORDER BY a.id
+     ORDER BY a.seq
      LIMIT 1;
 
     RETURN coalesce(v_op = 'INSERT', false);
@@ -109,7 +109,7 @@ BEGIN
      WHERE a.table_name = p_table
        AND a.row_id = p_row_id
        AND a.domain_version_id = v_window
-     ORDER BY a.id
+     ORDER BY a.seq
      LIMIT 1;
 
     SELECT string_agg(quote_ident(column_name), ', ' ORDER BY ordinal_position)
@@ -128,10 +128,8 @@ BEGIN
         EXECUTE format('UPDATE %I r SET (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
                        p_table, v_all_cols, v_all_cols, p_table, p_pk_predicate)
         USING v_first_before;
-        -- the row left the window: close its group in the window audit slice so the
-        -- net-change detection (domain_version_window_has_stamped_rows) sees net zero
-        PERFORM domain_version_audit_write(p_table, (p_new->>'domain_id')::uuid, v_window, p_row_id,
-                                           'DELETE', v_old, NULL);
+        -- no marker needed: the restoring UPDATE changes the stamp, so the AFTER wrapper
+        -- classifies it as RESTORE in the window slice by itself
     ELSE
         EXECUTE format('UPDATE %I r SET row_status = ''ACTIVE'', domain_version_id = $2, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
                        p_table, v_cols, v_cols, p_table, p_pk_predicate)
@@ -266,9 +264,23 @@ CREATE OR REPLACE FUNCTION twin_class_after_update_domain_version_wrapper() RETU
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
+          AND NEW.domain_version_id IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
+            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
     ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
@@ -377,9 +389,23 @@ CREATE OR REPLACE FUNCTION twin_class_field_after_update_wrapper() RETURNS trigg
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
+          AND NEW.domain_version_id IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
+            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
     ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
@@ -487,9 +513,23 @@ CREATE OR REPLACE FUNCTION twin_status_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
+          AND NEW.domain_version_id IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
+            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
     ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
@@ -592,9 +632,23 @@ CREATE OR REPLACE FUNCTION data_list_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
+          AND NEW.domain_version_id IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
+            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
     ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
@@ -702,9 +756,23 @@ CREATE OR REPLACE FUNCTION data_list_option_after_update_wrapper() RETURNS trigg
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
+          AND NEW.domain_version_id IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
+            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
     ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
@@ -812,9 +880,23 @@ CREATE OR REPLACE FUNCTION data_list_subset_after_update_wrapper() RETURNS trigg
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
+          AND NEW.domain_version_id IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
+            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
     ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
@@ -924,9 +1006,23 @@ CREATE OR REPLACE FUNCTION data_list_subset_option_after_update_wrapper() RETURN
 $$
 BEGIN
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE recorded with the alive (DELETED) image
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'DELETE', to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
+          AND NEW.domain_version_id IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
+            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
     ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
         PERFORM domain_version_audit_write(
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,

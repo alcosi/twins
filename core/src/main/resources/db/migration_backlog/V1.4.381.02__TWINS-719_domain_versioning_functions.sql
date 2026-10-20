@@ -70,10 +70,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Does the window still carry net changes? Collapse precondition for rollback/import ends.
--- ONE query over the audit journal (no per-table probing): a row counts as unchanged when its
--- LAST record in the window slice is a physical DELETE (after IS NULL) — that covers rows born
--- and deleted inside the window, and rows that left the window through an identical-content
--- resurrection (the resurrection appends a closing DELETE record into the window slice).
+-- ONE query over the audit journal (no per-table probing). A row group counts as net-zero when
+-- its LAST record in the window slice closes the history:
+--   - physical DELETE (after IS NULL): a row born and deleted inside the window;
+--   - RESTORE: the row returned to a previous state and left the window — written by the AFTER
+--     wrapper for restore-class updates (identical-content resurrection, rollback apply);
+--     RESTORE carries the restored image, hence no after-NULL requirement.
 -- Backfilled rows carry synthetic INSERT records (03_backfill), so the baseline V1 correctly
 -- counts as non-empty. Safety net for registry gaps: the stamp FK is ON DELETE RESTRICT.
 CREATE OR REPLACE FUNCTION domain_version_window_has_stamped_rows(p_domain_id uuid, p_window_id uuid)
@@ -85,8 +87,9 @@ $$
          WHERE a.domain_id = p_domain_id
            AND a.domain_version_id = p_window_id
          GROUP BY a.table_name, a.row_id
-        HAVING (array_agg(a.operation ORDER BY a.id))[count(*)] <> 'DELETE'
-            OR (array_agg(a.after ORDER BY a.id))[count(*)] IS NOT NULL
+        HAVING (array_agg(a.operation ORDER BY a.seq))[count(*)] <> 'RESTORE'
+            AND ((array_agg(a.operation ORDER BY a.seq))[count(*)] <> 'DELETE'
+                 OR (array_agg(a.after ORDER BY a.seq))[count(*)] IS NOT NULL)
     )
 $$ LANGUAGE sql;
 

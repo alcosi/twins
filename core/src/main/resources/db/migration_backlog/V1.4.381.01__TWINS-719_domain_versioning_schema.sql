@@ -60,15 +60,20 @@ CREATE INDEX IF NOT EXISTS domain_version_released_idx
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS domain_version_audit
 (
-    id                      uuid PRIMARY KEY,        -- uuid_generate_v7_custom(): stable time ordering
+    id                      uuid PRIMARY KEY,
     domain_id               uuid NOT NULL
         CONSTRAINT domain_version_audit_domain_id_fk
             REFERENCES domain
             ON UPDATE CASCADE ON DELETE CASCADE,
     domain_version_id       uuid NOT NULL,           -- window stamp; intentionally no FK: windows are collapsed/deleted
+    seq                     bigserial NOT NULL,      -- strict insertion order: uuid v7 has only
+    -- millisecond precision, records within one
+    -- millisecond (bulk writes!) order randomly
     table_name              varchar NOT NULL,
     row_id                  uuid NOT NULL,           -- PK of the changed row (every versioned table has a uuid id)
-    operation               varchar NOT NULL,        -- INSERT / UPDATE / DELETE (soft)
+    operation               varchar NOT NULL
+        CONSTRAINT domain_version_audit_operation_ck
+            CHECK (operation IN ('INSERT', 'UPDATE', 'DELETE', 'RESTORE')),
     domain_operation_status varchar NOT NULL,        -- IDLE / IMPORTING / RELEASING / ROLLBACK: stage of the write
     before                  jsonb,                   -- to_jsonb(OLD); NULL only for INSERT
     after                   jsonb,                   -- to_jsonb(NEW); NULL for a physical DELETE
