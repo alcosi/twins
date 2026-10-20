@@ -26,4 +26,9 @@ public class TwinLinkUpdateDTOv1 {
             + "relation_twin_class_id configured; keys are relation-twin-class field ids or keys, "
             + "same format as TwinCreate fields")
     public Map<String, String> relationTwinFields;
+
+    @Schema(description = "reorder after this sibling src twin within the same (dstTwinId, linkId) level "
+            + "(sort key is calculated server side); null = ignore; all-F UUID = place first",
+            example = DTOExamples.TWIN_ID)
+    public UUID afterTwinId;
 }

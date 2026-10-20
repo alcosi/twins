@@ -46,6 +46,10 @@ public class TwinDraftDTOv1 extends Request {
     @Schema(description = "fields")
     public Map<String, String> fields;
 
+    @Schema(description = "reorder after this sibling twin (sort key is calculated server side); "
+            + "null = ignore; all-F UUID = place first", example = DTOExamples.TWIN_ID)
+    public UUID afterTwinId;
+
     @Valid
     @Schema(description = "attachments")
     public List<AttachmentCreateDTOv1> attachments;

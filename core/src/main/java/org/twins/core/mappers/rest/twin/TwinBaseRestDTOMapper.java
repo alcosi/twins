@@ -81,6 +81,8 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .freeze(twinService.checkIsFreezeStatus(src));
                 break;
         }
+        //TODO: remove fallback generation when twin.sort_order is persisted (docs/backlog/045)
+        dst.sortOrder(TwinSortOrderGenerator.generate(src.getCreatedAt()));
         if (mapperContext.hasModeButNot(StatusMode.Twin2StatusMode.HIDE)) {
             TwinStatusEntity statusEntity = twinService.getStatusOrFreeze(src);
             dst.statusId(statusEntity.getId());

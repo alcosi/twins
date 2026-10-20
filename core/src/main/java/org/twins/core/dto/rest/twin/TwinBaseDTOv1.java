@@ -81,4 +81,7 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "aliases")
     public Set<String> aliases;
+
+    @Schema(description = "user defined order key (lexicographic)")
+    public String sortOrder;
 }
