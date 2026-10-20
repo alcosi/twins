@@ -84,11 +84,14 @@ CREATE TABLE IF NOT EXISTS domain_version_audit
             ON UPDATE CASCADE ON DELETE SET NULL
 );
 
+-- net-state / window queries: serves DISTINCT ON (table_name, row_id) ... ORDER BY seq DESC with
+-- one index entry per changed row; also the prefix for any window-slice lookup
 CREATE INDEX IF NOT EXISTS domain_version_audit_window_idx
-    ON domain_version_audit (domain_id, domain_version_id);
+    ON domain_version_audit (domain_id, domain_version_id, table_name, row_id, seq DESC);
 
+-- full row history across versions (UI), already in seq order
 CREATE INDEX IF NOT EXISTS domain_version_audit_row_idx
-    ON domain_version_audit (table_name, row_id);
+    ON domain_version_audit (table_name, row_id, seq);
 
 CREATE INDEX IF NOT EXISTS domain_version_audit_actor_idx
     ON domain_version_audit (actor_user_id);

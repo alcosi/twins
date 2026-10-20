@@ -73,23 +73,25 @@ $$ LANGUAGE plpgsql;
 -- ONE query over the audit journal (no per-table probing). A row group counts as net-zero when
 -- its LAST record in the window slice closes the history:
 --   - physical DELETE (after IS NULL): a row born and deleted inside the window;
---   - RESTORE: the row returned to a previous state and left the window — written by the AFTER
---     wrapper for restore-class updates (identical-content resurrection, rollback apply);
---     RESTORE carries the restored image, hence no after-NULL requirement.
--- Backfilled rows carry synthetic INSERT records (03_backfill), so the baseline V1 correctly
--- counts as non-empty. Safety net for registry gaps: the stamp FK is ON DELETE RESTRICT.
+--   - RESTORE: the row returned to a previous state and left the window (identical-content
+--     resurrection, rollback apply); carries the restored image, hence no after-NULL requirement.
+-- DISTINCT ON takes the last record of each group straight from the window index
+-- (domain_id, domain_version_id, table_name, row_id, seq DESC): one index entry per changed row,
+-- no array aggregation. Backfilled rows carry synthetic INSERT records (03_backfill), so the
+-- baseline V1 correctly counts as non-empty. Safety net: the stamp FK is ON DELETE RESTRICT.
 CREATE OR REPLACE FUNCTION domain_version_window_has_stamped_rows(p_domain_id uuid, p_window_id uuid)
     RETURNS boolean AS
 $$
     SELECT p_window_id IS NOT NULL AND EXISTS (
         SELECT 1
-          FROM domain_version_audit a
-         WHERE a.domain_id = p_domain_id
-           AND a.domain_version_id = p_window_id
-         GROUP BY a.table_name, a.row_id
-        HAVING (array_agg(a.operation ORDER BY a.seq))[count(*)] <> 'RESTORE'
-            AND ((array_agg(a.operation ORDER BY a.seq))[count(*)] <> 'DELETE'
-                 OR (array_agg(a.after ORDER BY a.seq))[count(*)] IS NOT NULL)
+          FROM (SELECT DISTINCT ON (a.table_name, a.row_id)
+                       a.operation, a.after
+                  FROM domain_version_audit a
+                 WHERE a.domain_id = p_domain_id
+                   AND a.domain_version_id = p_window_id
+                 ORDER BY a.table_name, a.row_id, a.seq DESC) last_per_row
+         WHERE last_per_row.operation <> 'RESTORE'
+           AND NOT (last_per_row.operation = 'DELETE' AND last_per_row.after IS NULL)
     )
 $$ LANGUAGE sql;
 
