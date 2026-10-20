@@ -168,19 +168,34 @@ BEGIN
     END IF;
 
     IF v_version_status = 'OPEN' THEN
-        -- fast path: shared lock held until commit, gate rechecked under the lock so that no
-        -- operation can start between the check and the commit of this edit
+        -- fast path: shared lock held until commit, the FULL state is re-read under the lock —
+        -- the initial lock-free read may be stale, a whole release can complete between the read
+        -- and the lock (operation_status returns to IDLE while the version is already RELEASED);
+        -- returning the stale window id would stamp the edit into a closed version and silently
+        -- lose it from every future delta
         PERFORM pg_advisory_xact_lock_shared(v_lock_key);
-        SELECT d.operation_status, d.locked
-          INTO v_operation_status, v_locked
+        SELECT d.operation_status, d.locked, dv.id, dv.status
+          INTO v_operation_status, v_locked, v_version_id, v_version_status
           FROM domain d
+          JOIN domain_version dv ON dv.id = d.current_domain_version_id
          WHERE d.id = p_domain_id;
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
+        END IF;
         IF v_operation_status <> 'IDLE' THEN
             RAISE EXCEPTION 'domain % configuration is locked by a running operation (%)',
                 p_domain_id, v_operation_status USING ERRCODE = '55006';
         END IF;
         IF v_locked THEN
             RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
+        END IF;
+        IF v_version_status <> 'OPEN' THEN
+            -- the current version was replaced while we were acquiring the lock (typically a
+            -- completed release). Upgrading shared -> exclusive is a deadlock hazard, a
+            -- transaction-scoped shared lock cannot be released early either: ask for a retry,
+            -- the retry takes the slow path and opens the fresh window itself
+            RAISE EXCEPTION 'domain % version state changed concurrently, retry the transaction', p_domain_id
+                USING ERRCODE = '40001';
         END IF;
         RETURN v_version_id;
     END IF;
