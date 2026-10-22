@@ -1,9 +1,13 @@
 -- TWINS-719: domain configuration versioning, model v2 (pilot).
--- Step 2/4: functions. GUC contract:
---   twins.version_op  — transaction-local, set by our own functions/wrappers around their writes
---                       into domain_version / audit / protected columns;
---   twins.import_mode — transaction-local, set by the importer (FULL/INCREMENTAL/rollback apply)
---                       around applying external content with explicit stamps and row statuses.
+-- Step 2/4: functions. GUC contract: a single transaction-local flag marks the protected path.
+--   twins.domain_version_op — 'on' around writes into domain_version / audit / protected columns,
+--                       physical deletes and explicit-stamp writes. Set by our own
+--                       functions/wrappers around their internal writes AND by the importer
+--                       (FULL/INCREMENTAL/rollback apply) around applying external content with
+--                       explicit stamps and row statuses; never left set across statements.
+--   twins.domain_version_reconcile — 'on' only around domain_version_reconcile's version-row
+--                       delete: authorizes removing RELEASED versions that fell out of the
+--                       chain (the domain_version delete guard checks it).
 -- Design: ai/plans/domain-versioning-v2.md; implementation plan: ai/plans/domain-versioning-slice-a.md
 
 -- ============================================================================
@@ -95,7 +99,7 @@ $$ LANGUAGE sql;
 
 -- Physical cleanup of soft-deleted rows (release time ONLY: the DELETED rows must survive until
 -- release_end collects them into the delta as delete-ops, a premature purge loses those ops).
--- Guarded by twins.version_op the same way as the other internal writes — release_end sets it
+-- Guarded by twins.domain_version_op the same way as the other internal writes — release_end sets it
 -- around its call; a direct invocation without the GUC is rejected. The cleanup deletes run under
 -- version_op, so the before-delete wrappers let the physical delete through; business AFTER
 -- DELETE triggers keep i18n/counters consistent, the audit wrappers record the deletes with the
@@ -107,7 +111,7 @@ DECLARE
     v_total   integer := 0;
     v_deleted integer;
 BEGIN
-    IF current_setting('twins.version_op', true) IS DISTINCT FROM 'on' THEN
+    IF current_setting('twins.domain_version_op', true) IS DISTINCT FROM 'on' THEN
         RAISE EXCEPTION 'domain_version_deleted_rows_cleanup is a release-time internal step of domain_operation_release_end, it cannot be called directly';
     END IF;
     -- the audit journal routes the cleanup, the row is the truth: only tables that recorded
@@ -227,9 +231,9 @@ DECLARE
     v_shared   boolean;
     v_new_id   uuid;
 BEGIN
-    -- core/global rows are not versioned; the import path applies external
-    -- content with explicit stamps
-    IF p_domain_id IS NULL OR current_setting('twins.import_mode', true) = 'on' THEN
+    -- core/global rows are not versioned; the protected path (import apply, internal writes)
+    -- never resolves a stamp here — import applies explicit stamps, internal writes know theirs
+    IF p_domain_id IS NULL OR current_setting('twins.domain_version_op', true) = 'on' THEN
         RETURN NULL;
     END IF;
 
@@ -277,11 +281,11 @@ BEGIN
 
     -- 5. exclusive lock held, current is RELEASED: lazily open the new draft window
     v_new_id := uuid_generate_v7_custom();
-    PERFORM set_config('twins.version_op', 'on', true);   -- domain_version is writable
+    PERFORM set_config('twins.domain_version_op', 'on', true);   -- domain_version is writable
     INSERT INTO domain_version (id, domain_id, version, status)          -- only via the functions
     VALUES (v_new_id, p_domain_id, 'draft', 'OPEN');
     UPDATE domain SET current_domain_version_id = v_new_id WHERE id = p_domain_id;
-    PERFORM set_config('twins.version_op', '', true);
+    PERFORM set_config('twins.domain_version_op', '', true);
     RETURN v_new_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -303,11 +307,11 @@ BEGIN
         RETURN v_id;
     END IF;
     v_id := uuid_generate_v7_custom();
-    PERFORM set_config('twins.version_op', 'on', true);
+    PERFORM set_config('twins.domain_version_op', 'on', true);
     -- domain row may not exist yet (before-insert trigger): domain_id FK is DEFERRABLE
     INSERT INTO domain_version (id, domain_id, version, status)
     VALUES (v_id, p_domain_id, 'draft', 'OPEN');
-    PERFORM set_config('twins.version_op', '', true);
+    PERFORM set_config('twins.domain_version_op', '', true);
     RETURN v_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -430,7 +434,7 @@ BEGIN
      LIMIT 1;
     SELECT coalesce(max("order"), 0) + 1 INTO v_order FROM domain_version WHERE domain_id = p_domain_id;
 
-    PERFORM set_config('twins.version_op', 'on', true);
+    PERFORM set_config('twins.domain_version_op', 'on', true);
     UPDATE domain_version
        SET status = 'RELEASED',
            version = p_version,
@@ -451,7 +455,7 @@ BEGIN
 
     PERFORM domain_version_deleted_rows_cleanup(p_domain_id, v_version_id);
 
-    PERFORM set_config('twins.version_op', '', true);
+    PERFORM set_config('twins.domain_version_op', '', true);
     UPDATE domain SET operation_status = 'IDLE', operation_started_at = NULL WHERE id = p_domain_id;
     RETURN v_version_id;
 END;
@@ -545,7 +549,6 @@ BEGIN
             RAISE EXCEPTION 'open window of domain % still has stamped rows: the import did not reconcile everything',
                 p_domain_id;
         END IF;
-        PERFORM set_config('twins.version_op', 'on', true);
         -- the window is still referenced by domain.current: the pointer moves to the import
         -- version below, only then the empty window row may be deleted
         v_keep_window := v_current_id;
@@ -561,14 +564,14 @@ BEGIN
     v_label := coalesce(nullif(btrim(p_label), ''), '(import) ' || v_order);
     v_import_id := uuid_generate_v7_custom();
 
-    PERFORM set_config('twins.version_op', 'on', true);
+    PERFORM set_config('twins.domain_version_op', 'on', true);
     INSERT INTO domain_version (id, domain_id, version, status, "order", hash, previous_domain_version_id, released_at)
     VALUES (v_import_id, p_domain_id, v_label, 'RELEASED', v_order, p_content_hash, v_previous_id, CURRENT_TIMESTAMP);
     UPDATE domain SET current_domain_version_id = v_import_id WHERE id = p_domain_id;
     IF v_keep_window IS NOT NULL THEN
         DELETE FROM domain_version WHERE id = v_keep_window;
     END IF;
-    PERFORM set_config('twins.version_op', '', true);
+    PERFORM set_config('twins.domain_version_op', '', true);
 
     UPDATE domain SET operation_status = 'IDLE', operation_started_at = NULL WHERE id = p_domain_id;
     RETURN v_import_id;
@@ -637,11 +640,11 @@ BEGIN
          ORDER BY "order" DESC NULLS LAST, released_at DESC
          LIMIT 1;
         IF v_previous_id IS NOT NULL THEN
-            PERFORM set_config('twins.version_op', 'on', true);
+            PERFORM set_config('twins.domain_version_op', 'on', true);
             -- move the pointer away first: the FK from domain.current would block the delete
             UPDATE domain SET current_domain_version_id = v_previous_id WHERE id = p_domain_id;
             DELETE FROM domain_version WHERE id = v_window_id;
-            PERFORM set_config('twins.version_op', '', true);
+            PERFORM set_config('twins.domain_version_op', '', true);
         END IF; -- a domain with only the empty V1 keeps it: current_domain_version_id is NOT NULL
     END IF;
 
@@ -669,13 +672,33 @@ $$ LANGUAGE plpgsql;
 -- 8. Orphan hygiene: rows stamped with versions outside the chain of the current version.
 --    Diagnostic / repair tool, NOT a part of the import reconcile.
 -- ============================================================================
+-- Routing goes through the audit journal (the domain_version_deleted_rows_cleanup pattern):
+-- every stamp ever written by the wrappers/backfill has a journal record, so ONE DISTINCT query
+-- over the window index (domain_id, domain_version_id, table_name) enumerates exactly the
+-- (table, stamp) pairs carrying orphan rows — no per-table probing at >100 versioned tables.
+-- The contract covers journal-known orphans; a dangling stamp with neither a version row nor a
+-- journal record (pre-VALIDATE legacy) is invisible here and left alone.
+-- The phase order makes the ON DELETE RESTRICT stamp FK reconcile's own verifier: the orphan
+-- version rows are deleted only AFTER the routed row deletes — if the routing missed a stamped
+-- table, the version delete fails loudly with an FK violation instead of leaving dangling
+-- stamps. The orphans' journal records are purged LAST, so a failed run keeps the evidence and
+-- can simply be re-run.
+-- The row semantic is "physically delete whatever carries an orphan stamp" (rows born in the
+-- orphan AND rows that pre-existed it). A journal-restore variant — UPDATE/DELETE orphans
+-- restored from the before-image instead of deleted — is a possible evolution: the routing
+-- query already carries the operation info, it is just not used yet.
+-- the return type changed (row_ctid tid -> rows_matched bigint): CREATE OR REPLACE cannot
+-- alter it, drop the old signature first (no-op on a fresh database)
+DROP FUNCTION IF EXISTS domain_version_reconcile(uuid, boolean);
 CREATE OR REPLACE FUNCTION domain_version_reconcile(p_domain_id uuid, p_dry_run boolean DEFAULT true)
-    RETURNS TABLE (table_name text, row_ctid tid, domain_version_id uuid) AS
+    RETURNS TABLE (table_name text, domain_version_id uuid, rows_matched bigint) AS
 $$
 DECLARE
-    r        record;
-    v_chain  uuid[];
+    r         record;
+    v_chain   uuid[];
+    v_orphans uuid[];
 BEGIN
+    -- 1. the chain of the current version via previous-links: ONE recursive query, not a loop
     WITH RECURSIVE chain AS (
         SELECT dv.id
           FROM domain_version dv
@@ -687,21 +710,70 @@ BEGIN
     )
     SELECT ARRAY(SELECT id FROM chain) INTO v_chain;
 
-    FOR r IN SELECT table_name FROM domain_version_tables() LOOP
-        RETURN QUERY
-        EXECUTE format(
-            'SELECT %L::text, ctid, domain_version_id FROM %I WHERE domain_id = $1 AND domain_version_id <> ALL($2)',
-            r.table_name, r.table_name)
-        USING p_domain_id, v_chain;
+    -- 2. orphans = version rows outside the chain. NULL -> nothing to do; this is also the
+    --    defensive branch for a broken current pointer (<> ALL(NULL) is UNKNOWN -> no orphans
+    --    -> wipe nothing)
+    SELECT array_agg(dv.id) INTO v_orphans
+      FROM domain_version dv
+     WHERE dv.domain_id = p_domain_id
+       AND dv.id <> ALL (v_chain);
+    IF v_orphans IS NULL THEN
+        RETURN;
+    END IF;
+
+    IF NOT p_dry_run THEN
+        PERFORM set_config('twins.domain_version_op', 'on', true);   -- physical deletes allowed
+    END IF;
+
+    -- 3. journal-routed row deletes: only the tables that actually recorded changes under an
+    --    orphan stamp are visited
+    FOR r IN SELECT DISTINCT a.table_name AS t, a.domain_version_id AS v
+               FROM domain_version_audit a
+              WHERE a.domain_id = p_domain_id
+                AND a.domain_version_id = ANY (v_orphans)
+              ORDER BY 1, 2
+    LOOP
+        IF p_dry_run THEN
+            EXECUTE format('SELECT count(*) FROM %I WHERE domain_id = $1 AND domain_version_id = $2', r.t)
+               INTO rows_matched
+              USING p_domain_id, r.v;
+        ELSE
+            EXECUTE format('DELETE FROM %I WHERE domain_id = $1 AND domain_version_id = $2', r.t)
+              USING p_domain_id, r.v;
+            GET DIAGNOSTICS rows_matched = ROW_COUNT;
+        END IF;
+        table_name := r.t;
+        domain_version_id := r.v;
+        RETURN NEXT;
+    END LOOP;
+
+    -- 4. journal-silent orphans: no rows to delete, but the version row itself goes at step 5
+    FOR r IN SELECT dv.id AS v
+               FROM domain_version dv
+              WHERE dv.id = ANY (v_orphans)
+                AND NOT EXISTS (SELECT 1
+                                  FROM domain_version_audit a
+                                 WHERE a.domain_id = p_domain_id
+                                   AND a.domain_version_id = dv.id)
+              ORDER BY 1
+    LOOP
+        table_name := NULL;
+        domain_version_id := r.v;
+        rows_matched := 0;
+        RETURN NEXT;
     END LOOP;
 
     IF NOT p_dry_run THEN
-        FOR r IN SELECT table_name FROM domain_version_tables() LOOP
-            EXECUTE format(
-                'DELETE FROM %I WHERE domain_id = $1 AND domain_version_id <> ALL($2)',
-                r.table_name)
-            USING p_domain_id, v_chain;
-        END LOOP;
+        -- 5. RESTRICT-verified: fails loudly if the routing above missed a stamped table.
+        --    RELEASED rows are delete-protected by the domain_version guard; the second GUC
+        --    names the single path allowed to remove out-of-chain history
+        PERFORM set_config('twins.domain_version_reconcile', 'on', true);
+        DELETE FROM domain_version dv WHERE dv.id = ANY (v_orphans);
+        PERFORM set_config('twins.domain_version_reconcile', '', true);
+        -- 6. purge the orphans' journal (incl. the records the routed deletes just wrote)
+        DELETE FROM domain_version_audit a
+         WHERE a.domain_id = p_domain_id AND a.domain_version_id = ANY (v_orphans);
+        PERFORM set_config('twins.domain_version_op', '', true);
     END IF;
 END;
 $$ LANGUAGE plpgsql;

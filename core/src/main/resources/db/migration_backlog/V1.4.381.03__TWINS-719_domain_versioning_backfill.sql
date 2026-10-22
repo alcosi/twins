@@ -97,7 +97,7 @@ UPDATE data_list_subset_option t
 CREATE OR REPLACE FUNCTION backfill_domain_version_audit(tbl text) RETURNS void AS
 $$
 BEGIN
-    PERFORM set_config('twins.version_op', 'on', true);
+    PERFORM set_config('twins.domain_version_op', 'on', true);
     EXECUTE format(
             'INSERT INTO domain_version_audit (id, domain_id, domain_version_id, table_name, row_id,' ||
             ' operation, domain_operation_status, before, after, changed_at, actor_user_id) ' ||
@@ -109,7 +109,7 @@ BEGIN
             ' WHERE a.domain_id = t.domain_id AND a.table_name = %L AND a.row_id = t.id' ||
             ' AND a.domain_version_id = t.domain_version_id)',
             tbl, tbl, tbl);
-    PERFORM set_config('twins.version_op', '', true);
+    PERFORM set_config('twins.domain_version_op', '', true);
 END;
 $$ LANGUAGE plpgsql;
 

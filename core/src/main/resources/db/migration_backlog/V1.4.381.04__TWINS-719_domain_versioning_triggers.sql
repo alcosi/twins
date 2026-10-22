@@ -10,12 +10,11 @@
 -- ============================================================================
 
 -- Is this a service path? import apply / internal versioning write / nested trigger write.
--- NULL-safe: an unset GUC reads as NULL, and NULL OR false is NULL which would silently
+-- NULL-safe: an unset GUC reads as NULL, and NULL OR ... is NULL which would silently
 -- disable the whole versioning block guarded by IF NOT ... below.
 CREATE OR REPLACE FUNCTION domain_version_protected_path() RETURNS boolean AS
 $$
-    SELECT coalesce(current_setting('twins.import_mode', true) = 'on', false)
-        OR coalesce(current_setting('twins.version_op', true) = 'on', false)
+    SELECT coalesce(current_setting('twins.domain_version_op', true) = 'on', false)
         OR pg_trigger_depth() > 1;
 $$ LANGUAGE sql;
 
@@ -121,7 +120,7 @@ BEGIN
      WHERE table_schema = 'public' AND table_name = p_table
        AND column_name NOT IN ('domain_version_id', 'row_status');
 
-    PERFORM set_config('twins.version_op', 'on', true);
+    PERFORM set_config('twins.domain_version_op', 'on', true);
     IF v_first_before IS NOT NULL
        AND NOT domain_version_is_meaningful_change(p_table, v_first_before, p_new) THEN
         EXECUTE format('UPDATE %I r SET (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
@@ -134,7 +133,7 @@ BEGIN
                        p_table, v_cols, v_cols, p_table, p_pk_predicate)
         USING p_new, v_window;
     END IF;
-    PERFORM set_config('twins.version_op', '', true);
+    PERFORM set_config('twins.domain_version_op', '', true);
     RETURN true;
 END;
 $$ LANGUAGE plpgsql;
@@ -208,18 +207,18 @@ BEGIN
     END IF;
     -- born in the current window: no release has ever seen this row -> delete physically right away
     IF domain_version_row_is_born_in_window(p_table, p_domain_id, p_row_id) THEN
-        PERFORM set_config('twins.version_op', 'on', true);
+        PERFORM set_config('twins.domain_version_op', 'on', true);
         EXECUTE format('DELETE FROM %I WHERE %s', p_table, p_pk_predicate);
-        PERFORM set_config('twins.version_op', '', true);
+        PERFORM set_config('twins.domain_version_op', '', true);
         RETURN true;
     END IF;
     -- normal path: convert the delete into a soft delete stamped with the current window;
     -- the row physically disappears at the release cleanup
     v_window := domain_version_gate(p_domain_id);
-    PERFORM set_config('twins.version_op', 'on', true);
+    PERFORM set_config('twins.domain_version_op', 'on', true);
     EXECUTE format('UPDATE %I SET row_status = ''DELETED'', domain_version_id = %L WHERE %s',
                    p_table, v_window, p_pk_predicate);
-    PERFORM set_config('twins.version_op', '', true);
+    PERFORM set_config('twins.domain_version_op', '', true);
     RETURN true;
 END;
 $$ LANGUAGE plpgsql;
@@ -1222,13 +1221,14 @@ CREATE TRIGGER domain_before_insert_wrapper_trigger
     EXECUTE FUNCTION domain_before_insert_wrapper();
 
 -- ============================================================================
--- 9. domain_version guard: writes only from the versioning functions (twins.version_op);
---    RELEASED rows are immutable unconditionally
+-- 9. domain_version guard: writes only from the versioning functions (twins.domain_version_op);
+--    RELEASED rows are immutable unless the reconcile repair tool runs
+--    (twins.domain_version_reconcile, see the delete wrapper below)
 -- ============================================================================
 CREATE OR REPLACE FUNCTION domain_version_before_insert_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF current_setting('twins.version_op', true) <> 'on' AND pg_trigger_depth() <= 1 THEN
+    IF current_setting('twins.domain_version_op', true) <> 'on' AND pg_trigger_depth() <= 1 THEN
         RAISE EXCEPTION 'domain_version is written by the versioning functions only';
     END IF;
     RETURN NEW;
@@ -1241,7 +1241,7 @@ BEGIN
     IF OLD.status = 'RELEASED' THEN
         RAISE EXCEPTION 'released domain versions are immutable';
     END IF;
-    IF current_setting('twins.version_op', true) <> 'on' AND pg_trigger_depth() <= 1 THEN
+    IF current_setting('twins.domain_version_op', true) <> 'on' AND pg_trigger_depth() <= 1 THEN
         RAISE EXCEPTION 'domain_version is written by the versioning functions only';
     END IF;
     RETURN NEW;
@@ -1251,10 +1251,14 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION domain_version_before_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF OLD.status = 'RELEASED' THEN
+    -- RELEASED history is immutable to everyone except the orphan-hygiene repair tool (02),
+    -- which deletes out-of-chain versions under BOTH GUCs, after the routed row deletes,
+    -- with the RESTRICT stamp FK verifying the routing completeness
+    IF OLD.status = 'RELEASED'
+        AND current_setting('twins.domain_version_reconcile', true) IS DISTINCT FROM 'on' THEN
         RAISE EXCEPTION 'released domain versions are immutable';
     END IF;
-    IF current_setting('twins.version_op', true) <> 'on' AND pg_trigger_depth() <= 1 THEN
+    IF current_setting('twins.domain_version_op', true) <> 'on' AND pg_trigger_depth() <= 1 THEN
         RAISE EXCEPTION 'domain_version is written by the versioning functions only';
     END IF;
     RETURN OLD;
@@ -1278,12 +1282,12 @@ CREATE TRIGGER domain_version_before_delete_wrapper_trigger
 
 -- ============================================================================
 -- 10. domain_version_audit guard: INSERT only from the audit wrappers, history is immutable
---     (the future archive scheduler will run under twins.version_op)
+--     (the future archive scheduler will run under twins.domain_version_op)
 -- ============================================================================
 CREATE OR REPLACE FUNCTION domain_version_audit_before_insert_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF pg_trigger_depth() <= 1 AND current_setting('twins.version_op', true) <> 'on' THEN
+    IF pg_trigger_depth() <= 1 AND current_setting('twins.domain_version_op', true) <> 'on' THEN
         RAISE EXCEPTION 'domain_version_audit rows are written by the audit wrappers only';
     END IF;
     RETURN NEW;
@@ -1293,7 +1297,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION domain_version_audit_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF current_setting('twins.version_op', true) <> 'on' THEN
+    IF current_setting('twins.domain_version_op', true) <> 'on' THEN
         RAISE EXCEPTION 'domain_version_audit history is immutable';
     END IF;
     RETURN NEW;
@@ -1303,7 +1307,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION domain_version_audit_before_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF current_setting('twins.version_op', true) <> 'on' THEN
+    IF current_setting('twins.domain_version_op', true) <> 'on' THEN
         RAISE EXCEPTION 'domain_version_audit history is immutable';
     END IF;
     RETURN OLD;
