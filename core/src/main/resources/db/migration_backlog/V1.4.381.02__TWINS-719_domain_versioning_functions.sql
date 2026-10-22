@@ -149,18 +149,73 @@ $$
      WHERE d.id = p_domain_id;
 $$;
 
+-- ============================================================================
+-- Shared preconditions of the gate and the operations: tiny asserts over the
+-- already-read state (explicit parameters, no hidden re-reads).
+-- ============================================================================
+CREATE OR REPLACE FUNCTION domain_version_assert_version_found(p_domain_id uuid, p_version_id uuid) RETURNS void AS
+$$
+BEGIN
+    IF p_version_id IS NULL THEN
+        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION domain_version_assert_supported_version_status(p_domain_id uuid, p_version_status varchar) RETURNS void AS
+$$
+BEGIN
+    IF p_version_status NOT IN ('OPEN', 'RELEASED') THEN
+        RAISE EXCEPTION 'unsupported domain version status % for domain %', p_version_status, p_domain_id;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION domain_version_assert_no_operation_running(p_domain_id uuid, p_operation_status varchar) RETURNS void AS
+$$
+BEGIN
+    IF p_operation_status <> 'IDLE' THEN
+        RAISE EXCEPTION 'another operation (%) is already running for domain %', p_operation_status, p_domain_id
+            USING ERRCODE = '55006';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION domain_version_assert_not_locked(p_domain_id uuid, p_locked boolean) RETURNS void AS
+$$
+BEGIN
+    IF p_locked THEN
+        RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+-- p_action describes the attempted step: 'release', 'roll back', 'finish the release', ...
+CREATE OR REPLACE FUNCTION domain_version_assert_open_window(p_domain_id uuid, p_version_status varchar, p_action text) RETURNS void AS
+$$
+BEGIN
+    IF p_version_status <> 'OPEN' THEN
+        RAISE EXCEPTION 'cannot %: current version of domain % must be OPEN, got %', p_action, p_domain_id, p_version_status;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION domain_version_assert_operation_state(p_domain_id uuid, p_operation_status varchar, p_expected varchar) RETURNS void AS
+$$
+BEGIN
+    IF p_operation_status <> p_expected THEN
+        RAISE EXCEPTION 'domain % is not in % state', p_domain_id, p_expected;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Single copy of the edit gates: no operation may run, the domain must not be frozen.
 CREATE OR REPLACE FUNCTION domain_version_assert_edit_allowed(
     p_domain_id uuid, p_operation_status varchar, p_locked boolean) RETURNS void AS
 $$
 BEGIN
-    IF p_operation_status <> 'IDLE' THEN
-        RAISE EXCEPTION 'domain % configuration is locked by a running operation (%)',
-            p_domain_id, p_operation_status USING ERRCODE = '55006';
-    END IF;
-    IF p_locked THEN
-        RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
-    END IF;
+    PERFORM domain_version_assert_no_operation_running(p_domain_id, p_operation_status);
+    PERFORM domain_version_assert_not_locked(p_domain_id, p_locked);
 END;
 $$ LANGUAGE plpgsql;
 
@@ -182,13 +237,8 @@ BEGIN
 
     -- 1. lock-free pre-read: its ONLY job is choosing the lock mode
     SELECT * INTO v_state FROM domain_version_current_state(p_domain_id);
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
-    IF v_state.version_status NOT IN ('OPEN', 'RELEASED') THEN
-        RAISE EXCEPTION 'unsupported domain version status % for domain %',
-            v_state.version_status, p_domain_id;
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_state.version_id);
+    PERFORM domain_version_assert_supported_version_status(p_domain_id, v_state.version_status);
 
     -- 2. take the lock: shared for an open window (edits do not block each other),
     --    exclusive for a released one (the first edit opens the new window). A shared
@@ -207,9 +257,7 @@ BEGIN
     --    from every future delta. While the lock is held, current cannot change:
     --    every operation changing it takes the exclusive lock first.
     SELECT * INTO v_state FROM domain_version_current_state(p_domain_id);
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_state.version_id);
     PERFORM domain_version_assert_edit_allowed(p_domain_id, v_state.operation_status, v_state.locked);
 
     -- 4. resolve the stamp
@@ -223,8 +271,8 @@ BEGIN
         RAISE EXCEPTION 'domain % version state changed concurrently, retry the transaction', p_domain_id
             USING ERRCODE = '40001';
     ELSIF v_state.version_status <> 'RELEASED' THEN
-        RAISE EXCEPTION 'unsupported domain version status % for domain %',
-            v_state.version_status, p_domain_id;   -- defensive, see step 3
+        -- defensive, see step 3: always raises, control never reaches step 5 here
+        PERFORM domain_version_assert_supported_version_status(p_domain_id, v_state.version_status);
     END IF;
 
     -- 5. exclusive lock held, current is RELEASED: lazily open the new draft window
@@ -307,20 +355,10 @@ BEGIN
       JOIN domain_version dv ON dv.id = d.current_domain_version_id
      WHERE d.id = p_domain_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
-    IF v_operation_status <> 'IDLE' THEN
-        RAISE EXCEPTION 'another operation (%) is already running for domain %', v_operation_status, p_domain_id
-            USING ERRCODE = '55006';
-    END IF;
-    IF v_locked THEN
-        RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
-    END IF;
-    IF v_version_status <> 'OPEN' THEN
-        RAISE EXCEPTION 'nothing to release: domain % has no open draft window (no changes since the last release)',
-            p_domain_id;
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_version_id);
+    PERFORM domain_version_assert_no_operation_running(p_domain_id, v_operation_status);
+    PERFORM domain_version_assert_not_locked(p_domain_id, v_locked);
+    PERFORM domain_version_assert_open_window(p_domain_id, v_version_status, 'release');
 
     UPDATE domain SET operation_status = 'RELEASING', operation_started_at = CURRENT_TIMESTAMP
      WHERE id = p_domain_id;
@@ -353,15 +391,9 @@ BEGIN
       JOIN domain_version dv ON dv.id = d.current_domain_version_id
      WHERE d.id = p_domain_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
-    IF v_operation_status <> 'RELEASING' THEN
-        RAISE EXCEPTION 'domain % is not in RELEASING state', p_domain_id;
-    END IF;
-    IF v_version_status <> 'OPEN' THEN
-        RAISE EXCEPTION 'current version of domain % must be OPEN, got %', p_domain_id, v_version_status;
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_version_id);
+    PERFORM domain_version_assert_operation_state(p_domain_id, v_operation_status, 'RELEASING');
+    PERFORM domain_version_assert_open_window(p_domain_id, v_version_status, 'finish the release');
 
     IF btrim(coalesce(p_version, '')) = '' THEN
         RAISE EXCEPTION 'release label must not be empty for domain %', p_domain_id;
@@ -457,13 +489,8 @@ BEGIN
       JOIN domain_version dv ON dv.id = d.current_domain_version_id
      WHERE d.id = p_domain_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
-    IF v_operation_status <> 'IDLE' THEN
-        RAISE EXCEPTION 'another operation (%) is already running for domain %', v_operation_status, p_domain_id
-            USING ERRCODE = '55006';
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_version_id);
+    PERFORM domain_version_assert_no_operation_running(p_domain_id, v_operation_status);
 
     IF p_mode = 'INCREMENTAL' THEN
         IF v_version_status <> 'RELEASED' THEN
@@ -509,12 +536,8 @@ BEGIN
       JOIN domain_version dv ON dv.id = d.current_domain_version_id
      WHERE d.id = p_domain_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
-    IF v_operation_status <> 'IMPORTING' THEN
-        RAISE EXCEPTION 'domain % is not in IMPORTING state', p_domain_id;
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_current_id);
+    PERFORM domain_version_assert_operation_state(p_domain_id, v_operation_status, 'IMPORTING');
 
     -- the import reconciled everything: an open draft window must be empty by now, collapse it
     IF v_current_status = 'OPEN' THEN
@@ -573,19 +596,10 @@ BEGIN
       JOIN domain_version dv ON dv.id = d.current_domain_version_id
      WHERE d.id = p_domain_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
-    IF v_operation_status <> 'IDLE' THEN
-        RAISE EXCEPTION 'another operation (%) is already running for domain %', v_operation_status, p_domain_id
-            USING ERRCODE = '55006';
-    END IF;
-    IF v_locked THEN
-        RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
-    END IF;
-    IF v_version_status <> 'OPEN' THEN
-        RAISE EXCEPTION 'nothing to roll back: domain % has no open draft window', p_domain_id;
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_version_id);
+    PERFORM domain_version_assert_no_operation_running(p_domain_id, v_operation_status);
+    PERFORM domain_version_assert_not_locked(p_domain_id, v_locked);
+    PERFORM domain_version_assert_open_window(p_domain_id, v_version_status, 'roll back');
 
     UPDATE domain SET operation_status = 'ROLLBACK', operation_started_at = CURRENT_TIMESTAMP
      WHERE id = p_domain_id;
@@ -611,15 +625,9 @@ BEGIN
       JOIN domain_version dv ON dv.id = d.current_domain_version_id
      WHERE d.id = p_domain_id;
 
-    IF NOT FOUND THEN
-        RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-    END IF;
-    IF v_operation_status <> 'ROLLBACK' THEN
-        RAISE EXCEPTION 'domain % is not in ROLLBACK state', p_domain_id;
-    END IF;
-    IF v_version_status <> 'OPEN' THEN
-        RAISE EXCEPTION 'current version of domain % must be OPEN, got %', p_domain_id, v_version_status;
-    END IF;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_window_id);
+    PERFORM domain_version_assert_operation_state(p_domain_id, v_operation_status, 'ROLLBACK');
+    PERFORM domain_version_assert_open_window(p_domain_id, v_version_status, 'finish the rollback');
 
     -- collapse the empty window: the domain returns to the last released state verbatim
     IF NOT domain_version_window_has_stamped_rows(p_domain_id, v_window_id) THEN
