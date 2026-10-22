@@ -1,10 +1,9 @@
 -- TWINS-719: domain configuration versioning, model v2 (pilot).
 -- Step 4/4: triggers (docs/db_trigger_functions_convention.md: thin wrappers, logic in procedures).
 --
--- twin_class already has business wrappers with heavy logic: versioning is added as SEPARATE
--- triggers with the _domain_version suffix (existing bodies are not touched, no regression risk;
--- execution order between the triggers does not matter — the logic is independent).
--- The other six tables get canonical wrapper names (they have no wrappers yet).
+-- twin_class already has canonical business wrappers: the versioning blocks are merged INTO
+-- them (per the convention: one wrapper per operation per table). The other six tables have
+-- no wrappers yet and get canonical ones carrying only the versioning logic.
 
 -- ============================================================================
 -- 0. Shared logic used by the wrappers below
@@ -226,11 +225,20 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================================
--- 1. twin_class (root table, business wrappers exist -> separate _domain_version triggers)
+-- 1. twin_class (root table): versioning is merged INTO the canonical business wrappers
+--    (docs/db_trigger_functions_convention.md: one wrapper per operation per table).
+--    Business calls keep their position; the versioning block runs after the
+--    inherited-fields fill (before_insert) / last (before_update, after_*). The five
+--    existing triggers are untouched (definitions unchanged, bodies replaced below);
+--    twin_class_before_delete_wrapper_trigger is new (no business before-delete existed).
 -- ============================================================================
-CREATE OR REPLACE FUNCTION twin_class_before_insert_domain_version_wrapper() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION twin_class_before_insert_wrapper() RETURNS trigger AS
 $$
 BEGIN
+    new := twin_class_set_inherited_fields_on_insert(new);
+
+    -- versioning (TWINS-719): after the inherited-fields fill, the resurrect comparison
+    -- must see the final image
     IF NOT domain_version_protected_path() THEN
         IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
             RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
@@ -238,24 +246,31 @@ BEGIN
         NEW.domain_version_id := domain_version_before_insert_core(
             TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
     END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION twin_class_before_update_domain_version_wrapper() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION twin_class_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
+    if new.extends_hierarchy_tree is distinct from old.extends_hierarchy_tree and old.extends_hierarchy_tree is not null then
+        new := twin_class_update_extends_hierarchy_tree(old, new);
+    end if;
+
+    -- versioning (TWINS-719): last, the meaningful-change check must see the final NEW
     IF NOT domain_version_protected_path() THEN
         NEW.domain_version_id := coalesce(domain_version_before_update_core(
             TG_TABLE_NAME, NEW.id,
             OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
             OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
     END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION twin_class_before_delete_domain_version_wrapper() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION twin_class_before_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
     IF domain_version_before_delete_core(
@@ -266,18 +281,126 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION twin_class_after_insert_domain_version_wrapper() RETURNS trigger AS
+DROP TRIGGER IF EXISTS twin_class_before_delete_wrapper_trigger ON twin_class;
+CREATE TRIGGER twin_class_before_delete_wrapper_trigger
+    BEFORE DELETE ON twin_class FOR EACH ROW
+    EXECUTE FUNCTION twin_class_before_delete_wrapper();
+
+CREATE OR REPLACE FUNCTION twin_class_after_insert_wrapper() RETURNS trigger AS
 $$
 BEGIN
+    -- Call tree update on insert when extends_twin_class_id is set
+    PERFORM hierarchy_twin_class_extends_process_tree_update(old, new, TG_OP);
+    PERFORM twin_class_has_segments_check(new.head_twin_class_id);
+
+    -- Update direct children counters for parents
+    IF NEW.extends_twin_class_id IS NOT NULL THEN
+        PERFORM update_direct_children_counters(NEW.extends_twin_class_id, 'extends');
+    END IF;
+
+    IF NEW.head_twin_class_id IS NOT NULL THEN
+        PERFORM update_direct_children_counters(NEW.head_twin_class_id, 'head');
+    END IF;
+
+    -- versioning (TWINS-719)
     PERFORM domain_version_audit_write(
         TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id, 'INSERT', NULL, to_jsonb(NEW));
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION twin_class_after_update_domain_version_wrapper() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION twin_class_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
+    -- fn's if view_permission_id changed
+    IF NEW.view_permission_id IS DISTINCT FROM OLD.view_permission_id THEN
+        UPDATE twin t SET view_permission_id = NEW.view_permission_id FROM twin_class tc WHERE not t.view_permission_custom and t.twin_class_id = NEW.id;
+    END IF;
+
+    -- Update tree if extends_twin_class_id changed
+    IF NEW.extends_twin_class_id IS DISTINCT FROM OLD.extends_twin_class_id
+        -- we need to update tree only in case if extends_twin_class_id was updated and tree wasn't
+        AND NEW.extends_hierarchy_tree IS NOT DISTINCT FROM OLD.extends_hierarchy_tree THEN
+        PERFORM hierarchy_twin_class_extends_process_tree_update(old, new, TG_OP);
+    END IF;
+
+    -- Update tree and has_segments if head_twin_class_id changed
+    IF NEW.head_twin_class_id IS DISTINCT FROM OLD.head_twin_class_id THEN
+        PERFORM hierarchy_twin_class_head_process_tree_update(old, new, TG_OP);
+        PERFORM twin_class_has_segments_check(old.head_twin_class_id);
+        PERFORM twin_class_has_segments_check(new.head_twin_class_id);
+    END IF;
+
+    -- Update has_segments if segment changed
+    IF NEW.segment IS DISTINCT FROM OLD.segment THEN
+        PERFORM twin_class_has_segments_check(new.head_twin_class_id);
+    END IF;
+
+    -- Recalculate hierarchy if schema space fields changed
+    IF (NEW.permission_schema_space IS DISTINCT FROM OLD.permission_schema_space)
+        OR (NEW.twinflow_schema_space IS DISTINCT FROM OLD.twinflow_schema_space)
+        OR (NEW.twin_class_schema_space IS DISTINCT FROM OLD.twin_class_schema_space)
+        OR (NEW.alias_space IS DISTINCT FROM OLD.alias_space) THEN
+        PERFORM twin_class_hierarchy_recalculate(old, new);
+    END IF;
+
+    -- Auto update permissions if key changed
+    IF NEW.key IS DISTINCT FROM OLD.key THEN
+        PERFORM permissions_autoupdate_on_twin_class_update(old, new);
+    END IF;
+
+    -- Update inherited bread_crumbs_face_id if changed
+    IF NEW.bread_crumbs_face_id IS DISTINCT FROM OLD.bread_crumbs_face_id THEN
+        PERFORM twin_class_update_inherited_bread_crumbs_face_id(old, new);
+    END IF;
+
+    -- Update inherited page_face_id if changed
+    IF NEW.page_face_id IS DISTINCT FROM OLD.page_face_id THEN
+        PERFORM twin_class_update_inherited_page_face_id(old, new);
+    END IF;
+
+    -- Update inherited marker_data_list_id id if changed
+    IF NEW.marker_data_list_id IS DISTINCT FROM OLD.marker_data_list_id THEN
+        PERFORM twin_class_update_inherited_marker_data_list(old, new);
+    END IF;
+
+    -- Update inherited tag_data_list_id id if changed
+    IF NEW.tag_data_list_id IS DISTINCT FROM OLD.tag_data_list_id THEN
+        PERFORM twin_class_update_inherited_tag_data_list(old, new);
+    END IF;
+
+    -- Update inherited flavor_data_list_id id if changed
+    IF NEW.flavor_data_list_id IS DISTINCT FROM OLD.flavor_data_list_id THEN
+        PERFORM twin_class_update_inherited_flavor_data_list(old, new);
+    END IF;
+
+    -- Update direct children counters if parent references changed
+    IF NEW.extends_twin_class_id IS DISTINCT FROM OLD.extends_twin_class_id THEN
+        -- Update old parent's counter
+        IF OLD.extends_twin_class_id IS NOT NULL THEN
+            PERFORM update_direct_children_counters(OLD.extends_twin_class_id, 'extends');
+        END IF;
+
+        -- Update new parent's counter
+        IF NEW.extends_twin_class_id IS NOT NULL THEN
+            PERFORM update_direct_children_counters(NEW.extends_twin_class_id, 'extends');
+        END IF;
+    END IF;
+
+    IF NEW.head_twin_class_id IS DISTINCT FROM OLD.head_twin_class_id THEN
+        -- Update old parent's counter
+        IF OLD.head_twin_class_id IS NOT NULL THEN
+            PERFORM update_direct_children_counters(OLD.head_twin_class_id, 'head');
+        END IF;
+
+        -- Update new parent's counter
+        IF NEW.head_twin_class_id IS NOT NULL THEN
+            PERFORM update_direct_children_counters(NEW.head_twin_class_id, 'head');
+        END IF;
+    END IF;
+
+    -- versioning (TWINS-719)
     IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
         -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
         -- for any delete — the row still exists in the table with the DELETED status
@@ -302,48 +425,34 @@ BEGIN
             TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
             'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
     END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION twin_class_after_delete_domain_version_wrapper() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION twin_class_after_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
+    -- Remove i18n and translations for deleted twin_class
+    PERFORM twin_class_on_delete_i18n_and_translations_delete(old);
+    PERFORM twin_class_has_segments_check(old.head_twin_class_id);
+
+    -- Update direct children counters for parents
+    IF OLD.extends_twin_class_id IS NOT NULL THEN
+        PERFORM update_direct_children_counters(OLD.extends_twin_class_id, 'extends');
+    END IF;
+
+    IF OLD.head_twin_class_id IS NOT NULL THEN
+        PERFORM update_direct_children_counters(OLD.head_twin_class_id, 'head');
+    END IF;
+
+    -- versioning (TWINS-719)
     PERFORM domain_version_after_delete_core(
         TG_TABLE_NAME, OLD.domain_id, OLD.domain_version_id, OLD.id, to_jsonb(OLD));
+
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS twin_class_before_insert_domain_version_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_before_insert_domain_version_wrapper_trigger
-    BEFORE INSERT ON twin_class FOR EACH ROW
-    EXECUTE FUNCTION twin_class_before_insert_domain_version_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_before_update_domain_version_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_before_update_domain_version_wrapper_trigger
-    BEFORE UPDATE ON twin_class FOR EACH ROW
-    EXECUTE FUNCTION twin_class_before_update_domain_version_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_before_delete_domain_version_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_before_delete_domain_version_wrapper_trigger
-    BEFORE DELETE ON twin_class FOR EACH ROW
-    EXECUTE FUNCTION twin_class_before_delete_domain_version_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_after_insert_domain_version_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_after_insert_domain_version_wrapper_trigger
-    AFTER INSERT ON twin_class FOR EACH ROW
-    EXECUTE FUNCTION twin_class_after_insert_domain_version_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_after_update_domain_version_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_after_update_domain_version_wrapper_trigger
-    AFTER UPDATE ON twin_class FOR EACH ROW
-    EXECUTE FUNCTION twin_class_after_update_domain_version_wrapper();
-
-DROP TRIGGER IF EXISTS twin_class_after_delete_domain_version_wrapper_trigger ON twin_class;
-CREATE TRIGGER twin_class_after_delete_domain_version_wrapper_trigger
-    AFTER DELETE ON twin_class FOR EACH ROW
-    EXECUTE FUNCTION twin_class_after_delete_domain_version_wrapper();
 
 -- ============================================================================
 -- 2. twin_class_field (child of twin_class, uuid PK)

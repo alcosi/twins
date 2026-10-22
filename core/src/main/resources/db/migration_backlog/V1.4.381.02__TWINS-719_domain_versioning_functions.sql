@@ -136,101 +136,101 @@ $$ LANGUAGE plpgsql;
 -- ============================================================================
 -- 1. Edit gate: check the operation gate, lazily open the draft window, return the stamp
 -- ============================================================================
+
+-- Single source of the domain/version state read. LANGUAGE sql STABLE: the planner
+-- inlines it into the caller, zero call overhead.
+CREATE OR REPLACE FUNCTION domain_version_current_state(p_domain_id uuid)
+    RETURNS TABLE(operation_status varchar, locked boolean, version_id uuid, version_status varchar)
+    LANGUAGE sql STABLE AS
+$$
+    SELECT d.operation_status, d.locked, dv.id, dv.status
+      FROM domain d
+      JOIN domain_version dv ON dv.id = d.current_domain_version_id
+     WHERE d.id = p_domain_id;
+$$;
+
+-- Single copy of the edit gates: no operation may run, the domain must not be frozen.
+CREATE OR REPLACE FUNCTION domain_version_assert_edit_allowed(
+    p_domain_id uuid, p_operation_status varchar, p_locked boolean) RETURNS void AS
+$$
+BEGIN
+    IF p_operation_status <> 'IDLE' THEN
+        RAISE EXCEPTION 'domain % configuration is locked by a running operation (%)',
+            p_domain_id, p_operation_status USING ERRCODE = '55006';
+    END IF;
+    IF p_locked THEN
+        RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION domain_version_gate(p_domain_id uuid) RETURNS uuid AS
 $$
 DECLARE
-    v_lock_key          bigint;
-    v_operation_status  varchar;
-    v_locked            boolean;
-    v_version_id        uuid;
-    v_version_status    varchar;
-    v_new_id            uuid;
+    v_lock_key bigint;
+    v_state    record;
+    v_shared   boolean;
+    v_new_id   uuid;
 BEGIN
-    -- core/global rows are not versioned
-    IF p_domain_id IS NULL THEN
-        RETURN NULL;
-    END IF;
-    -- import path applies external content with explicit stamps
-    IF current_setting('twins.import_mode', true) = 'on' THEN
+    -- core/global rows are not versioned; the import path applies external
+    -- content with explicit stamps
+    IF p_domain_id IS NULL OR current_setting('twins.import_mode', true) = 'on' THEN
         RETURN NULL;
     END IF;
 
     v_lock_key := domain_version_edit_lock_key(p_domain_id);
 
-    SELECT d.operation_status, d.locked, dv.id, dv.status
-      INTO v_operation_status, v_locked, v_version_id, v_version_status
-      FROM domain d
-      JOIN domain_version dv ON dv.id = d.current_domain_version_id
-     WHERE d.id = p_domain_id;
-
+    -- 1. lock-free pre-read: its ONLY job is choosing the lock mode
+    SELECT * INTO v_state FROM domain_version_current_state(p_domain_id);
     IF NOT FOUND THEN
         RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
     END IF;
+    IF v_state.version_status NOT IN ('OPEN', 'RELEASED') THEN
+        RAISE EXCEPTION 'unsupported domain version status % for domain %',
+            v_state.version_status, p_domain_id;
+    END IF;
 
-    IF v_version_status = 'OPEN' THEN
-        -- fast path: shared lock held until commit, the FULL state is re-read under the lock —
-        -- the initial lock-free read may be stale, a whole release can complete between the read
-        -- and the lock (operation_status returns to IDLE while the version is already RELEASED);
-        -- returning the stale window id would stamp the edit into a closed version and silently
-        -- lose it from every future delta
+    -- 2. take the lock: shared for an open window (edits do not block each other),
+    --    exclusive for a released one (the first edit opens the new window). A shared
+    --    lock is never taken before the exclusive one — no upgrade deadlocks
+    v_shared := v_state.version_status = 'OPEN';
+    IF v_shared THEN
         PERFORM pg_advisory_xact_lock_shared(v_lock_key);
-        SELECT d.operation_status, d.locked, dv.id, dv.status
-          INTO v_operation_status, v_locked, v_version_id, v_version_status
-          FROM domain d
-          JOIN domain_version dv ON dv.id = d.current_domain_version_id
-         WHERE d.id = p_domain_id;
-        IF NOT FOUND THEN
-            RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
-        END IF;
-        IF v_operation_status <> 'IDLE' THEN
-            RAISE EXCEPTION 'domain % configuration is locked by a running operation (%)',
-                p_domain_id, v_operation_status USING ERRCODE = '55006';
-        END IF;
-        IF v_locked THEN
-            RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
-        END IF;
-        IF v_version_status <> 'OPEN' THEN
-            -- the current version was replaced while we were acquiring the lock (typically a
-            -- completed release). Upgrading shared -> exclusive is a deadlock hazard, a
-            -- transaction-scoped shared lock cannot be released early either: ask for a retry,
-            -- the retry takes the slow path and opens the fresh window itself
-            RAISE EXCEPTION 'domain % version state changed concurrently, retry the transaction', p_domain_id
-                USING ERRCODE = '40001';
-        END IF;
-        RETURN v_version_id;
+    ELSE
+        PERFORM pg_advisory_xact_lock(v_lock_key);
     END IF;
 
-    IF v_version_status <> 'RELEASED' THEN
-        RAISE EXCEPTION 'unsupported domain version status % for domain %', v_version_status, p_domain_id;
-    END IF;
-
-    -- slow path: the first edit after a release opens a new draft window (exclusive lock; a
-    -- shared lock is never taken before it, so there are no upgrade deadlocks)
-    PERFORM pg_advisory_xact_lock(v_lock_key);
-
-    SELECT d.operation_status, d.locked, dv.id, dv.status
-      INTO v_operation_status, v_locked, v_version_id, v_version_status
-      FROM domain d
-      JOIN domain_version dv ON dv.id = d.current_domain_version_id
-     WHERE d.id = p_domain_id;
-
+    -- 3. authoritative re-read under the lock. The pre-read may be stale: a whole
+    --    release can complete between the pre-read and the lock (operation_status
+    --    returns to IDLE while the version is already RELEASED); returning a stale
+    --    window id would stamp the edit into a closed version and silently lose it
+    --    from every future delta. While the lock is held, current cannot change:
+    --    every operation changing it takes the exclusive lock first.
+    SELECT * INTO v_state FROM domain_version_current_state(p_domain_id);
     IF NOT FOUND THEN
         RAISE EXCEPTION 'current domain version not found for domain %', p_domain_id;
     END IF;
-    IF v_operation_status <> 'IDLE' THEN
-        RAISE EXCEPTION 'domain % configuration is locked by a running operation (%)',
-            p_domain_id, v_operation_status USING ERRCODE = '55006';
-    END IF;
-    IF v_locked THEN
-        RAISE EXCEPTION 'domain % is frozen (locked)', p_domain_id USING ERRCODE = '55006';
-    END IF;
-    IF v_version_status = 'OPEN' THEN
-        RETURN v_version_id; -- another first-edit opened the window while we were waiting
+    PERFORM domain_version_assert_edit_allowed(p_domain_id, v_state.operation_status, v_state.locked);
+
+    -- 4. resolve the stamp
+    IF v_state.version_status = 'OPEN' THEN
+        RETURN v_state.version_id;             -- live window (possibly opened by someone
+                                                -- else while we waited on the exclusive lock)
+    ELSIF v_shared THEN
+        -- the version closed while we were acquiring the shared lock. A window cannot
+        -- be opened under a shared lock and the upgrade is a deadlock hazard: ask for
+        -- a retry, the retry pre-reads RELEASED and takes the slow path
+        RAISE EXCEPTION 'domain % version state changed concurrently, retry the transaction', p_domain_id
+            USING ERRCODE = '40001';
+    ELSIF v_state.version_status <> 'RELEASED' THEN
+        RAISE EXCEPTION 'unsupported domain version status % for domain %',
+            v_state.version_status, p_domain_id;   -- defensive, see step 3
     END IF;
 
+    -- 5. exclusive lock held, current is RELEASED: lazily open the new draft window
     v_new_id := uuid_generate_v7_custom();
-    PERFORM set_config('twins.version_op', 'on', true);
-    INSERT INTO domain_version (id, domain_id, version, status)
+    PERFORM set_config('twins.version_op', 'on', true);   -- domain_version is writable
+    INSERT INTO domain_version (id, domain_id, version, status)          -- only via the functions
     VALUES (v_new_id, p_domain_id, 'draft', 'OPEN');
     UPDATE domain SET current_domain_version_id = v_new_id WHERE id = p_domain_id;
     PERFORM set_config('twins.version_op', '', true);
