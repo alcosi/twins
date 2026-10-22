@@ -5,9 +5,6 @@
 --                       functions/wrappers around their internal writes AND by the importer
 --                       (FULL/INCREMENTAL/rollback apply) around applying external content with
 --                       explicit stamps and row statuses; never left set across statements.
---   twins.domain_version_reconcile — 'on' only around domain_version_reconcile's version-row
---                       delete: authorizes removing RELEASED versions that fell out of the
---                       chain (the domain_version delete guard checks it).
 -- Design: ai/plans/domain-versioning-v2.md; implementation plan: ai/plans/domain-versioning-slice-a.md
 
 -- ============================================================================
@@ -669,22 +666,26 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================================
--- 8. Orphan hygiene: rows stamped with versions outside the chain of the current version.
---    Diagnostic / repair tool, NOT a part of the import reconcile.
+-- 8. Foreign-stamp hygiene: config-table rows stamped with versions outside the chain of the
+--    current version. Diagnostic / repair tool, NOT a part of the import reconcile.
 -- ============================================================================
--- Routing goes through the audit journal (the domain_version_deleted_rows_cleanup pattern):
--- every stamp ever written by the wrappers/backfill has a journal record, so ONE DISTINCT query
--- over the window index (domain_id, domain_version_id, table_name) enumerates exactly the
--- (table, stamp) pairs carrying orphan rows — no per-table probing at >100 versioned tables.
--- The contract covers journal-known orphans; a dangling stamp with neither a version row nor a
--- journal record (pre-VALIDATE legacy) is invisible here and left alone.
--- The phase order makes the ON DELETE RESTRICT stamp FK reconcile's own verifier: the orphan
--- version rows are deleted only AFTER the routed row deletes — if the routing missed a stamped
--- table, the version delete fails loudly with an FK violation instead of leaving dangling
--- stamps. The orphans' journal records are purged LAST, so a failed run keeps the evidence and
--- can simply be re-run.
--- The row semantic is "physically delete whatever carries an orphan stamp" (rows born in the
--- orphan AND rows that pre-existed it). A journal-restore variant — UPDATE/DELETE orphans
+-- The version table may legitimately hold a fork of release branches (a hotfix line next to
+-- the main one): out-of-chain domain_version rows and their journals are history and are NOT
+-- touched. What is always wrong is a SETTINGS row stamped with a foreign ("чужая") version:
+-- it is not part of the current configuration and would pollute every snapshot/delta. Only
+-- those rows are reported and (in repair mode) physically deleted — so run the repair only
+-- when the foreign branches are abandoned; their stamped rows will not come back.
+-- Routing is journal-driven (the domain_version_deleted_rows_cleanup pattern): the after
+-- wrappers journal every path unconditionally, so ONE DISTINCT query over the window index
+-- (domain_id, domain_version_id, table_name) enumerates exactly the (table, stamp) pairs
+-- carrying foreign rows — no per-table probing at >100 versioned tables, no reliance on the
+-- version table's contents: a foreign stamp needs no version row to be found. Contract limit:
+-- a foreign stamp whose journal records were lost (pre-VALIDATE legacy, purged journal) is
+-- invisible here and left alone. The routed deletes journal themselves into the foreign
+-- version's slice (the wrappers are unconditional), so the branch history records the cleanup
+-- and a re-run simply matches 0 rows.
+-- The row semantic is "physically delete whatever carries a foreign stamp" (rows born in the
+-- branch AND rows that pre-existed it). A journal-restore variant — UPDATE/DELETE rows
 -- restored from the before-image instead of deleted — is a possible evolution: the routing
 -- query already carries the operation info, it is just not used yet.
 -- the return type changed (row_ctid tid -> rows_matched bigint): CREATE OR REPLACE cannot
@@ -695,14 +696,20 @@ CREATE OR REPLACE FUNCTION domain_version_reconcile(p_domain_id uuid, p_dry_run 
 $$
 DECLARE
     r         record;
+    v_current uuid;
     v_chain   uuid[];
-    v_orphans uuid[];
 BEGIN
-    -- 1. the chain of the current version via previous-links: ONE recursive query, not a loop
+    -- a repair tool must not no-op silently on a broken pointer
+    SELECT current_domain_version_id INTO v_current FROM domain WHERE id = p_domain_id;
+    PERFORM domain_version_assert_version_found(p_domain_id, v_current);
+
+    -- the chain of the current version via previous-links: ONE recursive query, not a loop.
+    -- "Foreign" = any stamp NOT in this chain, whether its version row exists (a release
+    -- branch), is collapsed or never existed
     WITH RECURSIVE chain AS (
         SELECT dv.id
           FROM domain_version dv
-          WHERE dv.id = (SELECT current_domain_version_id FROM domain WHERE id = p_domain_id)
+          WHERE dv.id = v_current
         UNION
         SELECT dv.id
           FROM domain_version dv
@@ -710,27 +717,16 @@ BEGIN
     )
     SELECT ARRAY(SELECT id FROM chain) INTO v_chain;
 
-    -- 2. orphans = version rows outside the chain. NULL -> nothing to do; this is also the
-    --    defensive branch for a broken current pointer (<> ALL(NULL) is UNKNOWN -> no orphans
-    --    -> wipe nothing)
-    SELECT array_agg(dv.id) INTO v_orphans
-      FROM domain_version dv
-     WHERE dv.domain_id = p_domain_id
-       AND dv.id <> ALL (v_chain);
-    IF v_orphans IS NULL THEN
-        RETURN;
-    END IF;
-
     IF NOT p_dry_run THEN
         PERFORM set_config('twins.domain_version_op', 'on', true);   -- physical deletes allowed
     END IF;
 
-    -- 3. journal-routed row deletes: only the tables that actually recorded changes under an
-    --    orphan stamp are visited
+    -- journal-routed row deletes: only the tables that actually recorded changes under a
+    -- foreign stamp are visited
     FOR r IN SELECT DISTINCT a.table_name AS t, a.domain_version_id AS v
                FROM domain_version_audit a
               WHERE a.domain_id = p_domain_id
-                AND a.domain_version_id = ANY (v_orphans)
+                AND a.domain_version_id <> ALL (v_chain)
               ORDER BY 1, 2
     LOOP
         IF p_dry_run THEN
@@ -747,32 +743,7 @@ BEGIN
         RETURN NEXT;
     END LOOP;
 
-    -- 4. journal-silent orphans: no rows to delete, but the version row itself goes at step 5
-    FOR r IN SELECT dv.id AS v
-               FROM domain_version dv
-              WHERE dv.id = ANY (v_orphans)
-                AND NOT EXISTS (SELECT 1
-                                  FROM domain_version_audit a
-                                 WHERE a.domain_id = p_domain_id
-                                   AND a.domain_version_id = dv.id)
-              ORDER BY 1
-    LOOP
-        table_name := NULL;
-        domain_version_id := r.v;
-        rows_matched := 0;
-        RETURN NEXT;
-    END LOOP;
-
     IF NOT p_dry_run THEN
-        -- 5. RESTRICT-verified: fails loudly if the routing above missed a stamped table.
-        --    RELEASED rows are delete-protected by the domain_version guard; the second GUC
-        --    names the single path allowed to remove out-of-chain history
-        PERFORM set_config('twins.domain_version_reconcile', 'on', true);
-        DELETE FROM domain_version dv WHERE dv.id = ANY (v_orphans);
-        PERFORM set_config('twins.domain_version_reconcile', '', true);
-        -- 6. purge the orphans' journal (incl. the records the routed deletes just wrote)
-        DELETE FROM domain_version_audit a
-         WHERE a.domain_id = p_domain_id AND a.domain_version_id = ANY (v_orphans);
         PERFORM set_config('twins.domain_version_op', '', true);
     END IF;
 END;

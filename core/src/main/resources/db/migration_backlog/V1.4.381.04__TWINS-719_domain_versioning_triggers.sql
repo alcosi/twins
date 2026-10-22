@@ -1222,8 +1222,7 @@ CREATE TRIGGER domain_before_insert_wrapper_trigger
 
 -- ============================================================================
 -- 9. domain_version guard: writes only from the versioning functions (twins.domain_version_op);
---    RELEASED rows are immutable unless the reconcile repair tool runs
---    (twins.domain_version_reconcile, see the delete wrapper below)
+--    RELEASED rows are immutable unconditionally
 -- ============================================================================
 CREATE OR REPLACE FUNCTION domain_version_before_insert_wrapper() RETURNS trigger AS
 $$
@@ -1251,11 +1250,9 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION domain_version_before_delete_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    -- RELEASED history is immutable to everyone except the orphan-hygiene repair tool (02),
-    -- which deletes out-of-chain versions under BOTH GUCs, after the routed row deletes,
-    -- with the RESTRICT stamp FK verifying the routing completeness
-    IF OLD.status = 'RELEASED'
-        AND current_setting('twins.domain_version_reconcile', true) IS DISTINCT FROM 'on' THEN
+    -- RELEASED history is immutable: out-of-chain release branches are legitimate residents
+    -- of this table, and even the reconcile repair tool (02) never deletes version rows
+    IF OLD.status = 'RELEASED' THEN
         RAISE EXCEPTION 'released domain versions are immutable';
     END IF;
     IF current_setting('twins.domain_version_op', true) <> 'on' AND pg_trigger_depth() <= 1 THEN
