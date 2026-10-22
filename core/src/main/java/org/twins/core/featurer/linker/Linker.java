@@ -24,11 +24,25 @@ public abstract class Linker extends FeaturerTwins {
 
     protected abstract void expandValidLinkedTwinSearch(Properties properties, TwinClassEntity twinClassEntity, TwinEntity headTwinEntity, BasicSearch basicSearch) throws ServiceException;
 
-    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+    /** Valid-twins picker: the linker narrows the user-facing search (filter). */
+    public void expandValidLinkedTwinSearch(HashMap<String, String> linkerParams, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, linkerParams);
         log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidLinkedTwinSearch with params: " + properties.toString());
-        expandValidLinkedTwinSearch(properties, twinEntity, basicSearch);
+
+        expandValidLinkedTwinSearch(properties, twinEntity, forwardElseBackward, basicSearch);
     }
 
-    public abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, BasicSearch basicSearch);
+    /** twin_link validation: the linker rules the candidate in/out (empty result rejects the link). */
+    public void validateLink(HashMap<String, String> linkerParams, boolean forwardElseBackward, TwinEntity twinEntity, BasicSearch basicSearch) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, linkerParams);
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "].validateLink with params: " + properties.toString());
+
+        validateLink(properties, twinEntity, forwardElseBackward, basicSearch);
+    }
+
+    /** Valid-twins picker: narrow the user-facing search to twins valid for the link. */
+    protected abstract void expandValidLinkedTwinSearch(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException;
+
+    /** twin_link validation: rule the candidate in/out (empty result = link rejected). */
+    protected abstract void validateLink(Properties properties, TwinEntity twinEntity, boolean forwardElseBackward, BasicSearch basicSearch) throws ServiceException;
 }
