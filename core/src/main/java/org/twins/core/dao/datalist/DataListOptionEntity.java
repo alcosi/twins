@@ -10,6 +10,7 @@ import org.hibernate.generator.EventType;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.domain.DomainConfig;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.datascope.DataScopeType;
@@ -27,7 +28,7 @@ import java.util.function.Function;
 @FieldNameConstants
 @Table(name = "data_list_option")
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN, DataScopeType.BUSINESS_ACCOUNT})
-public class DataListOptionEntity implements EasyLoggable, Identifiable<UUID> {
+public class DataListOptionEntity implements EasyLoggable, Identifiable<UUID>, DomainConfig {
     @Id
     private UUID id;
 

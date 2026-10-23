@@ -19,6 +19,7 @@ import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
+import org.twins.core.domain.DomainConfig;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
 import org.twins.core.enums.datascope.DataScopeType;
@@ -33,7 +34,7 @@ import java.util.*;
 @Table(name = "twin_class_field")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
-public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID> {
+public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID>, DomainConfig {
 
     @Id
     private UUID id;

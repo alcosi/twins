@@ -10,6 +10,7 @@ import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
 import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.domain.DomainConfig;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datascope.DataScopeType;
 
@@ -21,7 +22,7 @@ import java.util.UUID;
 @Table(name = "data_list_subset_option")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
-public class DataListSubsetOptionEntity implements Identifiable<UUID> {
+public class DataListSubsetOptionEntity implements Identifiable<UUID>, DomainConfig {
     // same namespace as the deterministic backfill in V1.4.381.01 (uuid_generate_v5):
     // independently migrated environments must converge to the same id for the same business key
     private static final UUID ID_NAMESPACE = UUID.fromString("71900000-0000-0000-0000-000000000001");

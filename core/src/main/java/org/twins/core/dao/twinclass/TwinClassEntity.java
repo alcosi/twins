@@ -36,6 +36,7 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.domain.DomainConfig;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
@@ -54,7 +55,7 @@ import java.util.stream.Collectors;
 @Table(name = "twin_class")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
-public class TwinClassEntity implements EasyLoggable, Identifiable<UUID> {
+public class TwinClassEntity implements EasyLoggable, Identifiable<UUID>, DomainConfig {
     @Id
     private UUID id;
 

@@ -140,6 +140,10 @@ Partial unique для бизнес-ключей helper не добавляет (
   `TwinEntity`; exclude'ы §13 предназначались counter-полям, к штампу не применяем — решение 2026-10-23);
 - `domain_id` (там, где колонку добавила волна) — обычный writable `@Column(name = "domain_id")`,
   значение ставит приложение (before-insert гейт читает его из строки);
+- entity реализует `org.twins.core.domain.DomainConfig` (`getDomainId` / chain-`setDomainId` /
+  `getDomainVersionId`; реализацию генерирует Lombok из полей выше) — маркер для autofill
+  (`DomainIdFiller`) и будущих generic-путей версионирования; интерфейс добавляется в той же
+  волне, что и поля (пока нет колонки `domain_version_id`, геттеру неоткуда взяться);
 - `row_status` — отдельная история: переходы ACTIVE↔DISABLED пишет сама Java (только DELETED
   ставится конверсией DELETE), поэтому read-only форма §13 не подходит; маппинг решаем с первым
   Java-потребителем статуса.
@@ -149,23 +153,27 @@ Partial unique для бизнес-ключей helper не добавляет (
 `DataListSubsetOptionEntity`), `domainVersionId` — во всех семи. `DataListSubsetOptionEntity`
 переведена на суррогатный `@Id id` (детерминированная генерация uuid v5 тем же namespace, что
 бэкфилл V1.4.381.01 — проверено побайтовым совпадением с `uuid_generate_v5`), класс
-`DataListOptionSubsetId` удалён. `rowStatus` не мапим до первого Java-потребителя.
+`DataListOptionSubsetId` удалён. Все семь реализуют `DomainConfig`. `rowStatus` не мапим до
+первого Java-потребителя.
 
 **Универсальное заполнение `domainId` (решение 2026-10-23, размещение переработано 2026-10-23):**
 не выводом по цепочке родителей, а из `apiUser.getDomainId()` — системные строки через сервисы
-не создаются. Ядро — `DomainIdFiller.fillOnInsert` (`dao/annotation`, reflection-кэш полей
-id/domainId). Точки вызова: оба `saveSafe` в `TwinsEntitySecureFindService` + явные обёртки
+не создаются. Ядро — `DomainIdFiller.fillOnInsert` (`dao/annotation`), работает через интерфейс
+`DomainConfig` (по образцу `Identifiable`), без рефлексии. Точки вызова: оба `saveSafe` в
+`TwinsEntitySecureFindService` + явные обёртки
 `autofillDomainId(s)` в местах прямых вызовов `entitySmartService.save*` пилота
 (`TwinStatusService` ×2, `TwinClassFieldService`, `DataListOptionService`). Расслоение: cambium
 ничего не знает про twins — `AuthService`, `isDomainAccessDenied`, `checkDomainAccessDenied`
 перенесены из `EntitySecureFindServiceImpl` в `TwinsEntitySecureFindService`, и все twins-сервисы
 (102) перебазированы на `TwinsEntitySecureFindService` (прочие twins-зависимости в cambium —
 Usage/LoadState/ErrorCodeTwins/EntityRequestCacheHolder — осознанно оставлены, отдельная история).
-Условия заполнения: класс несёт `@DataScope` с `DOMAIN`, поле `domainId` существует, значение
-NULL и id ещё не присвоен (insert). Update загруженных строк не трогаем — иначе системная
+Условия заполнения: entity реализует `DomainConfig`, `domainId` NULL и id ещё не присвоен
+(insert, читается через `Identifiable`). Update загруженных строк не трогаем — иначе системная
 строка стала бы доменной при правке. Явное значение побеждает (import/duplicate/rollback шлют
-свои). Таблицы со scope через родителя (своего поля `domainId` ещё нет) молча пропускаются до
-своей волны. Нет резолвимого доменного контекста (системные джобы) — пропуск. Остаточная дыра:
+свои). Entity без `DomainConfig` молча пропускаются до своей волны — включая ~31 DOMAIN-scope
+entity, у которых поле `domainId` уже есть (Link, TwinflowSchema, PermissionSchema и др.): без
+колонки `domain_version_id` интерфейс им проставить нельзя, их сервисы по-прежнему ставят
+domainId явно. Нет резолвимого доменного контекста (системные джобы) — пропуск. Остаточная дыра:
 прямые `repository.save` и необёрнутые вызовы `entitySmartService.save*` мимо `saveSafe` не
 заполняются.
 

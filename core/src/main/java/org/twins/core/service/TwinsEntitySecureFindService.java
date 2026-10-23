@@ -6,6 +6,7 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.annotation.DomainIdFiller;
+import org.twins.core.domain.DomainConfig;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
@@ -46,9 +47,12 @@ public abstract class TwinsEntitySecureFindService<T> extends EntitySecureFindSe
 
     /**
      * Universal {@code domain_id} autofill on insert (TWINS-719) — see {@link DomainIdFiller}.
-     * No resolvable domain context (system jobs, schedulers) = entity untouched.
+     * Only {@link DomainConfig} entities are eligible; no resolvable domain context
+     * (system jobs, schedulers) = entity untouched.
      */
     public <E> E autofillDomainId(E entity) {
+        if (!(entity instanceof DomainConfig))
+            return entity;  // not a versioned config row — skip without resolving apiUser
         UUID domainId;
         try {
             domainId = authService.getApiUser().getDomainId();
