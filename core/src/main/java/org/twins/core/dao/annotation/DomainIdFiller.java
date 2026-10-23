@@ -1,7 +1,6 @@
 package org.twins.core.dao.annotation;
 
 import org.twins.core.domain.DomainConfig;
-import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -10,9 +9,11 @@ import java.util.UUID;
  *
  * Fills the {@code domainId} of a {@link DomainConfig} entity, but only:
  * <ul>
- *   <li>on insert — the entity id is still unassigned (ids are generated at persist time),
- *       so already-loaded rows being updated are never touched (a system row must not turn
- *       into a domain-owned one on update);</li>
+ *   <li>on insert — decided by {@code Persistable.isNew()} (the entity's newRow flag is flipped
+ *       off at {@code @PostLoad}/{@code @PostPersist}), so already-loaded rows being updated are
+ *       never touched (a system row must not turn into a domain-owned one on update). A null-id
+ *       check would misfire: create paths do pre-assign ids (UuidUtils.generate, duplicate
+ *       reserved ids);</li>
  *   <li>when no explicit value is set — import / duplicate / rollback paths provide their own.</li>
  * </ul>
  * System rows are not created through services, so a null {@code domainId} on insert means
@@ -26,8 +27,8 @@ public final class DomainIdFiller {
             return entity;
         if (!(entity instanceof DomainConfig domainConfig))
             return entity;
-        if (!(entity instanceof Identifiable<?> identifiable) || identifiable.getId() != null)
-            return entity;  // not an insert (or identity not detectable — safer to skip)
+        if (!domainConfig.isNew())
+            return entity;  // update — never touch
         if (domainConfig.getDomainId() != null)
             return entity;  // explicit value wins
         domainConfig.setDomainId(domainId);

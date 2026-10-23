@@ -12,7 +12,6 @@ import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.DomainConfig;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
@@ -25,7 +24,7 @@ import java.util.UUID;
 @Table(name = "data_list_subset")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
-public class DataListSubsetEntity implements EasyLoggable, Identifiable<UUID>, DomainConfig {
+public class DataListSubsetEntity implements EasyLoggable, DomainConfig {
     @Id
     private UUID id;
 
@@ -41,6 +40,23 @@ public class DataListSubsetEntity implements EasyLoggable, Identifiable<UUID>, D
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "domain_version_id", insertable = false, updatable = false)
     private UUID domainVersionId;
+
+    // insert/update discriminator for Persistable.isNew (TWINS-719) - runtime-only flag, not a column
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private boolean newRow = true;
+
+    @PostLoad
+    @PostPersist
+    protected void markPersisted() {
+        newRow = false;
+    }
+
+    @Override
+    public boolean isNew() {
+        return newRow;
+    }
 
     @Column(name = "data_list_id")
     private UUID dataListId;

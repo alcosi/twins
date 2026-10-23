@@ -143,7 +143,17 @@ Partial unique для бизнес-ключей helper не добавляет (
 - entity реализует `org.twins.core.domain.DomainConfig` (`getDomainId` / chain-`setDomainId` /
   `getDomainVersionId`; реализацию генерирует Lombok из полей выше) — маркер для autofill
   (`DomainIdFiller`) и будущих generic-путей версионирования; интерфейс добавляется в той же
-  волне, что и поля (пока нет колонки `domain_version_id`, геттеру неоткуда взяться);
+  волне, что и поля (пока нет колонки `domain_version_id`, геттеру неоткуда взяться).
+  `DomainConfig extends Identifiable<UUID>`, а `Identifiable extends Persistable<ID>` с default
+  `isNew() = (getId() == null)` — нейтрально для ~70 существующих реализаторов (совпадает с
+  дефолтом Spring Data, `@JsonIgnore` на default-методе). В `DomainConfig` `isNew()` объявлен
+  abstract — версионируемая entity ОБЯЗАНА нести boilerplate:
+  `@Transient @EqualsAndHashCode.Exclude @ToString.Exclude boolean newRow = true`
+  + `@PostLoad/@PostPersist markPersisted()` + `isNew()` (exclude'ы здесь уместны — это
+  runtime-флаг, не колонка). Null-id эвристика отвергнута (2026-10-23): create-пути пресетят id
+  (`UuidUtils.generate()` в `DataListOptionService:318`, reserved ids в duplicate) — флаг
+  единственный надёжный дискриминатор, заодно Spring Data save() для свежих entity с пресетом
+  идёт через persist, а не merge+SELECT;
 - `row_status` — отдельная история: переходы ACTIVE↔DISABLED пишет сама Java (только DELETED
   ставится конверсией DELETE), поэтому read-only форма §13 не подходит; маппинг решаем с первым
   Java-потребителем статуса.
@@ -167,8 +177,9 @@ Partial unique для бизнес-ключей helper не добавляет (
 перенесены из `EntitySecureFindServiceImpl` в `TwinsEntitySecureFindService`, и все twins-сервисы
 (102) перебазированы на `TwinsEntitySecureFindService` (прочие twins-зависимости в cambium —
 Usage/LoadState/ErrorCodeTwins/EntityRequestCacheHolder — осознанно оставлены, отдельная история).
-Условия заполнения: entity реализует `DomainConfig`, `domainId` NULL и id ещё не присвоен
-(insert, читается через `Identifiable`). Update загруженных строк не трогаем — иначе системная
+Условия заполнения: entity реализует `DomainConfig`, `domainId` NULL и это insert —
+`Persistable.isNew()` (флаг `newRow`, сбрасываемый `@PostLoad`/`@PostPersist`).
+Update загруженных строк не трогаем — иначе системная
 строка стала бы доменной при правке. Явное значение побеждает (import/duplicate/rollback шлют
 свои). Entity без `DomainConfig` молча пропускаются до своей волны — включая ~31 DOMAIN-scope
 entity, у которых поле `domainId` уже есть (Link, TwinflowSchema, PermissionSchema и др.): без
