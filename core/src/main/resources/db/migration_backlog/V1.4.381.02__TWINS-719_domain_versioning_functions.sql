@@ -895,12 +895,14 @@ BEGIN
         RAISE EXCEPTION '%: no restorable content columns (every column is the PK, excluded or generated)', p_table;
     END IF;
 
-    -- identical re-insert = the canonical NEW matches the window-start image: the stamp/status
+    -- identical re-insert = the stored image equals the incoming row: the stamp/status
     -- return to the window-start values; anything else is a normal update into the window.
-    -- The content is taken from NEW in both branches — by the branch condition the canonical
-    -- NEW equals the image on the whole restorable set
-    IF v_first_before IS NOT NULL
-       AND NOT domain_version_is_meaningful_change(p_table, v_first_before, v_new_clean) THEN
+    -- Both sides are canonical already (the stored image is cleaned at write time, NEW is
+    -- cleaned above), so the comparison is direct — no repeated cleaning; IS NOT DISTINCT
+    -- FROM also covers a NULL image (no window record) as "different". The content is taken
+    -- from NEW in both branches — by the branch condition the canonical NEW equals the image
+    -- on the whole restorable set
+    IF v_first_before IS NOT DISTINCT FROM v_new_clean THEN
         v_row_status := v_first_before->>'row_status';
         v_stamp      := v_first_before_dv_id;
     ELSE
