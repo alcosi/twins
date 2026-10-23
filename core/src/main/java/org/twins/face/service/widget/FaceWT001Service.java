@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.holder.TypedRequestCacheHolder;
 import org.twins.core.service.context.ContextService;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
@@ -24,6 +25,9 @@ import java.util.function.Function;
 @Lazy
 @RequiredArgsConstructor
 public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
+    /** Request cache prefix (FaceWT001Entity namespace) for search params collected from the widget's context (batch-loaded, no N+1). */
+    private static final String SEARCH_PARAMS_CACHE_PREFIX = "searchParams:";
+
     private final FaceWT001Repository faceWT001Repository;
     private final FaceWT001ColumnRepository faceWT001ColumnRepository;
     private final FaceService faceService;
@@ -57,13 +61,11 @@ public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
     /**
      * Bulk-collects search params from the widgets' contexts ({@code face_wt001.context_id}) for the
      * current request twin — one {@code collectContextsForTwin} call for the whole collection (collector
-     * configs shared by several widgets run once).
-     *
-     * @return widget id → collected params; widgets with a contextId that collected nothing map to an
-     * EMPTY map (lets the caller cache "no data" and skip re-collection); widgets without a contextId
-     * are absent
+     * configs shared by several widgets run once) — and puts them into the request cache
+     * (see {@link #getSearchParams}). Widgets whose context collected nothing get an EMPTY map cached,
+     * so {@link #getSearchParams} will not re-collect them.
      */
-    public Map<UUID, Map<String, String>> collectSearchParams(Collection<FaceWT001Entity> srcCollection) throws ServiceException {
+    public void loadSearchParams(Collection<FaceWT001Entity> srcCollection) throws ServiceException {
         Set<UUID> contextIds = new HashSet<>();
         for (FaceWT001Entity src : srcCollection) {
             if (src.getContextId() != null) {
@@ -71,19 +73,35 @@ public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
             }
         }
         if (contextIds.isEmpty()) {
-            return Map.of();
+            return;
         }
         TwinEntity currentTwin = faceService.getRequestFacePointers().getCurrentTwin();
         if (currentTwin == null) {
             throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "configured search context requires a current twin");
         }
         Map<UUID, Map<String, String>> searchParamsByContextId = contextService.collectContextsForTwin(contextIds, currentTwin);
-        Map<UUID, Map<String, String>> result = new HashMap<>();
         for (FaceWT001Entity src : srcCollection) {
             if (src.getContextId() != null) {
-                result.put(src.getId(), searchParamsByContextId.getOrDefault(src.getContextId(), Map.of()));
+                TypedRequestCacheHolder.put(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId(),
+                        searchParamsByContextId.getOrDefault(src.getContextId(), Map.of()));
             }
         }
-        return result;
+    }
+
+    /**
+     * Search params of the widget from the request cache; on a miss (single-entity convert path —
+     * map() runs without beforeCollectionConversion) collects just this widget's params — no batch
+     * to leverage.
+     */
+    public Map<String, String> getSearchParams(FaceWT001Entity src) throws ServiceException {
+        if (src.getContextId() == null) {
+            return null;
+        }
+        Map<String, String> searchParams = TypedRequestCacheHolder.get(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId());
+        if (searchParams == null) {
+            loadSearchParams(List.of(src));
+            searchParams = TypedRequestCacheHolder.get(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId());
+        }
+        return searchParams;
     }
 }

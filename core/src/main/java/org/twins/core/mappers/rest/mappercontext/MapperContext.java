@@ -42,6 +42,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.holder.TypedRequestCacheHolder;
 import org.twins.core.service.SystemIdLookup;
 
 import java.util.*;
@@ -53,7 +54,6 @@ public class MapperContext {
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
     private MapperModeMap modes = new MapperModeMap();
-    private Hashtable<Class<?>, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); // conversion-scoped cache: entity/DTO class → (cacheId → value)
 
     /**
      * Postponed related objects: outer key is the registered class of the postponed object (see
@@ -336,40 +336,19 @@ public class MapperContext {
     }
 
     /**
-     * Conversion-scoped cache. The Class key is the NAMESPACE of what the cache is about (usually an
-     * entity class — the cached values themselves may be of any type, e.g. converted DTOs, preloaded
-     * entities or per-entity collected data); the string cacheId is the entry key inside the namespace
-     * (usually a feature prefix + entity id). The value type is trusted to the caller.
+     * Conversion cache — backed by the request-wide {@link TypedRequestCacheHolder}, so services can
+     * preload the same entries mappers read. The Class key is the NAMESPACE of what the cache is about
+     * (usually an entity class — the cached values themselves may be of any type, e.g. converted DTOs,
+     * preloaded entities or per-entity collected data); the string cacheId is the entry key inside the
+     * namespace (usually a feature prefix + entity id).
      */
-    @SuppressWarnings("unchecked")
     public <S> S getFromCache(Class<?> cacheType, String cacheId) {
-        if (cacheId == null) {
-            log.debug("CacheId is null for class[{}]", cacheType.getSimpleName());
-            return null;
-        }
-        Hashtable<String, Object> cache = cachedObjects.get(cacheType);
-        if (cache == null)
-            return null;
-        Object obj = cache.get(cacheId);
-        if (obj == null)
-            return null;
-        debugLog(obj, " was found by cacheId[" + cacheId + "]");
-        return (S) obj;
+        return TypedRequestCacheHolder.get(cacheType, cacheId);
     }
 
     /** See {@link #getFromCache(Class, String)} for the cache semantics. */
     public void putToCache(Class<?> cacheType, String cacheId, Object obj) {
-        if (cacheId == null) {
-            log.debug("CacheId is null for class[{}]", cacheType.getSimpleName());
-            return;
-        }
-        Hashtable<String, Object> cache = cachedObjects.get(cacheType);
-        if (cache == null) {
-            cache = new Hashtable<>();
-            cachedObjects.put(cacheType, cache);
-        }
-        cache.put(cacheId, obj);
-        debugLog(obj, " was added to cache with id[" + cacheId + "]");
+        TypedRequestCacheHolder.put(cacheType, cacheId, obj);
     }
 
     public MapperModeMap isolateModes() {
@@ -380,7 +359,6 @@ public class MapperContext {
         MapperContext mapperContext = new MapperContext();
         mapperContext.lazyRelations = this.lazyRelations;
         mapperContext.modes = isolateModes(); // new map with presets
-        mapperContext.cachedObjects = this.cachedObjects; // same map
         mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
         return mapperContext;
     }
@@ -421,7 +399,6 @@ public class MapperContext {
     public MapperContext cloneWithFlushedModes() {
         MapperContext mapperContext = new MapperContext();
         mapperContext.lazyRelations = this.lazyRelations;
-        mapperContext.cachedObjects = this.cachedObjects; // same map
         mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
         linkToRelatedObjects(this, mapperContext);
         return mapperContext;

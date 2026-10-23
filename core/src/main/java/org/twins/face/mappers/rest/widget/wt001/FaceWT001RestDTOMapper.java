@@ -1,7 +1,6 @@
 package org.twins.face.mappers.rest.widget.wt001;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -16,18 +15,13 @@ import org.twins.face.service.widget.FaceWT001ColumnService;
 import org.twins.face.service.widget.FaceWT001Service;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {FaceMode.class})
 public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity, FaceWT001DTOv1> {
-    /** MapperContext cache prefix (FaceWT001Entity namespace) for search params collected from the widget's context, preloaded per batch (no N+1). */
-    private static final String SEARCH_PARAMS_CACHE_PREFIX = "searchParams:";
-
     protected final FaceWT001Service faceWT001Service;
     protected final FaceWT001ColumnService faceWT001ColumnService;
 
@@ -52,7 +46,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
                         .setSearchId(src.getSearchId())
                         .setShowCreateButton(src.isShowCreateButton())
                         .setColumns(faceWT001ColumnRestDTOMapper.convertCollection(faceWT001ColumnService.filterVariants(src.getColumns()), mapperContext));
-                Map<String, String> searchParams = getSearchParams(src, mapperContext);
+                Map<String, String> searchParams = faceWT001Service.getSearchParams(src);
                 if (searchParams != null && !searchParams.isEmpty()) {
                     dst.setSearchParams(searchParams);
                 }
@@ -70,25 +64,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
         super.beforeCollectionConversion(srcCollection, mapperContext);
         faceWT001ColumnService.loadColumns(srcCollection);
         if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
-            Map<UUID, Map<String, String>> collected = faceWT001Service.collectSearchParams(srcCollection);
-            for (var entry : collected.entrySet()) {
-                mapperContext.putToCache(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + entry.getKey(), entry.getValue());
-            }
+            faceWT001Service.loadSearchParams(srcCollection);
         }
-    }
-
-    /**
-     * Search params from the batch cache; on a miss (single-entity convert path — map() runs without
-     * beforeCollectionConversion) collects just this widget's params — no batch to leverage.
-     */
-    private Map<String, String> getSearchParams(FaceWT001Entity src, MapperContext mapperContext) throws ServiceException {
-        if (src.getContextId() == null) {
-            return null;
-        }
-        Map<String, String> searchParams = mapperContext.getFromCache(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId());
-        if (searchParams == null) {
-            searchParams = faceWT001Service.collectSearchParams(List.of(src)).get(src.getId());
-        }
-        return searchParams;
     }
 }

@@ -14,6 +14,7 @@ import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.holder.EntityRequestCacheHolder;
+import org.twins.core.holder.TypedRequestCacheHolder;
 
 import java.util.Properties;
 
@@ -53,6 +54,7 @@ public abstract class Scheduler extends FeaturerTwins {
                 }
             } finally {
                 EntityRequestCacheHolder.clear();
+                TypedRequestCacheHolder.clear();
             }
         };
     }
