@@ -9,8 +9,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.annotation.DataScope;
-import org.twins.core.domain.DomainConfig;
 import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
@@ -21,7 +21,7 @@ import java.util.UUID;
 @Table(name = "data_list_subset_option")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
-public class DataListSubsetOptionEntity implements DomainConfig {
+public class DataListSubsetOptionEntity extends DomainConfigEntity {
     // same namespace as the deterministic backfill in V1.4.381.01 (uuid_generate_v5):
     // independently migrated environments must converge to the same id for the same business key
     private static final UUID ID_NAMESPACE = UUID.fromString("71900000-0000-0000-0000-000000000001");
@@ -50,23 +50,6 @@ public class DataListSubsetOptionEntity implements DomainConfig {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "domain_version_id", insertable = false, updatable = false)
     private UUID domainVersionId;
-
-    // insert/update discriminator for Persistable.isNew (TWINS-719) - runtime-only flag, not a column
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean newRow = true;
-
-    @PostLoad
-    @PostPersist
-    protected void markPersisted() {
-        newRow = false;
-    }
-
-    @Override
-    public boolean isNew() {
-        return newRow;
-    }
 
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

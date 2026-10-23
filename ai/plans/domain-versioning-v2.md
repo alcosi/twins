@@ -147,10 +147,13 @@ Partial unique для бизнес-ключей helper не добавляет (
   `DomainConfig extends Identifiable<UUID>`, а `Identifiable extends Persistable<ID>` с default
   `isNew() = (getId() == null)` — нейтрально для ~70 существующих реализаторов (совпадает с
   дефолтом Spring Data, `@JsonIgnore` на default-методе). В `DomainConfig` `isNew()` объявлен
-  abstract — версионируемая entity ОБЯЗАНА нести boilerplate:
-  `@Transient @EqualsAndHashCode.Exclude @ToString.Exclude boolean newRow = true`
-  + `@PostLoad/@PostPersist markPersisted()` + `isNew()` (exclude'ы здесь уместны — это
-  runtime-флаг, не колонка). Null-id эвристика отвергнута (2026-10-23): create-пути пресетят id
+  abstract — реальный дискриминатор insert/update обязателен. Реализация — через
+  `@MappedSuperclass DomainConfigEntity` (`org.twins.core.dao`, прецедент `TwinFieldBaseEntity`):
+  несёт `@Transient boolean newRow = true` + `@PostLoad/@PostPersist markPersisted()` +
+  `isNew()`; версионируемая entity просто наследует его (per-entity boilerplate = 0 строк).
+  Если слот наследования у entity занят — имплементит `DomainConfig` напрямую и повторяет
+  boilerplate (abstract `isNew()` это форсит). Null-id эвристика отвергнута (2026-10-23):
+  create-пути пресетят id
   (`UuidUtils.generate()` в `DataListOptionService:318`, reserved ids в duplicate) — флаг
   единственный надёжный дискриминатор, заодно Spring Data save() для свежих entity с пресетом
   идёт через persist, а не merge+SELECT;

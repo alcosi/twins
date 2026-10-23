@@ -14,6 +14,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.annotation.DataScope;
@@ -36,7 +37,6 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
-import org.twins.core.domain.DomainConfig;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.enums.comment.TwinCommentAction;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 @Table(name = "twin_class")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
-public class TwinClassEntity implements EasyLoggable, DomainConfig {
+public class TwinClassEntity extends DomainConfigEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -72,23 +72,6 @@ public class TwinClassEntity implements EasyLoggable, DomainConfig {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "domain_version_id", insertable = false, updatable = false)
     private UUID domainVersionId;
-
-    // insert/update discriminator for Persistable.isNew (TWINS-719) - runtime-only flag, not a column
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean newRow = true;
-
-    @PostLoad
-    @PostPersist
-    protected void markPersisted() {
-        newRow = false;
-    }
-
-    @Override
-    public boolean isNew() {
-        return newRow;
-    }
 
     @Column(name = "key")
     private String key;

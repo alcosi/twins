@@ -7,10 +7,10 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
-import org.twins.core.domain.DomainConfig;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.datascope.DataScopeType;
 
@@ -27,7 +27,7 @@ import java.util.function.Function;
 @FieldNameConstants
 @Table(name = "data_list_option")
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN, DataScopeType.BUSINESS_ACCOUNT})
-public class DataListOptionEntity implements EasyLoggable, DomainConfig {
+public class DataListOptionEntity extends DomainConfigEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -45,23 +45,6 @@ public class DataListOptionEntity implements EasyLoggable, DomainConfig {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "domain_version_id", insertable = false, updatable = false)
     private UUID domainVersionId;
-
-    // insert/update discriminator for Persistable.isNew (TWINS-719) - runtime-only flag, not a column
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean newRow = true;
-
-    @PostLoad
-    @PostPersist
-    protected void markPersisted() {
-        newRow = false;
-    }
-
-    @Override
-    public boolean isNew() {
-        return newRow;
-    }
 
     @Column(name = "data_list_id")
     private UUID dataListId;

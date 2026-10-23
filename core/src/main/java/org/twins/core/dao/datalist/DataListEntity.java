@@ -8,10 +8,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.DomainConfig;
 import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
@@ -26,7 +26,7 @@ import java.util.UUID;
 @Table(name = "data_list")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
-public class DataListEntity implements EasyLoggable, DomainConfig {
+public class DataListEntity extends DomainConfigEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -53,23 +53,6 @@ public class DataListEntity implements EasyLoggable, DomainConfig {
     @Generated(event = {EventType.INSERT, EventType.UPDATE})
     @Column(name = "domain_version_id", insertable = false, updatable = false)
     private UUID domainVersionId;
-
-    // insert/update discriminator for Persistable.isNew (TWINS-719) - runtime-only flag, not a column
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean newRow = true;
-
-    @PostLoad
-    @PostPersist
-    protected void markPersisted() {
-        newRow = false;
-    }
-
-    @Override
-    public boolean isNew() {
-        return newRow;
-    }
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
