@@ -8,7 +8,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -18,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionProjectionEntity;
 import org.twins.core.dao.datalist.DataListOptionProjectionRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.projection.ProjectionTypeService;
 import org.twins.core.service.user.UserService;
@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class DataListOptionProjectionService extends EntitySecureFindServiceImpl<DataListOptionProjectionEntity> {
+public class DataListOptionProjectionService extends TwinsEntitySecureFindService<DataListOptionProjectionEntity> {
     private final DataListOptionProjectionRepository dataListOptionProjectionRepository;
     private final AuthService authService;
     @Lazy

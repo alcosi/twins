@@ -8,7 +8,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -19,6 +18,7 @@ import org.twins.core.dao.projection.ProjectionRepository;
 import org.twins.core.domain.projection.ProjectionCreate;
 import org.twins.core.domain.projection.ProjectionUpdate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinpointer.TwinPointerService;
@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class ProjectionService extends EntitySecureFindServiceImpl<ProjectionEntity> {
+public class ProjectionService extends TwinsEntitySecureFindService<ProjectionEntity> {
     private final ProjectionRepository projectionRepository;
     private final TwinPointerService twinPointerService;
     @Lazy

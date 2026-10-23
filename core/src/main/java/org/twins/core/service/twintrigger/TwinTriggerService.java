@@ -11,7 +11,6 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -28,6 +27,7 @@ import org.twins.core.domain.trigger.TwinTriggerUpdate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.featurer.trigger.TwinTrigger;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -40,7 +40,7 @@ import java.util.stream.StreamSupport;
 @Service
 @Lazy
 @AllArgsConstructor
-public class TwinTriggerService extends EntitySecureFindServiceImpl<TwinTriggerEntity> {
+public class TwinTriggerService extends TwinsEntitySecureFindService<TwinTriggerEntity> {
     @Getter
     private final TwinTriggerRepository repository;
     private final AuthService authService;

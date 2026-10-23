@@ -8,7 +8,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -20,6 +19,7 @@ import org.twins.core.dao.eraseflow.EraseflowRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
 import org.twins.core.service.user.UserService;
@@ -33,7 +33,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class EraseflowService extends EntitySecureFindServiceImpl<EraseflowEntity> {
+public class EraseflowService extends TwinsEntitySecureFindService<EraseflowEntity> {
     private final EraseflowRepository eraseflowRepository;
     private final EraseflowLinkCascadeRepository eraseflowLinkCascadeRepository;
     @Lazy

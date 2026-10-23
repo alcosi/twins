@@ -6,10 +6,15 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.DomainConfig;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.status.StatusType;
 
 import java.util.List;
@@ -20,7 +25,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_status")
 @FieldNameConstants
-public class TwinStatusEntity implements EasyLoggable, Identifiable<UUID> {
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
+public class TwinStatusEntity implements EasyLoggable, Identifiable<UUID>, DomainConfig {
     @Id
     private UUID id;
 
@@ -28,6 +34,14 @@ public class TwinStatusEntity implements EasyLoggable, Identifiable<UUID> {
     protected void onCreate() {
         id = UuidUtils.ifNullGenerate(id);
     }
+
+    @Column(name = "domain_id")
+    private UUID domainId;
+
+    // DB-maintained by the versioning triggers (TWINS-719) — Hibernate never writes it
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "domain_version_id", insertable = false, updatable = false)
+    private UUID domainVersionId;
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;

@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -17,6 +16,7 @@ import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dao.twin.TwinTouchRepository;
 import org.twins.core.enums.twin.Touch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -26,7 +26,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntity> {
+public class TwinTouchService extends TwinsEntitySecureFindService<TwinTouchEntity> {
     private final AuthService authService;
     private final TwinService twinService;
     private final TwinTouchRepository twinTouchRepository;

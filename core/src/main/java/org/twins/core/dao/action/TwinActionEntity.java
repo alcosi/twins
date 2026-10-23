@@ -2,7 +2,9 @@ package org.twins.core.dao.action;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.List;
 import java.util.UUID;
@@ -11,6 +13,7 @@ import java.util.UUID;
 @Setter
 @Entity
 @Table(name = "twin_action")
+@DataScope(DataScopeType.SYSTEM)
 public class TwinActionEntity {
 
     @Id

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.twin.TwinAliasType;
 
 import java.sql.Timestamp;
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_alias")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class TwinAliasEntity {
     @Id
     private UUID id;

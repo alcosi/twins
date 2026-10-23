@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twinvalidator.TwinValidatorService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinPointerValidatorRuleService extends EntitySecureFindServiceImpl<TwinPointerValidatorRuleEntity> {
+public class TwinPointerValidatorRuleService extends TwinsEntitySecureFindService<TwinPointerValidatorRuleEntity> {
     private final TwinPointerValidatorRuleRepository twinPointerValidatorRuleRepository;
     private final TwinPointerService twinPointerService;
     private final TwinValidatorSetService twinValidatorSetService;

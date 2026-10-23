@@ -6,13 +6,13 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.search.TwinSearchPredicateEntity;
 import org.twins.core.dao.search.TwinSearchPredicateRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinSearchPredicateService extends EntitySecureFindServiceImpl<TwinSearchPredicateEntity> {
+public class TwinSearchPredicateService extends TwinsEntitySecureFindService<TwinSearchPredicateEntity> {
 
     private final TwinSearchPredicateRepository twinSearchPredicateRepository;
 

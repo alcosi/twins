@@ -5,8 +5,10 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.draft.DraftCounters;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.draft.DraftStatus;
 
 import java.sql.Timestamp;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Entity
 @Table(name = "draft")
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class DraftEntity implements EasyLoggable {
     @Id
     @Column(name = "id")
@@ -26,7 +29,7 @@ public class DraftEntity implements EasyLoggable {
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "business_account_id")

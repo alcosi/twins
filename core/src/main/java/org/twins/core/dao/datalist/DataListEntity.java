@@ -6,9 +6,14 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.DomainConfig;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -21,7 +26,8 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "data_list")
 @FieldNameConstants
-public class DataListEntity implements EasyLoggable, Identifiable<UUID> {
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
+public class DataListEntity implements EasyLoggable, Identifiable<UUID>, DomainConfig {
     @Id
     private UUID id;
 
@@ -43,6 +49,11 @@ public class DataListEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    // DB-maintained by the versioning triggers (TWINS-719) — Hibernate never writes it
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "domain_version_id", insertable = false, updatable = false)
+    private UUID domainVersionId;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;

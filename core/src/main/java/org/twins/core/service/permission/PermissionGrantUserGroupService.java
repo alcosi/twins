@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.usergroup.UserGroupService;
@@ -32,7 +32,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl<PermissionGrantUserGroupEntity> {
+public class PermissionGrantUserGroupService extends TwinsEntitySecureFindService<PermissionGrantUserGroupEntity> {
     @Getter
     private final PermissionGrantUserGroupRepository repository;
     private final AuthService authService;

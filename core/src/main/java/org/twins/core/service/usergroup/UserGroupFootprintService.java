@@ -5,7 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -13,6 +12,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.user.UserGroupFootprintEntity;
 import org.twins.core.dao.user.UserGroupFootprintRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Set;
@@ -25,7 +25,7 @@ import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArr
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class UserGroupFootprintService extends EntitySecureFindServiceImpl<UserGroupFootprintEntity> {
+public class UserGroupFootprintService extends TwinsEntitySecureFindService<UserGroupFootprintEntity> {
     final UserGroupFootprintRepository repository;
     final AuthService authService;
 

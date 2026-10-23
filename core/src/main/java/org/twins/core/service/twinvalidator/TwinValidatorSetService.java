@@ -11,7 +11,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -25,6 +24,7 @@ import org.twins.core.dao.validator.TwinValidatorSetRepository;
 import org.twins.core.domain.validator.TwinValidatorSetCreate;
 import org.twins.core.domain.validator.TwinValidatorSetUpdate;
 import org.twins.core.featurer.twin.validator.TwinValidator;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -35,7 +35,7 @@ import java.util.stream.StreamSupport;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinValidatorSetEntity> {
+public class TwinValidatorSetService extends TwinsEntitySecureFindService<TwinValidatorSetEntity> {
 
     private final TwinValidatorSetRepository twinValidatorSetRepository;
     @Lazy

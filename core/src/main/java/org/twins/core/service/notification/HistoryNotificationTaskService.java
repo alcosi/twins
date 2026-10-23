@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -13,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.history.HistoryService;
 
 import java.util.*;
@@ -22,7 +22,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class HistoryNotificationTaskService extends EntitySecureFindServiceImpl<HistoryNotificationTaskEntity> {
+public class HistoryNotificationTaskService extends TwinsEntitySecureFindService<HistoryNotificationTaskEntity> {
     private final HistoryNotificationTaskRepository repository;
     private final HistoryService historyService;
     private final NotificationSchemaService notificationSchemaService;

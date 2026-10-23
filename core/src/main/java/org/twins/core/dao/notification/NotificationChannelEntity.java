@@ -9,7 +9,9 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
+@DataScope(DataScopeType.DOMAIN)
 public class NotificationChannelEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
@@ -29,7 +32,7 @@ public class NotificationChannelEntity implements EasyLoggable, Identifiable<UUI
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "notifier_featurer_id")

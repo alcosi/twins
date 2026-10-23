@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface DataListSubsetOptionRepository extends CrudRepository<DataListSubsetOptionEntity, DataListOptionSubsetId> {
+public interface DataListSubsetOptionRepository extends CrudRepository<DataListSubsetOptionEntity, UUID> {
     List<DataListSubsetOptionEntity> findByDataListSubsetIdIn(Collection<UUID> dataListSubsetIds);
 }

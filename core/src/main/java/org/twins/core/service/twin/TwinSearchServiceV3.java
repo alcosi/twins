@@ -5,12 +5,12 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.search.TwinSearchRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -19,7 +19,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
-public class TwinSearchServiceV3 extends EntitySecureFindServiceImpl<TwinSearchEntity> {
+public class TwinSearchServiceV3 extends TwinsEntitySecureFindService<TwinSearchEntity> {
     private final TwinSearchRepository twinSearchRepository;
 
     @Override

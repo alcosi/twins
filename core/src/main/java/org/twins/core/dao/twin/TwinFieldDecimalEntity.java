@@ -10,7 +10,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @FieldNameConstants
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinFieldDecimalEntity extends TwinFieldBaseEntity {
 
     @Column(name = "value")

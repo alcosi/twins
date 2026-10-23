@@ -5,7 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "twin_work")
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinWorkEntity {
     @Id
     private UUID id;

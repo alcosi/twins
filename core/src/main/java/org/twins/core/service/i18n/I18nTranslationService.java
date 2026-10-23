@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.KitUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.i18n.I18nTranslationRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,7 +29,7 @@ import java.util.stream.StreamSupport;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class I18nTranslationService extends EntitySecureFindServiceImpl<I18nTranslationEntity> {
+public class I18nTranslationService extends TwinsEntitySecureFindService<I18nTranslationEntity> {
     private final I18nTranslationRepository repository;
     private final I18nService i18nService;
 

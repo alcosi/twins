@@ -9,7 +9,9 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.twin.Touch;
 
 import java.sql.Timestamp;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_touch")
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinTouchEntity implements EasyLoggable {
     @Id
     private UUID id;

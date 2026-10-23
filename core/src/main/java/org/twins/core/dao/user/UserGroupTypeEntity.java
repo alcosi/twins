@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 
@@ -17,6 +19,7 @@ import java.util.HashMap;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "user_group_type")
+@DataScope(DataScopeType.SYSTEM)
 public class UserGroupTypeEntity {
     @Id
     private String id;

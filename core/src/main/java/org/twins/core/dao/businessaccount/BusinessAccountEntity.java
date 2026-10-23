@@ -9,7 +9,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Table(name = "business_account")
 @DynamicUpdate
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class BusinessAccountEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

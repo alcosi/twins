@@ -9,7 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -20,6 +19,7 @@ import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorRepo
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorCreate;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorUpdate;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -30,7 +30,7 @@ import java.util.stream.StreamSupport;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Lazy
-public class HistoryNotificationRecipientCollectorService extends EntitySecureFindServiceImpl<HistoryNotificationRecipientCollectorEntity> {
+public class HistoryNotificationRecipientCollectorService extends TwinsEntitySecureFindService<HistoryNotificationRecipientCollectorEntity> {
     private final HistoryNotificationRecipientCollectorRepository repository;
     @Lazy
     private final HistoryNotificationRecipientService historyNotificationRecipientService;

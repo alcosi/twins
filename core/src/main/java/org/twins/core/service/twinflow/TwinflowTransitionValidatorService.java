@@ -5,13 +5,13 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twinvalidator.TwinValidatorService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinflowTransitionValidatorService extends EntitySecureFindServiceImpl<TwinflowTransitionValidatorRuleEntity> {
+public class TwinflowTransitionValidatorService extends TwinsEntitySecureFindService<TwinflowTransitionValidatorRuleEntity> {
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     @Lazy
     private final TwinValidatorSetService twinValidatorSetService;

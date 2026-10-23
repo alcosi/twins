@@ -3,12 +3,12 @@ package org.twins.core.service.twinclassfield;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldSearchConfigService extends EntitySecureFindServiceImpl<TwinClassFieldSearchEntity> {
+public class TwinClassFieldSearchConfigService extends TwinsEntitySecureFindService<TwinClassFieldSearchEntity> {
     private final TwinClassFieldSearchRepository fieldSearchRepository;
 
     @Override

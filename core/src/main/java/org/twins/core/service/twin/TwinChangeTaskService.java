@@ -3,19 +3,17 @@ package org.twins.core.service.twin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.TwinChangeTaskStatus;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
@@ -30,7 +28,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @AllArgsConstructor
-public class TwinChangeTaskService extends EntitySecureFindServiceImpl<TwinChangeTaskEntity> {
+public class TwinChangeTaskService extends TwinsEntitySecureFindService<TwinChangeTaskEntity> {
     @Getter
     private final TwinChangeTaskRepository repository;
     private final AuthService authService;

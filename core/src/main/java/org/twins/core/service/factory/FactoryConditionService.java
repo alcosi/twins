@@ -12,7 +12,6 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -21,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionRepository;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class FactoryConditionService extends EntitySecureFindServiceImpl<TwinFactoryConditionEntity> {
+public class FactoryConditionService extends TwinsEntitySecureFindService<TwinFactoryConditionEntity> {
 
     private final TwinFactoryConditionRepository repository;
     private final FeaturerService featurerService;

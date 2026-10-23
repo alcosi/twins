@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
@@ -15,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.email.EmailSenderEntity;
 import org.twins.core.dao.email.EmailSenderRepository;
 import org.twins.core.dao.notification.email.NotificationMode;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.notificator.emailer.Emailer;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Map;
@@ -30,7 +29,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class EmailSenderService extends EntitySecureFindServiceImpl<EmailSenderEntity> {
+public class EmailSenderService extends TwinsEntitySecureFindService<EmailSenderEntity> {
     private final EmailSenderRepository emailSenderRepository;
     @Lazy
     private final AuthService authService;

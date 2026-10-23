@@ -1,19 +1,22 @@
 package org.twins.core.dao.action;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import lombok.Data;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "twin_action_permission")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinActionPermissionEntity {
     @Id
     private UUID id;

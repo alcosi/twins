@@ -3,12 +3,15 @@ package org.twins.core.dao.error;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
 @Entity
 @Table(name = "error")
 @Data
+@DataScope(DataScopeType.SYSTEM)
 public class ErrorEntity {
     @Id
     private UUID id;

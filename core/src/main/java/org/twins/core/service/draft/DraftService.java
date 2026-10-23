@@ -10,7 +10,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -40,6 +39,7 @@ import org.twins.core.enums.draft.DraftTwinEraseStatus;
 import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.eraseflow.EraseflowService;
 import org.twins.core.service.factory.FactoryExecutionService;
@@ -59,7 +59,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
+public class DraftService extends TwinsEntitySecureFindService<DraftEntity> {
     private final DraftRepository draftRepository;
     private final DraftHistoryRepository draftHistoryRepository;
     private final DraftTwinTagRepository draftTwinTagRepository;
