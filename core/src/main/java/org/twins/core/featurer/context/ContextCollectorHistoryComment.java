@@ -1,6 +1,5 @@
 package org.twins.core.featurer.context;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
@@ -15,18 +14,13 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_4906,
         name = "Context collector comment from history",
         description = "Collect form twin (status)")
-@Slf4j
-public class ContextCollectorHistoryComment extends ContextCollectorAtomic {
+public class ContextCollectorHistoryComment extends ContextCollectorAtomic<ContextRootHistory> {
 
     @FeaturerParam(name = "Collect message from comment", description = "", order = 1, optional = true, defaultValue = "COMMENT")
     public static final FeaturerParamString collectCommentKey = new FeaturerParamString("collectCommentKey");
 
     @Override
-    protected Map<String, String> collectData(ContextRoot root, Map<String, String> context, Properties properties) {
-        if (root.getHistory() == null) {
-            log.warn("{} requires a history root, skipping", this.getClass().getSimpleName());
-            return context;
-        }
+    protected Map<String, String> collectData(ContextRootHistory root, Map<String, String> context, Properties properties) {
         HistoryContextComment comment = (HistoryContextComment) root.getHistory().getContext();
         context.put(collectCommentKey.extract(properties), comment.getComment().getText());
         return context;

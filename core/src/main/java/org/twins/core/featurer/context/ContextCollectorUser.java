@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
-public abstract class ContextCollectorUser extends ContextCollectorAtomic {
+public abstract class ContextCollectorUser<R extends ContextRoot> extends ContextCollectorAtomic<R> {
 
     @FeaturerParam(name = "Collect id", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectId = new FeaturerParamBoolean("collectId");
@@ -54,7 +54,7 @@ public abstract class ContextCollectorUser extends ContextCollectorAtomic {
     }
 
     @Override
-    protected Map<String, String> collectData(ContextRoot root, Map<String, String> context, Properties properties) throws ServiceException {
+    protected Map<String, String> collectData(R root, Map<String, String> context, Properties properties) throws ServiceException {
         UserEntity user = getUser(root, properties);
 
         if (user != null) { //todo logic if null
@@ -78,6 +78,6 @@ public abstract class ContextCollectorUser extends ContextCollectorAtomic {
         return context;
     }
 
-    protected abstract UserEntity getUser(ContextRoot root, Properties properties);
+    protected abstract UserEntity getUser(R root, Properties properties);
 
 }

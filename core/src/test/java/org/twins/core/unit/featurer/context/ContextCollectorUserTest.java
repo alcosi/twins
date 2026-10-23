@@ -21,7 +21,7 @@ class ContextCollectorUserTest extends BaseUnitTest {
     /**
      * Minimal concrete subclass to test ContextCollectorUser directly.
      */
-    private static class TestableUserCollector extends ContextCollectorUser {
+    private static class TestableUserCollector extends ContextCollectorUser<ContextRoot> {
         private final UserEntity user;
 
         TestableUserCollector(UserEntity user) {

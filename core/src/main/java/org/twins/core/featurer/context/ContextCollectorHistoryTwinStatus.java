@@ -1,6 +1,5 @@
 package org.twins.core.featurer.context;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -16,8 +15,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_4905,
         name = "Context collector twin status from history",
         description = "Collect form twin (status)")
-@Slf4j
-public class ContextCollectorHistoryTwinStatus extends ContextCollectorAtomic {
+public class ContextCollectorHistoryTwinStatus extends ContextCollectorAtomic<ContextRootHistory> {
 
     @FeaturerParam(name = "Collect src status", description = "", order = 1, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean collectSrcStatus = new FeaturerParamBoolean("collectSrcStatus");
@@ -56,11 +54,7 @@ public class ContextCollectorHistoryTwinStatus extends ContextCollectorAtomic {
     public static final FeaturerParamString collectDstStatusFontColorKey = new FeaturerParamString("collectDstStatusFontColorKey");
 
     @Override
-    protected Map<String, String> collectData(ContextRoot root, Map<String, String> context, Properties properties) {
-        if (root.getHistory() == null) {
-            log.warn("{} requires a history root, skipping", this.getClass().getSimpleName());
-            return context;
-        }
+    protected Map<String, String> collectData(ContextRootHistory root, Map<String, String> context, Properties properties) {
         HistoryContextStatusChange statusChange = (HistoryContextStatusChange) root.getHistory().getContext();
         if (collectSrcStatus.extract(properties)) {
             context.put(collectSrcStatusKey.extract(properties), statusChange.getFromStatus().getName());

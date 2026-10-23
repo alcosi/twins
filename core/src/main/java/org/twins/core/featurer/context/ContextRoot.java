@@ -1,7 +1,6 @@
 package org.twins.core.featurer.context;
 
 import lombok.Getter;
-import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.Objects;
@@ -21,11 +20,6 @@ public class ContextRoot {
 
     public ContextRoot(TwinEntity twin) {
         this.twin = twin;
-    }
-
-    /** Source-specific payload; null for plain twin roots. */
-    public HistoryEntity getHistory() {
-        return null;
     }
 
     @Override

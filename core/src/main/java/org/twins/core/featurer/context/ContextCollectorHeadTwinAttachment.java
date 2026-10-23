@@ -23,7 +23,7 @@ import java.util.*;
         name = "Head Twin Attachment Context Collector",
         description = "Collects head twin attachment URL. Takes first attachment by order.")
 @RequiredArgsConstructor
-public class ContextCollectorHeadTwinAttachment extends ContextCollectorAtomic {
+public class ContextCollectorHeadTwinAttachment extends ContextCollectorAtomic<ContextRoot> {
 
     @FeaturerParam(name = "Collect attachment url key", description = "", order = 1, optional = true, defaultValue = "HEAD_TWIN_ATTACHMENT_URL")
     public static final FeaturerParamString collectKey = new FeaturerParamString("collectKey");

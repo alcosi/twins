@@ -12,7 +12,7 @@ import java.util.Properties;
  * (using the batch's lazy getters — {@link ContextCollectorBatch#getTwins()}, etc. — so they don't re-collect them).
  * Collectors that produce i18n call {@link ContextCollectorBatch#addI18n} instead of translating in place.
  */
-public abstract class ContextCollectorAtomic extends ContextCollector {
+public abstract class ContextCollectorAtomic<R extends ContextRoot> extends ContextCollector<R> {
 
     @Override
     public final void collectDataBatch(ContextCollectorBatch batch, Properties properties) throws ServiceException {
@@ -22,8 +22,17 @@ public abstract class ContextCollectorAtomic extends ContextCollector {
         Map<ContextRoot, Map<String, String>> contextByRoot = batch.getContextByRoot();
         beforeCollect(batch, properties);
         for (Map.Entry<ContextRoot, Map<String, String>> entry : contextByRoot.entrySet()) {
-            collectData(entry.getKey(), entry.getValue(), properties);
+            collectData(castRoot(entry.getKey()), entry.getValue(), properties);
         }
+    }
+
+    /**
+     * Always succeeds here (R erases to ContextRoot); the effective type check happens in the concrete
+     * subclass bridge method — see {@link ContextCollector}.
+     */
+    @SuppressWarnings("unchecked")
+    private R castRoot(ContextRoot root) {
+        return (R) root;
     }
 
     /**
@@ -32,5 +41,5 @@ public abstract class ContextCollectorAtomic extends ContextCollector {
     protected void beforeCollect(ContextCollectorBatch batch, Properties properties) throws ServiceException {
     }
 
-    protected abstract Map<String, String> collectData(ContextRoot root, Map<String, String> context, Properties properties) throws ServiceException;
+    protected abstract Map<String, String> collectData(R root, Map<String, String> context, Properties properties) throws ServiceException;
 }

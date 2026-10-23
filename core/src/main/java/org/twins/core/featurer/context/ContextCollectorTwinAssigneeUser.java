@@ -13,7 +13,7 @@ import java.util.Properties;
         name = "Context collector twin assignee user",
         description = "")
 @Slf4j
-public class ContextCollectorTwinAssigneeUser extends ContextCollectorUser {
+public class ContextCollectorTwinAssigneeUser extends ContextCollectorUser<ContextRoot> {
 
     @Override
     protected UserEntity getUser(ContextRoot root, Properties properties) {

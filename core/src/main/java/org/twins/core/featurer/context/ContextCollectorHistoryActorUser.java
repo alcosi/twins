@@ -1,6 +1,5 @@
 package org.twins.core.featurer.context;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserEntity;
@@ -12,15 +11,10 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_4903,
         name = "Context collector history actor user",
         description = "")
-@Slf4j
-public class ContextCollectorHistoryActorUser extends ContextCollectorUser {
+public class ContextCollectorHistoryActorUser extends ContextCollectorUser<ContextRootHistory> {
 
     @Override
-    protected UserEntity getUser(ContextRoot root, Properties properties) {
-        if (root.getHistory() == null) {
-            log.warn("{} requires a history root, skipping", this.getClass().getSimpleName());
-            return null;
-        }
+    protected UserEntity getUser(ContextRootHistory root, Properties properties) {
         return root.getHistory().getActorUser();
     }
 }
