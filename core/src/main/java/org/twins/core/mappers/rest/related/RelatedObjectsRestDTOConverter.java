@@ -129,7 +129,7 @@ public class RelatedObjectsRestDTOConverter {
                 descriptor(RelatedObjectsDTOv1::setHistoryNotificationRecipientMap, source(HistoryNotificationRecipientEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setNotificationSchemaMap, source(NotificationSchemaEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setNotificationChannelMap, source(NotificationChannelEntity.class)),
-                descriptor(RelatedObjectsDTOv1::setNotificationContextMap, source(ContextEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setContextMap, source(ContextEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setNotificationChannelEventMap, source(NotificationChannelEventEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setTwinValidatorSetMap, source(TwinValidatorSetEntity.class)),
                 // String id: does not fit Function<T, UUID>

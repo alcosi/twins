@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum NotificationContextMode implements MapperMode {
+public enum ContextMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum NotificationContextMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum NotificationChannelEvent2NotificationContextMode implements MapperModePointer<NotificationContextMode> {
+    public enum NotificationChannelEvent2ContextMode implements MapperModePointer<ContextMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum NotificationContextMode implements MapperMode {
         final int priority;
 
         @Override
-        public NotificationContextMode point() {
+        public ContextMode point() {
             return switch (this) {
-                case HIDE -> NotificationContextMode.HIDE;
-                case SHORT -> NotificationContextMode.SHORT;
-                case DETAILED -> NotificationContextMode.DETAILED;
+                case HIDE -> ContextMode.HIDE;
+                case SHORT -> ContextMode.SHORT;
+                case DETAILED -> ContextMode.DETAILED;
             };
         }
     }

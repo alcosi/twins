@@ -7,19 +7,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.context.ContextCollectorEntity;
+import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.NotificationChannelEventEntity;
 import org.twins.core.dao.notification.NotificationChannelEventRepository;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.context.ContextCollectorService;
 import org.twins.core.service.context.ContextService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -92,5 +92,17 @@ public class NotificationChannelEventService extends TwinsEntitySecureFindServic
                 ContextCollectorEntity::getId,
                 ContextCollectorEntity::getContextId,
                 (collector, channelEvent) -> { });
+    }
+
+    @NotNull
+    public Set<NotificationChannelEventEntity> getNotificationChannelEvents(HistoryNotificationChunk chunk) {
+        Set<NotificationChannelEventEntity> channelEvents = new HashSet<>();
+        for (HistoryNotificationEntity config : chunk.getTasksByConfig().keySet()) {
+            if (config.getNotificationChannelEvent() != null
+                    && config.getNotificationChannelEvent().getContextId() != null) {
+                channelEvents.add(config.getNotificationChannelEvent());
+            }
+        }
+        return channelEvents;
     }
 }

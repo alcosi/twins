@@ -73,6 +73,17 @@ class ContextServiceTest extends BaseUnitTest {
                 i18nService, domainUserService, notificationChannelEventService, authService);
         domainId = UUID.randomUUID();
         when(featurerService.getFeaturer(eq(COLLECTOR_FEATURER_ID), eq(ContextCollector.class))).thenReturn(collector);
+        // mirrors the real NotificationChannelEventService.getNotificationChannelEvents (the service is mocked here)
+        when(notificationChannelEventService.getNotificationChannelEvents(any())).thenAnswer(inv -> {
+            HistoryNotificationChunk chunk = inv.getArgument(0);
+            Set<NotificationChannelEventEntity> events = new HashSet<>();
+            for (HistoryNotificationEntity config : chunk.getTasksByConfig().keySet()) {
+                if (config.getNotificationChannelEvent() != null && config.getNotificationChannelEvent().getContextId() != null) {
+                    events.add(config.getNotificationChannelEvent());
+                }
+            }
+            return events;
+        });
         collectorRunsByParam.clear();
     }
 

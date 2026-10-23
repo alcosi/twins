@@ -9,7 +9,6 @@ import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -91,7 +90,7 @@ public class ContextService extends EntitySecureFindServiceImpl<ContextEntity> {
             return;
         }
         // channel events carrying a context (one pass over matched configs)
-        Set<NotificationChannelEventEntity> channelEvents = getNotificationChannelEvents(chunk);
+        Set<NotificationChannelEventEntity> channelEvents = notificationChannelEventService.getNotificationChannelEvents(chunk);
         if (channelEvents.isEmpty()) {
             return;
         }
@@ -200,18 +199,6 @@ public class ContextService extends EntitySecureFindServiceImpl<ContextEntity> {
             }
         }
         return result;
-    }
-
-    @NotNull
-    private static Set<NotificationChannelEventEntity> getNotificationChannelEvents(HistoryNotificationChunk chunk) {
-        Set<NotificationChannelEventEntity> channelEvents = new HashSet<>();
-        for (HistoryNotificationEntity config : chunk.getTasksByConfig().keySet()) {
-            if (config.getNotificationChannelEvent() != null
-                    && config.getNotificationChannelEvent().getContextId() != null) {
-                channelEvents.add(config.getNotificationChannelEvent());
-            }
-        }
-        return channelEvents;
     }
 
     /**

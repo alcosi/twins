@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.notification;
+package org.twins.core.dto.rest.context;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "NotificationContextV1")
-public class NotificationContextDTOv1 {
+@Schema(name = "ContextV1")
+public class ContextDTOv1 {
     @Schema(description = "id", example = DTOExamples.UUID_ID)
     public UUID id;
 
