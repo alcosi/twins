@@ -57,9 +57,13 @@ public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
     /**
      * Bulk-collects search params from the widgets' contexts ({@code face_wt001.context_id}) for the
      * current request twin — one {@code collectContextsForTwin} call for the whole collection (collector
-     * configs shared by several widgets run once). Results land on {@link FaceWT001Entity#getSearchParams()}.
+     * configs shared by several widgets run once).
+     *
+     * @return widget id → collected params; widgets with a contextId that collected nothing map to an
+     * EMPTY map (lets the caller cache "no data" and skip re-collection); widgets without a contextId
+     * are absent
      */
-    public void loadSearchParams(Collection<FaceWT001Entity> srcCollection) throws ServiceException {
+    public Map<UUID, Map<String, String>> collectSearchParams(Collection<FaceWT001Entity> srcCollection) throws ServiceException {
         Set<UUID> contextIds = new HashSet<>();
         for (FaceWT001Entity src : srcCollection) {
             if (src.getContextId() != null) {
@@ -67,17 +71,19 @@ public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
             }
         }
         if (contextIds.isEmpty()) {
-            return;
+            return Map.of();
         }
         TwinEntity currentTwin = faceService.getRequestFacePointers().getCurrentTwin();
         if (currentTwin == null) {
             throw new ServiceException(ErrorCodeTwins.POINTER_ON_NULL, "configured search context requires a current twin");
         }
         Map<UUID, Map<String, String>> searchParamsByContextId = contextService.collectContextsForTwin(contextIds, currentTwin);
+        Map<UUID, Map<String, String>> result = new HashMap<>();
         for (FaceWT001Entity src : srcCollection) {
             if (src.getContextId() != null) {
-                src.setSearchParams(searchParamsByContextId.get(src.getContextId()));
+                result.put(src.getId(), searchParamsByContextId.getOrDefault(src.getContextId(), Map.of()));
             }
         }
+        return result;
     }
 }

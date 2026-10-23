@@ -53,7 +53,7 @@ public class MapperContext {
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
     private MapperModeMap modes = new MapperModeMap();
-    private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
+    private Hashtable<Class<?>, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); // conversion-scoped cache: entity/DTO class → (cacheId → value)
 
     /**
      * Postponed related objects: outer key is the registered class of the postponed object (see
@@ -335,41 +335,41 @@ public class MapperContext {
         return configuredMode == null;
     }
 
-    public <S> S getFromCache(Class<S> clazz, String cacheId) {
+    /**
+     * Conversion-scoped cache. The Class key is the NAMESPACE of what the cache is about (usually an
+     * entity class — the cached values themselves may be of any type, e.g. converted DTOs, preloaded
+     * entities or per-entity collected data); the string cacheId is the entry key inside the namespace
+     * (usually a feature prefix + entity id). The value type is trusted to the caller.
+     */
+    @SuppressWarnings("unchecked")
+    public <S> S getFromCache(Class<?> cacheType, String cacheId) {
         if (cacheId == null) {
-            log.debug("CacheId is null for class[{}]", clazz.getSimpleName());
+            log.debug("CacheId is null for class[{}]", cacheType.getSimpleName());
             return null;
         }
-        Hashtable<String, Object> cache = cachedObjects.get(clazz);
+        Hashtable<String, Object> cache = cachedObjects.get(cacheType);
         if (cache == null)
             return null;
         Object obj = cache.get(cacheId);
         if (obj == null)
             return null;
-        else if (clazz.isInstance(obj)) {
-            debugLog(obj, " was found by cacheId[" + cacheId + "]");
-            return (S) obj;
-        } else
-            log.error("Incorrect cached object type loaded by cacheId[{}]. Expected[{}] but got[{}]", cacheId, clazz.getSimpleName(), obj.getClass().getSimpleName());
-        return null;
+        debugLog(obj, " was found by cacheId[" + cacheId + "]");
+        return (S) obj;
     }
 
-    public void putToCache(Class clazz, String cacheId, Object obj) {
+    /** See {@link #getFromCache(Class, String)} for the cache semantics. */
+    public void putToCache(Class<?> cacheType, String cacheId, Object obj) {
         if (cacheId == null) {
-            log.debug("CacheId is null for class[{}]", clazz.getSimpleName());
+            log.debug("CacheId is null for class[{}]", cacheType.getSimpleName());
             return;
         }
-        Hashtable<String, Object> cache = cachedObjects.get(clazz);
+        Hashtable<String, Object> cache = cachedObjects.get(cacheType);
         if (cache == null) {
             cache = new Hashtable<>();
-            cachedObjects.put(clazz, cache);
-            debugLog(obj, " was added to cache with id[" + cacheId + "]");
-        }
-        if (!clazz.isInstance(obj)) {
-            log.error("Incorrect cached object type");
-            return;
+            cachedObjects.put(cacheType, cache);
         }
         cache.put(cacheId, obj);
+        debugLog(obj, " was added to cache with id[" + cacheId + "]");
     }
 
     public MapperModeMap isolateModes() {

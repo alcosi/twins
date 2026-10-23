@@ -12,7 +12,6 @@ import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -84,15 +83,6 @@ public class FaceWT001Entity implements EasyLoggable, FaceVariantEntity {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     Kit<FaceWT001ColumnEntity, UUID> columns;
-
-    /**
-     * Transient-runtime: search params collected from {@link #contextId}'s collectors for the current
-     * request twin (loaded in bulk via {@code FaceWT001Service.loadSearchParams}).
-     */
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private Map<String, String> searchParams;
 
     @Override
     public String easyLog(EasyLoggable.Level level) {
