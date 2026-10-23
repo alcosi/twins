@@ -14,11 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.recompute.*;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldBaseEntity;
-import org.twins.core.dao.twin.TwinFieldDecimalEntity;
-import org.twins.core.dao.twin.TwinFieldTimestampEntity;
-import org.twins.core.dao.twin.TwinPointerEntity;
+import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.domain.TwinChangesCollector;
@@ -183,7 +179,7 @@ public class TwinRecomputeService {
         var twinActionMap = new HashMap<UUID, TwinAction>();
         for (var twin : collector.getSaveEntities(TwinEntity.class)) {
             twins.add(twin);
-            twinActionMap.put(twin.getId(), twin.isCreateElseUpdate() ? TwinAction.CREATE : TwinAction.EDIT);
+            twinActionMap.put(twin.getId(), twin.isNew() ? TwinAction.CREATE : TwinAction.EDIT);
         }
         for (var twin : collector.getDeletes(TwinEntity.class)) {
             twins.add(twin);

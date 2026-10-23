@@ -135,8 +135,6 @@ public class TwinLinkService extends TwinsEntitySecureFindService<TwinLinkEntity
         loadDstTwin(linksEntityList);
         loadLink(linksEntityList);
         for (TwinLinkEntity twinLinkEntity : linksEntityList) {
-            if (twinLinkEntity.getId() == null)
-                twinLinkEntity.setCreateElseUpdate(true); // fresh link entering the create flow (relink flips it back)
             Set<UUID> srcTwinExtendedClasses = srcTwinEntity.getTwinClass().getExtendedClassIdSet();
             Set<UUID> dstTwinExtendedClasses = twinLinkEntity.getDstTwin().getTwinClass().getExtendedClassIdSet();
             if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId())) { // forward link creation
@@ -183,7 +181,7 @@ public class TwinLinkService extends TwinsEntitySecureFindService<TwinLinkEntity
                     log.warn("Link[{}] is already exists for twin[{}]. TwinLink[{}] will be updated.", twinLinkEntity.getLinkId(), twinLinkEntity.getSrcTwinId(), dbTwinLink.getId());
                     twinLinkEntity.setId(dbTwinLink.getId());
                     twinLinkEntity.setRelationTwinId(dbTwinLink.getRelationTwinId());
-                    twinLinkEntity.setCreateElseUpdate(false); // relink: this is an UPDATE of the existing twin_link — its relation twin must be REUSED, not re-created
+                    twinLinkEntity.setNewRow(false); // relink: this is an UPDATE of the existing twin_link — its relation twin must be REUSED, not re-created
                 }
             } else {
                 TwinLinkEntity dbTwinLink = twinLinkRepository.findBySrcTwinIdAndDstTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getDstTwinId(), twinLinkEntity.getLinkId(), TwinLinkEntity.class);
@@ -237,14 +235,14 @@ public class TwinLinkService extends TwinsEntitySecureFindService<TwinLinkEntity
         // several creates over the same twin_link (e.g. a unique link relinked twice in one request) share
         // the id adopted in processAlreadyExisted — ONE relation twin per twin_link id, first entry wins
         needRelationTwinCreation = CollectionUtils.distinctBy(needRelationTwinCreation, linkCreate -> linkCreate.getTwinLink().getId());
-        // relink REUSE vs create — driven by the createElseUpdate flag (set in prepareTwinLinks for fresh
-        // links, flipped by processAlreadyExisted on relink): the relation twin belongs to the link INSTANCE
+        // relink REUSE vs create — driven by the isNew flag (true for fresh links, flipped to false
+        // by processAlreadyExisted on relink): the relation twin belongs to the link INSTANCE
         // and SURVIVES the relink — reuse it, never re-run the create pipeline over the living twin
         // (repository save with a preset id MERGES, silently clobbering name/status — not an exception)
         List<TwinLinkCreate> toCreate = new ArrayList<>(needRelationTwinCreation.size());
         List<TwinLinkCreate> relinked = new ArrayList<>(needRelationTwinCreation.size());
         for (TwinLinkCreate linkCreate : needRelationTwinCreation)
-            (linkCreate.getTwinLink().isCreateElseUpdate() ? toCreate : relinked).add(linkCreate);
+            (linkCreate.getTwinLink().isNew() ? toCreate : relinked).add(linkCreate);
         List<TwinUpdate> relationTwinUpdates = relationTwinUpdates(relinked);
         if (toCreate.isEmpty() && relationTwinUpdates.isEmpty())
             return;

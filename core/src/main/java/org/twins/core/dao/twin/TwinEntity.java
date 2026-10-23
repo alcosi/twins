@@ -15,6 +15,7 @@ import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
 import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.PersistableEntity;
 import org.twins.core.dao.ResettableTransientState;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.annotation.DataScope;
@@ -78,7 +79,7 @@ import java.util.function.Function;
 @FieldNameConstants
 @DynamicUpdate
 @DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
-public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable<UUID> {
+public class TwinEntity extends PersistableEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable<UUID> {
     @Id
     private UUID id;
 
@@ -197,11 +198,6 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity breadCrumbsFace;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean createElseUpdate = false;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -689,7 +685,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     }
 
     public TwinEntity clone() {
-        return new TwinEntity()
+        TwinEntity clone = new TwinEntity()
                 .setId(id)
                 .setTwinClassId(twinClassId)
                 .setTwinClass(twinClass)
@@ -715,6 +711,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
+        // keep the insert/update discriminator: clones of loaded twins stay updates (factory
+        // multipliers), clones of fresh ones stay creates
+        clone.setNewRow(isNew());
+        return clone;
     }
 
     public TwinEntity resetTransientState() {

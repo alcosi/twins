@@ -151,7 +151,7 @@ public class HistoryService extends TwinsEntitySecureFindService<HistoryEntity> 
                 historyEntity.setTwinClassFieldId(context.getField().getId());
                 if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
                     if (StringUtils.isEmpty(context.templateFromValue()))
-                        if (twinEntity.isCreateElseUpdate()) {
+                        if (twinEntity.isNew()) {
                             historyEntity.setHistoryType(HistoryType.fieldCreatedOnCreate);
                         } else {
                             historyEntity.setHistoryType(HistoryType.fieldChanged);
@@ -233,7 +233,7 @@ public class HistoryService extends TwinsEntitySecureFindService<HistoryEntity> 
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
-        if (attachmentEntity.getTwin().isCreateElseUpdate()) {
+        if (attachmentEntity.getTwin().isNew()) {
             return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
                     .shotAttachment(attachmentEntity));
         } else {
@@ -386,7 +386,7 @@ public class HistoryService extends TwinsEntitySecureFindService<HistoryEntity> 
                 .setTwinLinkId(twinLinkId)
                 .shotLink(linkEntity, forward, i18nService)
                 .shotDstTwin(dstTwinEntity);
-        if (dstTwinEntity.isCreateElseUpdate()) {
+        if (dstTwinEntity.isNew()) {
             return new HistoryItem<>(HistoryType.linkCreatedOnCreate, context);
         } else {
             return new HistoryItem<>(HistoryType.linkCreated, context);
@@ -415,7 +415,7 @@ public class HistoryService extends TwinsEntitySecureFindService<HistoryEntity> 
         HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
                 .setRoleId(roleId)
                 .setTargetedUserIds(userIdList);
-        if (twinEntity.isCreateElseUpdate()) {
+        if (twinEntity.isNew()) {
             return new HistoryItem<>(HistoryType.spaceRoleUserAddedOnCreate, context);
         } else {
             return new HistoryItem<>(HistoryType.spaceRoleUserAdded, context);

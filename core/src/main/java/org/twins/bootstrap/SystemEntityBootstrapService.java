@@ -317,6 +317,11 @@ public class SystemEntityBootstrapService {
                 .setExternalId(twin.externalId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(twin.createdByUserId() != null ? twin.createdByUserId() : SystemIds.User.SYSTEM);
+        // upsert modes hand repository.save a fresh instance whose id may already exist — force
+        // merge semantics, otherwise Persistable.isNew (true on a fresh instance) drives a persist
+        // and the save blows up on the PK
+        if (saveMode != EntitySmartService.SaveMode.ifNotPresentCreate)
+            entity.setNewRow(false);
         entitySmartService.save(entity.getId(), entity, twinRepository, saveMode);
 
         if (twin.simpleFields().isEmpty() && twin.simpleNonIndexedFields().isEmpty()

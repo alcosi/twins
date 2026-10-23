@@ -147,10 +147,24 @@ Partial unique для бизнес-ключей helper не добавляет (
   `DomainConfig extends Identifiable<UUID>`, а `Identifiable extends Persistable<ID>` с default
   `isNew() = (getId() == null)` — нейтрально для ~70 существующих реализаторов (совпадает с
   дефолтом Spring Data, `@JsonIgnore` на default-методе). В `DomainConfig` `isNew()` объявлен
-  abstract — реальный дискриминатор insert/update обязателен. Реализация — через
-  `@MappedSuperclass DomainConfigEntity` (`org.twins.core.dao`, прецедент `TwinFieldBaseEntity`):
-  несёт `@Transient boolean newRow = true` + `@PostLoad/@PostPersist markPersisted()` +
-  `isNew()`; версионируемая entity просто наследует его (per-entity boilerplate = 0 строк).
+  abstract — реальный дискриминатор insert/update обязателен. Флаг живёт в
+  `@MappedSuperclass NewRowAwareEntity` (`org.twins.core.dao`): `@Transient boolean newRow = true`
+  + `@PostLoad/@PostPersist markPersisted()` + `isNew()` (`@JsonIgnore`, как у default-метода).
+  `DomainConfigEntity extends NewRowAwareEntity implements DomainConfig` — версионируемая entity
+  просто наследует его (per-entity boilerplate = 0 строк). Тот же флаг несут `TwinEntity` и
+  `TwinLinkEntity` — их старое `@Transient boolean createElseUpdate` УДАЛЕНО (2026-10-23) как
+  дубликат этой же механики: писатели create-потоков убраны (дефолт true покрывает), relink в
+  `TwinLinkService.processAlreadyExisted` переведён на `setNewRow(false)`, читатели (~12 мест:
+  FieldTyper, HistoryService ×4, TwinService ×4, TwinRecomputeService, TwinValidatorUpdateOperation,
+  TwinLinkService) читают `isNew()`; `TwinEntity.clone()` копирует флаг (клоны загруженных твинов
+  в фабричных мультиплаерах остаются update), а дубликат в `fillDuplicate` после `setId(newId)`
+  помечается `setNewRow(true)` — дубликат = новая строка (решение 2026-10-23): CREATE-мод
+  валидаторов и editability, `*OnCreate` типы истории, persist при save; upsert системных твинов с фиксированным id
+  (`SystemEntityBootstrapService.saveSystemTwin`, glossary) явно ставит `setNewRow(false)` —
+  иначе persist упрётся в PK. NB: персистентная колонка `draft_twin_persist.create_else_update`
+  НЕ тронута — это бизнес-данные (commitTwinsCreates, erase-фильтры, счётчики
+  PERSIST_CREATE/UPDATE в API), а не runtime-дискриминатор; `Persistable.isNew()` строки драфта
+  отвечает на другой вопрос.
   Если слот наследования у entity занят — имплементит `DomainConfig` напрямую и повторяет
   boilerplate (abstract `isNew()` это форсит). Null-id эвристика отвергнута (2026-10-23):
   create-пути пресетят id
