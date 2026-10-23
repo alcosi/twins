@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.holder.I18nCacheHolder;
-import org.twins.core.holder.TypedRequestCacheHolder;
 
 import java.io.IOException;
 
@@ -20,11 +19,12 @@ public class I18nCacheCleanupFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
+            // drop leftovers of a previous ERROR dispatch on this pooled worker (the filter does not re-run on error dispatches)
+            EntityRequestCacheHolder.clear();
             filterChain.doFilter(request, response);
         } finally {
             I18nCacheHolder.clear();
             EntityRequestCacheHolder.clear();
-            TypedRequestCacheHolder.clear();
         }
     }
 }

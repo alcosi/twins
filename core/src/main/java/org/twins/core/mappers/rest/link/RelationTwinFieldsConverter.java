@@ -8,7 +8,7 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.holder.TypedRequestCacheHolder;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinService;
@@ -22,7 +22,7 @@ import java.util.UUID;
  * Shared mapper-layer conversion of initial relation-twin field values (relation attributes):
  * Map&lt;String,String&gt; -> List&lt;FieldValue&gt; via TwinFieldValueRestDTOReverseMapperV2.mapFields —
  * the same conversion entry TwinCreateRqRestDTOReverseMapper uses for twin fields. The link/twin lookups
- * are batched through the {@link TypedRequestCacheHolder} request cache (ONE query per converted
+ * are batched through the {@link EntityRequestCacheHolder} request cache (ONE query per converted
  * collection — no N+1), with a single-item fallback when no batch was preloaded.
  * Used by both TwinLinkAddRestDTOReverseMapper (v1) and TwinLinkAddTemporalRestDTOReverseMapper (v2).
  */
@@ -39,7 +39,7 @@ public class RelationTwinFieldsConverter {
 
     /** Create path: resolves the link by id, validates its relation_twin_class_id, converts the fields. */
     public List<FieldValue> convert(UUID linkId, Map<String, String> relationTwinFields) throws ServiceException {
-        LinkEntity link = TypedRequestCacheHolder.get(LinkEntity.class, RELATION_TWIN_LINK_CACHE_PREFIX + linkId);
+        LinkEntity link = EntityRequestCacheHolder.get(LinkEntity.class, RELATION_TWIN_LINK_CACHE_PREFIX + linkId);
         if (link == null)
             link = linkService.findEntitySafe(linkId); // single-item convert() path — no batch to leverage
         if (link.getRelationTwinClassId() == null)
@@ -53,7 +53,7 @@ public class RelationTwinFieldsConverter {
         if (CollectionUtils.isEmpty(linkIds))
             return;
         for (LinkEntity link : linkService.findEntitiesSafe(linkIds))
-            TypedRequestCacheHolder.put(LinkEntity.class, RELATION_TWIN_LINK_CACHE_PREFIX + link.getId(), link);
+            EntityRequestCacheHolder.put(LinkEntity.class, RELATION_TWIN_LINK_CACHE_PREFIX + link.getId(), link);
     }
 
     /**
@@ -61,7 +61,7 @@ public class RelationTwinFieldsConverter {
      * and converts the fields against the twin's own class (which is link.relation_twin_class_id).
      */
     public List<FieldValue> convertForRelationTwin(UUID twinLinkId, Map<String, String> relationTwinFields) throws ServiceException {
-        TwinEntity relationTwin = TypedRequestCacheHolder.get(TwinEntity.class, RELATION_TWIN_CACHE_PREFIX + twinLinkId);
+        TwinEntity relationTwin = EntityRequestCacheHolder.get(TwinEntity.class, RELATION_TWIN_CACHE_PREFIX + twinLinkId);
         if (relationTwin == null) { // single-item convert() path — no batch to leverage
             try {
                 relationTwin = twinService.findEntitySafe(twinLinkId);
@@ -78,7 +78,7 @@ public class RelationTwinFieldsConverter {
         if (CollectionUtils.isEmpty(twinIds))
             return;
         for (TwinEntity relationTwin : twinService.findEntitiesSafe(twinIds))
-            TypedRequestCacheHolder.put(TwinEntity.class, RELATION_TWIN_CACHE_PREFIX + relationTwin.getId(), relationTwin);
+            EntityRequestCacheHolder.put(TwinEntity.class, RELATION_TWIN_CACHE_PREFIX + relationTwin.getId(), relationTwin);
     }
 
     protected List<FieldValue> mapFields(String contextLog, UUID twinClassId, Map<String, String> relationTwinFields) throws ServiceException {

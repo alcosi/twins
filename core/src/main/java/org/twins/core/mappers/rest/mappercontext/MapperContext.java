@@ -42,7 +42,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
-import org.twins.core.holder.TypedRequestCacheHolder;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.service.SystemIdLookup;
 
 import java.util.*;
@@ -336,19 +336,19 @@ public class MapperContext {
     }
 
     /**
-     * Conversion cache — backed by the request-wide {@link TypedRequestCacheHolder}, so services can
+     * Conversion cache — backed by the request-wide {@link EntityRequestCacheHolder}, so services can
      * preload the same entries mappers read. The Class key is the NAMESPACE of what the cache is about
      * (usually an entity class — the cached values themselves may be of any type, e.g. converted DTOs,
      * preloaded entities or per-entity collected data); the string cacheId is the entry key inside the
      * namespace (usually a feature prefix + entity id).
      */
     public <S> S getFromCache(Class<?> cacheType, String cacheId) {
-        return TypedRequestCacheHolder.get(cacheType, cacheId);
+        return EntityRequestCacheHolder.get(cacheType, cacheId);
     }
 
     /** See {@link #getFromCache(Class, String)} for the cache semantics. */
     public void putToCache(Class<?> cacheType, String cacheId, Object obj) {
-        TypedRequestCacheHolder.put(cacheType, cacheId, obj);
+        EntityRequestCacheHolder.put(cacheType, cacheId, obj);
     }
 
     public MapperModeMap isolateModes() {

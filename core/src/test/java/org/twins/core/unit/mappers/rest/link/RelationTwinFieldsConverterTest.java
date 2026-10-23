@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.holder.TypedRequestCacheHolder;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.mappers.rest.link.RelationTwinFieldsConverter;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.service.link.LinkService;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Relation twin field conversion (shared by the v1 and temporal v2 link add mappers):
- * link resolution goes through the request cache (TypedRequestCacheHolder) with a single-load fallback.
+ * link resolution goes through the request cache (EntityRequestCacheHolder) with a single-load fallback.
  */
 @ExtendWith(MockitoExtension.class)
 class RelationTwinFieldsConverterTest {
@@ -58,7 +58,7 @@ class RelationTwinFieldsConverterTest {
 
     @AfterEach
     void tearDown() {
-        TypedRequestCacheHolder.clear();
+        EntityRequestCacheHolder.clear();
     }
 
     private LinkEntity link(UUID relationTwinClassId) {

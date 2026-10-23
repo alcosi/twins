@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.holder.TypedRequestCacheHolder;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.service.context.ContextService;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
@@ -82,7 +82,7 @@ public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
         Map<UUID, Map<String, String>> searchParamsByContextId = contextService.collectContextsForTwin(contextIds, currentTwin);
         for (FaceWT001Entity src : srcCollection) {
             if (src.getContextId() != null) {
-                TypedRequestCacheHolder.put(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId(),
+                EntityRequestCacheHolder.put(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId(),
                         searchParamsByContextId.getOrDefault(src.getContextId(), Map.of()));
             }
         }
@@ -97,10 +97,10 @@ public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
         if (src.getContextId() == null) {
             return null;
         }
-        Map<String, String> searchParams = TypedRequestCacheHolder.get(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId());
+        Map<String, String> searchParams = EntityRequestCacheHolder.get(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId());
         if (searchParams == null) {
             loadSearchParams(List.of(src));
-            searchParams = TypedRequestCacheHolder.get(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId());
+            searchParams = EntityRequestCacheHolder.get(FaceWT001Entity.class, SEARCH_PARAMS_CACHE_PREFIX + src.getId());
         }
         return searchParams;
     }
