@@ -15,7 +15,9 @@
 -- excluded_columns: technical columns stripped by the meaningful change detection — common
 -- columns are prepended, table-specific derived columns (counters, hierarchy trees) are listed
 -- in the row. created_at is common: it never changes on UPDATE and is pure noise on a
--- re-insert (resurrection).
+-- re-insert (resurrection). Registry contract: a wave introducing a generated or identity
+-- column MUST add it to that table's excluded set — journal images never store it and the
+-- resurrection restore can never target it.
 CREATE OR REPLACE FUNCTION domain_version_tables() RETURNS TABLE(table_name text, excluded_columns text[]) AS
 $$
     SELECT v.t, ARRAY['updated_at', 'domain_version_id', 'created_at'] || v.specific
@@ -829,21 +831,25 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- INSERT resurrection: a repeated insert of a row that is soft-deleted in the current window
--- becomes an UPDATE of that row. Identical content restores the window-start image,
--- including the OLD stamp (the row leaves the window, no delta noise); different content is a
--- normal update stamped with the current window (the re-inserted row's row_status wins — an
--- insert may legitimately carry DISABLED).
+-- becomes an UPDATE of that row. The restored content always comes from the incoming row:
+-- in the identical branch the canonical NEW equals the window-start image BY THE BRANCH
+-- CONDITION, so only the stamp/status return to the window-start values (the row leaves the
+-- window, no delta noise); in the different branch the row is stamped with the current window
+-- and keeps the incoming row_status (an insert may legitimately carry DISABLED).
 CREATE OR REPLACE FUNCTION domain_version_before_insert_resurrect(
     p_table text, p_pk_predicate text, p_new jsonb, p_row_id uuid)
     RETURNS boolean AS
 $$
 DECLARE
-    v_old                jsonb;
+    v_found              boolean;
     v_first_before       jsonb;
     v_first_before_dv_id uuid;
     v_window             uuid;
     v_window_open        boolean;
+    v_new_clean          jsonb;
     v_content_cols       text;
+    v_row_status         text;
+    v_stamp              uuid;
 BEGIN
     -- DELETED rows live only inside the open draft window (the release cleanup removes them
     -- physically), so resurrection is only possible while the current version is OPEN
@@ -856,9 +862,11 @@ BEGIN
         RETURN false;
     END IF;
 
-    EXECUTE format('SELECT to_jsonb(r) FROM %I r WHERE %s AND r.row_status = ''DELETED''',
-                   p_table, p_pk_predicate) INTO v_old;
-    IF v_old IS NULL THEN
+    -- the config table is authoritative: a journal-only check cannot tell "soft-deleted, row
+    -- present" from "already physically removed" (a miss here skips the audit lookup entirely)
+    EXECUTE format('SELECT true FROM %I r WHERE %s AND r.row_status = ''DELETED'' LIMIT 1',
+                   p_table, p_pk_predicate) INTO v_found;
+    IF v_found IS NULL THEN
         RETURN false;
     END IF;
 
@@ -872,43 +880,41 @@ BEGIN
      ORDER BY a.seq
      LIMIT 1;
 
-    -- Restorable content columns: everything EXCEPT the PK and row_status/domain_version_id
-    -- (all three are set explicitly per branch — a duplicate SET target is an error),
-    -- generated/identity columns (write-forbidden, recomputed on write) and the
-    -- versioning-excluded set: updated_at/created_at noise plus trigger-maintained derived
-    -- columns (counters, hierarchy trees). Restoring the derived ones from a stale image
-    -- would clobber values maintained for OTHER rows — e.g. a child insert bumping the
-    -- parent counter after the parent's window-start image was taken.
-    -- NB the information_schema domains: is_generated is ALWAYS/NEVER, is_identity is YES/NO
-    SELECT string_agg(quote_ident(column_name), ', ' ORDER BY ordinal_position)
+    -- Restorable content columns = keys of the canonical incoming row minus row_status (it is
+    -- set explicitly per branch): no PK, no stamp, no updated_at/created_at noise, no
+    -- trigger-maintained counters/hierarchy trees — restoring derived values from a stale
+    -- image would clobber work done for OTHER rows (a child insert bumping the parent counter
+    -- after the parent's window-start image was taken). Generated/identity columns join the
+    -- excluded set per the registry contract when a wave introduces them.
+    v_new_clean := domain_version_row_image_clean(p_table, p_new);
+    SELECT string_agg(quote_ident(k), ', ')
       INTO v_content_cols
-      FROM information_schema.columns
-     WHERE table_schema = 'public' AND table_name = p_table
-       AND is_generated = 'NEVER'
-       AND is_identity = 'NO'
-       AND column_name <> ALL (domain_version_excluded_columns(p_table) || ARRAY['id', 'row_status']);
+      FROM jsonb_object_keys(v_new_clean) k
+     WHERE k <> 'row_status';
     IF v_content_cols IS NULL THEN
         RAISE EXCEPTION '%: no restorable content columns (every column is the PK, excluded or generated)', p_table;
     END IF;
 
-    PERFORM set_config('twins.domain_version_op', 'on', true);
-    -- the stored image is cleaned (no id/stamp/derived columns), so the incoming row is
-    -- canonicalized the same way first — otherwise the id key alone always differs
+    -- identical re-insert = the canonical NEW matches the window-start image: the stamp/status
+    -- return to the window-start values; anything else is a normal update into the window.
+    -- The content is taken from NEW in both branches — by the branch condition the canonical
+    -- NEW equals the image on the whole restorable set
     IF v_first_before IS NOT NULL
-       AND NOT domain_version_is_meaningful_change(p_table, v_first_before,
-                                                   domain_version_row_image_clean(p_table, p_new)) THEN
-        -- identical re-insert: content and the stamp/status return to the window-start image
-        EXECUTE format('UPDATE %I r SET row_status = $2, domain_version_id = $3, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
-                       p_table, v_content_cols, v_content_cols, p_table, p_pk_predicate)
-        USING v_first_before, v_first_before->>'row_status', v_first_before_dv_id;
-        -- no marker needed: the restoring UPDATE changes the stamp, so the AFTER wrapper
-        -- classifies it as RESTORE in the window slice by itself
+       AND NOT domain_version_is_meaningful_change(p_table, v_first_before, v_new_clean) THEN
+        v_row_status := v_first_before->>'row_status';
+        v_stamp      := v_first_before_dv_id;
     ELSE
-        EXECUTE format('UPDATE %I r SET row_status = ($1->>''row_status''), domain_version_id = $2, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
-                       p_table, v_content_cols, v_content_cols, p_table, p_pk_predicate)
-        USING p_new, v_window;
+        v_row_status := p_new->>'row_status';
+        v_stamp      := v_window;
     END IF;
+
+    PERFORM set_config('twins.domain_version_op', 'on', true);
+    EXECUTE format('UPDATE %I r SET row_status = $2, domain_version_id = $3, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
+                   p_table, v_content_cols, v_content_cols, p_table, p_pk_predicate)
+    USING p_new, v_row_status, v_stamp;
     PERFORM set_config('twins.domain_version_op', '', true);
+    -- no marker needed in the identical branch: the restoring UPDATE changes the stamp, so the
+    -- AFTER wrapper classifies it as RESTORE in the window slice by itself
     RETURN true;
 END;
 $$ LANGUAGE plpgsql;
