@@ -1005,3 +1005,88 @@ BEGIN
     RETURN true;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================================
+-- Trigger handles: the composition called by the per-table wrappers (04). The cores above
+-- keep explicit scalar contracts; the handles adapt the wrappers' to_jsonb(NEW)/to_jsonb(OLD)
+-- and fold the protected-path check in, so a wrapper's versioning block collapses to one call.
+-- ============================================================================
+
+-- INSERT decision: skip_insert asks the wrapper to RETURN NULL (the row was resurrected in
+-- place). A composite, not a bare stamp: a NULL stamp is legitimate on the protected path
+-- (internal writers stamp rows themselves) and cannot double as the skip signal.
+CREATE TYPE domain_version_insert_decision AS (skip_insert boolean, stamp uuid);
+
+CREATE OR REPLACE FUNCTION domain_version_before_insert_handle(p_table text, p_new jsonb)
+    RETURNS domain_version_insert_decision AS
+$$
+DECLARE
+    v_decision domain_version_insert_decision;
+BEGIN
+    v_decision.skip_insert := false;
+    IF domain_version_protected_path() THEN
+        -- echo: internal writers stamp rows themselves
+        v_decision.stamp := (p_new->>'domain_version_id')::uuid;
+        RETURN v_decision;
+    END IF;
+    IF domain_version_before_insert_resurrect(p_table, format('id = %L', p_new->>'id'), p_new,
+                                              (p_new->>'id')::uuid) THEN
+        v_decision.skip_insert := true; -- converted into a resurrection UPDATE of the soft-deleted row
+        RETURN v_decision;
+    END IF;
+    v_decision.stamp := domain_version_before_insert_core(
+        p_table, (p_new->>'id')::uuid, (p_new->>'domain_id')::uuid,
+        (p_new->>'domain_version_id')::uuid, p_new->>'row_status');
+    RETURN v_decision;
+END;
+$$ LANGUAGE plpgsql;
+
+-- UPDATE handle: protected path echoes the incoming stamp; the core returns NULL for a no-op
+-- (nothing restamped), the coalesce keeps the incoming stamp then
+CREATE OR REPLACE FUNCTION domain_version_before_update_handle(p_table text, p_old jsonb, p_new jsonb)
+    RETURNS uuid AS
+$$
+BEGIN
+    IF domain_version_protected_path() THEN
+        RETURN (p_new->>'domain_version_id')::uuid;
+    END IF;
+    RETURN coalesce(domain_version_before_update_core(
+        p_table, (p_new->>'id')::uuid,
+        (p_old->>'domain_id')::uuid, (p_new->>'domain_id')::uuid,
+        (p_old->>'domain_version_id')::uuid, (p_new->>'domain_version_id')::uuid,
+        p_old->>'row_status', p_new->>'row_status', p_old, p_new),
+        (p_new->>'domain_version_id')::uuid);
+END;
+$$ LANGUAGE plpgsql;
+
+-- AFTER UPDATE journaling, shared by all wrappers: soft-delete conversion, restore-class write
+-- or a meaningful update; a no-op update leaves no record
+CREATE OR REPLACE FUNCTION domain_version_after_update_journal(p_table text, p_old jsonb, p_new jsonb) RETURNS void AS
+$$
+BEGIN
+    IF p_new->>'row_status' = 'DELETED' AND p_old->>'row_status' <> 'DELETED' THEN
+        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
+        -- for any delete — the row still exists in the table with the DELETED status
+        PERFORM domain_version_audit_write(
+            p_table, (p_new->>'domain_id')::uuid, (p_new->>'domain_version_id')::uuid, (p_new->>'id')::uuid,
+            'DELETE', p_old, NULL);
+    ELSIF (p_new->>'domain_version_id')::uuid IS DISTINCT FROM (p_old->>'domain_version_id')::uuid
+          AND (p_new->>'domain_version_id')::uuid IS DISTINCT FROM
+              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = (p_new->>'domain_id')::uuid)
+          AND (SELECT d.operation_status FROM domain d WHERE d.id = (p_new->>'domain_id')::uuid) IN ('IDLE', 'ROLLBACK') THEN
+        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
+        -- stamps WITH the current window, so this only happens when the row RETURNS to a
+        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
+        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
+        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
+        -- window slice (OLD stamp), before = the state being left, after = the restored image.
+        PERFORM domain_version_audit_write(
+            p_table, (p_new->>'domain_id')::uuid, (p_old->>'domain_version_id')::uuid, (p_new->>'id')::uuid,
+            'RESTORE', p_old, p_new);
+    ELSIF domain_version_is_meaningful_change(p_table, p_old, p_new) THEN
+        PERFORM domain_version_audit_write(
+            p_table, (p_new->>'domain_id')::uuid, (p_new->>'domain_version_id')::uuid, (p_new->>'id')::uuid,
+            'UPDATE', p_old, p_new);
+    END IF;
+END;
+$$ LANGUAGE plpgsql;

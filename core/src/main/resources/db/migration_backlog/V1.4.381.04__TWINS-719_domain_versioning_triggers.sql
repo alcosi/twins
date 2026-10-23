@@ -16,18 +16,18 @@
 -- ============================================================================
 CREATE OR REPLACE FUNCTION twin_class_before_insert_wrapper() RETURNS trigger AS
 $$
+DECLARE
+    v_decision domain_version_insert_decision;
 BEGIN
     new := twin_class_set_inherited_fields_on_insert(new);
 
     -- versioning (TWINS-719): after the inherited-fields fill, the resurrect comparison
     -- must see the final image
-    IF NOT domain_version_protected_path() THEN
-        IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
-            RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
-        END IF;
-        NEW.domain_version_id := domain_version_before_insert_core(
-            TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
+    v_decision := domain_version_before_insert_handle(TG_TABLE_NAME, to_jsonb(NEW));
+    IF v_decision.skip_insert THEN
+        RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
     END IF;
+    NEW.domain_version_id := v_decision.stamp;
 
     RETURN NEW;
 END;
@@ -41,12 +41,7 @@ BEGIN
     end if;
 
     -- versioning (TWINS-719): last, the meaningful-change check must see the final NEW
-    IF NOT domain_version_protected_path() THEN
-        NEW.domain_version_id := coalesce(domain_version_before_update_core(
-            TG_TABLE_NAME, NEW.id,
-            OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
-            OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
-    END IF;
+    NEW.domain_version_id := domain_version_before_update_handle(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
 
     RETURN NEW;
 END;
@@ -183,30 +178,7 @@ BEGIN
     END IF;
 
     -- versioning (TWINS-719)
-    IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
-        -- for any delete — the row still exists in the table with the DELETED status
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), NULL);
-    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
-          AND NEW.domain_version_id IS DISTINCT FROM
-              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
-          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
-        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
-        -- stamps WITH the current window, so this only happens when the row RETURNS to a
-        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
-        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
-        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
-        -- window slice (OLD stamp), before = the state being left, after = the restored image.
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
-            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
-    END IF;
+    PERFORM domain_version_after_update_journal(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
 
     RETURN NEW;
 END;
@@ -241,6 +213,8 @@ $$ LANGUAGE plpgsql;
 -- ============================================================================
 CREATE OR REPLACE FUNCTION twin_class_field_before_insert_wrapper() RETURNS trigger AS
 $$
+DECLARE
+    v_decision domain_version_insert_decision;
 BEGIN
     -- domain consistency: derive from the parent row or verify the explicit value
     IF NEW.domain_id IS NULL THEN
@@ -248,13 +222,11 @@ BEGIN
     ELSIF NEW.domain_id IS DISTINCT FROM (SELECT tc.domain_id FROM twin_class tc WHERE tc.id = NEW.twin_class_id) THEN
         RAISE EXCEPTION 'twin_class_field % belongs to a different domain than twin_class %', NEW.id, NEW.twin_class_id;
     END IF;
-    IF NOT domain_version_protected_path() THEN
-        IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
-            RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
-        END IF;
-        NEW.domain_version_id := domain_version_before_insert_core(
-            TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
+    v_decision := domain_version_before_insert_handle(TG_TABLE_NAME, to_jsonb(NEW));
+    IF v_decision.skip_insert THEN
+        RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
     END IF;
+    NEW.domain_version_id := v_decision.stamp;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -262,12 +234,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION twin_class_field_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NOT domain_version_protected_path() THEN
-        NEW.domain_version_id := coalesce(domain_version_before_update_core(
-            TG_TABLE_NAME, NEW.id,
-            OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
-            OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
-    END IF;
+    NEW.domain_version_id := domain_version_before_update_handle(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -295,30 +262,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION twin_class_field_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
-        -- for any delete — the row still exists in the table with the DELETED status
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), NULL);
-    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
-          AND NEW.domain_version_id IS DISTINCT FROM
-              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
-          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
-        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
-        -- stamps WITH the current window, so this only happens when the row RETURNS to a
-        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
-        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
-        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
-        -- window slice (OLD stamp), before = the state being left, after = the restored image.
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
-            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
-    END IF;
+    PERFORM domain_version_after_update_journal(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -367,19 +311,19 @@ CREATE TRIGGER twin_class_field_after_delete_wrapper_trigger
 -- ============================================================================
 CREATE OR REPLACE FUNCTION twin_status_before_insert_wrapper() RETURNS trigger AS
 $$
+DECLARE
+    v_decision domain_version_insert_decision;
 BEGIN
     IF NEW.domain_id IS NULL THEN
         SELECT tc.domain_id INTO NEW.domain_id FROM twin_class tc WHERE tc.id = NEW.twin_class_id;
     ELSIF NEW.domain_id IS DISTINCT FROM (SELECT tc.domain_id FROM twin_class tc WHERE tc.id = NEW.twin_class_id) THEN
         RAISE EXCEPTION 'twin_status % belongs to a different domain than twin_class %', NEW.id, NEW.twin_class_id;
     END IF;
-    IF NOT domain_version_protected_path() THEN
-        IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
-            RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
-        END IF;
-        NEW.domain_version_id := domain_version_before_insert_core(
-            TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
+    v_decision := domain_version_before_insert_handle(TG_TABLE_NAME, to_jsonb(NEW));
+    IF v_decision.skip_insert THEN
+        RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
     END IF;
+    NEW.domain_version_id := v_decision.stamp;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -387,12 +331,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION twin_status_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NOT domain_version_protected_path() THEN
-        NEW.domain_version_id := coalesce(domain_version_before_update_core(
-            TG_TABLE_NAME, NEW.id,
-            OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
-            OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
-    END IF;
+    NEW.domain_version_id := domain_version_before_update_handle(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -420,30 +359,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION twin_status_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
-        -- for any delete — the row still exists in the table with the DELETED status
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), NULL);
-    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
-          AND NEW.domain_version_id IS DISTINCT FROM
-              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
-          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
-        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
-        -- stamps WITH the current window, so this only happens when the row RETURNS to a
-        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
-        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
-        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
-        -- window slice (OLD stamp), before = the state being left, after = the restored image.
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
-            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
-    END IF;
+    PERFORM domain_version_after_update_journal(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -492,14 +408,14 @@ CREATE TRIGGER twin_status_after_delete_wrapper_trigger
 -- ============================================================================
 CREATE OR REPLACE FUNCTION data_list_before_insert_wrapper() RETURNS trigger AS
 $$
+DECLARE
+    v_decision domain_version_insert_decision;
 BEGIN
-    IF NOT domain_version_protected_path() THEN
-        IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
-            RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
-        END IF;
-        NEW.domain_version_id := domain_version_before_insert_core(
-            TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
+    v_decision := domain_version_before_insert_handle(TG_TABLE_NAME, to_jsonb(NEW));
+    IF v_decision.skip_insert THEN
+        RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
     END IF;
+    NEW.domain_version_id := v_decision.stamp;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -507,12 +423,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NOT domain_version_protected_path() THEN
-        NEW.domain_version_id := coalesce(domain_version_before_update_core(
-            TG_TABLE_NAME, NEW.id,
-            OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
-            OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
-    END IF;
+    NEW.domain_version_id := domain_version_before_update_handle(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -540,30 +451,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
-        -- for any delete — the row still exists in the table with the DELETED status
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), NULL);
-    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
-          AND NEW.domain_version_id IS DISTINCT FROM
-              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
-          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
-        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
-        -- stamps WITH the current window, so this only happens when the row RETURNS to a
-        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
-        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
-        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
-        -- window slice (OLD stamp), before = the state being left, after = the restored image.
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
-            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
-    END IF;
+    PERFORM domain_version_after_update_journal(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -612,19 +500,19 @@ CREATE TRIGGER data_list_after_delete_wrapper_trigger
 -- ============================================================================
 CREATE OR REPLACE FUNCTION data_list_option_before_insert_wrapper() RETURNS trigger AS
 $$
+DECLARE
+    v_decision domain_version_insert_decision;
 BEGIN
     IF NEW.domain_id IS NULL THEN
         SELECT dl.domain_id INTO NEW.domain_id FROM data_list dl WHERE dl.id = NEW.data_list_id;
     ELSIF NEW.domain_id IS DISTINCT FROM (SELECT dl.domain_id FROM data_list dl WHERE dl.id = NEW.data_list_id) THEN
         RAISE EXCEPTION 'data_list_option % belongs to a different domain than data_list %', NEW.id, NEW.data_list_id;
     END IF;
-    IF NOT domain_version_protected_path() THEN
-        IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
-            RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
-        END IF;
-        NEW.domain_version_id := domain_version_before_insert_core(
-            TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
+    v_decision := domain_version_before_insert_handle(TG_TABLE_NAME, to_jsonb(NEW));
+    IF v_decision.skip_insert THEN
+        RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
     END IF;
+    NEW.domain_version_id := v_decision.stamp;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -632,12 +520,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_option_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NOT domain_version_protected_path() THEN
-        NEW.domain_version_id := coalesce(domain_version_before_update_core(
-            TG_TABLE_NAME, NEW.id,
-            OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
-            OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
-    END IF;
+    NEW.domain_version_id := domain_version_before_update_handle(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -665,30 +548,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_option_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
-        -- for any delete — the row still exists in the table with the DELETED status
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), NULL);
-    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
-          AND NEW.domain_version_id IS DISTINCT FROM
-              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
-          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
-        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
-        -- stamps WITH the current window, so this only happens when the row RETURNS to a
-        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
-        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
-        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
-        -- window slice (OLD stamp), before = the state being left, after = the restored image.
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
-            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
-    END IF;
+    PERFORM domain_version_after_update_journal(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -737,19 +597,19 @@ CREATE TRIGGER data_list_option_after_delete_wrapper_trigger
 -- ============================================================================
 CREATE OR REPLACE FUNCTION data_list_subset_before_insert_wrapper() RETURNS trigger AS
 $$
+DECLARE
+    v_decision domain_version_insert_decision;
 BEGIN
     IF NEW.domain_id IS NULL THEN
         SELECT dl.domain_id INTO NEW.domain_id FROM data_list dl WHERE dl.id = NEW.data_list_id;
     ELSIF NEW.domain_id IS DISTINCT FROM (SELECT dl.domain_id FROM data_list dl WHERE dl.id = NEW.data_list_id) THEN
         RAISE EXCEPTION 'data_list_subset % belongs to a different domain than data_list %', NEW.id, NEW.data_list_id;
     END IF;
-    IF NOT domain_version_protected_path() THEN
-        IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
-            RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
-        END IF;
-        NEW.domain_version_id := domain_version_before_insert_core(
-            TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
+    v_decision := domain_version_before_insert_handle(TG_TABLE_NAME, to_jsonb(NEW));
+    IF v_decision.skip_insert THEN
+        RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
     END IF;
+    NEW.domain_version_id := v_decision.stamp;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -757,12 +617,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_subset_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NOT domain_version_protected_path() THEN
-        NEW.domain_version_id := coalesce(domain_version_before_update_core(
-            TG_TABLE_NAME, NEW.id,
-            OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
-            OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
-    END IF;
+    NEW.domain_version_id := domain_version_before_update_handle(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -790,30 +645,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_subset_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
-        -- for any delete — the row still exists in the table with the DELETED status
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), NULL);
-    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
-          AND NEW.domain_version_id IS DISTINCT FROM
-              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
-          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
-        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
-        -- stamps WITH the current window, so this only happens when the row RETURNS to a
-        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
-        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
-        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
-        -- window slice (OLD stamp), before = the state being left, after = the restored image.
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
-            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
-    END IF;
+    PERFORM domain_version_after_update_journal(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -863,6 +695,8 @@ CREATE TRIGGER data_list_subset_after_delete_wrapper_trigger
 -- ============================================================================
 CREATE OR REPLACE FUNCTION data_list_subset_option_before_insert_wrapper() RETURNS trigger AS
 $$
+DECLARE
+    v_decision domain_version_insert_decision;
 BEGIN
     IF NEW.domain_id IS NULL THEN
         SELECT dls.domain_id INTO NEW.domain_id FROM data_list_subset dls WHERE dls.id = NEW.data_list_subset_id;
@@ -870,13 +704,11 @@ BEGIN
         RAISE EXCEPTION 'data_list_subset_option % belongs to a different domain than data_list_subset %',
             NEW.id, NEW.data_list_subset_id;
     END IF;
-    IF NOT domain_version_protected_path() THEN
-        IF domain_version_before_insert_resurrect(TG_TABLE_NAME, format('id = %L', NEW.id), to_jsonb(NEW), NEW.id) THEN
-            RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
-        END IF;
-        NEW.domain_version_id := domain_version_before_insert_core(
-            TG_TABLE_NAME, NEW.id, NEW.domain_id, NEW.domain_version_id, NEW.row_status);
+    v_decision := domain_version_before_insert_handle(TG_TABLE_NAME, to_jsonb(NEW));
+    IF v_decision.skip_insert THEN
+        RETURN NULL;  -- converted into a resurrection UPDATE of the soft-deleted row
     END IF;
+    NEW.domain_version_id := v_decision.stamp;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -884,12 +716,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_subset_option_before_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NOT domain_version_protected_path() THEN
-        NEW.domain_version_id := coalesce(domain_version_before_update_core(
-            TG_TABLE_NAME, NEW.id,
-            OLD.domain_id, NEW.domain_id, OLD.domain_version_id, NEW.domain_version_id,
-            OLD.row_status, NEW.row_status, to_jsonb(OLD), to_jsonb(NEW)), NEW.domain_version_id);
-    END IF;
+    NEW.domain_version_id := domain_version_before_update_handle(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -917,30 +744,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION data_list_subset_option_after_update_wrapper() RETURNS trigger AS
 $$
 BEGIN
-    IF NEW.row_status = 'DELETED' AND OLD.row_status <> 'DELETED' THEN
-        -- soft delete conversion: a user DELETE; the image lives in before, after is NULL like
-        -- for any delete — the row still exists in the table with the DELETED status
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'DELETE', to_jsonb(OLD), NULL);
-    ELSIF NEW.domain_version_id IS DISTINCT FROM OLD.domain_version_id
-          AND NEW.domain_version_id IS DISTINCT FROM
-              (SELECT d.current_domain_version_id FROM domain d WHERE d.id = NEW.domain_id)
-          AND (SELECT d.operation_status FROM domain d WHERE d.id = NEW.domain_id) IN ('IDLE', 'ROLLBACK') THEN
-        -- restore-class write: the stamp moved to an OLD version. A trigger restamp always
-        -- stamps WITH the current window, so this only happens when the row RETURNS to a
-        -- previous state and leaves the window: identical-content resurrection (IDLE) or the
-        -- rollback apply (ROLLBACK). Import content application restamps rows with the import
-        -- version and runs under IMPORTING — never matches here. One record: RESTORE in the
-        -- window slice (OLD stamp), before = the state being left, after = the restored image.
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, OLD.domain_version_id, NEW.id,
-            'RESTORE', to_jsonb(OLD), to_jsonb(NEW));
-    ELSIF domain_version_is_meaningful_change(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW)) THEN
-        PERFORM domain_version_audit_write(
-            TG_TABLE_NAME, NEW.domain_id, NEW.domain_version_id, NEW.id,
-            'UPDATE', to_jsonb(OLD), to_jsonb(NEW));
-    END IF;
+    PERFORM domain_version_after_update_journal(TG_TABLE_NAME, to_jsonb(OLD), to_jsonb(NEW));
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
