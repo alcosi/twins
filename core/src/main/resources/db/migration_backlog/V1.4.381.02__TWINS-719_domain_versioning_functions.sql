@@ -334,20 +334,28 @@ CREATE OR REPLACE FUNCTION domain_version_audit_write(
 $$
 DECLARE
     v_operation_status varchar;
+    v_prior_stamp      uuid;
+    v_before           jsonb;
+    v_after            jsonb;
 BEGIN
     IF p_domain_id IS NULL THEN
         RETURN; -- system rows are not versioned/audited
     END IF;
     SELECT operation_status INTO v_operation_status FROM domain WHERE id = p_domain_id;
     -- images are cleaned at write time; the prior stamp is lifted from the raw before-image
-    -- into its own column before the cleaning strips it
+    -- into its own column before the cleaning strips it. The cleaning is hoisted into locals:
+    -- inside INSERT ... VALUES the registry subquery (domain_version_tables) is not inlined and
+    -- runs as a separate executor call per image (~100 us each, measured); in a plain plpgsql
+    -- assignment it inlines to ~1 us
+    v_prior_stamp := (p_before->>'domain_version_id')::uuid;
+    v_before := domain_version_row_image_clean(p_table_name, p_before);
+    v_after  := domain_version_row_image_clean(p_table_name, p_after);
     INSERT INTO domain_version_audit (id, domain_id, domain_version_id, table_name, row_id,
                                       operation, domain_operation_status, before_domain_version_id,
                                       before, after, changed_at, actor_user_id)
     VALUES (uuid_generate_v7_custom(), p_domain_id, p_domain_version_id, p_table_name, p_row_id,
-            p_operation, coalesce(v_operation_status, 'IDLE'), (p_before->>'domain_version_id')::uuid,
-            domain_version_row_image_clean(p_table_name, p_before),
-            domain_version_row_image_clean(p_table_name, p_after), CURRENT_TIMESTAMP,
+            p_operation, coalesce(v_operation_status, 'IDLE'), v_prior_stamp,
+            v_before, v_after, CURRENT_TIMESTAMP,
             current_actor_user_id_get());
 END;
 $$ LANGUAGE plpgsql;
@@ -988,12 +996,12 @@ BEGIN
     IF p_row_status = 'DELETED' THEN
         RETURN true;
     END IF;
-    -- born in the current window: no release has ever seen this row -> delete physically right away
+    -- born in the current window: no release has ever seen this row -> let the physical DELETE
+    -- proceed; the AFTER wrapper still classifies it as RESTORE (zero net effect in the window).
+    -- No inner DELETE statement: it would recurse through the same wrappers and re-run the born
+    -- check, costing ~300 us per row for an identical journal outcome
     IF domain_version_row_is_born_in_window(p_table, p_domain_id, p_row_id) THEN
-        PERFORM set_config('twins.domain_version_op', 'on', true);
-        EXECUTE format('DELETE FROM %I WHERE %s', p_table, p_pk_predicate);
-        PERFORM set_config('twins.domain_version_op', '', true);
-        RETURN true;
+        RETURN false;
     END IF;
     -- normal path: convert the delete into a soft delete stamped with the current window;
     -- the row physically disappears at the release cleanup

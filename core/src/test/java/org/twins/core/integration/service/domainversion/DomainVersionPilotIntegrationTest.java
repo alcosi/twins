@@ -434,11 +434,11 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
 
         jdbcTemplate.update("SELECT domain_operation_rollback_start(?::uuid)", domainId);
         // "java" applies the before-image of the first record of the window
-        jdbcTemplate.update("SELECT set_config('twins.import_mode', 'on', true)");
+        jdbcTemplate.update("SELECT set_config('twins.domain_version_op', 'on', true)");
         jdbcTemplate.update(
                 "UPDATE twin_class SET external_id = ?, row_status = 'ACTIVE', domain_version_id = ? WHERE id = ?",
                 externalAtStart, releasedId, twinClassId);
-        jdbcTemplate.update("SELECT set_config('twins.import_mode', '', true)");
+        jdbcTemplate.update("SELECT set_config('twins.domain_version_op', '', true)");
         jdbcTemplate.update("SELECT domain_operation_rollback_end(?::uuid)", domainId);
 
         assertEquals(1, versionCount());                            // window collapsed
@@ -508,13 +508,13 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
         editExternalId("draft_that_will_be_wiped");
 
         jdbcTemplate.update("SELECT domain_operation_import_start(?::uuid, 'FULL')", domainId);
-        // the importer reconciles: the draft edit is reverted (before-image style, import GUC)
-        jdbcTemplate.update("SELECT set_config('twins.import_mode', 'on', true)");
+        // the importer reconciles: the draft edit is reverted (before-image style, versioning GUC)
+        jdbcTemplate.update("SELECT set_config('twins.domain_version_op', 'on', true)");
         jdbcTemplate.update(
                 "UPDATE twin_class SET external_id = NULL, domain_version_id = " +
                 "  (SELECT id FROM domain_version WHERE domain_id = ? AND version = '1.0') WHERE id = ?",
                 domainId, twinClassId);
-        jdbcTemplate.update("SELECT set_config('twins.import_mode', '', true)");
+        jdbcTemplate.update("SELECT set_config('twins.domain_version_op', '', true)");
         jdbcTemplate.update("SELECT domain_operation_import_end(?::uuid, 'H_FULL_IMPORT', 'restore of 1.0')", domainId);
 
         Map<String, Object> current = currentVersion();
@@ -525,20 +525,25 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
     }
 
     // ------------------------------------------------------------------
-    // 12. reconcile: stray version outside the chain is detected and removable
+    // 12. reconcile: foreign stamps are removed from the settings tables;
+    //     the branch version row and its journal stay (release branches
+    //     are legitimate residents of domain_version)
     // ------------------------------------------------------------------
 
     @Test
     public void reconcileDetectsAndRemovesOrphanStamps() {
         UUID stray = UUID.randomUUID();
-        jdbcTemplate.update("SELECT set_config('twins.version_op', 'on', true)");
+        jdbcTemplate.update("SELECT set_config('twins.domain_version_op', 'on', true)");
         jdbcTemplate.update(
                 "INSERT INTO domain_version (id, domain_id, version, status, \"order\") VALUES (?, ?, 'stray', 'RELEASED', 999)",
                 stray, domainId);
-        jdbcTemplate.update("SELECT set_config('twins.version_op', '', true)");
-        jdbcTemplate.update("SELECT set_config('twins.import_mode', 'on', true)");
         jdbcTemplate.update("UPDATE twin_class SET domain_version_id = ? WHERE id = ?", stray, twinClassId);
-        jdbcTemplate.update("SELECT set_config('twins.import_mode', '', true)");
+        // the stray stamp must be journal-visible: reconcile routes through the audit journal
+        jdbcTemplate.update(
+                "INSERT INTO domain_version_audit (id, domain_id, domain_version_id, table_name, row_id," +
+                "     operation, domain_operation_status) VALUES (?, ?, ?, 'twin_class', ?, 'UPDATE', 'IDLE')",
+                UUID.randomUUID(), domainId, stray, twinClassId);
+        jdbcTemplate.update("SELECT set_config('twins.domain_version_op', '', true)");
 
         List<Map<String, Object>> report = jdbcTemplate.queryForList(
                 "SELECT table_name FROM domain_version_reconcile(?::uuid, true)", domainId);
@@ -551,6 +556,12 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
         jdbcTemplate.update("SELECT domain_version_reconcile(?::uuid, false)", domainId);
         assertEquals(0, jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM twin_class WHERE id = ?", Integer.class, twinClassId));
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM domain_version WHERE id = ?", Integer.class, stray),
+                "the branch version row must stay");
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM domain_version_audit WHERE domain_version_id = ? AND operation = 'UPDATE'",
+                Integer.class, stray), "the branch journal must stay");
     }
 
     // ------------------------------------------------------------------
