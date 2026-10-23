@@ -73,7 +73,14 @@ create index if not exists idx_face_wt001_context_id on face_wt001 (context_id);
 -- 6. i18n type for auto-generated context names
 insert into i18n_type (id, name) values ('contextName', 'Context name') on conflict (id) do nothing;
 
--- 7. data migration: face_wt001.search_target_twin_pointer_id -> context + context_collector
+-- 7. register featurer 4912 (ContextCollectorPointedTwin) BEFORE the data migration references it:
+-- FeaturerService.syncFeaturers runs at @PostConstruct, i.e. AFTER flyway — without this row the
+-- context_collector insert below violates context_collector_featurer_id_fk on any database that
+-- has face_wt001 pointers configured. Same pre-seed pattern as featurers 4901-4911.
+insert into featurer (id, featurer_type_id, class, name, description, deprecated)
+values (4912::integer, 49::integer, '', '', '', DEFAULT) on conflict do nothing;
+
+-- 8. data migration: face_wt001.search_target_twin_pointer_id -> context + context_collector
 -- (featurer 4912 = ContextCollectorPointedTwin; params reproduce the old hardcoded behavior:
 -- searchParams["twinId"] = pointed twin id). Skipped entirely once the column is dropped;
 -- rows already pointing to a context are not re-migrated.
@@ -113,5 +120,5 @@ begin
 end
 $$;
 
--- 8. drop old column (its fk constraint and index are dropped with it)
+-- 9. drop old column (its fk constraint and index are dropped with it)
 alter table face_wt001 drop column if exists search_target_twin_pointer_id;

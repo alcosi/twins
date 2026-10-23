@@ -48,7 +48,7 @@ public class ContextService extends EntitySecureFindServiceImpl<ContextEntity> {
 
     @Override
     public boolean isEntityReadDenied(ContextEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
     @Override
