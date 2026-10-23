@@ -1,0 +1,83 @@
+package org.twins.core.featurer.context;
+
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
+import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.service.twin.TwinService;
+
+import java.util.Map;
+import java.util.Properties;
+
+@Slf4j
+public abstract class ContextCollectorUser extends ContextCollectorAtomic {
+
+    @FeaturerParam(name = "Collect id", description = "", order = 1, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean collectId = new FeaturerParamBoolean("collectId");
+
+    @FeaturerParam(name = "Collect id key", description = "", order = 2, optional = true, defaultValue = "USER_ID")
+    public static final FeaturerParamString collectIdKey = new FeaturerParamString("collectIdKey");
+
+    @FeaturerParam(name = "Collect name", description = "", order = 3, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean collectName = new FeaturerParamBoolean("collectName");
+
+    @FeaturerParam(name = "Collect name key", description = "", order = 4, optional = true, defaultValue = "USER_NAME")
+    public static final FeaturerParamString collectNameKey = new FeaturerParamString("collectNameKey");
+
+    @FeaturerParam(name = "Collect email", description = "", order = 5, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean collectEmail = new FeaturerParamBoolean("collectEmail");
+
+    @FeaturerParam(name = "Collect email key", description = "", order = 6, optional = true, defaultValue = "USER_EMAIL")
+    public static final FeaturerParamString collectEmailKey = new FeaturerParamString("collectEmailKey");
+
+    @FeaturerParam(name = "Collect avatar", description = "", order = 7, optional = true, defaultValue = "false")
+    public static final FeaturerParamBoolean collectAvatar = new FeaturerParamBoolean("collectAvatar");
+
+    @FeaturerParam(name = "Collect avatar key", description = "", order = 8, optional = true, defaultValue = "USER_AVATAR")
+    public static final FeaturerParamString collectAvatarKey = new FeaturerParamString("collectAvatarKey");
+
+    @Autowired
+    private TwinService twinService;
+
+    /**
+     * Bulk-load the twin→user relation for the whole batch so {@link #collectData} reads it in-memory
+     * (was a per-history {@code loadUser} call — N+1).
+     */
+    @Override
+    protected void beforeCollect(ContextCollectorBatch batch, Properties properties) throws ServiceException {
+        if (!batch.getTwins().isEmpty()) {
+            twinService.loadUser(batch.getTwins());
+        }
+    }
+
+    @Override
+    protected Map<String, String> collectData(ContextRoot root, Map<String, String> context, Properties properties) throws ServiceException {
+        UserEntity user = getUser(root, properties);
+
+        if (user != null) { //todo logic if null
+            if (collectId.extract(properties)) {
+                context.put(collectIdKey.extract(properties), user.getId().toString());
+            }
+            if (collectName.extract(properties)) {
+                if (user.getName() != null) //todo logic if null
+                    context.put(collectNameKey.extract(properties), user.getName());
+            }
+            if (collectEmail.extract(properties)) {
+                if (user.getEmail() != null) //todo logic if null
+                    context.put(collectEmailKey.extract(properties), user.getEmail());
+            }
+            if (collectAvatar.extract(properties)) {
+                if (user.getAvatar() != null) //todo logic if null
+                    context.put(collectAvatarKey.extract(properties), user.getAvatar());
+            }
+        }
+
+        return context;
+    }
+
+    protected abstract UserEntity getUser(ContextRoot root, Properties properties);
+
+}

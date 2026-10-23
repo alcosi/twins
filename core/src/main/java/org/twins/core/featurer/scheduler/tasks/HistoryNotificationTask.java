@@ -19,6 +19,7 @@ import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.featurer.notificator.notifier.NotifyEvent;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.context.ContextService;
 import org.twins.core.service.notification.*;
 
 import java.util.*;
@@ -33,7 +34,7 @@ public class HistoryNotificationTask implements Runnable {
     @Autowired
     private FeaturerService featurerService;
     @Autowired
-    private NotificationContextService notificationContextService;
+    private ContextService contextService;
     @Autowired
     private NotificationChannelEventService notificationChannelEventService;
     @Autowired
@@ -102,7 +103,7 @@ public class HistoryNotificationTask implements Runnable {
                 // 2c. precompute context for the whole chunk: one collectDataBatch per
                 //     (contextCollectorFeaturerId, params) group per contextId; i18n resolved per locale.
                 //     Results land on each task.collectedContextByContextId for processTask.
-                notificationContextService.collectHistoryContextBatch(chunk);
+                contextService.collectHistoryContextBatch(chunk);
             }
 
             // 3. phase A — per-history build of notify events (recipients/context precomputed, ApiUser per
@@ -250,7 +251,7 @@ public class HistoryNotificationTask implements Runnable {
                                          NotificationChannelEventEntity channelEvent, Set<UUID> recipientIds) {
         Map<String, String> template = contextTemplate(task, channelEvent);
         for (var localeGroup : chunk.splitRecipientsByLocale(recipientIds).entrySet()) {
-            var context = notificationContextService.materializeContext(template, chunk, localeGroup.getKey());
+            var context = contextService.materializeContext(template, chunk, localeGroup.getKey());
             chunk.addPendingEvent(channelEvent.getNotificationChannel(),
                     new NotifyEvent(task, localeGroup.getValue(), context, channelEvent.getEventCode()));
         }
@@ -259,7 +260,7 @@ public class HistoryNotificationTask implements Runnable {
     /** The task's collected context template for the channel event's context (empty when none was collected). */
     private static Map<String, String> contextTemplate(HistoryNotificationTaskEntity task, NotificationChannelEventEntity channelEvent) {
         var collected = task.getCollectedContextByContextId();
-        return collected != null ? collected.getOrDefault(channelEvent.getNotificationContextId(), Map.of()) : Map.of();
+        return collected != null ? collected.getOrDefault(channelEvent.getContextId(), Map.of()) : Map.of();
     }
 
     /**

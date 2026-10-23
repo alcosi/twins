@@ -9,6 +9,7 @@ import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.context.ContextEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListSubsetEntity;
@@ -18,7 +19,10 @@ import org.twins.core.dao.factory.*;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.notification.*;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
+import org.twins.core.dao.notification.NotificationChannelEntity;
+import org.twins.core.dao.notification.NotificationChannelEventEntity;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -108,7 +112,7 @@ public class MapperContext {
             HistoryNotificationRecipientEntity.class,
             NotificationSchemaEntity.class,
             NotificationChannelEntity.class,
-            NotificationContextEntity.class,
+            ContextEntity.class,
             NotificationChannelEventEntity.class,
             HistoryTypeEntity.class,
             ActionRestrictionReasonEntity.class,

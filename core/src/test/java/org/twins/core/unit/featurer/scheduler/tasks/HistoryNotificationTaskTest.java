@@ -18,6 +18,7 @@ import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.notificator.notifier.Notifier;
 import org.twins.core.featurer.notificator.notifier.NotifyEvent;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.context.ContextService;
 import org.twins.core.service.notification.*;
 
 import java.lang.reflect.Field;
@@ -44,7 +45,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
     @Mock
     private FeaturerService featurerService;
     @Mock
-    private NotificationContextService notificationContextService;
+    private ContextService contextService;
     @Mock
     private NotificationChannelEventService notificationChannelEventService;
     @Mock
@@ -67,8 +68,8 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
     private void notifierReady() throws Exception {
         when(featurerService.getFeaturer(eq(NOTIFIER_FEATURER_ID), eq(Notifier.class))).thenReturn(notifier);
         // pass-through: the real materialize copies the template (per-locale substitution is covered
-        // by NotificationContextServiceTest.materializeContext_perLocale_...)
-        when(notificationContextService.materializeContext(any(), any(), any())).thenAnswer(inv -> new HashMap<>(inv.getArgument(0)));
+        // by ContextServiceTest.materializeContext_perLocale_...)
+        when(contextService.materializeContext(any(), any(), any())).thenAnswer(inv -> new HashMap<>(inv.getArgument(0)));
     }
 
     // ---------- wiring ----------
@@ -77,7 +78,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
         var task = new HistoryNotificationTask(chunk);
         inject(task, "historyNotificationTaskService", historyNotificationTaskService);
         inject(task, "featurerService", featurerService);
-        inject(task, "notificationContextService", notificationContextService);
+        inject(task, "contextService", contextService);
         inject(task, "notificationChannelEventService", notificationChannelEventService);
         inject(task, "historyNotificationRecipientService", historyNotificationRecipientService);
         inject(task, "historyNotificationService", historyNotificationService);
@@ -142,7 +143,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
         var event = new NotificationChannelEventEntity();
         event.setId(UUID.randomUUID());
         event.setEventCode(eventCode);
-        event.setNotificationContextId(contextId);
+        event.setContextId(contextId);
         event.setUniqueInBatch(uniqueInBatch);
         event.setNotificationChannel(channel);
         return event;
@@ -246,7 +247,7 @@ class HistoryNotificationTaskTest extends BaseUnitTest {
             assertEquals(HistoryNotificationTaskStatus.SENT, taskEntity.getStatusId());
             assertTrue(taskEntity.getStatusDetails().contains("3 recipients were notified"));
             // three locale groups -> three events in ONE channel batch, each with its own recipient set
-            // (per-locale context values are covered by NotificationContextServiceTest)
+            // (per-locale context values are covered by ContextServiceTest)
             verify(notifier).notify(any(), argThat(events -> events.size() == 3
                     && events.stream().anyMatch(e -> e.recipientIds().equals(Set.of(userEn)))
                     && events.stream().anyMatch(e -> e.recipientIds().equals(Set.of(userDe)))

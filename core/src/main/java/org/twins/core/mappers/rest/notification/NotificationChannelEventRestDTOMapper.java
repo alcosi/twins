@@ -35,7 +35,7 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
                         .setId(src.getId())
                         .setNotificationChannelId(src.getNotificationChannelId())
                         .setEventCode(src.getEventCode())
-                        .setNotificationContextId(src.getNotificationContextId())
+                        .setNotificationContextId(src.getContextId())
                         .setUniqueInBatch(src.isUniqueInBatch());
                 break;
             case SHORT:
@@ -53,10 +53,10 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
         }
 
         if (mapperContext.hasModeButNot(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.HIDE)) {
-            dst.setNotificationContextId(src.getNotificationContextId());
+            dst.setNotificationContextId(src.getContextId());
 
-            notificationChannelEventService.loadNotificationContext(src);
-            notificationContextRestDTOMapper.postpone(src.getNotificationContext(),
+            notificationChannelEventService.loadContext(src);
+            notificationContextRestDTOMapper.postpone(src.getContext(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.SHORT)));
         }
     }
@@ -68,7 +68,7 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
             notificationChannelEventService.loadNotificationChannel(srcCollection);
         }
         if (mapperContext.hasModeButNot(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.HIDE)) {
-            notificationChannelEventService.loadNotificationContext(srcCollection);
+            notificationChannelEventService.loadContext(srcCollection);
         }
     }
 }
