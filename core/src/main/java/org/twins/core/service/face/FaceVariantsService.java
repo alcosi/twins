@@ -5,12 +5,12 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.*;
 import java.util.function.ToIntFunction;
@@ -18,7 +18,7 @@ import java.util.function.ToIntFunction;
 @Slf4j
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
-public abstract class FaceVariantsService<T extends FaceVariantEntity> extends EntitySecureFindServiceImpl<T> {
+public abstract class FaceVariantsService<T extends FaceVariantEntity> extends TwinsEntitySecureFindService<T> {
     @Autowired
     private FaceTwinPointerValidatorRuleService faceTwinPointerValidatorRuleService;
 

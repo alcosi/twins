@@ -11,7 +11,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -27,6 +26,7 @@ import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.enums.domain.DomainType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
@@ -53,7 +53,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class DomainBusinessAccountService extends EntitySecureFindServiceImpl<DomainBusinessAccountEntity> {
+public class DomainBusinessAccountService extends TwinsEntitySecureFindService<DomainBusinessAccountEntity> {
     @Getter
     private final DomainBusinessAccountRepository domainBusinessAccountRepository;
     private final AuthService authService;

@@ -9,7 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.*;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -32,6 +31,7 @@ import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
@@ -49,7 +49,7 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataListOptionService extends EntitySecureFindServiceImpl<DataListOptionEntity> {
+public class DataListOptionService extends TwinsEntitySecureFindService<DataListOptionEntity> {
     final DataListOptionRepository dataListOptionRepository;
     final AuthService authService;
     private final I18nService i18nService;
@@ -246,7 +246,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
     }
 
     public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
-        return entitySmartService.saveAllAndLog(newOptions, dataListOptionRepository);
+        return entitySmartService.saveAllAndLog(autofillDomainIds(newOptions), dataListOptionRepository);
     }
 
     //Method for reloading options if dataList is not present in entity;

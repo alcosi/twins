@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -18,6 +17,7 @@ import org.twins.core.dao.statistic.TwinStatisticRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.statistic.TwinStatisticProgressPercent;
 import org.twins.core.featurer.statistic.Statister;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinStatisticService extends EntitySecureFindServiceImpl<TwinStatisticEntity> {
+public class TwinStatisticService extends TwinsEntitySecureFindService<TwinStatisticEntity> {
     @Autowired
     private TwinStatisticRepository twinStatisticRepository;
     @Autowired

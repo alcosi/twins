@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -20,6 +19,7 @@ import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.domain.twinclass.TwinClassFieldRuleSave;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -31,7 +31,7 @@ import static org.twins.core.service.twinclassfield.TwinClassFieldConditionServi
 @Component
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFieldRuleService extends EntitySecureFindServiceImpl<TwinClassFieldRuleEntity> {
+public class TwinClassFieldRuleService extends TwinsEntitySecureFindService<TwinClassFieldRuleEntity> {
     private static int FIELD_OVERWRITER_STUB_ID = FeaturerTwins.ID_4601; // "no overwriter" stub featurer
 
     private final TwinClassFieldRuleRepository twinClassFieldRuleRepository;

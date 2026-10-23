@@ -11,6 +11,8 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Table(name = "twin_validator")
 @Accessors(chain = true)
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     private UUID id;

@@ -10,7 +10,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -27,6 +26,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.factoryprocessor.FactoryProcessor;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinflow.TwinflowFactoryService;
@@ -45,7 +45,7 @@ import static org.cambium.common.util.RowUtils.mapUuidInt;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class FactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntity> {
+public class FactoryService extends TwinsEntitySecureFindService<TwinFactoryEntity> {
     @Getter
     private final TwinFactoryRepository repository;
     private final AuthService authService;

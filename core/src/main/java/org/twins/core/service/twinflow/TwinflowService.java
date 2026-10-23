@@ -14,7 +14,6 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -37,6 +36,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
@@ -54,7 +54,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity> {
+public class TwinflowService extends TwinsEntitySecureFindService<TwinflowEntity> {
     private final TwinflowRepository twinflowRepository;
     private final TwinflowSchemaRepository twinflowSchemaRepository;
     private final TwinflowSchemaMapRepository twinflowSchemaMapRepository;

@@ -9,7 +9,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
+import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
@@ -18,6 +21,7 @@ import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemIdLookup;
 
@@ -28,6 +32,7 @@ import java.util.*;
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
@@ -39,6 +44,14 @@ public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID> {
             this.id = UUID.nameUUIDFromBytes((key + twinClassId).getBytes());
         }
     }
+
+    @Column(name = "domain_id")
+    private UUID domainId;
+
+    // DB-maintained by the versioning triggers (TWINS-719) — Hibernate never writes it
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "domain_version_id", insertable = false, updatable = false)
+    private UUID domainVersionId;
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;

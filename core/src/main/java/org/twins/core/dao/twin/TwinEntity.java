@@ -17,6 +17,7 @@ import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.ResettableTransientState;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -34,6 +35,7 @@ import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.enums.twin.TwinAliasType;
@@ -75,6 +77,7 @@ import java.util.function.Function;
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable<UUID> {
     @Id
     private UUID id;

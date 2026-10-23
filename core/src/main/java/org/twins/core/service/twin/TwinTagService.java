@@ -11,7 +11,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -26,6 +25,7 @@ import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
+public class TwinTagService extends TwinsEntitySecureFindService<TwinTagEntity> {
     final TwinTagRepository twinTagRepository;
     final TwinService twinService;
     final DataListService dataListService;

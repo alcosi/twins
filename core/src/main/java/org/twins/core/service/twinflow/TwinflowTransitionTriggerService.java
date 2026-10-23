@@ -7,7 +7,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twintrigger.TwinTriggerService;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinflowTransitionTriggerService extends EntitySecureFindServiceImpl<TwinflowTransitionTriggerEntity> {
+public class TwinflowTransitionTriggerService extends TwinsEntitySecureFindService<TwinflowTransitionTriggerEntity> {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     private final TwinTriggerService twinTriggerService;
     @Lazy

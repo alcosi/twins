@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -15,6 +16,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 import java.sql.Timestamp;
@@ -26,6 +28,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twinflow_transition")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinflowTransitionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

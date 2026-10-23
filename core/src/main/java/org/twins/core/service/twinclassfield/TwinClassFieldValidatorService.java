@@ -13,7 +13,6 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -31,6 +30,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldvalidator.FieldValidator;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinService;
 
@@ -42,7 +42,7 @@ import java.util.stream.StreamSupport;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFieldValidatorService extends EntitySecureFindServiceImpl<TwinClassFieldValidatorEntity> {
+public class TwinClassFieldValidatorService extends TwinsEntitySecureFindService<TwinClassFieldValidatorEntity> {
     private final TwinClassFieldValidatorRepository repository;
     @Lazy
     private final FeaturerService featurerService;

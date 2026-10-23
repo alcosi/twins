@@ -10,6 +10,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -18,11 +20,12 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_search_alias")
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinSearchAliasEntity implements EasyLoggable {
     @Id
     private UUID id;
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "alias")

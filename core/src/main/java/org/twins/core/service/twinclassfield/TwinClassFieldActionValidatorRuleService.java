@@ -4,12 +4,12 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.List;
 import java.util.Set;
@@ -20,7 +20,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFieldActionValidatorRuleService extends EntitySecureFindServiceImpl<TwinClassFieldActionValidatorRuleEntity> {
+public class TwinClassFieldActionValidatorRuleService extends TwinsEntitySecureFindService<TwinClassFieldActionValidatorRuleEntity> {
     private final TwinClassFieldActionValidatorRuleRepository repository;
 
     @Override

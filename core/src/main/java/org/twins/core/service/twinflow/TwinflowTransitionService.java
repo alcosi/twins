@@ -16,7 +16,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -53,6 +52,7 @@ import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
@@ -81,7 +81,7 @@ import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecific
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
+public class TwinflowTransitionService extends TwinsEntitySecureFindService<TwinflowTransitionEntity> {
 
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowTransitionTriggerService twinflowTransitionTriggerService;

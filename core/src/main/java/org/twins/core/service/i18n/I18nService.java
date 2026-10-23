@@ -16,7 +16,6 @@ import org.cambium.common.util.CacheUtils;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
@@ -29,6 +28,7 @@ import org.twins.core.dao.i18n.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.i18n.ErrorCodeI18n;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 
@@ -43,7 +43,7 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class I18nService extends EntitySecureFindServiceImpl<I18nEntity> {
+public class I18nService extends TwinsEntitySecureFindService<I18nEntity> {
     private final I18nRepository i18nRepository;
     private final I18nTranslationRepository i18nTranslationRepository;
     private final I18nTranslationBinRepository i18nTranslationBinRepository;

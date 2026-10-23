@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.storage.StorageService;
 
@@ -32,7 +32,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
+public class ResourceService extends TwinsEntitySecureFindService<ResourceEntity> {
     protected final FeaturerService featurerService;
     protected final ResourceRepository resourceRepository;
     protected final StorageService storageService;

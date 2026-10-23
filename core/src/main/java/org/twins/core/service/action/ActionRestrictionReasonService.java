@@ -2,10 +2,9 @@ package org.twins.core.service.action;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.service.EntitySecureFindServiceImpl;
-import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -15,21 +14,18 @@ import org.twins.core.dao.action.ActionRestrictionReasonRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.action.ActionRestrictionReasonCreate;
 import org.twins.core.domain.action.ActionRestrictionReasonUpdate;
+import org.twins.core.enums.i18n.I18nType;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.enums.i18n.I18nType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
-public class ActionRestrictionReasonService extends EntitySecureFindServiceImpl<ActionRestrictionReasonEntity> {
+public class ActionRestrictionReasonService extends TwinsEntitySecureFindService<ActionRestrictionReasonEntity> {
     private final ActionRestrictionReasonRepository repository;
     private final AuthService authService;
     private final I18nService i18nService;

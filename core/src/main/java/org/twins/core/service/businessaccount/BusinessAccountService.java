@@ -5,7 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -17,6 +16,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -29,7 +29,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class BusinessAccountService extends EntitySecureFindServiceImpl<BusinessAccountEntity> {
+public class BusinessAccountService extends TwinsEntitySecureFindService<BusinessAccountEntity> {
     final BusinessAccountUserRepository businessAccountUserRepository;
     final BusinessAccountRepository businessAccountRepository;
     final EntitySmartService entitySmartService;

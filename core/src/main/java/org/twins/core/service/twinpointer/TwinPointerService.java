@@ -10,7 +10,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -23,6 +22,7 @@ import org.twins.core.domain.twin.TwinPointerCreate;
 import org.twins.core.domain.twin.TwinPointerUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.pointer.Pointer;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinPointerService extends EntitySecureFindServiceImpl<TwinPointerEntity> {
+public class TwinPointerService extends TwinsEntitySecureFindService<TwinPointerEntity> {
     private final TwinPointerRepository twinPointerRepository;
     private final FeaturerService featurerService;
     private final TwinClassService twinClassService;

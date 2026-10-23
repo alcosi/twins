@@ -12,7 +12,9 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "storage")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class StorageEntity implements EasyLoggable {
     @Id
     private UUID id;

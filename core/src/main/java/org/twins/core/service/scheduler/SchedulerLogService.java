@@ -3,12 +3,12 @@ package org.twins.core.service.scheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.scheduler.SchedulerLogEntity;
 import org.twins.core.dao.scheduler.SchedulerLogRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.function.Function;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SchedulerLogService extends EntitySecureFindServiceImpl<SchedulerLogEntity> {
+public class SchedulerLogService extends TwinsEntitySecureFindService<SchedulerLogEntity> {
 
     private final SchedulerLogRepository schedulerLogRepository;
     private final SchedulerService schedulerService;

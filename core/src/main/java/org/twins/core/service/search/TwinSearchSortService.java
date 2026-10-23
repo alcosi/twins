@@ -7,13 +7,13 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.search.TwinSearchSortEntity;
 import org.twins.core.dao.search.TwinSearchSortRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -21,7 +21,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinSearchSortService extends EntitySecureFindServiceImpl<TwinSearchSortEntity> {
+public class TwinSearchSortService extends TwinsEntitySecureFindService<TwinSearchSortEntity> {
 
     private final TwinSearchSortRepository twinSearchSortRepository;
 

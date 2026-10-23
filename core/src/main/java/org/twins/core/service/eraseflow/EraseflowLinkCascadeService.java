@@ -5,13 +5,13 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.eraseflow.EraseflowLinkCascadeEntity;
 import org.twins.core.dao.eraseflow.EraseflowLinkCascadeRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -22,7 +22,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class EraseflowLinkCascadeService extends EntitySecureFindServiceImpl<EraseflowLinkCascadeEntity> {
+public class EraseflowLinkCascadeService extends TwinsEntitySecureFindService<EraseflowLinkCascadeEntity> {
     private final EraseflowLinkCascadeRepository eraseflowLinkCascadeRepository;
     @Lazy
     private final EraseflowService eraseflowService;

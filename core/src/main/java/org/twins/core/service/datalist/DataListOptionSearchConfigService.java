@@ -2,12 +2,12 @@ package org.twins.core.service.datalist;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionSearchEntity;
 import org.twins.core.dao.datalist.DataListOptionSearchRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Service
-public class DataListOptionSearchConfigService extends EntitySecureFindServiceImpl<DataListOptionSearchEntity> {
+public class DataListOptionSearchConfigService extends TwinsEntitySecureFindService<DataListOptionSearchEntity> {
     private final AuthService authService;
     private final DataListOptionSearchRepository dataListOptionSearchRepository;
 

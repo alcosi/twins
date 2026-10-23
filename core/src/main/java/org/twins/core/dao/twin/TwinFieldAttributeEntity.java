@@ -10,8 +10,10 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassFieldAttributeEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Table(name = "twin_field_attribute")
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinFieldAttributeEntity extends TwinFieldBaseEntity
         implements PublicCloneable<TwinFieldAttributeEntity> {
 

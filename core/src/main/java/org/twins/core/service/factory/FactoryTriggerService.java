@@ -8,7 +8,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -17,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryTriggerEntity;
 import org.twins.core.dao.trigger.TwinFactoryTriggerRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twintrigger.TwinTriggerService;
 
@@ -29,7 +29,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class FactoryTriggerService extends EntitySecureFindServiceImpl<TwinFactoryTriggerEntity> {
+public class FactoryTriggerService extends TwinsEntitySecureFindService<TwinFactoryTriggerEntity> {
     private final TwinFactoryTriggerRepository repository;
     @Lazy
     private final FactoryService factoryService;

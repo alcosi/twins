@@ -1,10 +1,10 @@
 package org.twins.core.service.twinfield;
 
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinFieldBaseEntity;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
-public abstract class TwinFieldServiceBase<T extends TwinFieldBaseEntity> extends EntitySecureFindServiceImpl<T> {
+public abstract class TwinFieldServiceBase<T extends TwinFieldBaseEntity> extends TwinsEntitySecureFindService<T> {
 
     @Lazy
     @Autowired

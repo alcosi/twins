@@ -14,7 +14,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -46,6 +45,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.SystemIdLookup;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClassFieldEntity> {
+public class TwinClassFieldService extends TwinsEntitySecureFindService<TwinClassFieldEntity> {
     private final TwinClassFieldRepository twinClassFieldRepository;
     private final I18nService i18nService;
     private final EntitySmartService entitySmartService;
@@ -505,7 +505,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
 
         Iterable<TwinClassFieldEntity> savedEntities = entitySmartService.saveAllAndLog(
-                fieldsToCreate,
+                autofillDomainIds(fieldsToCreate),
                 twinClassFieldRepository
         );
 

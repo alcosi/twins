@@ -6,6 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "eraseflow_link_cascade")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class EraseflowLinkCascadeEntity implements EasyLoggable {
     @Id
     private UUID id;

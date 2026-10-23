@@ -17,7 +17,6 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.ScopeNotActiveException;
@@ -53,6 +52,7 @@ import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
@@ -97,7 +97,7 @@ import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
+public class TwinService extends TwinsEntitySecureFindService<TwinEntity> {
 
     // resolve AOP problem: one-service self-invocation methods
     @Autowired

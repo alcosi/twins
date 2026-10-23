@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.repository.CrudRepository;
@@ -16,6 +15,7 @@ import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.scheduler.Scheduler;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.time.Duration;
 import java.util.*;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SchedulerService extends EntitySecureFindServiceImpl<SchedulerEntity> {
+public class SchedulerService extends TwinsEntitySecureFindService<SchedulerEntity> {
 
     private final SchedulerRepository schedulerRepository;
     private final FeaturerService featurerService;

@@ -128,6 +128,47 @@ DROP FUNCTION IF EXISTS add_domain_version_columns(text);
 Partial unique для бизнес-ключей helper не добавляет (ключи у каждой таблицы свои) — это
 отдельный осознанный список в той же миграции.
 
+**Контракт для Entity (Java):** таблица, получившая колонки `domain_id` / `domain_version_id`,
+обязана получить соответствующие поля в `*Entity.java` по `docs/entity_code_convention.md`:
+
+- `domain_version_id` — DB-maintained колонка (владелец — триггер, прикладная запись запрещена,
+  см. «Защита версионных колонок»): форма по §13 конвенции —
+  `@Generated(event = {INSERT, UPDATE})` + `@Column(name = "domain_version_id", insertable = false, updatable = false)`
+  (Hibernate никогда не пишет штамп, перечитывает строку после записи). **Без
+  `@EqualsAndHashCode.Exclude` / `@ToString.Exclude`** — примитивная метаданные-колонка участвует
+  в Lombok-методах наравне с остальными примитивными полями (прецедент: `@Generated`-колонки
+  `TwinEntity`; exclude'ы §13 предназначались counter-полям, к штампу не применяем — решение 2026-10-23);
+- `domain_id` (там, где колонку добавила волна) — обычный writable `@Column(name = "domain_id")`,
+  значение ставит приложение (before-insert гейт читает его из строки);
+- `row_status` — отдельная история: переходы ACTIVE↔DISABLED пишет сама Java (только DELETED
+  ставится конверсией DELETE), поэтому read-only форма §13 не подходит; маппинг решаем с первым
+  Java-потребителем статуса.
+
+В пилотных Entity поля добавлены (2026-10-23): `domainId` там, где его не было
+(`TwinClassFieldEntity`, `TwinStatusEntity`, `DataListOptionEntity`, `DataListSubsetEntity`,
+`DataListSubsetOptionEntity`), `domainVersionId` — во всех семи. `DataListSubsetOptionEntity`
+переведена на суррогатный `@Id id` (детерминированная генерация uuid v5 тем же namespace, что
+бэкфилл V1.4.381.01 — проверено побайтовым совпадением с `uuid_generate_v5`), класс
+`DataListOptionSubsetId` удалён. `rowStatus` не мапим до первого Java-потребителя.
+
+**Универсальное заполнение `domainId` (решение 2026-10-23, размещение переработано 2026-10-23):**
+не выводом по цепочке родителей, а из `apiUser.getDomainId()` — системные строки через сервисы
+не создаются. Ядро — `DomainIdFiller.fillOnInsert` (`dao/annotation`, reflection-кэш полей
+id/domainId). Точки вызова: оба `saveSafe` в `TwinsEntitySecureFindService` + явные обёртки
+`autofillDomainId(s)` в местах прямых вызовов `entitySmartService.save*` пилота
+(`TwinStatusService` ×2, `TwinClassFieldService`, `DataListOptionService`). Расслоение: cambium
+ничего не знает про twins — `AuthService`, `isDomainAccessDenied`, `checkDomainAccessDenied`
+перенесены из `EntitySecureFindServiceImpl` в `TwinsEntitySecureFindService`, и все twins-сервисы
+(102) перебазированы на `TwinsEntitySecureFindService` (прочие twins-зависимости в cambium —
+Usage/LoadState/ErrorCodeTwins/EntityRequestCacheHolder — осознанно оставлены, отдельная история).
+Условия заполнения: класс несёт `@DataScope` с `DOMAIN`, поле `domainId` существует, значение
+NULL и id ещё не присвоен (insert). Update загруженных строк не трогаем — иначе системная
+строка стала бы доменной при правке. Явное значение побеждает (import/duplicate/rollback шлют
+свои). Таблицы со scope через родителя (своего поля `domainId` ещё нет) молча пропускаются до
+своей волны. Нет резолвимого доменного контекста (системные джобы) — пропуск. Остаточная дыра:
+прямые `repository.save` и необёрнутые вызовы `entitySmartService.save*` мимо `saveSafe` не
+заполняются.
+
 Из старого драфта kk1 НЕ переносится: словарные таблицы статусов (`domain_version_status`,
 `domain_operation_status` — у нас varchar + CHECK), `domain_version_ghost`, `ON DELETE SET NULL`
 у FK штампа (у нас `ON DELETE RESTRICT`: сворачивание окна, на которое ещё ссылаются строки,
@@ -141,7 +182,11 @@ Partial unique для бизнес-ключей helper не добавляет (
 CREATE TABLE domain_version_audit (
     id                      uuid PRIMARY KEY,        -- uuid_generate_v7_custom(): порядок записей
     domain_id               uuid NOT NULL REFERENCES domain ON UPDATE CASCADE ON DELETE CASCADE,
-    domain_version_id       uuid NOT NULL,           -- окно-штамп; без FK — окна сворачиваются и удаляются
+    domain_version_id       uuid NOT NULL,           -- окно ОПЕРАЦИИ (не прежний штамп строки — он ниже);
+                                                     -- без FK — окна сворачиваются и удаляются
+    seq                     bigserial NOT NULL,      -- строгий порядок вставки: у uuid v7 точность до
+                                                     -- миллисекунды, записи одной миллисекунды (массовые
+                                                     -- операции!) упорядочивались бы случайно
     table_name              varchar NOT NULL,
     row_id                  uuid NOT NULL,           -- PK изменённой строки (у всех версионируемых таблиц есть uuid id)
     operation               varchar NOT NULL         -- INSERT / UPDATE / DELETE / RESTORE
@@ -150,13 +195,18 @@ CREATE TABLE domain_version_audit (
     domain_operation_status varchar NOT NULL         -- этап записи: IDLE / IMPORTING / RELEASING / ROLLBACK
         CONSTRAINT domain_version_audit_status_ck
             CHECK (domain_operation_status IN ('IDLE', 'IMPORTING', 'RELEASING', 'ROLLBACK')),
-    before                  jsonb,                   -- to_jsonb(OLD); NULL только для INSERT
-    after                   jsonb,                   -- to_jsonb(NEW); NULL для физического DELETE
+    before_domain_version_id uuid,                   -- штамп строки ДО операции: образы хранятся очищенными
+    -- от версионных колонок, поэтому прежний штамп (нужен воскрешению и rollback) живёт в отдельной
+    -- колонке; NULL для INSERT
+    before                  jsonb,                   -- to_jsonb(OLD) минус исключённый набор и id; NULL только для INSERT
+    after                   jsonb,                   -- to_jsonb(NEW), очищенный так же; NULL для DELETE и физического удаления
     changed_at              timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actor_user_id           uuid REFERENCES "user" ON UPDATE CASCADE ON DELETE SET NULL
 );
-CREATE INDEX domain_version_audit_window_idx ON domain_version_audit (domain_id, domain_version_id);
-CREATE INDEX domain_version_audit_row_idx ON domain_version_audit (table_name, row_id);
+-- net-state/оконные запросы: DISTINCT ON (table_name, row_id) ... ORDER BY seq DESC
+CREATE INDEX domain_version_audit_window_idx ON domain_version_audit (domain_id, domain_version_id, table_name, row_id, seq DESC);
+-- история строки (UI), уже в порядке seq
+CREATE INDEX domain_version_audit_row_idx ON domain_version_audit (table_name, row_id, seq);
 CREATE INDEX domain_version_audit_actor_idx ON domain_version_audit (actor_user_id);
 ```
 
@@ -369,7 +419,7 @@ ALTER TABLE domain_version ADD COLUMN rollback_delta_hash varchar; -- SHA-256 д
 2. **`domain_version_id`** — срез аудита по окну версии, без него rollback не построить.
 3. **`row_id` = PK самой строки**; таблицам без uuid PK (составные ключи) id добавляется миграцией — контракт описан в разделе «Схема».
 4. **Таблица резолва `domain_config_audit_resolve` не нужна** — в модели v2 каждая строка несёт `domain_id`/`domain_version_id`, аудит ничего не вычисляет по FK-цепочкам.
-5. Фильтр «осмысленного изменения» общий у штампа и аудита: no-op UPDATE не пишет ни штамп, ни аудит (иначе ложные изменения в дельте). Из сравнения исключаются технические колонки, не являющиеся содержимым настройки: `updated_at`, счётчики (`twin_counter` и подобные), сам штамп `domain_version_id`. В образы `before`/`after` эти колонки входят как есть — исключение касается только детекции изменения.
+5. Фильтр «осмысленного изменения» общий у штампа и аудита: no-op UPDATE не пишет ни штамп, ни аудит (иначе ложные изменения в дельте). Из сравнения исключаются технические колонки, не являющиеся содержимым настройки: `updated_at`, `created_at`, счётчики (`twin_counter` и подобные), деревья иерархий, сам штамп `domain_version_id` — реестр исключений ведётся в `domain_version_tables()`. **Образы `before`/`after` хранятся уже очищенными** (минус исключённый набор, минус `id` — он в колонке `row_id`): чистка на записи, а не на чтении — в истории нет шума `updated_at`, а восстановление из образа не затирает живые счётчики/деревья, обслуживаемые триггерами для других строк. `row_status` в образе сохраняется (осмысленная колонка). Прежний штамп чистка вырезала бы — поэтому он поднят в отдельную колонку `before_domain_version_id`. Контракт реестра: волна, вводящая generated/identity-колонку, обязана добавить её в исключённый набор — в образы она не попадёт, восстановление её не тронет.
 6. **Аудит пишут ВСЕ пути, включая служебные** (импорт, rollback, релизная чистка) — раньше предполагалось выключать аудит под GUC; вместо этого каждая запись несёт колонку `domain_operation_status` (IDLE = обычная правка, IMPORTING, RELEASING, ROLLBACK). История полная: «строка приехала импортом 1.2», «восстановлена rollback'ом»; UI «человеческих» правок фильтрует по IDLE.
 
 Хранение — долговременное (история «кто/когда/что»); при росте объёмов — шедулер переноса в архив (отдельная задача, не блокер).
@@ -378,13 +428,13 @@ ALTER TABLE domain_version ADD COLUMN rollback_delta_hash varchar; -- SHA-256 д
 1. `rollback_start`: исключающий advisory-лок; статус домена → `ROLLBACK` (новое значение `operation_status`).
 2. Java читает аудит окна (`domain_id` + `domain_version_id` = текущая OPEN), группирует по `(table_name, row_id)` и для каждой группы берёт **первую** запись окна (нам нужно состояние на начало окна, а не отмена последней операции):
    - `INSERT` → строка до окна не существовала → физический `DELETE` (под GUC импорта);
-   - иначе → `UPDATE` всеми колонками из `before`-образа, включая **старый штамп** и старый `row_status`.
+   - иначе → `UPDATE` всеми колонками из `before`-образа; **старый штамп** — из колонки `before_domain_version_id` первой записи (очищенный образ его не несёт), старый `row_status` — из образа.
    Пустой аудит → окно пустое, no-op. Bulk-операции по таблицам, без N+1.
 3. `rollback_end`: если у OPEN-версии не осталось штампованных строк — **окно сворачивается**: OPEN-версия удаляется, `current_domain_version_id` возвращается на предыдущую RELEASED-версию (домен снова «не правлен», содержимое — в точности релизный снапшот). Если строки остались (частичный rollback) — окно остаётся OPEN. Статус → IDLE. Записи аудита сохраняются (история).
 
 **Частичный rollback** — подмножество строк окна: на шаге 2 вместо всех групп берём выбранные строки, каждая откатывается к своему состоянию на начало окна (before-образ первой записи группы строки). Семантический undo («отменить правки автора X, сохранив чужие более поздние») сознательно не делаем — для тонких случаев существует откат строки к произвольному прошлому состоянию (тип 2 ниже).
 
-**Следствия для дельт:** восстановление старого штампа из before-образа выводит откаченные строки из следующей дельты; INSERT'ы окна при откате удаляются физически; после сворачивания пустого окна статус текущей версии снова RELEASED — домен побайтово на релизном состоянии, инкрементальные цепочки на других средах продолжают работать.
+**Следствия для дельт:** восстановление старого штампа (из колонки `before_domain_version_id`) выводит откаченные строки из следующей дельты; INSERT'ы окна при откате удаляются физически; после сворачивания пустого окна статус текущей версии снова RELEASED — домен побайтово на релизном состоянии, инкрементальные цепочки на других средах продолжают работать.
 
 **Два типа rollback (согласовано 2026-10-15):**
 1. **Rollback черновика** (описан выше — полный или по подмножеству строк): восстанавливаются
@@ -539,11 +589,13 @@ DELETE FROM <table>
  WHERE domain_id = :D
    AND id NOT IN (SELECT row_id FROM import_payload WHERE table_name = '<table>');
 
--- изменившиеся: сравнение jsonb-образа строки с payload (без per-table маппинга)
+-- изменившиеся: сравнение канонически очищенного jsonb-образа строки с payload
+-- (domain_version_row_image_clean = тот же реестр исключений, что у детекции изменений
+-- и чистки образов аудита; без per-table маппинга)
 SELECT r.id
   FROM <table> r
   JOIN import_payload p ON p.table_name = '<table>' AND p.row_id = r.id
- WHERE (to_jsonb(r) - 'updated_at' - 'domain_version_id') IS DISTINCT FROM p.data;
+ WHERE domain_version_row_image_clean('<table>', to_jsonb(r)) IS DISTINCT FROM p.data;
 
 -- недостающие: id из payload, которых нет в таблице; вставка и обновление — Java-батчами
 ```

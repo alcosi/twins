@@ -5,8 +5,10 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.Map;
@@ -18,6 +20,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class HistoryNotificationTaskEntity implements EasyLoggable {
     @Id
     private UUID id;

@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
@@ -17,6 +16,7 @@ import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.*;
 import org.twins.core.featurer.notificator.context.ContextCollector;
 import org.twins.core.featurer.notificator.context.ContextCollectorBatch;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.domain.DomainUserService;
 import org.twins.core.service.i18n.I18nService;
 
@@ -28,7 +28,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class NotificationContextService extends EntitySecureFindServiceImpl<NotificationContextEntity> {
+public class NotificationContextService extends TwinsEntitySecureFindService<NotificationContextEntity> {
     private final FeaturerService featurerService;
     private final NotificationContextRepository notificationContextRepository;
     private final NotificationContextCollectorService notificationContextCollectorService;

@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -17,6 +16,7 @@ import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -26,7 +26,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
-public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactoryBranchEntity> {
+public class FactoryBranchService extends TwinsEntitySecureFindService<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
     @Lazy

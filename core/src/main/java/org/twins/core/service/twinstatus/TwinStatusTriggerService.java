@@ -9,7 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -21,6 +20,7 @@ import org.twins.core.dao.twin.TwinStatusTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.twintrigger.TwinTriggerService;
 
 import java.util.*;
@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class TwinStatusTriggerService extends EntitySecureFindServiceImpl<TwinStatusTriggerEntity> {
+public class TwinStatusTriggerService extends TwinsEntitySecureFindService<TwinStatusTriggerEntity> {
     private final TwinStatusTriggerRepository repository;
     private final TwinTriggerService twinTriggerService;
     private final TwinStatusService twinStatusService;

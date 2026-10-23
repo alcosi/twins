@@ -6,10 +6,12 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -21,13 +23,14 @@ import java.util.UUID;
 @FieldNameConstants
 @Table(name = "domain_business_account_user")
 @IdClass(DomainBusinessAccountUserEntity.Pk.class)
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class DomainBusinessAccountUserEntity implements EasyLoggable {
     @Id
     @Column(name = "user_id")
     private UUID userId;
 
     @Id
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Id

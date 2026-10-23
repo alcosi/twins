@@ -5,10 +5,14 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datalist.DataListStatus;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -22,6 +26,7 @@ import java.util.function.Function;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "data_list_option")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN, DataScopeType.BUSINESS_ACCOUNT})
 public class DataListOptionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
@@ -32,6 +37,14 @@ public class DataListOptionEntity implements EasyLoggable, Identifiable<UUID> {
             this.id = UUID.nameUUIDFromBytes((dataListId + option + optionI18nId + businessAccountId + externalId).getBytes());
         }
     }
+
+    @Column(name = "domain_id")
+    private UUID domainId;
+
+    // DB-maintained by the versioning triggers (TWINS-719) — Hibernate never writes it
+    @Generated(event = {EventType.INSERT, EventType.UPDATE})
+    @Column(name = "domain_version_id", insertable = false, updatable = false)
+    private UUID domainVersionId;
 
     @Column(name = "data_list_id")
     private UUID dataListId;

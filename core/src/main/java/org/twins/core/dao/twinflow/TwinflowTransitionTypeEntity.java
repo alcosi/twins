@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.twinflow.TwinflowTransitionType;
 
 @Entity
@@ -11,6 +13,7 @@ import org.twins.core.enums.twinflow.TwinflowTransitionType;
 @Accessors(chain = true)
 @Table(name = "twinflow_transition_type")
 @FieldNameConstants
+@DataScope(DataScopeType.SYSTEM)
 public class TwinflowTransitionTypeEntity {
     @Id
     @Column(name = "id")

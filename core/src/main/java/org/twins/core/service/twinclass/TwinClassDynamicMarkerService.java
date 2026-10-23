@@ -10,7 +10,6 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -21,6 +20,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassDynamicMarkerService extends EntitySecureFindServiceImpl<TwinClassDynamicMarkerEntity> {
+public class TwinClassDynamicMarkerService extends TwinsEntitySecureFindService<TwinClassDynamicMarkerEntity> {
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
     private final TwinValidatorSetService twinValidatorSetService;
     private final DataListOptionService dataListOptionService;

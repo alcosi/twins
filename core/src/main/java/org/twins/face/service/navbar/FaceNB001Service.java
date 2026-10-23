@@ -3,11 +3,11 @@ package org.twins.face.service.navbar;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.face.FaceService;
 import org.twins.face.dao.navbar.nb001.FaceNB001Entity;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entity> {
+public class FaceNB001Service extends TwinsEntitySecureFindService<FaceNB001Entity> {
     private final FaceNB001Repository faceNB001Repository;
     private final FaceNB001MenuItemRepository faceNB001MenuItemRepository;
     private final FaceService faceService;

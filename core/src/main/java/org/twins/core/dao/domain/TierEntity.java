@@ -8,11 +8,13 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "tier")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TierEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

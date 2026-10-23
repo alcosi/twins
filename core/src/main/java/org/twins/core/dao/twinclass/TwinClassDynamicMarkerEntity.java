@@ -7,10 +7,12 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_dynamic_marker")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinClassDynamicMarkerEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     private UUID id;

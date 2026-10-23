@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB001MenuItemEntity> {
+public class FaceNB001MenuItemService extends TwinsEntitySecureFindService<FaceNB001MenuItemEntity> {
     private final FaceNB001MenuItemRepository repository;
     private final FaceService faceService;
     private final I18nService i18nService;

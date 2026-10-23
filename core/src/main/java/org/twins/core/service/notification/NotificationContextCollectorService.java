@@ -3,13 +3,13 @@ package org.twins.core.service.notification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.NotificationContextCollectorEntity;
 import org.twins.core.dao.notification.NotificationContextCollectorRepository;
+import org.twins.core.service.TwinsEntitySecureFindService;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class NotificationContextCollectorService extends EntitySecureFindServiceImpl<NotificationContextCollectorEntity> {
+public class NotificationContextCollectorService extends TwinsEntitySecureFindService<NotificationContextCollectorEntity> {
     private final NotificationContextCollectorRepository repository;
 
     @Override

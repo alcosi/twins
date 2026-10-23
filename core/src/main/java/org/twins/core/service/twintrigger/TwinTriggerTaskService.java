@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.twin.TwinService;
@@ -33,7 +33,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @AllArgsConstructor
-public class TwinTriggerTaskService extends EntitySecureFindServiceImpl<TwinTriggerTaskEntity> {
+public class TwinTriggerTaskService extends TwinsEntitySecureFindService<TwinTriggerTaskEntity> {
     private final TwinTriggerTaskRepository repository;
     private final AuthService authService;
     @Lazy

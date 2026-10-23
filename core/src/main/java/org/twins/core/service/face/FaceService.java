@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -20,6 +19,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.face.PointedFace;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -31,7 +31,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
+public class FaceService extends TwinsEntitySecureFindService<FaceEntity> {
     private final FaceRepository faceRepository;
     @Lazy
     private final AuthService authService;

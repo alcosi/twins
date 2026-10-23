@@ -7,10 +7,12 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_recompute_on_field_validator_rule")
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN)
 public class TwinRecomputeOnFieldValidatorRuleEntity implements EasyLoggable, Identifiable<UUID>, ContainsTwinValidatorSet {
 
     @Id

@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -12,6 +14,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "link_trigger")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class LinkTriggerEntity {
     @Id
     private UUID id;

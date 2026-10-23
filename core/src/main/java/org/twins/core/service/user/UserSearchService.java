@@ -15,7 +15,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -29,6 +28,7 @@ import org.twins.core.domain.search.UserSearch;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.user.finder.UserFinder;
 import org.twins.core.featurer.user.sorter.UserSorter;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 
@@ -43,7 +43,7 @@ import static org.twins.core.dao.user.UserSpecification.*;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEntity> {
+public class UserSearchService extends TwinsEntitySecureFindService<UserSearchEntity> {
     private final AuthService authService;
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;

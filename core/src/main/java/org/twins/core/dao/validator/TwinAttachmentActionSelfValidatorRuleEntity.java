@@ -6,7 +6,9 @@ import lombok.Data;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.BatchSize;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.Set;
 import java.util.UUID;
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "twin_attachment_action_self_validator_rule")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable {
     @Id
     private UUID id;

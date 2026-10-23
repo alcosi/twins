@@ -5,7 +5,9 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.Hibernate;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.draft.DraftTwinEraseReason;
 import org.twins.core.enums.draft.DraftTwinEraseStatus;
 
@@ -18,6 +20,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "draft_twin_erase")
 @IdClass(DraftTwinEraseEntity.PK.class)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class DraftTwinEraseEntity implements EasyLoggable {
     @Id
     @Column(name = "draft_id")

@@ -13,7 +13,6 @@ import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.InformationVolumeUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -31,6 +30,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperAttachment;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageAttachment;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinActionService;
@@ -52,7 +52,7 @@ import static org.twins.core.enums.attachment.problem.AttachmentGlobalCreateDele
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class AttachmentRestrictionService extends EntitySecureFindServiceImpl<TwinAttachmentRestrictionEntity> {
+public class AttachmentRestrictionService extends TwinsEntitySecureFindService<TwinAttachmentRestrictionEntity> {
     private final TwinAttachmentRestrictionRepository restrictionRepository;
     private final DomainService domainService;
     @Lazy

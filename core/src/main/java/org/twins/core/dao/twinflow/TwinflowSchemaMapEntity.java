@@ -5,7 +5,9 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twinflow_schema_map")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinflowSchemaMapEntity {
     @Id
     private UUID id;

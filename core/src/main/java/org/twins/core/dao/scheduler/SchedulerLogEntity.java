@@ -7,6 +7,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Data
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class SchedulerLogEntity implements EasyLoggable {
 
     @Id

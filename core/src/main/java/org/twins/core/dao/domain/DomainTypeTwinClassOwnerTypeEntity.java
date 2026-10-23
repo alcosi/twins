@@ -6,7 +6,9 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassOwnerTypeEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.domain.DomainType;
 
 import java.io.Serializable;
@@ -17,6 +19,7 @@ import java.io.Serializable;
 @FieldNameConstants
 @IdClass(DomainTypeTwinClassOwnerTypeEntity.PK.class)
 @Table(name = "domain_type_twin_class_owner_type")
+@DataScope(DataScopeType.SYSTEM)
 public class DomainTypeTwinClassOwnerTypeEntity {
     @Id
     @Column(name = "domain_type_id")

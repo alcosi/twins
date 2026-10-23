@@ -8,7 +8,6 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -17,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.projection.ProjectionTypeGroupRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class ProjectionTypeGroupService extends EntitySecureFindServiceImpl<ProjectionTypeGroupEntity> {
+public class ProjectionTypeGroupService extends TwinsEntitySecureFindService<ProjectionTypeGroupEntity> {
     private final ProjectionTypeGroupRepository projectionTypeGroupRepository;
     private final AuthService authService;
 

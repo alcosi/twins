@@ -12,7 +12,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -36,6 +35,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.history.HistoryType;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
@@ -54,7 +54,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
+public class HistoryService extends TwinsEntitySecureFindService<HistoryEntity> {
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
     private final HistoryRepository historyRepository;
