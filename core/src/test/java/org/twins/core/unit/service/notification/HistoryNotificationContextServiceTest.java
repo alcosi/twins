@@ -1,4 +1,4 @@
-package org.twins.core.unit.service.context;
+package org.twins.core.unit.service.notification;
 
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.context.ContextCollectorEntity;
-import org.twins.core.dao.context.ContextRepository;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.notification.HistoryNotificationEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
@@ -17,12 +16,10 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.context.ContextCollector;
 import org.twins.core.featurer.context.ContextCollectorBatch;
-import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.context.ContextCollectorService;
-import org.twins.core.service.context.ContextService;
 import org.twins.core.service.domain.DomainUserService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.notification.HistoryNotificationChunk;
+import org.twins.core.service.notification.HistoryNotificationContextService;
 import org.twins.core.service.notification.NotificationChannelEventService;
 
 import java.util.*;
@@ -39,16 +36,12 @@ import static org.mockito.Mockito.*;
  * locale i18n. Verifies chunk-global grouping (one collectDataBatch per unique
  * (featurerId, params)), per-context merge and per-locale i18n substitution.
  */
-class ContextServiceTest extends BaseUnitTest {
+class HistoryNotificationContextServiceTest extends BaseUnitTest {
 
     private static final int COLLECTOR_FEATURER_ID = FeaturerTwins.ID_4904;
 
     @Mock
     private FeaturerService featurerService;
-    @Mock
-    private ContextRepository contextRepository;
-    @Mock
-    private ContextCollectorService contextCollectorService;
     @Mock
     private I18nService i18nService;
     @Mock
@@ -56,11 +49,9 @@ class ContextServiceTest extends BaseUnitTest {
     @Mock
     private NotificationChannelEventService notificationChannelEventService;
     @Mock
-    private AuthService authService;
-    @Mock
     private ContextCollector collector;
 
-    private ContextService service;
+    private HistoryNotificationContextService service;
     private UUID domainId;
 
     /** Counts collectDataBatch invocations per params marker (collectKey) across the chunk. */
@@ -68,9 +59,8 @@ class ContextServiceTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        service = new ContextService(
-                featurerService, contextRepository, contextCollectorService,
-                i18nService, domainUserService, notificationChannelEventService, authService);
+        service = new HistoryNotificationContextService(
+                featurerService, i18nService, domainUserService, notificationChannelEventService);
         domainId = UUID.randomUUID();
         when(featurerService.getFeaturer(eq(COLLECTOR_FEATURER_ID), eq(ContextCollector.class))).thenReturn(collector);
         // mirrors the real NotificationChannelEventService.getNotificationChannelEvents (the service is mocked here)

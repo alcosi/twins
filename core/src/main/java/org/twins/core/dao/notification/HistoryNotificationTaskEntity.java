@@ -96,7 +96,7 @@ public class HistoryNotificationTaskEntity implements EasyLoggable {
 
     /**
      * Transient-runtime cache: notification context collected per contextId for this task's history.
-     * Populated once per chunk by {@code NotificationContextService.collectHistoryContextBatch}
+     * Populated once per chunk by {@code HistoryNotificationContextService.collectHistoryContextBatch}
      * (chunk-level batch collection, i18n resolved per locale), then read by {@code HistoryNotificationTask.processTask}.
      * Never persisted, never crosses a chunk run.
      */
