@@ -8,6 +8,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.dao.context.ContextCollectorEntity;
+import org.twins.core.dao.context.ContextEntity;
 import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
@@ -33,8 +35,8 @@ public class NotificationChannelEventEntity implements EasyLoggable, Identifiabl
     @Column(name = "event_code")
     private String eventCode;
 
-    @Column(name = "notification_context_id")
-    private UUID notificationContextId;
+    @Column(name = "context_id")
+    private UUID contextId;
 
     @Column(name = "unique_in_batch")
     private boolean uniqueInBatch = false;
@@ -52,8 +54,8 @@ public class NotificationChannelEventEntity implements EasyLoggable, Identifiabl
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "notification_context_id", insertable = false, updatable = false)
-    private NotificationContextEntity notificationContextSpecOnly;
+    @JoinColumn(name = "context_id", insertable = false, updatable = false)
+    private ContextEntity contextSpecOnly;
 
     @Transient
     @ToString.Exclude
@@ -63,17 +65,17 @@ public class NotificationChannelEventEntity implements EasyLoggable, Identifiabl
     @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private NotificationContextEntity notificationContext;
+    private ContextEntity context;
 
     /**
-     * Transient-runtime: context collectors of this event's notification context (loaded in bulk via
+     * Transient-runtime: context collectors of this event's context (loaded in bulk via
      * {@code loadContextCollectors}). Grouped by contextId, so several events sharing one context share
      * the same collector list.
      */
     @Transient
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Kit<NotificationContextCollectorEntity, UUID> collectors;
+    private Kit<ContextCollectorEntity, UUID> collectors;
 
     public String easyLog(Level level) {
         return switch (level) {

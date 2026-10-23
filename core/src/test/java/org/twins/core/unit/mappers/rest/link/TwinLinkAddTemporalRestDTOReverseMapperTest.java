@@ -16,7 +16,6 @@ import org.twins.core.dto.rest.link.TwinLinkAddDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.link.RelationTwinFieldsConverter;
 import org.twins.core.mappers.rest.link.TwinLinkAddTemporalRestDTOReverseMapper;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TemporalIdContext;
 
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -71,7 +69,7 @@ class TwinLinkAddTemporalRestDTOReverseMapperTest {
         UUID linkId = UuidUtils.generate();
         UUID dstTwinId = UuidUtils.generate();
         FieldValue fieldValue = mock(FieldValue.class);
-        when(relationTwinFieldsConverter.convert(eq(linkId), eq(Map.of("amount", "10")), any(MapperContext.class)))
+        when(relationTwinFieldsConverter.convert(eq(linkId), eq(Map.of("amount", "10"))))
                 .thenReturn(List.of(fieldValue));
 
         // when
