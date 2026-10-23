@@ -100,15 +100,15 @@ BEGIN
     PERFORM set_config('twins.domain_version_op', 'on', true);
     EXECUTE format(
             'INSERT INTO domain_version_audit (id, domain_id, domain_version_id, table_name, row_id,' ||
-            ' operation, domain_operation_status, before, after, changed_at, actor_user_id) ' ||
+            ' operation, domain_operation_status, before_domain_version_id, before, after, changed_at, actor_user_id) ' ||
             'SELECT uuid_generate_v7_custom(), t.domain_id, t.domain_version_id, %L, t.id, ''INSERT'', ''IDLE'',' ||
-            ' NULL, to_jsonb(t), CURRENT_TIMESTAMP, NULL' ||
+            ' NULL, NULL, domain_version_row_image_clean(%L, to_jsonb(t)), CURRENT_TIMESTAMP, NULL' ||
             ' FROM %I t' ||
             ' WHERE t.domain_id IS NOT NULL AND t.domain_version_id IS NOT NULL' ||
             ' AND NOT EXISTS (SELECT 1 FROM domain_version_audit a' ||
             ' WHERE a.domain_id = t.domain_id AND a.table_name = %L AND a.row_id = t.id' ||
             ' AND a.domain_version_id = t.domain_version_id)',
-            tbl, tbl, tbl);
+            tbl, tbl, tbl, tbl);
     PERFORM set_config('twins.domain_version_op', '', true);
 END;
 $$ LANGUAGE plpgsql;

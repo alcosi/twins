@@ -81,8 +81,11 @@ CREATE TABLE IF NOT EXISTS domain_version_audit
     domain_operation_status varchar NOT NULL
         CONSTRAINT domain_version_audit_status_ck
             CHECK (domain_operation_status IN ('IDLE', 'IMPORTING', 'RELEASING', 'ROLLBACK')),
-    before                  jsonb,                   -- to_jsonb(OLD); NULL only for INSERT
-    after                   jsonb,                   -- to_jsonb(NEW); NULL for DELETE and physical removal
+    before_domain_version_id uuid,               -- the row's stamp BEFORE the operation: stored images are
+    -- cleaned of the versioning columns, so the prior stamp (needed by resurrection and rollback)
+    -- lives in this dedicated column; NULL for INSERT
+    before                  jsonb,                   -- to_jsonb(OLD) cleaned of versioning/derived columns; NULL only for INSERT
+    after                   jsonb,                   -- to_jsonb(NEW) cleaned likewise; NULL for DELETE and physical removal
     changed_at              timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actor_user_id           uuid
         CONSTRAINT domain_version_audit_actor_user_id_fk

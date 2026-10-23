@@ -58,6 +58,16 @@ $$
            (p_new - domain_version_excluded_columns(p_table));
 $$ LANGUAGE sql IMMUTABLE;
 
+-- Stored/canonical row image: the full row minus the versioning/derived columns (the excluded
+-- set) and the PK (the audit row_id column carries it). Journal images are cleaned at write time
+-- (never on read), so they hold no updated_at/created_at noise, no trigger-maintained
+-- counters/trees and no stamp (the prior stamp moves to the before_domain_version_id column).
+-- Also canonicalizes an incoming row before it is compared with a stored image.
+CREATE OR REPLACE FUNCTION domain_version_row_image_clean(p_table text, p_image jsonb) RETURNS jsonb AS
+$$
+    SELECT p_image - (domain_version_excluded_columns(p_table) || ARRAY['id'])
+$$ LANGUAGE sql IMMUTABLE;
+
 -- Actor of the change: Java sets the GUC per request; absent -> NULL (service/legacy paths)
 CREATE OR REPLACE FUNCTION current_actor_user_id_get() RETURNS uuid AS
 $$
@@ -327,10 +337,15 @@ BEGIN
         RETURN; -- system rows are not versioned/audited
     END IF;
     SELECT operation_status INTO v_operation_status FROM domain WHERE id = p_domain_id;
+    -- images are cleaned at write time; the prior stamp is lifted from the raw before-image
+    -- into its own column before the cleaning strips it
     INSERT INTO domain_version_audit (id, domain_id, domain_version_id, table_name, row_id,
-                                      operation, domain_operation_status, before, after, changed_at, actor_user_id)
+                                      operation, domain_operation_status, before_domain_version_id,
+                                      before, after, changed_at, actor_user_id)
     VALUES (uuid_generate_v7_custom(), p_domain_id, p_domain_version_id, p_table_name, p_row_id,
-            p_operation, coalesce(v_operation_status, 'IDLE'), p_before, p_after, CURRENT_TIMESTAMP,
+            p_operation, coalesce(v_operation_status, 'IDLE'), (p_before->>'domain_version_id')::uuid,
+            domain_version_row_image_clean(p_table_name, p_before),
+            domain_version_row_image_clean(p_table_name, p_after), CURRENT_TIMESTAMP,
             current_actor_user_id_get());
 END;
 $$ LANGUAGE plpgsql;
@@ -814,20 +829,21 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- INSERT resurrection: a repeated insert of a row that is soft-deleted in the current window
--- becomes an UPDATE of that row. Identical content restores the window-start image verbatim,
+-- becomes an UPDATE of that row. Identical content restores the window-start image,
 -- including the OLD stamp (the row leaves the window, no delta noise); different content is a
--- normal update stamped with the current window.
+-- normal update stamped with the current window (the re-inserted row's row_status wins — an
+-- insert may legitimately carry DISABLED).
 CREATE OR REPLACE FUNCTION domain_version_before_insert_resurrect(
     p_table text, p_pk_predicate text, p_new jsonb, p_row_id uuid)
     RETURNS boolean AS
 $$
 DECLARE
-    v_old          jsonb;
-    v_first_before jsonb;
-    v_window       uuid;
-    v_window_open  boolean;
-    v_all_cols     text;
-    v_cols         text;
+    v_old                jsonb;
+    v_first_before       jsonb;
+    v_first_before_dv_id uuid;
+    v_window             uuid;
+    v_window_open        boolean;
+    v_content_cols       text;
 BEGIN
     -- DELETED rows live only inside the open draft window (the release cleanup removes them
     -- physically), so resurrection is only possible while the current version is OPEN
@@ -846,8 +862,9 @@ BEGIN
         RETURN false;
     END IF;
 
-    -- window-start image of the row = before-image of its first audit record in this window
-    SELECT a.before INTO v_first_before
+    -- window-start image of the row = before-image of its first audit record in this window;
+    -- the prior stamp is read from the dedicated column (stored images are cleaned of it)
+    SELECT a.before, a.before_domain_version_id INTO v_first_before, v_first_before_dv_id
       FROM domain_version_audit a
      WHERE a.table_name = p_table
        AND a.row_id = p_row_id
@@ -855,27 +872,40 @@ BEGIN
      ORDER BY a.seq
      LIMIT 1;
 
+    -- Restorable content columns: everything EXCEPT the PK and row_status/domain_version_id
+    -- (all three are set explicitly per branch — a duplicate SET target is an error),
+    -- generated/identity columns (write-forbidden, recomputed on write) and the
+    -- versioning-excluded set: updated_at/created_at noise plus trigger-maintained derived
+    -- columns (counters, hierarchy trees). Restoring the derived ones from a stale image
+    -- would clobber values maintained for OTHER rows — e.g. a child insert bumping the
+    -- parent counter after the parent's window-start image was taken.
+    -- NB the information_schema domains: is_generated is ALWAYS/NEVER, is_identity is YES/NO
     SELECT string_agg(quote_ident(column_name), ', ' ORDER BY ordinal_position)
-      INTO v_all_cols
-      FROM information_schema.columns
-     WHERE table_schema = 'public' AND table_name = p_table;
-    SELECT string_agg(quote_ident(column_name), ', ' ORDER BY ordinal_position)
-      INTO v_cols
+      INTO v_content_cols
       FROM information_schema.columns
      WHERE table_schema = 'public' AND table_name = p_table
-       AND column_name NOT IN ('domain_version_id', 'row_status');
+       AND is_generated = 'NEVER'
+       AND is_identity = 'NO'
+       AND column_name <> ALL (domain_version_excluded_columns(p_table) || ARRAY['id', 'row_status']);
+    IF v_content_cols IS NULL THEN
+        RAISE EXCEPTION '%: no restorable content columns (every column is the PK, excluded or generated)', p_table;
+    END IF;
 
     PERFORM set_config('twins.domain_version_op', 'on', true);
+    -- the stored image is cleaned (no id/stamp/derived columns), so the incoming row is
+    -- canonicalized the same way first — otherwise the id key alone always differs
     IF v_first_before IS NOT NULL
-       AND NOT domain_version_is_meaningful_change(p_table, v_first_before, p_new) THEN
-        EXECUTE format('UPDATE %I r SET (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
-                       p_table, v_all_cols, v_all_cols, p_table, p_pk_predicate)
-        USING v_first_before;
+       AND NOT domain_version_is_meaningful_change(p_table, v_first_before,
+                                                   domain_version_row_image_clean(p_table, p_new)) THEN
+        -- identical re-insert: content and the stamp/status return to the window-start image
+        EXECUTE format('UPDATE %I r SET row_status = $2, domain_version_id = $3, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
+                       p_table, v_content_cols, v_content_cols, p_table, p_pk_predicate)
+        USING v_first_before, v_first_before->>'row_status', v_first_before_dv_id;
         -- no marker needed: the restoring UPDATE changes the stamp, so the AFTER wrapper
         -- classifies it as RESTORE in the window slice by itself
     ELSE
-        EXECUTE format('UPDATE %I r SET row_status = ''ACTIVE'', domain_version_id = $2, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
-                       p_table, v_cols, v_cols, p_table, p_pk_predicate)
+        EXECUTE format('UPDATE %I r SET row_status = ($1->>''row_status''), domain_version_id = $2, (%s) = (SELECT %s FROM jsonb_populate_record(null::%I, $1)) WHERE %s',
+                       p_table, v_content_cols, v_content_cols, p_table, p_pk_predicate)
         USING p_new, v_window;
     END IF;
     PERFORM set_config('twins.domain_version_op', '', true);
