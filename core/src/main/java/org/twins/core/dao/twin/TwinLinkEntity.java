@@ -11,7 +11,6 @@ import org.twins.core.dao.PersistableEntity;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
@@ -19,11 +18,13 @@ import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
 @DataScope(DataScopeType.DOMAIN_MEMBER)
-public class TwinLinkEntity extends PersistableEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable, Identifiable<UUID> {
+public class TwinLinkEntity extends PersistableEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable {
     @Id
     private UUID id;
 

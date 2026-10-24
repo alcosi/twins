@@ -55,6 +55,10 @@ CREATE INDEX IF NOT EXISTS domain_version_order_idx
 CREATE INDEX IF NOT EXISTS domain_version_released_idx
     ON domain_version (domain_id, released_at DESC);
 
+-- count-grouping support (every count/search is domain-scoped, so the group field index leads with domain_id)
+CREATE INDEX IF NOT EXISTS domain_version_status_idx
+    ON domain_version (domain_id, status);
+
 -- ============================================================================
 -- 2. domain_version_audit — full change history, written by all paths
 -- ============================================================================
@@ -105,6 +109,21 @@ CREATE INDEX IF NOT EXISTS domain_version_audit_row_idx
 
 CREATE INDEX IF NOT EXISTS domain_version_audit_actor_idx
     ON domain_version_audit (actor_user_id);
+
+-- count-grouping support (DomainVersionAuditGroupField): every count/search is domain-scoped, so each
+-- group-field index leads with domain_id. domain_version_id grouping is already covered by the
+-- window_idx prefix (domain_id, domain_version_id, ...)
+CREATE INDEX IF NOT EXISTS domain_version_audit_table_name_idx
+    ON domain_version_audit (domain_id, table_name);
+
+CREATE INDEX IF NOT EXISTS domain_version_audit_operation_idx
+    ON domain_version_audit (domain_id, operation);
+
+CREATE INDEX IF NOT EXISTS domain_version_audit_operation_status_idx
+    ON domain_version_audit (domain_id, domain_operation_status);
+
+CREATE INDEX IF NOT EXISTS domain_version_audit_domain_actor_idx
+    ON domain_version_audit (domain_id, actor_user_id);
 
 -- ============================================================================
 -- 3. domain — operation state, lock, pointer to the current version

@@ -23,6 +23,8 @@ import java.util.function.Function;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "data_list_option")

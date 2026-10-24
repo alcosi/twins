@@ -685,6 +685,22 @@ public final class SystemIds {
             public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0058-000000000004");
             public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0058-000000000005");
         }
+
+        // DomainVersion permission ids use the 0062 range (AttachmentRestriction = 0061 was the last used holder).
+        public static final class DomainVersion {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0062-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0062-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0062-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0062-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0062-000000000005");
+        }
+
+        // DomainVersionAudit permission ids use the 0063 range. Read-only data (trigger-written) —
+        // no CREATE/UPDATE/DELETE.
+        public static final class DomainVersionAudit {
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0063-000000000001");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0063-000000000003");
+        }
     }
 
     public static final class Link {

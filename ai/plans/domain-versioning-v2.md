@@ -148,9 +148,10 @@ Partial unique для бизнес-ключей helper не добавляет (
   `isNew() = (getId() == null)` — нейтрально для ~70 существующих реализаторов (совпадает с
   дефолтом Spring Data, `@JsonIgnore` на default-методе). В `DomainConfig` `isNew()` объявлен
   abstract — реальный дискриминатор insert/update обязателен. Флаг живёт в
-  `@MappedSuperclass NewRowAwareEntity` (`org.twins.core.dao`): `@Transient boolean newRow = true`
+  `@MappedSuperclass PersistableEntity` (`org.twins.core.dao`; первое имя `NewRowAwareEntity`,
+  переименован 2026-10-24): `@Transient boolean newRow = true`
   + `@PostLoad/@PostPersist markPersisted()` + `isNew()` (`@JsonIgnore`, как у default-метода).
-  `DomainConfigEntity extends NewRowAwareEntity implements DomainConfig` — версионируемая entity
+  `DomainConfigEntity extends PersistableEntity implements DomainConfig` — версионируемая entity
   просто наследует его (per-entity boilerplate = 0 строк). Тот же флаг несут `TwinEntity` и
   `TwinLinkEntity` — их старое `@Transient boolean createElseUpdate` УДАЛЕНО (2026-10-23) как
   дубликат этой же механики: писатели create-потоков убраны (дефолт true покрывает), relink в
@@ -182,6 +183,63 @@ Partial unique для бизнес-ключей helper не добавляет (
 бэкфилл V1.4.381.01 — проверено побайтовым совпадением с `uuid_generate_v5`), класс
 `DataListOptionSubsetId` удалён. Все семь реализуют `DomainConfig`. `rowStatus` не мапим до
 первого Java-потребителя.
+
+Поля `domainId`/`domainVersionId` живут в каждой из семи entity, а НЕ в `DomainConfigEntity`
+(попытка переноса 2026-10-23 откачена тем же днём): `@FieldNameConstants` не генерирует константы
+для унаследованных полей — `XEntity.Fields.domainId` исчезал бы из ~24 спецификаций, а обращение
+через `DomainConfigEntity.Fields.domainId` отвергнуто как нечитаемое. Плюс chain-сеттеры базового
+класса возвращают тип базового класса и ломают construction-цепочки наследников. На всю иерархию
+`PersistableEntity` добавлены `@EqualsAndHashCode(callSuper = true)` + `@ToString(callSuper = true)`
+(2026-10-24: `DomainConfigEntity`, 7 пилотных entity, `TwinEntity`, `TwinLinkEntity`) — чтобы поля
+базового класса участвовали в Lombok-методах (сам `PersistableEntity` наследует Object, ему
+callSuper не нужен). В `DomainConfigEntity` добавлены (2026-10-24): `@Transient DomainVersionEntity
+domainVersion` (загрузка по docs/load_method_pattern.md, Variant A — общий лоадер
+`DomainVersionService.loadDomainVersion(Collection<E extends DomainConfigEntity>)`; обёртки
+`loadDomainVersion` в parent-сервисах добавляются по мере появления потребителей-мапперов) и
+deprecated specOnly `@ManyToOne domainVersionSpecOnly` на `domain_version_id` (образец —
+`TwinFieldBaseEntity.twinSpecOnly`) для JPA-спецификаций.
+
+**DomainVersion/DomainVersionAudit Java-стек (2026-10-24):** entity `DomainVersionEntity`
+(`dao/domain`, extends `PersistableEntity` — Java-запись строк версий при импорте/релизе планируется;
+`jsonFile`/`deltaFile`/`rollbackDeltaFile` — `Map<String,Object>` через `@Type(JsonType.class)`,
+прецедент `TwinClassEntity.externalJson`) и `DomainVersionAuditEntity` (триггер-managed,
+read-only для Hibernate — plain `Identifiable`, без `PersistableEntity`; `seq` bigserial —
+`@Generated(event = INSERT)` + `insertable/updatable = false`), репозитории
+(`JpaRepository + JpaSpecificationExecutor`, у version ещё `findByDomainIdAndStatus` — поиск OPEN-окна),
+сервисы `DomainVersionService`/`DomainVersionAuditService` (`TwinsEntitySecureFindService`,
+`isEntityReadDenied` через `checkDomainAccessDenied`), search-сервисы по образцу
+`TwinPointerSearchService` (sort/group enum'ы в `enums/sort`), search/count REST-контроллеры
+`/private/domain_version/search|count/v1` и `/private/domain_version_audit/search|count/v1`
+(доработка 2026-10-24: count-путь приведён к канону `/count/v1` — та же ошибка
+`/search/count/v1` у TwinPointer/TwinLink/TwinClassFieldValidator исправлена тем же днём ПРОСТОЙ
+ЗАМЕНОЙ пути, без deprecated-перехода: потребителей у этих эндпоинтов нет (решение пользователя
+2026-10-24). `/private/twin/search/count/v1` НЕ ошибка — это batch-подсчёт по нескольким поискам
+(map frontendId→count), другой смысл API; twin-контроллер оставлен как был).
+**Permissions (2026-10-24):** отдельные наборы `DOMAIN_VERSION_*` (5 шт., диапазон 0062) и
+`DOMAIN_VERSION_AUDIT_*` (MANAGE+VIEW, диапазон 0063 — audit триггер-managed, писать в него нельзя)
+в `SystemIds.Permission` + `Permissions`, сид-миграция `V1.4.381.05` (i18n + permission +
+grant'ы DOMAIN_ADMIN, по шаблону V1.4.323.01); контроллеры под `@ProtectedBy` этих наборов.
+**Audit→version relatedObject (2026-10-24):** в `DomainVersionAuditEntity` — transient
+`domainVersion` + specOnly `domainVersionSpecOnly` (FK нет физически, но JPA-mapped ассоциации это
+не мешает); `DomainVersionAuditService.loadDomainVersion(single/Collection)` по
+`load_method_pattern` Variant A через `domainVersionService.load`; `@RelatedObject` на
+`domainVersionId` в `DomainVersionAuditDTOv1` и `DomainVersionAuditCountDTOv1`; pointer-mode
+`DomainVersionMode.DomainVersionAudit2DomainVersionMode` + postpone/batch-load в обоих audit
+мапперах (по образцу actorUser). **Search-поля (2026-10-24):** во всех Search/DTO/reverse-mapper'ах
+добавлены `*ExcludeList` для id/enum/uuid-полей и `*Like/NotLike` для обычных строк
+(`previousDomainVersionIdExcludeList` в version). `tableName` в audit — НЕ строка: enum-реестр
+`DomainVersionedTable` (`enums/domain`, alias → физическое имя; конверсия в search-сервисе для
+спецификаций и через `fromTableName` в мапперах ответа; Like-варианты убраны как бессмысленные;
+расширять вместе с волнами версионируемых таблиц) — клиент API отвязан от физических имён БД. **GroupField-индексы (2026-10-24):**
+`domain_version_status_idx (domain_id, status)`; audit — `(domain_id, table_name)`,
+`(domain_id, operation)`, `(domain_id, domain_operation_status)`, `(domain_id, actor_user_id)`
+(группировка по domain_version_id покрыта префиксом window_idx; DDL проверен на локальной БД
+откатом транзакции). Сами GroupField-наборы не расширяли: текущие поля — все осмысленные
+низко/средне-кардинальные измерения; `rowId` намеренно не группируемый (высокая кардинальность,
+прецедент TwinPointerGroupField).
+Enum'ы: `DomainVersionStatus` (OPEN/RELEASED), `DomainVersionAuditOperation`
+(INSERT/UPDATE/DELETE/RESTORE), `DomainOperationStatus` (IDLE/IMPORTING/RELEASING/ROLLBACK — общий
+словарь для `domain.operation_status` и `domain_version_audit.domain_operation_status`).
 
 **Универсальное заполнение `domainId` (решение 2026-10-23, размещение переработано 2026-10-23):**
 не выводом по цепочке родителей, а из `apiUser.getDomainId()` — системные строки через сервисы

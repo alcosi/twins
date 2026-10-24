@@ -29,6 +29,8 @@ import java.util.*;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 @FieldNameConstants

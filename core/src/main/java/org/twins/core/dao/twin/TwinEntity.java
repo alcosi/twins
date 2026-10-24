@@ -31,7 +31,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.action.TwinAction;
@@ -75,11 +74,13 @@ import java.util.function.Function;
 @Entity
 @Accessors(chain = true)
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
 @DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
-public class TwinEntity extends PersistableEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable<UUID> {
+public class TwinEntity extends PersistableEntity implements Cloneable, EasyLoggable, ResettableTransientState {
     @Id
     private UUID id;
 

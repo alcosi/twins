@@ -51,7 +51,7 @@ public class TwinLinkCountController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinLinkCountRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_link/search/count/v1")
+    @PostMapping(value = "/private/twin_link/count/v1")
     public ResponseEntity<?> twinLinkCountV1(
             @MapperContextBinding(roots = TwinLinkCountRestDTOMapper.class, response = TwinLinkCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,

@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "twin_class")
 @FieldNameConstants

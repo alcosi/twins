@@ -51,7 +51,7 @@ public class TwinClassFieldValidatorCountController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldValidatorCountRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/twin_class_field_validator/search/count/v1")
+    @PostMapping(value = "/private/twin_class_field_validator/count/v1")
     public ResponseEntity<?> twinClassFieldValidatorCountV1(
             @MapperContextBinding(roots = TwinClassFieldValidatorCountRestDTOMapper.class, response = TwinClassFieldValidatorCountRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
