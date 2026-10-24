@@ -5,12 +5,13 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.recompute.*;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.*;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
  * (see {@link TwinRecomputeOnFieldRepository#CACHE_BY_PUBLISHER_FIELD_IN}); this service is the thin
  * secure-find wrapper the orchestrator goes through.
  *
- * The {@code load*} methods delegate to the base {@link org.cambium.service.EntitySecureFindServiceImpl#load}
+ * The {@code load*} methods delegate to the base {@link EntityAccessServiceImpl#load}
  * on the related entity's service — one batch SQL per relationship, no N+1.
  */
 @Lazy
@@ -31,7 +32,7 @@ import java.util.stream.Collectors;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinRecomputeOnFieldService extends TwinsEntitySecureFindService<TwinRecomputeOnFieldEntity> {
+public class TwinRecomputeOnFieldService extends TwinsEntityAccessService<TwinRecomputeOnFieldEntity> {
     private final TwinRecomputeOnFieldRepository repository;
     private final TwinRecomputeOnFieldValidatorRuleRepository twinRecomputeOnFieldValidatorRuleRepository;
     @Lazy

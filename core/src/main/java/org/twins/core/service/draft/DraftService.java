@@ -39,7 +39,7 @@ import org.twins.core.enums.draft.DraftTwinEraseStatus;
 import org.twins.core.enums.factory.FactoryEraserAction;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.eraseflow.EraseflowService;
 import org.twins.core.service.factory.FactoryExecutionService;
@@ -59,7 +59,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class DraftService extends TwinsEntitySecureFindService<DraftEntity> {
+public class DraftService extends TwinsEntityAccessService<DraftEntity> {
     private final DraftRepository draftRepository;
     private final DraftHistoryRepository draftHistoryRepository;
     private final DraftTwinTagRepository draftTwinTagRepository;

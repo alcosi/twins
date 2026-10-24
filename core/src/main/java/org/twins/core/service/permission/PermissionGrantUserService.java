@@ -17,7 +17,7 @@ import org.twins.core.dao.permission.PermissionGrantUserEntity;
 import org.twins.core.dao.permission.PermissionGrantUserRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
@@ -33,7 +33,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class PermissionGrantUserService extends TwinsEntitySecureFindService<PermissionGrantUserEntity> {
+public class PermissionGrantUserService extends TwinsEntityAccessService<PermissionGrantUserEntity> {
     @Getter
     private final PermissionGrantUserRepository permissionGrantUserRepository;
     private final AuthService authService;

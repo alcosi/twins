@@ -17,7 +17,7 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -28,7 +28,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class FactoryMultiplierService extends TwinsEntitySecureFindService<TwinFactoryMultiplierEntity> {
+public class FactoryMultiplierService extends TwinsEntityAccessService<TwinFactoryMultiplierEntity> {
     @Getter
     private final TwinFactoryMultiplierRepository repository;
     private final TwinClassService twinClassService;

@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.dao.usergroup.UserGroupMapRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.user.UserService;
@@ -26,7 +26,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class UserGroupMapService extends TwinsEntitySecureFindService<UserGroupMapEntity> {
+public class UserGroupMapService extends TwinsEntityAccessService<UserGroupMapEntity> {
     @Getter
     private final UserGroupMapRepository repository;
     @Lazy

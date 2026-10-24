@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -30,7 +30,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class FactoryPipelineService extends TwinsEntitySecureFindService<TwinFactoryPipelineEntity> {
+public class FactoryPipelineService extends TwinsEntityAccessService<TwinFactoryPipelineEntity> {
     @Getter
     private final TwinFactoryPipelineRepository repository;
     private final AuthService authService;

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.template.generator.TemplateGeneratorEntity;
 import org.twins.core.dao.template.generator.TemplateGeneratorRepository;
 import org.twins.core.featurer.templator.Templator;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Map;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class TemplateGeneratorService extends TwinsEntitySecureFindService<TemplateGeneratorEntity> {
+public class TemplateGeneratorService extends TwinsEntityAccessService<TemplateGeneratorEntity> {
     private final TemplateGeneratorRepository templateGeneratorRepository;
     @Lazy
     private final AuthService authService;

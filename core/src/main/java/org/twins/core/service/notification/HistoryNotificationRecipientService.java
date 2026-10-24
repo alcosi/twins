@@ -22,7 +22,7 @@ import org.twins.core.domain.notification.HistoryNotificationRecipientUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.featurer.notificator.recipient.RecipientResolveBatch;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
@@ -38,7 +38,7 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class HistoryNotificationRecipientService extends TwinsEntitySecureFindService<HistoryNotificationRecipientEntity> {
+public class HistoryNotificationRecipientService extends TwinsEntityAccessService<HistoryNotificationRecipientEntity> {
     private final HistoryNotificationRecipientRepository repository;
     private final I18nService i18nService;
     private final AuthService authService;

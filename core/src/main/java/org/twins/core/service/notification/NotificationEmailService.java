@@ -14,7 +14,7 @@ import org.twins.core.dao.notification.email.NotificationEmailEntity;
 import org.twins.core.dao.notification.email.NotificationEmailRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.email.EmailSenderService;
 import org.twins.core.service.event.Event;
@@ -30,7 +30,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class NotificationEmailService extends TwinsEntitySecureFindService<NotificationEmailEntity> {
+public class NotificationEmailService extends TwinsEntityAccessService<NotificationEmailEntity> {
     private final NotificationEmailRepository notificationEmailRepository;
     private final TemplateGeneratorService templateGeneratorService;
     private final I18nService i18nService;

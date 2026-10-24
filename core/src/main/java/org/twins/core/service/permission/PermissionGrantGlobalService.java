@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGrantGlobalEntity;
 import org.twins.core.dao.permission.PermissionGrantGlobalRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.usergroup.UserGroupService;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class PermissionGrantGlobalService extends TwinsEntitySecureFindService<PermissionGrantGlobalEntity> {
+public class PermissionGrantGlobalService extends TwinsEntityAccessService<PermissionGrantGlobalEntity> {
     @Getter
     private final PermissionGrantGlobalRepository repository;
     @Lazy

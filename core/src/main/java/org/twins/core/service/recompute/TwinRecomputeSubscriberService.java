@@ -5,13 +5,14 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.recompute.TwinRecomputeSubscriberEntity;
 import org.twins.core.dao.recompute.TwinRecomputeSubscriberRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinpointer.TwinPointerService;
 
@@ -25,14 +26,14 @@ import java.util.function.Function;
  * (twin pointer, twin class field), carrying the {@code Recomputer} featurer config.
  *
  * The {@code load*} methods hydrate the subscriber's twin pointer + twin class field in one batch SQL each
- * via the base {@link org.cambium.service.EntitySecureFindServiceImpl#load} on the related entity's service.
+ * via the base {@link EntityAccessServiceImpl#load} on the related entity's service.
  */
 @Lazy
 @Slf4j
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinRecomputeSubscriberService extends TwinsEntitySecureFindService<TwinRecomputeSubscriberEntity> {
+public class TwinRecomputeSubscriberService extends TwinsEntityAccessService<TwinRecomputeSubscriberEntity> {
     private final TwinRecomputeSubscriberRepository repository;
     @Lazy
     private final TwinPointerService twinPointerService;

@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerTypeEntity;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
@@ -110,7 +110,7 @@ public class RelatedObjectsRestDTOConverter {
                 descriptor(RelatedObjectsDTOv1::setFeaturerMap,
                         source(FeaturerEntity.class, entityRestMapperRegistry.getFeaturerRestDTOMapper(), FeaturerEntity::getId),
                         source(FeaturerParams.class, entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), FeaturerParams::getFeaturerId)),
-                // Integer id: no EntitySecureFindServiceImpl service to derive the id getter from
+                // Integer id: no EntityAccessServiceImpl service to derive the id getter from
                 descriptor(RelatedObjectsDTOv1::setFeaturerTypeMap, source(FeaturerTypeEntity.class, entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), FeaturerTypeEntity::getId)),
                 descriptor(RelatedObjectsDTOv1::setTwinClassFieldMap, source(TwinClassFieldEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setTwinClassSchemaMap, source(TwinClassSchemaEntity.class)),
@@ -209,7 +209,7 @@ public class RelatedObjectsRestDTOConverter {
         if (mapper == null)
             throw new IllegalStateException("RelatedObjectsRestDTOConverter: entity class[" + entityClass.getName()
                     + "] has no mapper registered in EntityRestMapperRegistry");
-        EntitySecureFindServiceImpl<E> service = (EntitySecureFindServiceImpl<E>) entityServiceRegistry.getService(entityClass);
+        EntityAccessServiceImpl<E> service = (EntityAccessServiceImpl<E>) entityServiceRegistry.getService(entityClass);
         if (service == null)
             throw new IllegalStateException("RelatedObjectsRestDTOConverter: entity class[" + entityClass.getName()
                     + "] has no service registered in EntityServiceRegistry");

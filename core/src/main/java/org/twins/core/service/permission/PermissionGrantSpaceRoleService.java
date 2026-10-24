@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.user.UserService;
@@ -32,7 +32,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class PermissionGrantSpaceRoleService extends TwinsEntitySecureFindService<PermissionGrantSpaceRoleEntity> {
+public class PermissionGrantSpaceRoleService extends TwinsEntityAccessService<PermissionGrantSpaceRoleEntity> {
     @Getter
     private final PermissionGrantSpaceRoleRepository repository;
     private final AuthService authService;

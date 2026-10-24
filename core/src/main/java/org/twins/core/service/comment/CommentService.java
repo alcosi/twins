@@ -31,7 +31,7 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.comment.TwinCommentAction;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
@@ -50,7 +50,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class CommentService extends TwinsEntitySecureFindService<TwinCommentEntity> {
+public class CommentService extends TwinsEntityAccessService<TwinCommentEntity> {
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
     private final AttachmentService attachmentService;

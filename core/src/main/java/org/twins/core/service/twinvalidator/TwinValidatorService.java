@@ -20,7 +20,7 @@ import org.twins.core.dao.validator.TwinValidatorRepository;
 import org.twins.core.domain.validator.TwinValidatorCreate;
 import org.twins.core.domain.validator.TwinValidatorUpdate;
 import org.twins.core.featurer.twin.validator.TwinValidator;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -31,7 +31,7 @@ import java.util.stream.StreamSupport;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinValidatorService extends TwinsEntitySecureFindService<TwinValidatorEntity> {
+public class TwinValidatorService extends TwinsEntityAccessService<TwinValidatorEntity> {
     private final TwinValidatorRepository twinValidatorRepository;
     @Lazy
     private final TwinValidatorSetService twinValidatorSetService;

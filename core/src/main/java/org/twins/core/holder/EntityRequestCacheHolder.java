@@ -1,10 +1,12 @@
 package org.twins.core.holder;
 
+import org.cambium.service.EntityAccessServiceImpl;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Thread-local fallback for the per-entity REQUEST cache ({@link org.cambium.service.EntitySecureFindServiceImpl}
+ * Thread-local fallback for the per-entity REQUEST cache ({@link EntityAccessServiceImpl}
  * {@code getCachedEntity}/{@code putCachedEntity}) when no web request scope is available — i.e. inside
  * schedulers (run on virtual threads via {@code virtualThreadTaskScheduler}) and {@code @Async} methods,
  * where {@code RequestContextHolder.getRequestAttributes()} is null.

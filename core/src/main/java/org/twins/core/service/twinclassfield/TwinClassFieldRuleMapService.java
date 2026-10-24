@@ -17,7 +17,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleMapEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleMapRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -27,7 +27,7 @@ import java.util.function.Function;
 @Component
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFieldRuleMapService extends TwinsEntitySecureFindService<TwinClassFieldRuleMapEntity> {
+public class TwinClassFieldRuleMapService extends TwinsEntityAccessService<TwinClassFieldRuleMapEntity> {
     private final TwinClassFieldRuleMapRepository twinClassFieldRuleMapRepository;
     @Lazy
     private final TwinClassService twinClassService;

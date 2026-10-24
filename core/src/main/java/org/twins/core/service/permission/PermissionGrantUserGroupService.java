@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 import org.twins.core.service.usergroup.UserGroupService;
@@ -32,7 +32,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class PermissionGrantUserGroupService extends TwinsEntitySecureFindService<PermissionGrantUserGroupEntity> {
+public class PermissionGrantUserGroupService extends TwinsEntityAccessService<PermissionGrantUserGroupEntity> {
     @Getter
     private final PermissionGrantUserGroupRepository repository;
     private final AuthService authService;

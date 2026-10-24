@@ -17,7 +17,7 @@ import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.featurer.factory.filler.Filler;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -27,7 +27,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @AllArgsConstructor
-public class FactoryPipelineStepService extends TwinsEntitySecureFindService<TwinFactoryPipelineStepEntity> {
+public class FactoryPipelineStepService extends TwinsEntityAccessService<TwinFactoryPipelineStepEntity> {
     @Getter
     private final TwinFactoryPipelineStepRepository repository;
     @Lazy

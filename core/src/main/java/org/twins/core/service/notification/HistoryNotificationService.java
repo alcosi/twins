@@ -25,7 +25,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.notification.HistoryNotificationCreate;
 import org.twins.core.domain.notification.HistoryNotificationUpdate;
 import org.twins.core.enums.history.HistoryType;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryTypeService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -45,7 +45,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class HistoryNotificationService extends TwinsEntitySecureFindService<HistoryNotificationEntity> {
+public class HistoryNotificationService extends TwinsEntityAccessService<HistoryNotificationEntity> {
 
     private final HistoryNotificationRepository repository;
     private final AuthService authService;

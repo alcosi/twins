@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.search.TwinSearchSortEntity;
 import org.twins.core.dao.search.TwinSearchSortRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -21,7 +21,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinSearchSortService extends TwinsEntitySecureFindService<TwinSearchSortEntity> {
+public class TwinSearchSortService extends TwinsEntityAccessService<TwinSearchSortEntity> {
 
     private final TwinSearchSortRepository twinSearchSortRepository;
 

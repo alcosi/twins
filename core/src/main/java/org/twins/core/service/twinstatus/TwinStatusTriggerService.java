@@ -20,7 +20,7 @@ import org.twins.core.dao.twin.TwinStatusTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTriggerRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.TwinChangesService;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twintrigger.TwinTriggerService;
 
 import java.util.*;
@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class TwinStatusTriggerService extends TwinsEntitySecureFindService<TwinStatusTriggerEntity> {
+public class TwinStatusTriggerService extends TwinsEntityAccessService<TwinStatusTriggerEntity> {
     private final TwinStatusTriggerRepository repository;
     private final TwinTriggerService twinTriggerService;
     private final TwinStatusService twinStatusService;

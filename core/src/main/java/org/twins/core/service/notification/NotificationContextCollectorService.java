@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.NotificationContextCollectorEntity;
 import org.twins.core.dao.notification.NotificationContextCollectorRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class NotificationContextCollectorService extends TwinsEntitySecureFindService<NotificationContextCollectorEntity> {
+public class NotificationContextCollectorService extends TwinsEntityAccessService<NotificationContextCollectorEntity> {
     private final NotificationContextCollectorRepository repository;
 
     @Override

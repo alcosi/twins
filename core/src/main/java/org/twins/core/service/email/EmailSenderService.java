@@ -15,7 +15,7 @@ import org.twins.core.dao.email.EmailSenderEntity;
 import org.twins.core.dao.email.EmailSenderRepository;
 import org.twins.core.dao.notification.email.NotificationMode;
 import org.twins.core.featurer.notificator.emailer.Emailer;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Map;
@@ -29,7 +29,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class EmailSenderService extends TwinsEntitySecureFindService<EmailSenderEntity> {
+public class EmailSenderService extends TwinsEntityAccessService<EmailSenderEntity> {
     private final EmailSenderRepository emailSenderRepository;
     @Lazy
     private final AuthService authService;

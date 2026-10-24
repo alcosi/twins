@@ -6,7 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -33,12 +33,12 @@ public class TwinStatusDuplicateService extends EntityDuplicateService<TwinStatu
     private final TwinClassService twinClassService;
 
     @Override
-    protected EntitySecureFindServiceImpl<TwinStatusEntity> entityService() {
+    protected EntityAccessServiceImpl<TwinStatusEntity> entityService() {
         return twinStatusService;
     }
 
     @Override
-    protected EntitySecureFindServiceImpl<TwinClassEntity> entityParentService() {
+    protected EntityAccessServiceImpl<TwinClassEntity> entityParentService() {
         return twinClassService;
     }
 

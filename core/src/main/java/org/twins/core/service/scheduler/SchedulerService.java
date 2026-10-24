@@ -15,7 +15,7 @@ import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.scheduler.SchedulerRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.scheduler.Scheduler;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.time.Duration;
 import java.util.*;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SchedulerService extends TwinsEntitySecureFindService<SchedulerEntity> {
+public class SchedulerService extends TwinsEntityAccessService<SchedulerEntity> {
 
     private final SchedulerRepository schedulerRepository;
     private final FeaturerService featurerService;

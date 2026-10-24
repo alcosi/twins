@@ -15,7 +15,7 @@ import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -30,7 +30,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class FactoryMultiplierFilterService extends TwinsEntitySecureFindService<TwinFactoryMultiplierFilterEntity> {
+public class FactoryMultiplierFilterService extends TwinsEntityAccessService<TwinFactoryMultiplierFilterEntity> {
     @Getter
     private final TwinFactoryMultiplierFilterRepository repository;
     private final AuthService authService;

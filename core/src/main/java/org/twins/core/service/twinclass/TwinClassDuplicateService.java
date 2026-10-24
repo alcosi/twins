@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -38,12 +38,12 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     private final AuthService authService;
 
     @Override
-    protected EntitySecureFindServiceImpl<TwinClassEntity> entityService() {
+    protected EntityAccessServiceImpl<TwinClassEntity> entityService() {
         return twinClassService;
     }
 
     @Override
-    protected EntitySecureFindServiceImpl<Void> entityParentService() {
+    protected EntityAccessServiceImpl<Void> entityParentService() {
         return null; // top-level entity
     }
 

@@ -6,7 +6,7 @@ import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEntity;
@@ -42,12 +42,12 @@ public class FactoryDuplicateService extends EntityDuplicateService<FactoryDupli
     private final AuthService authService;
 
     @Override
-    protected EntitySecureFindServiceImpl<TwinFactoryEntity> entityService() {
+    protected EntityAccessServiceImpl<TwinFactoryEntity> entityService() {
         return factoryService;
     }
 
     @Override
-    protected EntitySecureFindServiceImpl<Void> entityParentService() {
+    protected EntityAccessServiceImpl<Void> entityParentService() {
         return null; // top-level entity
     }
 

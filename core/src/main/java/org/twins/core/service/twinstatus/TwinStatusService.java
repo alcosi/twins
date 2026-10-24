@@ -27,7 +27,7 @@ import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -42,7 +42,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinStatusService extends TwinsEntitySecureFindService<TwinStatusEntity> {
+public class TwinStatusService extends DomainConfigAccessService<TwinStatusEntity> {
     final TwinStatusRepository twinStatusRepository;
     final TwinClassService twinClassService;
     final I18nService i18nService;
@@ -147,8 +147,7 @@ public class TwinStatusService extends TwinsEntitySecureFindService<TwinStatusEn
                 .setKey(KeyUtils.lowerCaseNullSafe(key, ErrorCodeTwins.TWIN_STATUS_KEY_INCORRECT))
                 .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId())
                 .setInheritable(true);
-        validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        TwinStatusEntity savedStatus = entitySmartService.save(autofillDomainId(twinStatusEntity), twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        TwinStatusEntity savedStatus = saveSafe(twinStatusEntity);
         evictClassesCache(twinClassEntity);
         return savedStatus;
     }
@@ -163,8 +162,7 @@ public class TwinStatusService extends TwinsEntitySecureFindService<TwinStatusEn
         if (twinStatusEntity.getInheritable() == null) {
             twinStatusEntity.setInheritable(true);
         }
-        validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        TwinStatusEntity savedStatus = entitySmartService.save(autofillDomainId(twinStatusEntity), twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        TwinStatusEntity savedStatus = saveSafe(twinStatusEntity);
         evictClassesCache(twinClassEntity);
         return processIcons(savedStatus, lightIcon, darkIcon);
     }

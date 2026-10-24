@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class PermissionGrantTwinRoleService extends TwinsEntitySecureFindService<PermissionGrantTwinRoleEntity> {
+public class PermissionGrantTwinRoleService extends TwinsEntityAccessService<PermissionGrantTwinRoleEntity> {
     @Getter
     private final PermissionGrantTwinRoleRepository repository;
     private final AuthService authService;

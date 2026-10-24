@@ -10,7 +10,7 @@ import java.util.function.Function;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Unit tests for the static {@code loadKit} helpers on {@link EntitySecureFindServiceImpl}.
+ * Unit tests for the static {@code loadKit} helpers on {@link EntityAccessServiceImpl}.
  * <p>
  * The headline regression ({@link LoadKitGrouped#testCrossGroupDuplicateKeyNoLongerThrows}) reproduces
  * the production crash from the i18n export path: a flat query result spanning multiple source groups,
@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * implementation indexed the whole flat collection by that key and threw IllegalStateException; the
  * current manual grouping must distribute results per-group instead.
  */
-public class EntitySecureFindServiceImplLoadKitTest {
+public class EntityAccessServiceImplLoadKitTest {
 
     private UUID id() {
         return UUID.randomUUID();
@@ -42,7 +42,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             Function<Set<UUID>, Collection<Result>> query = ids -> new ArrayList<>(List.of(t1, t2));
 
             assertDoesNotThrow(() ->
-                    EntitySecureFindServiceImpl.loadKit(
+                    EntityAccessServiceImpl.loadKit(
                             List.of(src1, src2),
                             Src::getId,
                             Src::getItems,
@@ -65,7 +65,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             Function<Set<UUID>, Collection<Result>> query = ids -> new ArrayList<>(List.of(
                     new Result(i18n1, "en", "hello"),
                     new Result(i18n1, "ru", "privet")));
-            EntitySecureFindServiceImpl.loadKit(List.of(src1),
+            EntityAccessServiceImpl.loadKit(List.of(src1),
                     Src::getId, Src::getItems, Src::setItems,
                     query, Result::getKey, Result::getGroupId, Result::setParent);
 
@@ -84,7 +84,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
                     new Result(i18n1, "en", "a"),
                     new Result(i18n1, "ru", "b"),
                     new Result(i18n2, "en", "c")));
-            EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
+            EntityAccessServiceImpl.loadKit(List.of(src1, src2),
                     Src::getId, Src::getItems, Src::setItems,
                     query, Result::getKey, Result::getGroupId, Result::setParent);
 
@@ -108,7 +108,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
 
             Function<Set<UUID>, Collection<Result>> query = ids ->
                     new ArrayList<>(List.of(new Result(i18n1, "en", "loaded")));
-            EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
+            EntityAccessServiceImpl.loadKit(List.of(src1, src2),
                     Src::getId, Src::getItems, Src::setItems,
                     query, Result::getKey, Result::getGroupId, Result::setParent);
 
@@ -124,7 +124,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             var src2 = new Src(i18n2);
             Function<Set<UUID>, Collection<Result>> query = ids ->
                     new ArrayList<>(List.of(new Result(i18n1, "en", "only-for-1")));
-            EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
+            EntityAccessServiceImpl.loadKit(List.of(src1, src2),
                     Src::getId, Src::getItems, Src::setItems,
                     query, Result::getKey, Result::getGroupId, Result::setParent);
 
@@ -150,7 +150,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
                 return new ArrayList<>(List.of(new Result(i18n1, "en", "loaded")));
             };
 
-            EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
+            EntityAccessServiceImpl.loadKit(List.of(src1, src2),
                     Src::getId, Src::getItems, Src::setItems,
                     query, Result::getKey, Result::getGroupId, Result::setParent);
 
@@ -167,7 +167,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
                 return List.of();
             };
             assertDoesNotThrow(() ->
-                    EntitySecureFindServiceImpl.loadKit(List.of(),
+                    EntityAccessServiceImpl.loadKit(List.of(),
                             Src::getId, Src::getItems, Src::setItems,
                             query, Result::getKey, Result::getGroupId, Result::setParent));
             assertFalse(queryCalled[0]);
@@ -178,7 +178,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             UUID i18n1 = id();
             var src1 = new Src(i18n1);
             Function<Set<UUID>, Collection<Result>> query = ids -> new ArrayList<>();
-            EntitySecureFindServiceImpl.loadKit(List.of(src1),
+            EntityAccessServiceImpl.loadKit(List.of(src1),
                     Src::getId, Src::getItems, Src::setItems,
                     query, Result::getKey, Result::getGroupId, Result::setParent);
             assertNotNull(src1.getItems());
@@ -192,7 +192,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             Function<Set<UUID>, Collection<Result>> query = ids -> new ArrayList<>(List.of(
                     new Result(i18n1, "en", "ok"),
                     new Result(null, "en", "orphan")));
-            EntitySecureFindServiceImpl.loadKit(List.of(src1),
+            EntityAccessServiceImpl.loadKit(List.of(src1),
                     Src::getId, Src::getItems, Src::setItems,
                     query, Result::getKey, Result::getGroupId, Result::setParent);
             assertEquals(1, src1.getItems().size());
@@ -208,7 +208,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
                     new Result(i18n1, "en", "first"),
                     new Result(i18n1, "en", "second")));
             assertThrows(IllegalStateException.class, () ->
-                    EntitySecureFindServiceImpl.loadKit(List.of(src1),
+                    EntityAccessServiceImpl.loadKit(List.of(src1),
                             Src::getId, Src::getItems, Src::setItems,
                             query, Result::getKey, Result::getGroupId, Result::setParent));
         }
@@ -232,7 +232,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
                     new Result(r.getGroupId(), r.getKey(), r.getValue() + "_T");
 
             assertDoesNotThrow(() ->
-                    EntitySecureFindServiceImpl.loadKit(
+                    EntityAccessServiceImpl.loadKit(
                             List.of(src1, src2),
                             Src::getId, Src::getItems, Src::setItems,
                             query, transform,
@@ -253,7 +253,7 @@ public class EntitySecureFindServiceImplLoadKitTest {
             Function<Set<UUID>, Collection<Result>> query = ids ->
                     new ArrayList<>(List.of(new Result(i18n1, "en", "only-for-1")));
             Function<Result, Result> identity = r -> r;
-            EntitySecureFindServiceImpl.loadKit(List.of(src1, src2),
+            EntityAccessServiceImpl.loadKit(List.of(src1, src2),
                     Src::getId, Src::getItems, Src::setItems,
                     query, identity,
                     Result::getKey, Result::getKey, Result::getGroupId);

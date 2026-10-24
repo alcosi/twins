@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionTriggerRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twintrigger.TwinTriggerService;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinflowTransitionTriggerService extends TwinsEntitySecureFindService<TwinflowTransitionTriggerEntity> {
+public class TwinflowTransitionTriggerService extends TwinsEntityAccessService<TwinflowTransitionTriggerEntity> {
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     private final TwinTriggerService twinTriggerService;
     @Lazy

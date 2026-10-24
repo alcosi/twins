@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.HistoryNotificationTaskRepository;
 import org.twins.core.enums.HistoryNotificationTaskStatus;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.history.HistoryService;
 
 import java.util.*;
@@ -22,7 +22,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class HistoryNotificationTaskService extends TwinsEntitySecureFindService<HistoryNotificationTaskEntity> {
+public class HistoryNotificationTaskService extends TwinsEntityAccessService<HistoryNotificationTaskEntity> {
     private final HistoryNotificationTaskRepository repository;
     private final HistoryService historyService;
     private final NotificationSchemaService notificationSchemaService;

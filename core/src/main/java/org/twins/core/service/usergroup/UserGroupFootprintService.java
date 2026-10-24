@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.user.UserGroupFootprintEntity;
 import org.twins.core.dao.user.UserGroupFootprintRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Set;
@@ -25,7 +25,7 @@ import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArr
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class UserGroupFootprintService extends TwinsEntitySecureFindService<UserGroupFootprintEntity> {
+public class UserGroupFootprintService extends TwinsEntityAccessService<UserGroupFootprintEntity> {
     final UserGroupFootprintRepository repository;
     final AuthService authService;
 

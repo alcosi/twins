@@ -16,7 +16,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperAttachment;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -28,7 +28,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class StorageService extends TwinsEntitySecureFindService<StorageEntity> {
+public class StorageService extends TwinsEntityAccessService<StorageEntity> {
     protected final StorageRepository repository;
     protected final AuthService authService;
 

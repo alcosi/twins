@@ -44,8 +44,8 @@ import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.SystemIdLookup;
-import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class TwinClassFieldService extends TwinsEntitySecureFindService<TwinClassFieldEntity> {
+public class TwinClassFieldService extends DomainConfigAccessService<TwinClassFieldEntity> {
     private final TwinClassFieldRepository twinClassFieldRepository;
     private final I18nService i18nService;
     private final EntitySmartService entitySmartService;
@@ -494,6 +494,9 @@ public class TwinClassFieldService extends TwinsEntitySecureFindService<TwinClas
                     .setFeValidationErrorI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_FE_VALIDATION_ERROR, save.getFeValidationErrorI18n()).getId())
                     .setBeValidationErrorI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_BE_VALIDATION_ERROR, save.getBeValidationErrorI18n()).getId());
 
+            // TODO batch-validation: once this service overrides validateEntities(Collection, ...)
+            //  (cambium default is a no-op `return true`), drop this in-loop call — saveSafe(Collection)
+            //  below will then validate the whole batch, and keeping both would double the work
             validateEntityAndThrow(field, EntitySmartService.EntityValidateMode.beforeSave);
             fieldsToCreate.add(field);
 
@@ -504,10 +507,7 @@ public class TwinClassFieldService extends TwinsEntitySecureFindService<TwinClas
                     .add(TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_TWIN_CLASS_ID_IN);
         }
 
-        Iterable<TwinClassFieldEntity> savedEntities = entitySmartService.saveAllAndLog(
-                autofillDomainIds(fieldsToCreate),
-                twinClassFieldRepository
-        );
+        Iterable<TwinClassFieldEntity> savedEntities = saveSafe(fieldsToCreate);
 
         List<TwinClassFieldEntity> result = new ArrayList<>();
         for (var savedEntity : savedEntities) {

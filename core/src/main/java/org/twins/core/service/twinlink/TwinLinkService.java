@@ -42,7 +42,7 @@ import org.twins.core.enums.twin.TwinCreateStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.TwinChangesService;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
@@ -65,7 +65,7 @@ import static org.twins.core.dao.specifications.link.TwinLinkSpecification.check
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class TwinLinkService extends TwinsEntitySecureFindService<TwinLinkEntity> {
+public class TwinLinkService extends TwinsEntityAccessService<TwinLinkEntity> {
     private final LinkService linkService;
     private final TwinClassService twinClassService;
     private final TwinLinkRepository twinLinkRepository;

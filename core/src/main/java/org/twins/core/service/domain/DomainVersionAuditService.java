@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainVersionAuditEntity;
 import org.twins.core.dao.domain.DomainVersionAuditRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.user.UserService;
 
 import java.util.Collection;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class DomainVersionAuditService extends TwinsEntitySecureFindService<DomainVersionAuditEntity> {
+public class DomainVersionAuditService extends TwinsEntityAccessService<DomainVersionAuditEntity> {
     private final DomainVersionAuditRepository domainVersionAuditRepository;
     private final UserService userService;
     private final DomainVersionService domainVersionService;

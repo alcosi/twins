@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryConditionEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionRepository;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class FactoryConditionService extends TwinsEntitySecureFindService<TwinFactoryConditionEntity> {
+public class FactoryConditionService extends TwinsEntityAccessService<TwinFactoryConditionEntity> {
 
     private final TwinFactoryConditionRepository repository;
     private final FeaturerService featurerService;

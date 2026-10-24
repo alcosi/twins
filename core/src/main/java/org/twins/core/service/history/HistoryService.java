@@ -35,7 +35,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.history.HistoryType;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
@@ -54,7 +54,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class HistoryService extends TwinsEntitySecureFindService<HistoryEntity> {
+public class HistoryService extends TwinsEntityAccessService<HistoryEntity> {
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
     private final HistoryRepository historyRepository;

@@ -11,6 +11,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -32,7 +33,7 @@ import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.linker.Linker;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -47,7 +48,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class LinkService extends TwinsEntitySecureFindService<LinkEntity> {
+public class LinkService extends TwinsEntityAccessService<LinkEntity> {
     private final LinkRepository linkRepository;
     private final TwinClassService twinClassService;
     private final UserService userService;
@@ -73,7 +74,7 @@ public class LinkService extends TwinsEntitySecureFindService<LinkEntity> {
      * Link definitions are read several times per request (twin update reads them in the unchanged-check,
      * validate and serialize for every link field). GLOBAL caching (JVM-wide Caffeine, 5 min write TTL)
      * dedupes those reads across requests. Entries live under {@code LinkEntity.class.getSimpleName()}
-     * (see {@link org.cambium.service.EntitySecureFindServiceImpl#getCachedEntity}) and must be evicted
+     * (see {@link EntityAccessServiceImpl#getCachedEntity}) and must be evicted
      * on every link mutation — {@link #updateLink} evicts them together with the @Cacheable
      * {@link #CACHE_LINK}. Same pattern as {@link org.twins.core.service.twinclass.TwinClassService}.
      */

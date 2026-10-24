@@ -2,12 +2,12 @@ package org.twins.core.service;
 
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
-import org.cambium.service.EntitySmartService;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.annotation.DomainIdFiller;
 import org.twins.core.domain.DomainConfig;
-import org.twins.core.service.auth.AuthService;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -15,9 +15,9 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 
 
-public abstract class TwinsEntitySecureFindService<T> extends EntitySecureFindServiceImpl<T> {
+public abstract class DomainConfigAccessService<T extends DomainConfigEntity> extends TwinsEntityAccessService<T> {
     @Autowired
-    protected AuthService authService;
+    protected TransactionActorUserService transactionActorUserService;
 
     public BiFunction<UUID, String, Optional<T>> findByDomainIdAndKeyFunction() throws ServiceException {
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "Method findByKey is not implemented in service");
@@ -27,22 +27,6 @@ public abstract class TwinsEntitySecureFindService<T> extends EntitySecureFindSe
     public Optional<T> findByKey(String key) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         return findByDomainIdAndKeyFunction().apply(domainId, key);
-    }
-
-    protected boolean isDomainAccessDenied(UUID entityDomainId) throws ServiceException {
-        if (entityDomainId == null) {
-            return false;
-        }
-        var currentDomainId = authService.getApiUser().getDomainId();
-        return !entityDomainId.equals(currentDomainId);
-    }
-
-    protected boolean checkDomainAccessDenied(UUID entityDomainId, String entityLog, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        if (isDomainAccessDenied(entityDomainId)) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entityLog + " is not allowed in current domain");
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -76,11 +60,37 @@ public abstract class TwinsEntitySecureFindService<T> extends EntitySecureFindSe
 
     @Override
     public T saveSafe(T entity) throws ServiceException {
+        transactionActorUserService.fillCurrentActorUser();
         return super.saveSafe(autofillDomainId(entity));
     }
 
     @Override
     public Iterable<T> saveSafe(Collection<T> entities) throws ServiceException {
+        transactionActorUserService.fillCurrentActorUser();
         return super.saveSafe(autofillDomainIds(entities));
+    }
+
+    @Override
+    public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
+        transactionActorUserService.fillCurrentActorUser();
+        return super.updateSafe(entity, changesHelper);
+    }
+
+    @Override
+    public Iterable<T> updateSafe(ChangesHelperMulti<T> changesHelperMulti) throws ServiceException {
+        transactionActorUserService.fillCurrentActorUser();
+        return super.updateSafe(changesHelperMulti);
+    }
+
+    @Override
+    public void deleteSafe(UUID id) throws ServiceException {
+        transactionActorUserService.fillCurrentActorUser();
+        super.deleteSafe(id);
+    }
+
+    @Override
+    public void deleteSafe(Collection<UUID> ids) throws ServiceException {
+        transactionActorUserService.fillCurrentActorUser();
+        super.deleteSafe(ids);
     }
 }

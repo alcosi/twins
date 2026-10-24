@@ -52,7 +52,7 @@ import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.TwinChangesService;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
@@ -97,7 +97,7 @@ import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinService extends TwinsEntitySecureFindService<TwinEntity> {
+public class TwinService extends TwinsEntityAccessService<TwinEntity> {
 
     // resolve AOP problem: one-service self-invocation methods
     @Autowired

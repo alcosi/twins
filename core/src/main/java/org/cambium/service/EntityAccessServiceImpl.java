@@ -31,9 +31,9 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
-public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFindService<T> {
+public abstract class EntityAccessServiceImpl<T> implements EntityAccessService<T> {
     @Autowired
-    public EntitySmartService entitySmartService;
+    protected EntitySmartService entitySmartService;
 
     @Autowired
     private CacheManager cacheManager;

@@ -43,9 +43,8 @@ import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.featurer.headhunter.HeadHunterImpl;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.SystemIdLookup;
-import org.twins.core.service.TwinsEntitySecureFindService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.face.FaceService;
@@ -75,7 +74,7 @@ import static org.cambium.common.util.CacheUtils.evictCache;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEntity> {
+public class TwinClassService extends DomainConfigAccessService<TwinClassEntity> {
     private final TwinRepository twinRepository;
     private final TwinClassRepository twinClassRepository;
     private final TwinClassSchemaRepository twinClassSchemaRepository;
@@ -97,8 +96,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinflowService twinflowService;
     @Lazy
     private final DomainService domainService;
-    @Lazy
-    private final AuthService authService;
     @Lazy
     private final TwinMarkerService twinMarkerService;
     @Lazy

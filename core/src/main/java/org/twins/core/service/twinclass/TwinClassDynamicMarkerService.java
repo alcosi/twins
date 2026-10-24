@@ -20,7 +20,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerEntity;
 import org.twins.core.dao.twinclass.TwinClassDynamicMarkerRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassDynamicMarkerService extends TwinsEntitySecureFindService<TwinClassDynamicMarkerEntity> {
+public class TwinClassDynamicMarkerService extends TwinsEntityAccessService<TwinClassDynamicMarkerEntity> {
     private final TwinClassDynamicMarkerRepository twinClassDynamicMarkerRepository;
     private final TwinValidatorSetService twinValidatorSetService;
     private final DataListOptionService dataListOptionService;

@@ -27,8 +27,7 @@ import org.twins.core.domain.datalist.DataListSave;
 import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
 
@@ -45,16 +44,13 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataListService extends TwinsEntitySecureFindService<DataListEntity> {
+public class DataListService extends DomainConfigAccessService<DataListEntity> {
     final DataListRepository dataListRepository;
     final DataListOptionRepository dataListOptionRepository;
-    final EntitySmartService entitySmartService;
     final DataListOptionService dataListOptionService;
     @Lazy
     final UserService userService;
 
-    @Lazy
-    final AuthService authService;
     private final I18nService i18nService;
 
     @Override

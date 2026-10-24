@@ -7,7 +7,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.face.FaceService;
 import org.twins.face.dao.navbar.nb001.FaceNB001Entity;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceNB001Service extends TwinsEntitySecureFindService<FaceNB001Entity> {
+public class FaceNB001Service extends TwinsEntityAccessService<FaceNB001Entity> {
     private final FaceNB001Repository faceNB001Repository;
     private final FaceNB001MenuItemRepository faceNB001MenuItemRepository;
     private final FaceService faceService;

@@ -31,7 +31,7 @@ import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.enums.factory.FactoryLauncher;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.FactoryExecutionService;
 import org.twins.core.service.factory.FactoryService;
@@ -46,7 +46,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinflowFactoryService extends TwinsEntitySecureFindService<TwinflowFactoryEntity> {
+public class TwinflowFactoryService extends TwinsEntityAccessService<TwinflowFactoryEntity> {
 
     private final TwinflowService twinflowService;
     @Lazy

@@ -31,7 +31,7 @@ import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
@@ -49,7 +49,7 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataListOptionService extends TwinsEntitySecureFindService<DataListOptionEntity> {
+public class DataListOptionService extends DomainConfigAccessService<DataListOptionEntity> {
     final DataListOptionRepository dataListOptionRepository;
     final AuthService authService;
     private final I18nService i18nService;
@@ -245,8 +245,8 @@ public class DataListOptionService extends TwinsEntitySecureFindService<DataList
         setAttr.accept(dbEntity, newAttr);
     }
 
-    public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
-        return entitySmartService.saveAllAndLog(autofillDomainIds(newOptions), dataListOptionRepository);
+    public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) throws ServiceException {
+        return saveSafe(newOptions);
     }
 
     //Method for reloading options if dataList is not present in entity;

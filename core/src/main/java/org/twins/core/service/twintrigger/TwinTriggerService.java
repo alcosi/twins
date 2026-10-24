@@ -27,7 +27,7 @@ import org.twins.core.domain.trigger.TwinTriggerUpdate;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.featurer.trigger.TwinTrigger;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -40,7 +40,7 @@ import java.util.stream.StreamSupport;
 @Service
 @Lazy
 @AllArgsConstructor
-public class TwinTriggerService extends TwinsEntitySecureFindService<TwinTriggerEntity> {
+public class TwinTriggerService extends TwinsEntityAccessService<TwinTriggerEntity> {
     @Getter
     private final TwinTriggerRepository repository;
     private final AuthService authService;

@@ -31,7 +31,7 @@ import org.twins.core.domain.space.SpaceRoleUserSearch;
 import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.enums.history.HistoryType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
@@ -49,7 +49,7 @@ import static org.twins.core.dao.specifications.space.SpaceRoleUserSpecification
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class SpaceRoleUserService extends TwinsEntitySecureFindService<SpaceRoleUserEntity> {
+public class SpaceRoleUserService extends TwinsEntityAccessService<SpaceRoleUserEntity> {
     @Getter
     private final SpaceRoleUserRepository repository;
     @Lazy

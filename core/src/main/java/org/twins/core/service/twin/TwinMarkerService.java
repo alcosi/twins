@@ -27,7 +27,7 @@ import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.enums.EntityRelinkOperationStrategy;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.twinclass.TwinClassDynamicMarkerService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinMarkerService extends TwinsEntitySecureFindService<TwinMarkerEntity> {
+public class TwinMarkerService extends TwinsEntityAccessService<TwinMarkerEntity> {
     final TwinMarkerRepository twinMarkerRepository;
     final TwinService twinService;
     final TwinClassService twinClassService;

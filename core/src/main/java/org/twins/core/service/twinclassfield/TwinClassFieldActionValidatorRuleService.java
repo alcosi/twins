@@ -9,7 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.List;
 import java.util.Set;
@@ -20,7 +20,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFieldActionValidatorRuleService extends TwinsEntitySecureFindService<TwinClassFieldActionValidatorRuleEntity> {
+public class TwinClassFieldActionValidatorRuleService extends TwinsEntityAccessService<TwinClassFieldActionValidatorRuleEntity> {
     private final TwinClassFieldActionValidatorRuleRepository repository;
 
     @Override

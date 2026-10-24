@@ -20,7 +20,7 @@ import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeEntity;
 import org.twins.core.dao.usergroup.UserGroupInvolveAssigneeRepository;
 import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeCreate;
 import org.twins.core.domain.usergroup.UserGroupInvolveAssigneeUpdate;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -38,7 +38,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class UserGroupInvolveAssigneeService extends TwinsEntitySecureFindService<UserGroupInvolveAssigneeEntity> {
+public class UserGroupInvolveAssigneeService extends TwinsEntityAccessService<UserGroupInvolveAssigneeEntity> {
     @Getter
     private final UserGroupInvolveAssigneeRepository repository;
     private final PermissionSchemaService permissionSchemaService;

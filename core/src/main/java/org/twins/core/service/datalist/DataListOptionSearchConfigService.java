@@ -7,7 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionSearchEntity;
 import org.twins.core.dao.datalist.DataListOptionSearchRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Service
-public class DataListOptionSearchConfigService extends TwinsEntitySecureFindService<DataListOptionSearchEntity> {
+public class DataListOptionSearchConfigService extends TwinsEntityAccessService<DataListOptionSearchEntity> {
     private final AuthService authService;
     private final DataListOptionSearchRepository dataListOptionSearchRepository;
 

@@ -13,7 +13,7 @@ import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.domain.DomainVersionRepository;
 import org.twins.core.enums.domain.DomainVersionStatus;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class DomainVersionService extends TwinsEntitySecureFindService<DomainVersionEntity> {
+public class DomainVersionService extends TwinsEntityAccessService<DomainVersionEntity> {
     private final DomainVersionRepository domainVersionRepository;
 
     @Override

@@ -237,9 +237,41 @@ grant'ы DOMAIN_ADMIN, по шаблону V1.4.323.01); контроллеры 
 откатом транзакции). Сами GroupField-наборы не расширяли: текущие поля — все осмысленные
 низко/средне-кардинальные измерения; `rowId` намеренно не группируемый (высокая кардинальность,
 прецедент TwinPointerGroupField).
+**Actor GUC (2026-10-24):** триггерный `current_actor_user_id_get()` читает
+`app.current_user_id` (SET LOCAL, живёт до конца транзакции). Java-сторона —
+`TransactionActorUserService` (`org.twins.core.service`): `fillCurrentActorUser()` ставит GUC из
+`apiUser.getUserId()` через `select set_config(..., true)`, один roundtrip на транзакцию
+(ThreadLocal-маркер, очищаемый synchronization-хуками suspend/resume/afterCompletion —
+корректно и при REQUIRES_NEW); без auth-контекста (jobs) — no-op, актор = NULL. Точка вызова
+одна — write-методы `TwinsEntitySecureFindService` (save/update/deleteSafe); 4 бывших сайта прямых
+`entitySmartService.save*` пилота переведены на `saveSafe` (2026-10-24, заказ пользователя «без 2-й
+валидации»: TwinStatus ×2 — явный validateEntityAndThrow убран, валидация внутри saveSafe(T);
+TwinClassField — in-loop валидация оставлена единственной, т.к. `validateEntities` не переопределён
+= default true = no-op в saveSafe(Collection); DataListOption.saveOptions — валидации не было и нет).
+Residual gap общий с autofill: прямые `repository.save` мимо сервисов GUC не ставят.
 Enum'ы: `DomainVersionStatus` (OPEN/RELEASED), `DomainVersionAuditOperation`
 (INSERT/UPDATE/DELETE/RESTORE), `DomainOperationStatus` (IDLE/IMPORTING/RELEASING/ROLLBACK — общий
 словарь для `domain.operation_status` и `domain_version_audit.domain_operation_status`).
+
+**Rename иерархии + выделение `DomainConfigAccessService` (2026-10-24):** пользователь
+переименовал базу: `EntitySecureFindService` → `EntityAccessService`,
+`EntitySecureFindServiceImpl` → `EntityAccessServiceImpl` (cambium),
+`TwinsEntitySecureFindService` → `TwinsEntityAccessService` (twins-слой: `authService`,
+`findByKey`, `isDomainAccessDenied`/`checkDomainAccessDenied`). Новый промежуточный слой
+`DomainConfigAccessService<T extends DomainConfigEntity> extends TwinsEntityAccessService<T>` —
+единый дом write-семьи: `transactionActorUserService` (GUC), `autofillDomainId(s)` и все 6
+write-оверрайдов (`saveSafe(T)`, `saveSafe(Collection)`, `updateSafe(T,ChangesHelper)`,
+`updateSafe(ChangesHelperMulti)`, `deleteSafe(UUID)`, `deleteSafe(Collection)`) — GUC первой
+строкой, autofill в обоих saveSafe. Наследование переключено у 6 сервисов пилота:
+TwinClassService, TwinClassFieldService, TwinStatusService, DataListService,
+DataListOptionService, DataListSubsetService (DataListSubsetOptionEntity обслуживается внутри
+DataListSubsetService). Остаются на `TwinsEntityAccessService`: DomainVersionService/
+DomainVersionAuditService (entities — `PersistableEntity`/`Identifiable`, не `DomainConfigEntity`),
+DataListOptionProjectionService/DataListOptionSearchConfigService (не DomainConfig-entities) и все
+прочие twins-сервисы. Javadoc-упоминания старого имени подчищены (FeaturerService, Scheduler,
+RelatedObjectsRestDTOConverter, EntityServiceRegistry, HistoryTypeService). Известные остатки
+(осознанно не трогали): unused-импорты в обоих новых базах; дублирование
+`findByKey`/`findByDomainIdAndKeyFunction` в обоих слоях — оставлено пользователем.
 
 **Универсальное заполнение `domainId` (решение 2026-10-23, размещение переработано 2026-10-23):**
 не выводом по цепочке родителей, а из `apiUser.getDomainId()` — системные строки через сервисы

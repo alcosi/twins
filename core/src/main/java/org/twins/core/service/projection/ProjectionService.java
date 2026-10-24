@@ -18,7 +18,7 @@ import org.twins.core.dao.projection.ProjectionRepository;
 import org.twins.core.domain.projection.ProjectionCreate;
 import org.twins.core.domain.projection.ProjectionUpdate;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinpointer.TwinPointerService;
@@ -32,7 +32,7 @@ import java.util.stream.StreamSupport;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class ProjectionService extends TwinsEntitySecureFindService<ProjectionEntity> {
+public class ProjectionService extends TwinsEntityAccessService<ProjectionEntity> {
     private final ProjectionRepository projectionRepository;
     private final TwinPointerService twinPointerService;
     @Lazy

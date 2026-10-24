@@ -16,7 +16,7 @@ import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -26,7 +26,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
-public class FactoryBranchService extends TwinsEntitySecureFindService<TwinFactoryBranchEntity> {
+public class FactoryBranchService extends TwinsEntityAccessService<TwinFactoryBranchEntity> {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
     @Lazy

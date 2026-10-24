@@ -18,7 +18,7 @@ import org.twins.core.dao.notification.NotificationSchemaRepository;
 import org.twins.core.domain.notification.NotificationSchemaCreate;
 import org.twins.core.domain.notification.NotificationSchemaUpdate;
 import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
@@ -34,7 +34,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class NotificationSchemaService extends TwinsEntitySecureFindService<NotificationSchemaEntity> {
+public class NotificationSchemaService extends TwinsEntityAccessService<NotificationSchemaEntity> {
     private final AuthService authService;
     private final NotificationSchemaRepository repository;
     private final I18nService i18nService;

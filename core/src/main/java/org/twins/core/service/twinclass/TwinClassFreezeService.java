@@ -19,7 +19,7 @@ import org.twins.core.dao.twinclass.TwinClassFreezeRepository;
 import org.twins.core.domain.twinclass.TwinClassFreezeCreate;
 import org.twins.core.domain.twinclass.TwinClassFreezeUpdate;
 import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twinstatus.TwinStatusService;
 
@@ -33,7 +33,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFreezeService extends TwinsEntitySecureFindService<TwinClassFreezeEntity> {
+public class TwinClassFreezeService extends TwinsEntityAccessService<TwinClassFreezeEntity> {
     private final TwinClassFreezeRepository repository;
     private final TwinStatusService twinStatusService;
     private final I18nService i18nService;

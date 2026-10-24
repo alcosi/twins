@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.projection.ProjectionTypeRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -31,7 +31,7 @@ import java.util.stream.StreamSupport;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class ProjectionTypeService extends TwinsEntitySecureFindService<ProjectionTypeEntity> {
+public class ProjectionTypeService extends TwinsEntityAccessService<ProjectionTypeEntity> {
     private final ProjectionTypeRepository projectionTypeRepository;
     private final AuthService authService;
     @Lazy

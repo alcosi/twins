@@ -7,7 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,13 +59,13 @@ public abstract class EntityDuplicateService<D extends EntityDuplicate<E, P>, E 
         this.i18nService = i18nService;
     }
 
-    protected abstract EntitySecureFindServiceImpl<E> entityService();
+    protected abstract EntityAccessServiceImpl<E> entityService();
 
     /**
      * Parent entity service — used to bulk-load {@code newParentEntity} by id during collect.
      * Return {@code null} for top-level entities ({@code P == Void}).
      */
-    protected abstract EntitySecureFindServiceImpl<P> entityParentService();
+    protected abstract EntityAccessServiceImpl<P> entityParentService();
 
     /**
      * Builds a fresh new entity from {@code duplicate.originalEntity}. May consult {@code duplicateCollector}

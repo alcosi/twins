@@ -15,7 +15,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.action.ActionRestrictionReasonCreate;
 import org.twins.core.domain.action.ActionRestrictionReasonUpdate;
 import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 
@@ -25,7 +25,7 @@ import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
-public class ActionRestrictionReasonService extends TwinsEntitySecureFindService<ActionRestrictionReasonEntity> {
+public class ActionRestrictionReasonService extends TwinsEntityAccessService<ActionRestrictionReasonEntity> {
     private final ActionRestrictionReasonRepository repository;
     private final AuthService authService;
     private final I18nService i18nService;

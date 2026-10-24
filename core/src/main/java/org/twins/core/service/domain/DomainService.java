@@ -30,7 +30,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.storage.StorageService;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class DomainService extends TwinsEntitySecureFindService<DomainEntity> {
+public class DomainService extends TwinsEntityAccessService<DomainEntity> {
     private final FeaturerService featurerService;
     private final DomainRepository domainRepository;
     private final DomainTypeRepository domainTypeRepository;

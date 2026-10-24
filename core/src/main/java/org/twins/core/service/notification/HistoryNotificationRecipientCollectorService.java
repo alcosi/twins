@@ -19,7 +19,7 @@ import org.twins.core.dao.notification.HistoryNotificationRecipientCollectorRepo
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorCreate;
 import org.twins.core.domain.notification.HistoryNotificationRecipientCollectorUpdate;
 import org.twins.core.featurer.notificator.recipient.RecipientResolver;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -30,7 +30,7 @@ import java.util.stream.StreamSupport;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @Lazy
-public class HistoryNotificationRecipientCollectorService extends TwinsEntitySecureFindService<HistoryNotificationRecipientCollectorEntity> {
+public class HistoryNotificationRecipientCollectorService extends TwinsEntityAccessService<HistoryNotificationRecipientCollectorEntity> {
     private final HistoryNotificationRecipientCollectorRepository repository;
     @Lazy
     private final HistoryNotificationRecipientService historyNotificationRecipientService;

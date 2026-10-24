@@ -22,7 +22,7 @@ import org.twins.core.domain.twin.TwinPointerCreate;
 import org.twins.core.domain.twin.TwinPointerUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.pointer.Pointer;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinPointerService extends TwinsEntitySecureFindService<TwinPointerEntity> {
+public class TwinPointerService extends TwinsEntityAccessService<TwinPointerEntity> {
     private final TwinPointerRepository twinPointerRepository;
     private final FeaturerService featurerService;
     private final TwinClassService twinClassService;

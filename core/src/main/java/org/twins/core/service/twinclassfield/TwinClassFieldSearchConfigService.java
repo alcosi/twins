@@ -8,7 +8,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -16,7 +16,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassFieldSearchConfigService extends TwinsEntitySecureFindService<TwinClassFieldSearchEntity> {
+public class TwinClassFieldSearchConfigService extends TwinsEntityAccessService<TwinClassFieldSearchEntity> {
     private final TwinClassFieldSearchRepository fieldSearchRepository;
 
     @Override

@@ -16,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -27,7 +27,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class FactoryEraserService extends TwinsEntitySecureFindService<TwinFactoryEraserEntity> {
+public class FactoryEraserService extends TwinsEntityAccessService<TwinFactoryEraserEntity> {
     @Getter
     private final TwinFactoryEraserRepository repository;
     @Lazy

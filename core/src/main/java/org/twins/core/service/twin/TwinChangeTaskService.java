@@ -13,7 +13,7 @@ import org.twins.core.dao.TwinChangeTaskStatus;
 import org.twins.core.dao.twin.TwinChangeTaskEntity;
 import org.twins.core.dao.twin.TwinChangeTaskRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
@@ -28,7 +28,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @AllArgsConstructor
-public class TwinChangeTaskService extends TwinsEntitySecureFindService<TwinChangeTaskEntity> {
+public class TwinChangeTaskService extends TwinsEntityAccessService<TwinChangeTaskEntity> {
     @Getter
     private final TwinChangeTaskRepository repository;
     private final AuthService authService;

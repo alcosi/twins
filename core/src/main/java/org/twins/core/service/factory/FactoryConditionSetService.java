@@ -22,7 +22,7 @@ import org.twins.core.dao.factory.ContainsFactoryConditionSet;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
 import org.twins.core.dao.factory.TwinFactoryEntity;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
@@ -44,7 +44,7 @@ import static org.cambium.common.util.CacheUtils.evictCache;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @AllArgsConstructor
-public class FactoryConditionSetService extends TwinsEntitySecureFindService<TwinFactoryConditionSetEntity> {
+public class FactoryConditionSetService extends TwinsEntityAccessService<TwinFactoryConditionSetEntity> {
     @Getter
     private final TwinFactoryConditionSetRepository repository;
     private final AuthService authService;

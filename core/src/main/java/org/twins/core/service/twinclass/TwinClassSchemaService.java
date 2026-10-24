@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -21,7 +21,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassSchemaService extends TwinsEntitySecureFindService<TwinClassSchemaEntity> {
+public class TwinClassSchemaService extends TwinsEntityAccessService<TwinClassSchemaEntity> {
     private final TwinClassSchemaRepository twinClassSchemaRepository;
 
     @Override

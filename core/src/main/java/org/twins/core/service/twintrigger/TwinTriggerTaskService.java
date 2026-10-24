@@ -14,7 +14,7 @@ import org.twins.core.dao.trigger.TwinTriggerTaskRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.twin.TwinService;
@@ -33,7 +33,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @AllArgsConstructor
-public class TwinTriggerTaskService extends TwinsEntitySecureFindService<TwinTriggerTaskEntity> {
+public class TwinTriggerTaskService extends TwinsEntityAccessService<TwinTriggerTaskEntity> {
     private final TwinTriggerTaskRepository repository;
     private final AuthService authService;
     @Lazy

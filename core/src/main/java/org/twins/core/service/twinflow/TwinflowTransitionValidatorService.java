@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinvalidator.TwinValidatorService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinflowTransitionValidatorService extends TwinsEntitySecureFindService<TwinflowTransitionValidatorRuleEntity> {
+public class TwinflowTransitionValidatorService extends TwinsEntityAccessService<TwinflowTransitionValidatorRuleEntity> {
     private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     @Lazy
     private final TwinValidatorSetService twinValidatorSetService;

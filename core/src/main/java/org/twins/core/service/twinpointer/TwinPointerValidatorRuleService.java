@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinvalidator.TwinValidatorService;
 import org.twins.core.service.twinvalidator.TwinValidatorSetService;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinPointerValidatorRuleService extends TwinsEntitySecureFindService<TwinPointerValidatorRuleEntity> {
+public class TwinPointerValidatorRuleService extends TwinsEntityAccessService<TwinPointerValidatorRuleEntity> {
     private final TwinPointerValidatorRuleRepository twinPointerValidatorRuleRepository;
     private final TwinPointerService twinPointerService;
     private final TwinValidatorSetService twinValidatorSetService;

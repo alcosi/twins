@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusGroupEntity;
 import org.twins.core.dao.twin.TwinStatusGroupRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.Collection;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinStatusGroupService extends TwinsEntitySecureFindService<TwinStatusGroupEntity> {
+public class TwinStatusGroupService extends TwinsEntityAccessService<TwinStatusGroupEntity> {
     @Getter
     private final TwinStatusGroupRepository repository;
     @Lazy

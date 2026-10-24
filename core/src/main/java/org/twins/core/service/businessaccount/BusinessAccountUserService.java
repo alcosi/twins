@@ -17,7 +17,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserNoRelationProjectio
 import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
@@ -28,7 +28,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class BusinessAccountUserService extends TwinsEntitySecureFindService<BusinessAccountUserEntity> {
+public class BusinessAccountUserService extends TwinsEntityAccessService<BusinessAccountUserEntity> {
     final BusinessAccountUserRepository businessAccountUserRepository;
     final EntitySmartService entitySmartService;
     @Lazy

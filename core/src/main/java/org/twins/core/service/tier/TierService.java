@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twinclass.TwinClassSchemaService;
@@ -33,7 +33,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class TierService extends TwinsEntitySecureFindService<TierEntity> {
+public class TierService extends TwinsEntityAccessService<TierEntity> {
     private final PermissionSchemaService permissionSchemaService;
     private final TwinflowSchemaService twinflowSchemaService;
     private final TwinClassSchemaService twinClassSchemaService;

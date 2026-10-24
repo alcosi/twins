@@ -24,7 +24,7 @@ import org.twins.core.domain.field.rule.ConditionNode;
 import org.twins.core.domain.twinclass.TwinClassFieldConditionTree;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -35,7 +35,7 @@ import java.util.stream.StreamSupport;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassFieldConditionService extends TwinsEntitySecureFindService<TwinClassFieldConditionEntity> {
+public class TwinClassFieldConditionService extends TwinsEntityAccessService<TwinClassFieldConditionEntity> {
     public static final int MAX_RECURSION_DEPTH = 5;
 
     private final TwinClassFieldConditionRepository twinClassFieldConditionRepository;

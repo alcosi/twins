@@ -36,7 +36,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.TwinChangesService;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.history.HistoryItem;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class AttachmentService extends TwinsEntitySecureFindService<TwinAttachmentEntity> {
+public class AttachmentService extends TwinsEntityAccessService<TwinAttachmentEntity> {
     private final TwinAttachmentRepository twinAttachmentRepository;
     private final TwinAttachmentModificationRepository twinAttachmentModificationRepository;
     private final HistoryService historyService;
