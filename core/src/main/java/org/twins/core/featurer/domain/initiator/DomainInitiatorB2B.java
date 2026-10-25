@@ -82,7 +82,6 @@ public class DomainInitiatorB2B extends DomainInitiator {
     protected UUID createBusinessAccountTemplateTwin(DomainEntity domainEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
-                .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
                 .setUniqueName(false)
                 .setExtendsTwinClassId(domainEntity.getAncestorTwinClassId())
@@ -91,6 +90,8 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(SystemIds.User.SYSTEM)
                 .setAssigneeRequired(false);
+        // separate statement: the inherited chain setter returns DomainConfigEntity (saved directly, no autofill here)
+        twinClassEntity.setDomainId(domainEntity.getId());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()

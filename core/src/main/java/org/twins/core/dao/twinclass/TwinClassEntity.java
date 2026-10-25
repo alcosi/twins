@@ -11,9 +11,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
-import org.hibernate.generator.EventType;
 import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
@@ -63,17 +61,9 @@ public class TwinClassEntity extends DomainConfigEntity implements EasyLoggable 
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((key + domainId).getBytes());
+            this.id = UUID.nameUUIDFromBytes((key + getDomainId()).getBytes());
         }
     }
-
-    @Column(name = "domain_id")
-    private UUID domainId;
-
-    // DB-maintained by the versioning triggers (TWINS-719) — Hibernate never writes it
-    @Generated(event = {EventType.INSERT, EventType.UPDATE})
-    @Column(name = "domain_version_id", insertable = false, updatable = false)
-    private UUID domainVersionId;
 
     @Column(name = "key")
     private String key;

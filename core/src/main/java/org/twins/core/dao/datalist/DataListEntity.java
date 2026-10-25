@@ -6,8 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.hibernate.annotations.Generated;
-import org.hibernate.generator.EventType;
 import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
@@ -35,7 +33,7 @@ public class DataListEntity extends DomainConfigEntity implements EasyLoggable {
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((key + domainId).getBytes());
+            this.id = UUID.nameUUIDFromBytes((key + getDomainId()).getBytes());
         }
     }
 
@@ -47,14 +45,6 @@ public class DataListEntity extends DomainConfigEntity implements EasyLoggable {
 
     @Column(name = "key")
     private String key;
-
-    @Column(name = "domain_id")
-    private UUID domainId;
-
-    // DB-maintained by the versioning triggers (TWINS-719) — Hibernate never writes it
-    @Generated(event = {EventType.INSERT, EventType.UPDATE})
-    @Column(name = "domain_version_id", insertable = false, updatable = false)
-    private UUID domainVersionId;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;

@@ -343,10 +343,11 @@ public class TwinClassService extends DomainConfigAccessService<TwinClassEntity>
             twinClass
                     .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, create.getNameI18n()).getId())
                     .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, create.getDescriptionI18n()).getId())
-                    .setDomainId(apiUser.getDomainId())
                     .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), create.getTwinClass().getOwnerType()))
                     .setCreatedAt(Timestamp.from(Instant.now()))
-                    .setCreatedByUserId(apiUser.getUserId());
+                    .setCreatedByUserId(apiUser.getUserId())
+                    // last link only: the inherited chain setter returns DomainConfigEntity — subclass setters after it would not compile
+                    .setDomainId(apiUser.getDomainId());
 
             if (twinClass.getAssigneeRequired() == null) {
                 twinClass.setAssigneeRequired(false);

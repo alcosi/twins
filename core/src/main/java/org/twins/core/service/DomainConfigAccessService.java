@@ -8,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.annotation.DomainIdFiller;
 import org.twins.core.domain.DomainConfig;
+import org.twins.core.service.domain.DomainVersionService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.BiFunction;
@@ -18,6 +20,9 @@ import java.util.function.BiFunction;
 public abstract class DomainConfigAccessService<T extends DomainConfigEntity> extends TwinsEntityAccessService<T> {
     @Autowired
     protected TransactionActorUserService transactionActorUserService;
+
+    @Autowired
+    protected DomainVersionService domainVersionService;
 
     public BiFunction<UUID, String, Optional<T>> findByDomainIdAndKeyFunction() throws ServiceException {
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "Method findByKey is not implemented in service");
@@ -92,5 +97,16 @@ public abstract class DomainConfigAccessService<T extends DomainConfigEntity> ex
     public void deleteSafe(Collection<UUID> ids) throws ServiceException {
         transactionActorUserService.fillCurrentActorUser();
         super.deleteSafe(ids);
+    }
+
+    public void loadDomainVersion(T src) throws ServiceException {
+        loadDomainVersion(Collections.singletonList(src));
+    }
+
+    public void loadDomainVersion(Collection<T> srcCollection) throws ServiceException {
+        domainVersionService.load(srcCollection,
+                DomainConfigEntity::getDomainVersionId,
+                DomainConfigEntity::getDomainVersion,
+                DomainConfigEntity::setDomainVersion);
     }
 }

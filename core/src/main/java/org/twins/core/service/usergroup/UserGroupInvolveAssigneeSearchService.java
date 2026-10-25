@@ -39,7 +39,7 @@ public class UserGroupInvolveAssigneeSearchService {
     public UserGroupInvolveAssigneeEntity findPermissionAssigneePropagationById(UUID id) throws ServiceException {
         Optional<UserGroupInvolveAssigneeEntity> entity = userGroupInvolveAssigneeRepository.findBy(
                 Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), UserGroupInvolveAssigneeEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldUuid(authService.getApiUser().getDomainId(), UserGroupInvolveAssigneeEntity.Fields.twinClass, TwinClassEntity.DOMAIN_ID),
                         checkFieldUuid(id, UserGroupInvolveAssigneeEntity.Fields.id)
                 ), FluentQuery.FetchableFluentQuery::one
         );
@@ -55,7 +55,7 @@ public class UserGroupInvolveAssigneeSearchService {
 
     private Specification<UserGroupInvolveAssigneeEntity> createPermissionAssigneePropagationSearchSpecification(UserGroupInvolveAssigneeSearch search, UUID domainId) {
         return Specification.allOf(
-                checkFieldUuid(domainId, UserGroupInvolveAssigneeEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkFieldUuid(domainId, UserGroupInvolveAssigneeEntity.Fields.twinClass, TwinClassEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, UserGroupInvolveAssigneeEntity.Fields.id),
                 checkUuidIn(search.getUserGroupIdList(), false, false, UserGroupInvolveAssigneeEntity.Fields.userGroupId),

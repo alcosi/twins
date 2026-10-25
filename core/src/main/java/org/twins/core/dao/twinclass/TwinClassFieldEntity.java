@@ -9,9 +9,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
-import org.hibernate.generator.EventType;
 import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
@@ -46,14 +44,6 @@ public class TwinClassFieldEntity extends DomainConfigEntity implements EasyLogg
             this.id = UUID.nameUUIDFromBytes((key + twinClassId).getBytes());
         }
     }
-
-    @Column(name = "domain_id")
-    private UUID domainId;
-
-    // DB-maintained by the versioning triggers (TWINS-719) — Hibernate never writes it
-    @Generated(event = {EventType.INSERT, EventType.UPDATE})
-    @Column(name = "domain_version_id", insertable = false, updatable = false)
-    private UUID domainVersionId;
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;

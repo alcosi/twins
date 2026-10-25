@@ -64,7 +64,7 @@ public class DataListSearchService extends EntitySearchService
     public Specification<DataListEntity> createFilterSpecification(DataListSearch search, UUID domainId, Locale locale) throws ServiceException {
         DataListOptionSearch optionSearch = search.getOptionSearch();
         return Specification.allOf(
-                checkFieldUuid(domainId, DataListEntity.Fields.domainId),
+                checkFieldUuid(domainId, DataListEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdList(), false, false, DataListEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListEntity.Fields.id),
                 joinAndSearchByI18NFieldDirect(DataListEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), locale, false, false),

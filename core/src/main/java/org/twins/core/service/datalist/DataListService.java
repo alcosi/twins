@@ -99,7 +99,7 @@ public class DataListService extends DomainConfigAccessService<DataListEntity> {
     public DataListEntity createDataList(DataListCreate dataListCreate) throws ServiceException {
         DataListEntity dataListEntity = new DataListEntity()
                 .setKey(KeyUtils.lowerCaseNullSafe(dataListCreate.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
-                .setDomainId(authService.getApiUser().getDomainId())
+                // no setDomainId: saveSafe below autofills it from the apiUser domain
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListCreate.getNameI18n()).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListCreate.getDescriptionI18n()).getId())
                 .setExternalId(dataListCreate.getExternalId())

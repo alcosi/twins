@@ -98,7 +98,7 @@ public class SpaceRoleUserService extends TwinsEntityAccessService<SpaceRoleUser
         List<SpaceRoleUserEntity> list = repository.findAll(
                 Specification.allOf(
                         checkFieldUuid( twinEntity.getId(), SpaceRoleUserEntity.Fields.twinId),
-                        checkFieldUuid(authService.getApiUser().getDomainId(), SpaceRoleUserEntity.Fields.twinSpecOnly, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldUuid(authService.getApiUser().getDomainId(), SpaceRoleUserEntity.Fields.twinSpecOnly, TwinEntity.Fields.twinClass, TwinClassEntity.DOMAIN_ID),
                         checkFieldUuid(userId, SpaceRoleUserEntity.Fields.id)
                 )
         );

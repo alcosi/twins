@@ -58,7 +58,7 @@ public class TwinStatusSearchService extends EntitySearchService
     @Override
     public Specification<TwinStatusEntity> createFilterSpecification(TwinStatusSearch search, UUID domainId, Locale locale) throws ServiceException {
         return Specification.allOf(
-                checkFieldUuid(domainId, TwinStatusEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkFieldUuid(domainId, TwinStatusEntity.Fields.twinClass, TwinClassEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdList(), false, false, TwinStatusEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinStatusEntity.Fields.id),
                 checkTwinClassAndInheritable(twinClassService.loadExtends(search.getTwinClassIdMap()), false, TwinStatusEntity.Fields.twinClassId, TwinStatusEntity.Fields.inheritable),

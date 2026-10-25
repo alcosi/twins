@@ -108,9 +108,9 @@ public class TwinStatusBatchAtomicityIntegrationTest extends BaseIntegrationTest
         twinClassSchemaRepository.save(new TwinClassSchemaEntity().setId(classSchemaId).setCreatedByUserId(userId).setName("System Class Schema"));
 
         twinClassId = UUID.randomUUID();
+        // system class: domain check passes for null domain (null is the default)
         TwinClassEntity twinClass = new TwinClassEntity()
                 .setId(twinClassId)
-                .setDomainId(null) // system class: domain check passes for null domain
                 .setKey("TEST_STATUS_CLASS_" + twinClassId)
                 .setOwnerType(OwnerType.SYSTEM)
                 .setCreatedByUserId(userId)

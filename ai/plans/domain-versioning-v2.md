@@ -184,11 +184,26 @@ Partial unique для бизнес-ключей helper не добавляет (
 `DataListOptionSubsetId` удалён. Все семь реализуют `DomainConfig`. `rowStatus` не мапим до
 первого Java-потребителя.
 
-Поля `domainId`/`domainVersionId` живут в каждой из семи entity, а НЕ в `DomainConfigEntity`
-(попытка переноса 2026-10-23 откачена тем же днём): `@FieldNameConstants` не генерирует константы
-для унаследованных полей — `XEntity.Fields.domainId` исчезал бы из ~24 спецификаций, а обращение
-через `DomainConfigEntity.Fields.domainId` отвергнуто как нечитаемое. Плюс chain-сеттеры базового
-класса возвращают тип базового класса и ломают construction-цепочки наследников. На всю иерархию
+Поля `domainId`/`domainVersionId` ПЕРЕНЕСЕНЫ в `DomainConfigEntity` (2026-10-24, вторая попытка —
+заказ пользователя; первая 2026-10-23 была откачена тем же днём). Две прошлые блокирующие
+проблемы решены так: (1) `@FieldNameConstants` не генерирует константы для унаследованных полей,
+а собственный `Fields`-холдер наследника СКРЫВАЕТ `Fields` базового класса — поэтому в
+`DomainConfigEntity` объявлены ручные константы `DOMAIN_ID`/`DOMAIN_VERSION_ID` (camelCase
+невозможен: константа конфликтовала бы с одноимённым instance-полем в том же классе); константы
+наследуются как static и доступны через любого наследника (`TwinClassEntity.DOMAIN_ID`) — все
+24 спецификационных сайта переведены с `XEntity.Fields.domainId` на `XEntity.DOMAIN_ID`;
+(2) chain-сеттер базового класса возвращает тип базового класса — ковариантные override'ы
+`setDomainId` в 7 entity были добавлены и тут же УБРАНЫ пользователем как бойлерплейт
+(2026-10-24): вместо них сайты вызовов исправлены точечно — где сохранение идёт через saveSafe,
+явный `.setDomainId(...)` просто удалён (покрывает autofill: DataListService.createDataList);
+где значение обязательно (прямые `entitySmartService.save` мимо saveSafe: DomainInitiator ×2,
+DomainInitiatorB2B, TwinClassService.createTwinClass — последний переставлен последним звеном
+statement-цепочки; явный-домен-копия TwinClassDuplicateService и unit-тесты ×4 — вынесены
+отдельным statement) — конвенция: `setDomainId` вызываем либо последним звеном, либо отдельной
+строкой. Тестовые `.setDomainId(null)` удалены как no-op (null — дефолт поля).
+`setDomainVersionId` приложение не вызывает никогда — колонка DB-maintained.
+Прямые обращения к приватному полю в `prepareKeys` (`TwinClassEntity`, `DataListEntity`)
+переведены на `getDomainId()`. На всю иерархию
 `PersistableEntity` добавлены `@EqualsAndHashCode(callSuper = true)` + `@ToString(callSuper = true)`
 (2026-10-24: `DomainConfigEntity`, 7 пилотных entity, `TwinEntity`, `TwinLinkEntity`) — чтобы поля
 базового класса участвовали в Lombok-методах (сам `PersistableEntity` наследует Object, ему
@@ -272,6 +287,12 @@ DataListOptionProjectionService/DataListOptionSearchConfigService (не DomainCo
 RelatedObjectsRestDTOConverter, EntityServiceRegistry, HistoryTypeService). Известные остатки
 (осознанно не трогали): unused-импорты в обоих новых базах; дублирование
 `findByKey`/`findByDomainIdAndKeyFunction` в обоих слоях — оставлено пользователем.
+
+**Audit write-gate (2026-10-25):** `domain_version_audit` — append-only таблица, пишут только
+триггеры, поэтому в `DomainVersionAuditService` вся write-семья (`saveSafe` ×2, `updateSafe` ×2,
+`deleteSafe` ×2) переопределена на `throw ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED,
+"domain_version_audit rows are written by DB triggers only")`. Базовые не-Safe варианты
+(`entitySmartService.save*`) не перекрываем — сервисная конвенция идёт через Safe-семью.
 
 **Универсальное заполнение `domainId` (решение 2026-10-23, размещение переработано 2026-10-23):**
 не выводом по цепочке родителей, а из `apiUser.getDomainId()` — системные строки через сервисы

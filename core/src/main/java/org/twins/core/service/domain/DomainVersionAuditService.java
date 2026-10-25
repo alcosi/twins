@@ -4,7 +4,10 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -57,6 +60,40 @@ public class DomainVersionAuditService extends TwinsEntityAccessService<DomainVe
         if (entity.getOperation() == null)
             return logErrorAndReturnFalse(entity.logNormal() + " empty operation");
         return true;
+    }
+
+    // domain_version_audit is append-only and written by the versioning triggers (TWINS-719) —
+    // the whole write family is forbidden on the service
+    private static final String AUDIT_WRITE_FORBIDDEN = "domain_version_audit rows are written by DB triggers only";
+
+    @Override
+    public DomainVersionAuditEntity saveSafe(DomainVersionAuditEntity entity) throws ServiceException {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, AUDIT_WRITE_FORBIDDEN);
+    }
+
+    @Override
+    public Iterable<DomainVersionAuditEntity> saveSafe(Collection<DomainVersionAuditEntity> entities) throws ServiceException {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, AUDIT_WRITE_FORBIDDEN);
+    }
+
+    @Override
+    public DomainVersionAuditEntity updateSafe(DomainVersionAuditEntity entity, ChangesHelper changesHelper) throws ServiceException {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, AUDIT_WRITE_FORBIDDEN);
+    }
+
+    @Override
+    public Iterable<DomainVersionAuditEntity> updateSafe(ChangesHelperMulti<DomainVersionAuditEntity> changesHelperMulti) throws ServiceException {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, AUDIT_WRITE_FORBIDDEN);
+    }
+
+    @Override
+    public void deleteSafe(UUID id) throws ServiceException {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, AUDIT_WRITE_FORBIDDEN);
+    }
+
+    @Override
+    public void deleteSafe(Collection<UUID> ids) throws ServiceException {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, AUDIT_WRITE_FORBIDDEN);
     }
 
     public void loadActorUser(DomainVersionAuditEntity src) throws ServiceException {
