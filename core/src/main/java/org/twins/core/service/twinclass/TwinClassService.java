@@ -17,7 +17,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListRepository;
@@ -114,7 +113,7 @@ public class TwinClassService extends DomainConfigAccessService<TwinClassEntity>
     private final TwinRecomputeOnActionRepository twinRecomputeOnActionRepository;
 
     @Override
-    public CrudRepository<TwinClassEntity, UUID> entityRepository() {
+    public TwinClassRepository entityRepository() {
         return twinClassRepository;
     }
 
@@ -373,7 +372,9 @@ public class TwinClassService extends DomainConfigAccessService<TwinClassEntity>
             classesToSave.add(twinClass);
         }
 
-        Iterable<TwinClassEntity> savedIterable = entitySmartService.saveAllAndLog(classesToSave, twinClassRepository);
+        // saveSafe: fills the actor GUC + autofills domainId; entities are already validated in the loop above
+        // (validateEntities default in saveSafe(Collection) is a no-op — no double validation)
+        Iterable<TwinClassEntity> savedIterable = saveSafe(classesToSave);
         List<TwinClassEntity> savedClasses = StreamSupport.stream(savedIterable.spliterator(), false).toList();
 
         for (TwinClassEntity savedClass : savedClasses) {

@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.AdvancedEntityManager;
@@ -67,7 +66,7 @@ public class DataListOptionService extends DomainConfigAccessService<DataListOpt
     private BusinessAccountService businessAccountService;
 
     @Override
-    public CrudRepository<DataListOptionEntity, UUID> entityRepository() {
+    public DataListOptionRepository entityRepository() {
         return dataListOptionRepository;
     }
 

@@ -19,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionRepository;
@@ -97,7 +96,7 @@ public class TwinClassFieldService extends DomainConfigAccessService<TwinClassFi
     private TwinClassFieldRuleMapService twinClassFieldRuleMapService;
 
     @Override
-    public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
+    public TwinClassFieldRepository entityRepository() {
         return twinClassFieldRepository;
     }
 

@@ -294,6 +294,28 @@ RelatedObjectsRestDTOConverter, EntityServiceRegistry, HistoryTypeService). Из
 "domain_version_audit rows are written by DB triggers only")`. Базовые не-Safe варианты
 (`entitySmartService.save*`) не перекрываем — сервисная конвенция идёт через Safe-семью.
 
+**Доменная фильтрация by-id чтений (2026-10-25, заказ пользователя):** создан
+`org.twins.core.dao.DomainConfigRepository<T extends DomainConfigEntity>`
+(`@NoRepositoryBean`, extends `CrudRepository<T, UUID>`) с null-толерантными `@Query`-методами
+`findByDomainIdAndId` (`Optional<T>`) и батчевым `findAllByDomainIdAndIdIn` — условие
+`(e.domainId = :domainId or e.domainId is null)`: чужие домены невидимы (читаются как
+«не найдено»), системные строки (domain_id IS NULL) остаются видимыми — семантика та же, что у
+`isDomainAccessDenied`. Все 7 репозиториев пилота переведены на `extends DomainConfigRepository<X>`.
+Мёртвые одноимённые методы удалены: `TwinClassRepository.findByDomainIdAndId` (entity-return,
+конфликтовал с Optional-версией) и `DataListRepository.findByDomainIdAndId` + `findByDomainIdAndIdIn`
+(ноль вызовов); живые projection/Page-варианты `TwinClassRepository.findByDomainIdAndIdIn`
+(TwinClassExtendsProjection, вызовы TwinClassService) сохранены. В `EntityAccessServiceImpl`
+выделены protected-швы `loadEntityById`/`loadEntitiesById` (обе воронки findEntity/findEntities
+идут через них); `DomainConfigAccessService` сужает `entityRepository()` до
+`DomainConfigRepository<T>` (ковариантный abstract — поэтому у 6 сервисов пилота возвраты
+`entityRepository()` сужены с `CrudRepository` до конкретных репозиториев) и переопределяет оба
+шва на доменно-фильтрованные чтения; нет доменного контекста (системные джобы) — fallback на
+нефильтрованный super. Батч-вариант — один запрос, без N+1. `TwinClassService` (saveAllAndLog
+в createByKeys) переведён на `saveSafe(Collection)` — GUC актора + autofill domainId; двойной
+валидации нет (в цикле уже `validateEntityAndThrow`, а `validateEntities` по умолчанию no-op).
+Известный остаток: кэш-попадания (`@Cacheable findById` TwinClassRepository, GLOBAL/REQUEST
+кэш findEntitySafe) обходят и новый фильтр, и isEntityReadDenied — прежняя дыра, не усугублена.
+
 **Универсальное заполнение `domainId` (решение 2026-10-23, размещение переработано 2026-10-23):**
 не выводом по цепочке родителей, а из `apiUser.getDomainId()` — системные строки через сервисы
 не создаются. Ядро — `DomainIdFiller.fillOnInsert` (`dao/annotation`), работает через интерфейс

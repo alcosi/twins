@@ -13,7 +13,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.i18n.I18nEntity;
@@ -53,7 +52,7 @@ public class TwinStatusService extends DomainConfigAccessService<TwinStatusEntit
     private CacheManager cacheManager;
 
     @Override
-    public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
+    public TwinStatusRepository entityRepository() {
         return twinStatusRepository;
     }
 

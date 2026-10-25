@@ -65,8 +65,15 @@ public abstract class EntityAccessServiceImpl<T> implements EntityAccessService<
                         EntitySmartService.FindMode findMode,
                         EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
                         EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        T entity = entitySmartService.findById(entityId, entityRepository(), findMode);
+        T entity = loadEntityById(entityId, findMode);
         return checkResult(permissionCheckMode, entityValidateMode, entity);
+    }
+
+    /**
+     * Seam for subclasses that need a filtered by-id read (domain scoping, soft-delete, ...).
+     */
+    protected T loadEntityById(UUID entityId, EntitySmartService.FindMode findMode) throws ServiceException {
+        return entitySmartService.findById(entityId, entityRepository(), findMode);
     }
 
     @Override
@@ -106,7 +113,7 @@ public abstract class EntityAccessServiceImpl<T> implements EntityAccessService<
                                      EntitySmartService.ListFindMode findMode,
                                      EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
                                      EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        Kit<T, UUID> kit = entitySmartService.findByIdIn(entityIds, entityRepository(), entityGetIdFunction(), findMode);
+        Kit<T, UUID> kit = loadEntitiesById(entityIds, findMode);
         Iterator<T> iterator = kit.iterator();
         while (iterator.hasNext()) {
             T entity = iterator.next();
@@ -117,6 +124,13 @@ public abstract class EntityAccessServiceImpl<T> implements EntityAccessService<
             validateEntityAndThrow(entity, entityValidateMode);
         }
         return kit;
+    }
+
+    /**
+     * Seam for subclasses that need a filtered bulk by-id read (domain scoping, soft-delete, ...).
+     */
+    protected Kit<T, UUID> loadEntitiesById(Collection<UUID> entityIds, EntitySmartService.ListFindMode findMode) throws ServiceException {
+        return entitySmartService.findByIdIn(entityIds, entityRepository(), entityGetIdFunction(), findMode);
     }
 
     public String getValidationErrorMessage(T entity) throws ServiceException {

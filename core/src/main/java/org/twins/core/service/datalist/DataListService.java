@@ -12,7 +12,6 @@ import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -54,7 +53,7 @@ public class DataListService extends DomainConfigAccessService<DataListEntity> {
     private final I18nService i18nService;
 
     @Override
-    public CrudRepository<DataListEntity, UUID> entityRepository() {
+    public DataListRepository entityRepository() {
         return dataListRepository;
     }
 
