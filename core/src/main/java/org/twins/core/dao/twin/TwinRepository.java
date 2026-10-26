@@ -25,6 +25,10 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     List<TwinEntity> findByIdIn(Collection<UUID> twinIds);
 
+    @Query("select t from TwinEntity t where t.headTwinId in :headTwinIds " +
+            "order by t.headTwinId asc, t.sortOrder asc nulls last, t.createdAt desc, t.id asc")
+    List<TwinEntity> findHeadSiblingsOrderedIn(@Param("headTwinIds") Collection<UUID> headTwinIds);
+
     boolean existsByTwinClassId(UUID twinClassId);
 
     @Modifying

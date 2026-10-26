@@ -89,6 +89,10 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     @Query(value = "select distinct dstTwinId from TwinLinkEntity where linkId = :linkId")
     Set<UUID> findDstTwinIdsByLinkId(@Param("linkId") UUID linkId);
 
+    @Query("select tl from TwinLinkEntity tl where tl.dstTwinId = :dstTwinId and tl.linkId = :linkId " +
+            "order by tl.sortOrder asc nulls last, tl.createdAt asc, tl.id asc")
+    List<TwinLinkEntity> findDstLinkLevelOrdered(@Param("dstTwinId") UUID dstTwinId, @Param("linkId") UUID linkId);
+
 
     //todo think about batch query
     @Transactional

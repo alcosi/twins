@@ -36,7 +36,9 @@ public class TwinLinkUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
             twinLink.setRelationTwinId(src.getId());
             dst.setRelationTwinFields(relationTwinFieldsConverter.convertForRelationTwin(src.getId(), src.getRelationTwinFields(), mapperContext));
         }
-        dst.setTwinLink(twinLink);
+        dst
+                .setTwinLink(twinLink)
+                .setAfterTwinId(src.getAfterTwinId());
     }
 
     @Override

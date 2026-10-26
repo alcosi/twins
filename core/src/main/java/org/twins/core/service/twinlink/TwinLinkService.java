@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.DuplicateKeyMode;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
@@ -48,6 +49,7 @@ import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSortOrderService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
@@ -69,6 +71,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     private final LinkService linkService;
     private final TwinClassService twinClassService;
     private final TwinLinkRepository twinLinkRepository;
+    private final TwinSortOrderService twinSortOrderService;
     private final TwinService twinService;
     private final TwinSearchService twinSearchService;
     @Lazy
@@ -355,6 +358,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         var updateEntityKit = new Kit<>(twinLinkUpdateList.stream().map(TwinLinkUpdate::getTwinLink).toList(), TwinLinkEntity::getId);
         var dbEntityKit = findEntitiesSafe(updateEntityKit.getIdSet());
         List<TwinLinkEntity> updatedTwinLinkEntityList = new ArrayList<>();
+        Kit<TwinLinkUpdate, UUID> sortOrderMoves = new Kit<>(TwinSortOrderService.TWIN_LINK_UPDATE_KEY, DuplicateKeyMode.REPLACE);
         loadTwin(dbEntityKit.getCollection());
         loadLink(dbEntityKit.getCollection());
         List<TwinUpdate> relationTwinUpdates = new ArrayList<>();
@@ -397,7 +401,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 updatedTwinLinkEntityList.add(dbTwinLinkEntity);
                 twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(dbTwinLinkEntity, unlinkedTwinEntity, forward));
                 twinChangesCollector.add(dbTwinLinkEntity);
+                if (twinLinkUpdate.getAfterTwinId() != null)
+                    sortOrderMoves.add(twinLinkUpdate);
             }
+        }
+        if (sortOrderMoves.isNotEmpty()) {
+            twinSortOrderService.reorderTwinLinks(sortOrderMoves); // one level lock + load for the whole batch
         }
         entitySmartService.saveAllAndLog(updatedTwinLinkEntityList, twinLinkRepository);
         if (!relationTwinUpdates.isEmpty())

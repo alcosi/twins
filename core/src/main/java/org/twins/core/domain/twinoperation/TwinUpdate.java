@@ -24,6 +24,9 @@ import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
 @Accessors(chain = true)
 public class TwinUpdate extends TwinSave {
     private TwinEntity dbTwinEntity; // entity loaded from db without changes
+    // reorder anchor: place the twin after this sibling in its head level on update;
+    // null = do not reorder, UuidUtils.NULLIFY_MARKER = place first. Create flow does not support ordering.
+    protected UUID afterTwinId;
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private TwinLinkCUD twinLinkCUD;
     protected Set<UUID> markersDelete;
@@ -52,7 +55,8 @@ public class TwinUpdate extends TwinSave {
     }
 
     public boolean isChanged() {
-        return !Objects.equals(dbTwinEntity, getTwinEntity()) ||
+        return getAfterTwinId() != null ||
+                !Objects.equals(dbTwinEntity, getTwinEntity()) ||
                 mode == Mode.sketchUpdate || // this mode helps to overcome "has changes" check logic. Sketch twin can have no direct changes, but some children dependent logic
                 MapUtils.isNotEmpty(fields) ||
                 CollectionUtils.isNotEmpty(tagsDelete) ||

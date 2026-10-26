@@ -90,6 +90,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Column(name = "head_twin_id")
     private UUID headTwinId;
 
+    // user defined order key within siblings of the same head (lexicographic, byte-order sortable);
+    // null = not manually ordered (sorts after ordered siblings)
+    @Column(name = "sort_order")
+    private String sortOrder;
+
     @Column(name = "hierarchy_tree", columnDefinition = "ltree")
     @Type(value = LtreeUserType.class)
     private String hierarchyTree;
@@ -658,7 +663,8 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         TWIN_STATUS_ID(Fields.twinStatusId, SystemIds.TwinClassField.Base.STATUS_ID, TwinEntity::getTwinStatusId),
         CREATED_AT(Fields.createdAt, SystemIds.TwinClassField.Base.CREATED_AT, TwinEntity::getCreatedAt),
         ID(Fields.id, SystemIds.TwinClassField.Base.ID, TwinEntity::getId),
-        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemIds.TwinClassField.Base.ALIASES, TwinEntity::getAliasSpaceId);
+        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemIds.TwinClassField.Base.ALIASES, TwinEntity::getAliasSpaceId),
+        SORT_ORDER(Fields.sortOrder, SystemIds.TwinClassField.Base.SORT_ORDER, TwinEntity::getSortOrder);
 
         @Getter
         private final String name;
