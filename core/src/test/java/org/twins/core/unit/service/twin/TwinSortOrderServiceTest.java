@@ -69,6 +69,8 @@ class TwinSortOrderServiceTest {
         twin.setId(UUID.nameUUIDFromBytes(("twin-" + i).getBytes()));
         twin.setHeadTwinId(HEAD);
         twin.setSortOrder(sortOrder);
+        // newest first (mirror of the repository ORDER BY): twin(0) sorts before twin(1) ...
+        twin.setCreatedAt(new java.sql.Timestamp(2_000_000_000L - i));
         // TwinUpdate.setDbTwinEntity probes isSketch - keep the status loaded and not a sketch
         twin.setTwinStatusId(UUID.nameUUIDFromBytes(("status-" + i).getBytes()));
         twin.setTwinStatus(new TwinStatusEntity().setType(StatusType.BASIC));

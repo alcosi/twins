@@ -76,12 +76,23 @@ public class TwinSortOrderService {
     /** Kit key of a link reorder move: id of the updated twin_link */
     public static final Function<TwinLinkUpdate, UUID> TWIN_LINK_UPDATE_KEY = move -> move.getTwinLink().getId();
 
+    /** mirror of TwinRepository.findHeadSiblingsOrderedIn ORDER BY (without the key, appended in Level) */
+    private static final Comparator<TwinEntity> TWIN_DB_ORDER = Comparator
+            .comparing(TwinEntity::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())).reversed()
+            .thenComparing(TwinEntity::getId);
+    /** mirror of TwinLinkRepository.findDstLinkLevelOrdered ORDER BY (without the key, appended in Level) */
+    private static final Comparator<TwinLinkEntity> TWIN_LINK_DB_ORDER = Comparator
+            .comparing(TwinLinkEntity::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(TwinLinkEntity::getId);
+
     /**
      * Batch move: TwinUpdates carrying the afterTwinId anchor ({@link UuidUtils#NULLIFY_MARKER} = first).
      * Moves are applied in kit iteration order (sequential semantics): each move sees the keys set by
-     * the previous ones. Levels are locked in a deterministic (sorted) order, so two batches touching
-     * the same levels can not deadlock each other, and all levels are loaded by a single query;
-     * processing cost per batch is O(1) queries regardless of the number of moved twins.
+     * the previous ones. Duplicate moves of one twin resolve as "last anchor wins, applied at the
+     * position of the first occurrence" ({@link DuplicateKeyMode#REPLACE}) - clients are expected to
+     * move each twin once per batch. Levels are locked in a deterministic (sorted) order, so two
+     * batches touching the same levels can not deadlock each other, and all levels are loaded by a
+     * single query; processing cost per batch is O(1) queries regardless of the number of moved twins.
      */
     public void reorderTwins(Kit<TwinUpdate, UUID> moves) throws ServiceException {
         if (moves == null || moves.isEmpty())
@@ -103,7 +114,7 @@ public class TwinSortOrderService {
             List<TwinEntity> siblings = siblingsByLevel.get(levelId);
             if (siblings == null) // unreachable: the moved twin itself belongs to the level
                 throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "level[" + levelId + "] has no siblings");
-            Level<TwinEntity> level = new Level<>(siblings,
+            Level<TwinEntity> level = new Level<>(siblings, TWIN_DB_ORDER,
                     TwinEntity::getSortOrder, TwinEntity::setSortOrder, TwinEntity::getId);
             List<TwinUpdate> levelMoves = grouped.get(levelId);
             List<TwinEntity> moved = new ArrayList<>(levelMoves.size());
@@ -136,7 +147,7 @@ public class TwinSortOrderService {
             List<TwinLinkUpdate> levelMoves = grouped.get(levelKey);
             TwinLinkEntity any = levelMoves.get(0).getTwinLink();
             lockLevel("twin_link:" + any.getDstTwinId() + ":" + any.getLinkId());
-            Level<TwinLinkEntity> level = new Level<>(twinLinkRepository.findDstLinkLevelOrdered(any.getDstTwinId(), any.getLinkId()),
+            Level<TwinLinkEntity> level = new Level<>(twinLinkRepository.findDstLinkLevelOrdered(any.getDstTwinId(), any.getLinkId()), TWIN_LINK_DB_ORDER,
                     TwinLinkEntity::getSortOrder, TwinLinkEntity::setSortOrder, TwinLinkEntity::getId);
             List<TwinLinkEntity> moved = new ArrayList<>(levelMoves.size());
             for (TwinLinkUpdate move : levelMoves) {
@@ -188,21 +199,31 @@ public class TwinSortOrderService {
      */
     private static class Level<T> {
         final List<T> siblings;
+        final Comparator<T> order; // key order (nulls last) + db tie-break - mirror of the repository ORDER BY
         final Function<T, String> getSortOrder;
         final BiConsumer<T, String> setSortOrder;
         final Function<T, UUID> getId;
 
-        Level(List<T> siblings, Function<T, String> getSortOrder, BiConsumer<T, String> setSortOrder, Function<T, UUID> getId) {
+        Level(List<T> siblings, Comparator<T> dbTieBreak, Function<T, String> getSortOrder, BiConsumer<T, String> setSortOrder, Function<T, UUID> getId) {
             this.siblings = siblings;
             this.getSortOrder = getSortOrder;
             this.setSortOrder = setSortOrder;
             this.getId = getId;
+            this.order = Comparator
+                    .comparing(getSortOrder, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .thenComparing(dbTieBreak);
+            // the repository query promises this exact order; sorting here makes the contract local -
+            // anchor/next scans below are only correct over key-ordered siblings
+            resort();
         }
 
         /**
          * Place moved after afterTwinId anchor ({@link UuidUtils#NULLIFY_MARKER} = first); renumbers
          * the whole level on demand - when the anchor is unordered, no key fits or the key is too
          * long. Re-sorts siblings afterwards, so the next move in a batch sees index order == key order.
+         * Contract: moved MUST be the same managed instance as its counterpart in siblings - guaranteed
+         * by the transaction-scoped persistence context (one instance per row per tx); resort() and the
+         * "next non-moved" scan rely on the mutation being visible through the siblings list.
          */
         void move(T moved, UUID afterTwinId, AnchorFinder<T> anchorFinder) throws ServiceException {
             UUID movedId = getId.apply(moved);
@@ -213,7 +234,9 @@ public class TwinSortOrderService {
                 String key = midpointAfter(anchorIdx, movedId);
                 if (key == null || key.length() > MAX_KEY_LENGTH) {
                     renumber();
-                    key = midpointAfter(anchorIdx, movedId); // renumbered gaps guarantee a short midpoint
+                    // renumbered keys are <= MAX_KEY_LENGTH-1 chars with gaps >= RENUMBER_MIN_GAP:
+                    // midpoint always fits the cap - the invariant below holds unconditionally
+                    key = midpointAfter(anchorIdx, movedId);
                 }
                 setSortOrder.accept(moved, key);
             }
@@ -222,24 +245,28 @@ public class TwinSortOrderService {
 
         /** re-sorts siblings by current keys (still unordered stay last), so index order matches key order for the next move */
         private void resort() {
-            siblings.sort(Comparator.comparing(getSortOrder, Comparator.nullsLast(Comparator.naturalOrder())).thenComparing(getId));
+            siblings.sort(order);
         }
 
         /**
          * Evenly spreads siblings over the smallest fixed-width key space with
          * {@link TwinSortOrderService#RENUMBER_MIN_GAP} free slots between neighbors: keys along the
          * current order grow strictly (monotonic for any level size), every gap fits a midpoint.
+         * Depth is capped at {@link TwinSortOrderService#MAX_KEY_LENGTH}-1, so renumbered keys are
+         * always short enough for any midpoint over them to fit the cap too.
          */
         private void renumber() {
             if (siblings.isEmpty())
                 return;
             int depth = 1;
             long capacity = ALPHABET_SIZE;
-            while (capacity / (siblings.size() + 1) < RENUMBER_MIN_GAP) {
+            while (depth < MAX_KEY_LENGTH - 1 && capacity / (siblings.size() + 1) < RENUMBER_MIN_GAP) {
                 depth++;
                 capacity *= ALPHABET_SIZE;
             }
             long step = capacity / (siblings.size() + 1);
+            if (step == 0) // unreachable: would need > 62^(MAX_KEY_LENGTH-1) / RENUMBER_MIN_GAP siblings in one level
+                throw new IllegalStateException("level of " + siblings.size() + " siblings exceeds the key space");
             for (int i = 0; i < siblings.size(); i++)
                 setSortOrder.accept(siblings.get(i), encodeBase62((i + 1) * step, depth));
         }
