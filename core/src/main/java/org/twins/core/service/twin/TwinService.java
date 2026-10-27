@@ -480,6 +480,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         checkCreatePermission(twinCreateStage.getTwinCreates().stream().filter(TwinCreate::isCheckCreatePermission).map(TwinCreate::getTwinEntity).toList());
         checkTwinClassQuota(twinEntities);
         createTwinEntity(twinCreateStage);
+        // create placement moves: keys are assigned before the INSERT, so the created rows are born ordered
+        Kit<TwinCreate, UUID> sortOrderMoves = new Kit<>(TwinSortOrderService.TWIN_CREATE_KEY, DuplicateKeyMode.REPLACE);
+        for (TwinCreate twinCreate : twinCreateStage)
+            if (twinCreate.getAfterTwinId() != null)
+                sortOrderMoves.add(twinCreate);
 //        twinflowService.loadTwinflow(twinEntities);
         for (TwinCreate twinCreate : twinCreateStage) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
@@ -516,6 +521,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
             runFactoryAfterCreate(twinCreate, twinChangesCollector);
         }
+        if (sortOrderMoves.isNotEmpty())
+            twinSortOrderService.reorderCreatedTwins(sortOrderMoves); // keys ride with the INSERT done by applyChanges
     }
 
     private static ArrayList<TwinEntity> initIds(TwinCreateStage twinCreateList) {

@@ -24,9 +24,6 @@ import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
 @Accessors(chain = true)
 public class TwinUpdate extends TwinSave {
     private TwinEntity dbTwinEntity; // entity loaded from db without changes
-    // reorder anchor: place the twin after this sibling in its head level on update;
-    // null = do not reorder, UuidUtils.NULLIFY_MARKER = place first. Create flow does not support ordering.
-    protected UUID afterTwinId;
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private TwinLinkCUD twinLinkCUD;
     protected Set<UUID> markersDelete;
@@ -45,6 +42,12 @@ public class TwinUpdate extends TwinSave {
     @Override
     public UUID nullifyUUID() {
         return NULLIFY_MARKER;
+    }
+
+    @Override // keep the fluent type: the field lives in TwinSave, its Lombok setter returns TwinSave
+    public TwinUpdate setAfterTwinId(UUID afterTwinId) {
+        super.setAfterTwinId(afterTwinId);
+        return this;
     }
 
     public TwinOperation deleteMarker(UUID marker) {

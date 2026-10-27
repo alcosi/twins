@@ -56,6 +56,8 @@ class TwinSortOrderServiceFuzzTest {
     Query lockQuery;
 
     TwinSortOrderService service;
+    /** current fuzz level, swapped per round; the single-shot stubs read it */
+    private final List<TwinEntity> levelHolder = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
@@ -63,6 +65,55 @@ class TwinSortOrderServiceFuzzTest {
         ReflectionTestUtils.setField(service, "entityManager", entityManager);
         when(entityManager.createNativeQuery(anyString())).thenReturn(lockQuery);
         when(lockQuery.setParameter(anyString(), any())).thenReturn(lockQuery);
+        when(twinRepository.findHeadSiblingsOrderedIn(any())).thenAnswer(inv -> levelHolder);
+        when(twinRepository.findSortOrderViewByIdIn(any())).thenAnswer(inv -> {
+            java.util.Collection<UUID> ids = inv.getArgument(0);
+            return ids.stream()
+                    .flatMap(id -> levelHolder.stream().filter(t -> t.getId().equals(id)))
+                    .<TwinRepository.TwinSortOrderView>map(t -> new TwinRepository.TwinSortOrderView() {
+                        @Override
+                        public UUID getId() {
+                            return t.getId();
+                        }
+
+                        @Override
+                        public UUID getHeadTwinId() {
+                            return t.getHeadTwinId();
+                        }
+
+                        @Override
+                        public String getSortOrder() {
+                            return t.getSortOrder();
+                        }
+                    })
+                    .toList();
+        });
+        when(twinRepository.findSortOrderBounds(any(), any(), any())).thenAnswer(inv -> {
+            UUID head = inv.getArgument(0);
+            String afterKey = inv.getArgument(1);
+            java.util.Collection<UUID> excludeIds = inv.getArgument(2);
+            String minKey = null, nextKey = null;
+            for (TwinEntity t : levelHolder) {
+                if (!head.equals(t.getHeadTwinId()) || t.getSortOrder() == null || excludeIds.contains(t.getId()))
+                    continue;
+                if (minKey == null || t.getSortOrder().compareTo(minKey) < 0)
+                    minKey = t.getSortOrder();
+                if (t.getSortOrder().compareTo(afterKey) > 0 && (nextKey == null || t.getSortOrder().compareTo(nextKey) < 0))
+                    nextKey = t.getSortOrder();
+            }
+            final String fMinKey = minKey, fNextKey = nextKey;
+            return new TwinRepository.SortOrderBounds() {
+                @Override
+                public String getMinKey() {
+                    return fMinKey;
+                }
+
+                @Override
+                public String getNextKey() {
+                    return fNextKey;
+                }
+            };
+        });
     }
 
     private static TwinEntity twin(int i) {
@@ -83,7 +134,8 @@ class TwinSortOrderServiceFuzzTest {
             List<TwinEntity> siblings = new ArrayList<>();
             for (int i = 0; i < ELEMENTS; i++)
                 siblings.add(twin(round * 1000 + i));
-            when(twinRepository.findHeadSiblingsOrderedIn(any())).thenReturn(siblings);
+            levelHolder.clear();
+            levelHolder.addAll(siblings);
 
             // expected element order: DB initial order (all null keys, position as loaded)
             List<TwinEntity> expected = new ArrayList<>(siblings);
