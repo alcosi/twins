@@ -16,6 +16,7 @@ import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twin.TwinLinkRepository.TwinLinkSortOrderView;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinRepository.SortOrderBounds;
+import org.twins.core.dao.twin.TwinRepository.TwinRootSortOrderView;
 import org.twins.core.dao.twin.TwinRepository.TwinSortOrderView;
 import org.twins.core.domain.twinlink.TwinLinkUpdate;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -38,6 +39,7 @@ import java.util.function.Function;
 /**
  * User defined order (drag and drop): lexicographic sort keys.
  * twin level        - siblings of one head_twin_id (twin.sort_order)
+ * twin root level   - headless twins of one twin class inside one business account (twin.sort_order)
  * twin_link level   - src twins within one (dst_twin_id, link_id) (twin_link.sort_order)
  * <p>
  * Key rules: anchor afterTwinId = "place after this sibling", key = midpoint(anchor key, next key);
@@ -92,6 +94,69 @@ public class TwinSortOrderService {
     /** Kit key of a link reorder move: id of the updated twin_link */
     public static final Function<TwinLinkUpdate, UUID> TWIN_LINK_UPDATE_KEY = move -> move.getTwinLink().getId();
 
+    /**
+     * Order level of a twin move: siblings of one head_twin_id (head level), or headless twins of one
+     * twin class inside one business account (root level). Headless without owner business account is
+     * not orderable - the update flow rejects it, the create flow skips the move.
+     */
+    private record TwinLevel(UUID headTwinId, UUID twinClassId, UUID ownerBusinessAccountId) {
+        static TwinLevel ofHead(UUID headTwinId) {
+            return new TwinLevel(headTwinId, null, null);
+        }
+
+        static TwinLevel ofRoot(UUID twinClassId, UUID ownerBusinessAccountId) {
+            return new TwinLevel(null, twinClassId, ownerBusinessAccountId);
+        }
+
+        boolean root() {
+            return headTwinId == null;
+        }
+
+        /** advisory lock / grouping key; "twin:<uuid>" and "twin_root:<uuid>:<uuid>" never collide */
+        String lockKey() {
+            return root() ? "twin_root:" + twinClassId + ":" + ownerBusinessAccountId : "twin:" + headTwinId;
+        }
+    }
+
+    /** normalized anchor lookup of the light path: anchor key + membership in the level */
+    private record AnchorRef(String sortOrder, boolean sibling) {
+    }
+
+    /** level of an update move; headless without owner BA (or class) fails the whole batch */
+    private static TwinLevel twinMoveLevel(TwinUpdate move) throws ServiceException {
+        TwinEntity twin = move.getDbTwinEntity();
+        if (twin.getHeadTwinId() != null)
+            return TwinLevel.ofHead(twin.getHeadTwinId());
+        if (twin.getTwinClassId() == null || twin.getOwnerBusinessAccountId() == null)
+            throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID,
+                    "headless twin can not be reordered, ownerBusinessAccountId is required for a twin without headTwinId");
+        return TwinLevel.ofRoot(twin.getTwinClassId(), twin.getOwnerBusinessAccountId());
+    }
+
+    /** level of a create move; null = headless without owner BA (or class) - the move is skipped */
+    private static TwinLevel createdMoveLevel(TwinCreate move) {
+        TwinEntity twin = move.getTwinEntity();
+        if (twin.getHeadTwinId() != null)
+            return TwinLevel.ofHead(twin.getHeadTwinId());
+        if (twin.getTwinClassId() == null || twin.getOwnerBusinessAccountId() == null)
+            return null;
+        return TwinLevel.ofRoot(twin.getTwinClassId(), twin.getOwnerBusinessAccountId());
+    }
+
+    /** committed rows of the level, in the read order the {@link Level} machinery relies on */
+    private List<TwinEntity> loadLevelSiblings(TwinLevel level) {
+        return level.root()
+                ? twinRepository.findRootSiblingsOrdered(level.twinClassId(), level.ownerBusinessAccountId())
+                : twinRepository.findHeadSiblingsOrderedIn(List.of(level.headTwinId()));
+    }
+
+    /** level-scoped min/next bounds of the light path */
+    private SortOrderBounds sortOrderBounds(TwinLevel level, String afterKey, Set<UUID> excludeIds) {
+        return level.root()
+                ? twinRepository.findRootSortOrderBounds(level.twinClassId(), level.ownerBusinessAccountId(), afterKey, excludeIds)
+                : twinRepository.findSortOrderBounds(level.headTwinId(), afterKey, excludeIds);
+    }
+
     /** mirror of TwinRepository.findHeadSiblingsOrderedIn ORDER BY (without the key, appended in Level) */
     private static final Comparator<TwinEntity> TWIN_DB_ORDER = Comparator
             .comparing(TwinEntity::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())).reversed()
@@ -112,39 +177,42 @@ public class TwinSortOrderService {
      * full - on any renumber trigger (unordered anchor, exhausted bottom edge, no room for a midpoint,
      * key length cap) the whole level is loaded once and every move of the level is reapplied.
      * Levels are locked in a deterministic (sorted) order, so two batches touching the same levels
-     * can not deadlock each other.
+     * can not deadlock each other. A level is a head level (siblings of one head_twin_id) or a root
+     * level (headless twins of one class inside one business account); a headless twin without owner
+     * business account fails the whole batch.
      */
     public void reorderTwins(Kit<TwinUpdate, UUID> moves) throws ServiceException {
         if (moves == null || moves.isEmpty())
             return;
-        for (TwinUpdate move : moves) {
-            if (move.getDbTwinEntity().getHeadTwinId() == null)
-                throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "headless twin can not be reordered, headTwinId is null");
-        }
-        KitGrouped<TwinUpdate, UUID, UUID> byLevel = new KitGrouped<>(
-                moves.getCollection(), TWIN_UPDATE_KEY, move -> move.getDbTwinEntity().getHeadTwinId(), DuplicateKeyMode.REPLACE);
-        Map<UUID, List<TwinUpdate>> grouped = byLevel.getGroupedMap();
-        List<UUID> levelIds = grouped.keySet().stream().sorted().toList();
-        for (UUID levelId : levelIds)
-            lockLevel("twin:" + levelId);
-        for (UUID levelId : levelIds) {
-            List<TwinUpdate> levelMoves = grouped.get(levelId);
+        // resolve (and validate) levels first: a headless twin without owner BA fails the whole batch
+        Map<UUID, TwinLevel> levelByMoveId = new HashMap<>();
+        for (TwinUpdate move : moves)
+            levelByMoveId.put(move.getDbTwinEntity().getId(), twinMoveLevel(move));
+        KitGrouped<TwinUpdate, UUID, TwinLevel> byLevel = new KitGrouped<>(
+                moves.getCollection(), TWIN_UPDATE_KEY, move -> levelByMoveId.get(move.getDbTwinEntity().getId()), DuplicateKeyMode.REPLACE);
+        Map<TwinLevel, List<TwinUpdate>> grouped = byLevel.getGroupedMap();
+        List<TwinLevel> levels = grouped.keySet().stream()
+                .sorted(Comparator.comparing(TwinLevel::lockKey)).toList();
+        for (TwinLevel level : levels)
+            lockLevel(level.lockKey());
+        for (TwinLevel level : levels) {
+            List<TwinUpdate> levelMoves = grouped.get(level);
             List<TwinEntity> moved;
-            if (applyTwinMovesFast(levelId, levelMoves)) {
+            if (applyTwinMovesFast(level, levelMoves)) {
                 moved = levelMoves.stream().filter(m -> m.getAfterTwinId() != null).map(TwinUpdate::getDbTwinEntity).toList();
             } else {
                 // full renumber-capable path: reload the level (auto-flush persists any partially
                 // assigned keys of the light path) and reapply every move of the level
-                List<TwinEntity> siblings = twinRepository.findHeadSiblingsOrderedIn(List.of(levelId));
+                List<TwinEntity> siblings = loadLevelSiblings(level);
                 if (siblings.isEmpty()) // unreachable: the moved twin itself belongs to the level
-                    throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "level[" + levelId + "] has no siblings");
-                Level<TwinEntity> level = new Level<>("twin:" + levelId, siblings, TWIN_DB_ORDER,
+                    throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "level[" + level.lockKey() + "] has no siblings");
+                Level<TwinEntity> keyLevel = new Level<>(level.lockKey(), siblings, TWIN_DB_ORDER,
                         TwinEntity::getSortOrder, TwinEntity::setSortOrder, TwinEntity::getId);
                 moved = new ArrayList<>(levelMoves.size());
                 for (TwinUpdate move : levelMoves) {
                     if (move.getAfterTwinId() == null)
                         continue;
-                    level.move(move.getDbTwinEntity(), move.getAfterTwinId(), TwinSortOrderService::findAnchorTwinIndex);
+                    keyLevel.move(move.getDbTwinEntity(), move.getAfterTwinId(), TwinSortOrderService::findAnchorTwinIndex);
                     moved.add(move.getDbTwinEntity());
                 }
             }
@@ -158,7 +226,7 @@ public class TwinSortOrderService {
      * full path. Keys assigned here are kept in an in-memory overlay, so batch moves see each other;
      * the db bounds queries exclude already-moved twins - their db keys are outdated until flush.
      */
-    private boolean applyTwinMovesFast(UUID headTwinId, List<TwinUpdate> levelMoves) throws ServiceException {
+    private boolean applyTwinMovesFast(TwinLevel level, List<TwinUpdate> levelMoves) throws ServiceException {
         Map<UUID, String> assignedKeyById = new HashMap<>(); // keys set by earlier moves of this batch
         TreeSet<String> assignedKeys = new TreeSet<>();
         Set<UUID> staleIds = new HashSet<>(); // moved twins: their db keys are outdated until flush
@@ -166,10 +234,16 @@ public class TwinSortOrderService {
         for (TwinUpdate move : levelMoves)
             if (move.getAfterTwinId() != null && !UuidUtils.isNullifyMarker(move.getAfterTwinId()))
                 anchorIds.add(move.getAfterTwinId());
-        Map<UUID, TwinSortOrderView> anchorsById = new HashMap<>();
+        Map<UUID, AnchorRef> anchorsById = new HashMap<>();
         if (!anchorIds.isEmpty())
-            for (TwinSortOrderView view : twinRepository.findSortOrderViewByIdIn(anchorIds))
-                anchorsById.put(view.getId(), view);
+            if (level.root())
+                for (TwinRootSortOrderView view : twinRepository.findRootSortOrderViewByIdIn(anchorIds))
+                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(),
+                            level.twinClassId().equals(view.getTwinClassId())
+                                    && level.ownerBusinessAccountId().equals(view.getOwnerBusinessAccountId())));
+            else
+                for (TwinSortOrderView view : twinRepository.findSortOrderViewByIdIn(anchorIds))
+                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(), level.headTwinId().equals(view.getHeadTwinId())));
         for (TwinUpdate move : levelMoves) {
             UUID afterTwinId = move.getAfterTwinId();
             if (afterTwinId == null)
@@ -179,7 +253,7 @@ public class TwinSortOrderService {
             excludeIds.add(movedId);
             String key;
             if (UuidUtils.isNullifyMarker(afterTwinId)) {
-                TwinRepository.SortOrderBounds bounds = twinRepository.findSortOrderBounds(headTwinId, "", excludeIds);
+                TwinRepository.SortOrderBounds bounds = sortOrderBounds(level, "", excludeIds);
                 String minKey = minKey(bounds.getMinKey(), assignedKeys.isEmpty() ? null : assignedKeys.first());
                 if (minKey == null)
                     return false; // no ordered sibling: level initialization renumber
@@ -191,14 +265,14 @@ public class TwinSortOrderService {
                     throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "anchor and reordered twin are the same twin");
                 String anchorKey = assignedKeyById.get(afterTwinId);
                 if (anchorKey == null) {
-                    TwinSortOrderView anchor = anchorsById.get(afterTwinId);
-                    if (anchor == null || !headTwinId.equals(anchor.getHeadTwinId()))
+                    AnchorRef anchor = anchorsById.get(afterTwinId);
+                    if (anchor == null || !anchor.sibling())
                         throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "anchor twin[" + afterTwinId + "] is not a sibling of the reordered twin");
-                    anchorKey = anchor.getSortOrder();
+                    anchorKey = anchor.sortOrder();
                     if (anchorKey == null)
                         return false; // unordered anchor: renumber
                 }
-                TwinRepository.SortOrderBounds bounds = twinRepository.findSortOrderBounds(headTwinId, anchorKey, excludeIds);
+                TwinRepository.SortOrderBounds bounds = sortOrderBounds(level, anchorKey, excludeIds);
                 String nextKey = minKey(bounds.getNextKey(), assignedKeys.higher(anchorKey));
                 key = midpoint(anchorKey, nextKey);
                 if (key == null || key.length() > MAX_KEY_LENGTH)
@@ -230,37 +304,41 @@ public class TwinSortOrderService {
      * twins of the level join the in-memory level, so a brand new level (no committed siblings yet)
      * is initialized by the same renumber instead of failing. Moves are applied in kit iteration
      * order (sequential semantics - each move sees the keys set by the previous ones). Must be
-     * invoked inside the caller transaction, before the created rows are flushed.
+     * invoked inside the caller transaction, before the created rows are flushed. Moves of headless
+     * twins without owner business account are skipped - the created twin stays unordered.
      */
     public void reorderCreatedTwins(Kit<TwinCreate, UUID> moves) throws ServiceException {
         if (moves == null || moves.isEmpty())
             return;
-        for (TwinCreate move : moves) {
-            if (move.getTwinEntity().getHeadTwinId() == null)
-                throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "headless twin can not be ordered, headTwinId is null");
-        }
-        KitGrouped<TwinCreate, UUID, UUID> byLevel = new KitGrouped<>(
-                moves.getCollection(), TWIN_CREATE_KEY, move -> move.getTwinEntity().getHeadTwinId(), DuplicateKeyMode.REPLACE);
-        Map<UUID, List<TwinCreate>> grouped = byLevel.getGroupedMap();
-        List<UUID> levelIds = grouped.keySet().stream().sorted().toList();
-        for (UUID levelId : levelIds)
-            lockLevel("twin:" + levelId);
-        for (UUID levelId : levelIds) {
-            List<TwinCreate> levelMoves = grouped.get(levelId);
-            if (applyTwinCreateMovesFast(levelId, levelMoves))
+        List<TwinCreate> orderable = new ArrayList<>(moves.getCollection().size());
+        for (TwinCreate move : moves)
+            if (createdMoveLevel(move) != null)
+                orderable.add(move); // null level: headless without owner BA - skipped, the key stays null
+        if (orderable.isEmpty())
+            return;
+        KitGrouped<TwinCreate, UUID, TwinLevel> byLevel = new KitGrouped<>(
+                orderable, TWIN_CREATE_KEY, TwinSortOrderService::createdMoveLevel, DuplicateKeyMode.REPLACE);
+        Map<TwinLevel, List<TwinCreate>> grouped = byLevel.getGroupedMap();
+        List<TwinLevel> levels = grouped.keySet().stream()
+                .sorted(Comparator.comparing(TwinLevel::lockKey)).toList();
+        for (TwinLevel level : levels)
+            lockLevel(level.lockKey());
+        for (TwinLevel level : levels) {
+            List<TwinCreate> levelMoves = grouped.get(level);
+            if (applyTwinCreateMovesFast(level, levelMoves))
                 continue; // keys are set on the transient entities, the INSERT carries them
             // full renumber-capable path: reload the committed level (created rows are not persisted
             // yet, so auto-flush is a no-op) and join the batch's created twins, reapply every move
-            List<TwinEntity> committed = twinRepository.findHeadSiblingsOrderedIn(List.of(levelId));
+            List<TwinEntity> committed = loadLevelSiblings(level);
             List<TwinEntity> siblings = new ArrayList<>(committed);
             for (TwinCreate move : levelMoves)
                 siblings.add(move.getTwinEntity());
-            Level<TwinEntity> level = new Level<>("twin:" + levelId, siblings, TWIN_DB_ORDER,
+            Level<TwinEntity> keyLevel = new Level<>(level.lockKey(), siblings, TWIN_DB_ORDER,
                     TwinEntity::getSortOrder, TwinEntity::setSortOrder, TwinEntity::getId);
             for (TwinCreate move : levelMoves) {
                 if (move.getAfterTwinId() == null)
                     continue;
-                level.move(move.getTwinEntity(), move.getAfterTwinId(), TwinSortOrderService::findAnchorTwinIndex);
+                keyLevel.move(move.getTwinEntity(), move.getAfterTwinId(), TwinSortOrderService::findAnchorTwinIndex);
             }
             twinRepository.saveAll(committed); // renumbered keys of committed siblings; created ones ride with the INSERT
         }
@@ -273,17 +351,23 @@ public class TwinSortOrderService {
      * in-memory overlay. Returns false when a renumber trigger fired - the caller falls back to the
      * full path.
      */
-    private boolean applyTwinCreateMovesFast(UUID headTwinId, List<TwinCreate> levelMoves) throws ServiceException {
+    private boolean applyTwinCreateMovesFast(TwinLevel level, List<TwinCreate> levelMoves) throws ServiceException {
         Map<UUID, String> assignedKeyById = new HashMap<>(); // keys set by earlier moves of this batch
         TreeSet<String> assignedKeys = new TreeSet<>();
         Set<UUID> anchorIds = new HashSet<>();
         for (TwinCreate move : levelMoves)
             if (move.getAfterTwinId() != null && !UuidUtils.isNullifyMarker(move.getAfterTwinId()))
                 anchorIds.add(move.getAfterTwinId());
-        Map<UUID, TwinSortOrderView> anchorsById = new HashMap<>();
+        Map<UUID, AnchorRef> anchorsById = new HashMap<>();
         if (!anchorIds.isEmpty())
-            for (TwinSortOrderView view : twinRepository.findSortOrderViewByIdIn(anchorIds))
-                anchorsById.put(view.getId(), view);
+            if (level.root())
+                for (TwinRootSortOrderView view : twinRepository.findRootSortOrderViewByIdIn(anchorIds))
+                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(),
+                            level.twinClassId().equals(view.getTwinClassId())
+                                    && level.ownerBusinessAccountId().equals(view.getOwnerBusinessAccountId())));
+            else
+                for (TwinSortOrderView view : twinRepository.findSortOrderViewByIdIn(anchorIds))
+                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(), level.headTwinId().equals(view.getHeadTwinId())));
         for (TwinCreate move : levelMoves) {
             UUID afterTwinId = move.getAfterTwinId();
             if (afterTwinId == null)
@@ -291,7 +375,7 @@ public class TwinSortOrderService {
             TwinEntity created = move.getTwinEntity();
             String key;
             if (UuidUtils.isNullifyMarker(afterTwinId)) {
-                TwinRepository.SortOrderBounds bounds = twinRepository.findSortOrderBounds(headTwinId, "", Set.of());
+                TwinRepository.SortOrderBounds bounds = sortOrderBounds(level, "", Set.of());
                 String minKey = minKey(bounds.getMinKey(), assignedKeys.isEmpty() ? null : assignedKeys.first());
                 if (minKey == null)
                     return false; // no ordered sibling: level initialization renumber
@@ -303,14 +387,14 @@ public class TwinSortOrderService {
                     throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "anchor and created twin are the same twin");
                 String anchorKey = assignedKeyById.get(afterTwinId);
                 if (anchorKey == null) {
-                    TwinSortOrderView anchor = anchorsById.get(afterTwinId);
-                    if (anchor == null || !headTwinId.equals(anchor.getHeadTwinId()))
+                    AnchorRef anchor = anchorsById.get(afterTwinId);
+                    if (anchor == null || !anchor.sibling())
                         throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "anchor twin[" + afterTwinId + "] is not a sibling of the created twin");
-                    anchorKey = anchor.getSortOrder();
+                    anchorKey = anchor.sortOrder();
                     if (anchorKey == null)
                         return false; // unordered anchor: renumber
                 }
-                TwinRepository.SortOrderBounds bounds = twinRepository.findSortOrderBounds(headTwinId, anchorKey, Set.of());
+                TwinRepository.SortOrderBounds bounds = sortOrderBounds(level, anchorKey, Set.of());
                 String nextKey = minKey(bounds.getNextKey(), assignedKeys.higher(anchorKey));
                 key = midpoint(anchorKey, nextKey);
                 if (key == null || key.length() > MAX_KEY_LENGTH)

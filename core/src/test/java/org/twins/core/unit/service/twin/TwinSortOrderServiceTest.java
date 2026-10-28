@@ -20,6 +20,7 @@ import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twin.TwinLinkRepository.TwinLinkSortOrderView;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinRepository.SortOrderBounds;
+import org.twins.core.dao.twin.TwinRepository.TwinRootSortOrderView;
 import org.twins.core.dao.twin.TwinRepository.TwinSortOrderView;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.twinlink.TwinLinkUpdate;
@@ -36,11 +37,13 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -94,6 +97,27 @@ class TwinSortOrderServiceTest {
         TwinEntity twin = new TwinEntity();
         twin.setId(UUID.nameUUIDFromBytes(("created-" + i).getBytes()));
         twin.setHeadTwinId(HEAD);
+        return twin;
+    }
+
+    private static final UUID ROOT_CLASS = UUID.nameUUIDFromBytes("root-class".getBytes());
+    private static final UUID ROOT_BA = UUID.nameUUIDFromBytes("root-ba".getBytes());
+
+    /** headless root twin of the (ROOT_CLASS, ROOT_BA) level */
+    private static TwinEntity root(int i, String sortOrder) {
+        TwinEntity twin = twin(i, sortOrder);
+        twin.setHeadTwinId(null);
+        twin.setTwinClassId(ROOT_CLASS);
+        twin.setOwnerBusinessAccountId(ROOT_BA);
+        return twin;
+    }
+
+    /** transient created headless root */
+    private static TwinEntity rootCreated(int i) {
+        TwinEntity twin = created(i);
+        twin.setHeadTwinId(null);
+        twin.setTwinClassId(ROOT_CLASS);
+        twin.setOwnerBusinessAccountId(ROOT_BA);
         return twin;
     }
 
@@ -182,6 +206,54 @@ class TwinSortOrderServiceTest {
         public String getSortOrder() {
             return t.getSortOrder();
         }
+    }
+
+    private record TwinRootSortOrderViewImpl(TwinEntity t) implements TwinRepository.TwinRootSortOrderView {
+        @Override
+        public UUID getId() {
+            return t.getId();
+        }
+
+        @Override
+        public UUID getTwinClassId() {
+            return t.getTwinClassId();
+        }
+
+        @Override
+        public UUID getOwnerBusinessAccountId() {
+            return t.getOwnerBusinessAccountId();
+        }
+
+        @Override
+        public String getSortOrder() {
+            return t.getSortOrder();
+        }
+    }
+
+    /** emulates the db for the (ROOT_CLASS, ROOT_BA) root level: full load, anchor projections, bounds */
+    private void stubRootLevel(List<TwinEntity> siblings) {
+        when(twinRepository.findRootSiblingsOrdered(ROOT_CLASS, ROOT_BA)).thenReturn(new ArrayList<>(siblings));
+        when(twinRepository.findRootSortOrderViewByIdIn(any())).thenAnswer(inv -> {
+            java.util.Collection<UUID> ids = inv.getArgument(0);
+            return ids.stream()
+                    .flatMap(id -> siblings.stream().filter(t -> t.getId().equals(id)))
+                    .<TwinRootSortOrderView>map(TwinRootSortOrderViewImpl::new)
+                    .toList();
+        });
+        when(twinRepository.findRootSortOrderBounds(org.mockito.ArgumentMatchers.eq(ROOT_CLASS), org.mockito.ArgumentMatchers.eq(ROOT_BA), any(), any())).thenAnswer(inv -> {
+            String afterKey = inv.getArgument(2);
+            java.util.Collection<UUID> excludeIds = inv.getArgument(3);
+            String minKey = null, nextKey = null;
+            for (TwinEntity t : siblings) {
+                if (t.getSortOrder() == null || excludeIds.contains(t.getId()))
+                    continue;
+                if (minKey == null || t.getSortOrder().compareTo(minKey) < 0)
+                    minKey = t.getSortOrder();
+                if (t.getSortOrder().compareTo(afterKey) > 0 && (nextKey == null || t.getSortOrder().compareTo(nextKey) < 0))
+                    nextKey = t.getSortOrder();
+            }
+            return new SortOrderBoundsImpl(minKey, nextKey);
+        });
     }
 
     private record SortOrderBoundsImpl(String minKey, String nextKey) implements TwinRepository.SortOrderBounds {
@@ -386,9 +458,77 @@ class TwinSortOrderServiceTest {
     }
 
     @Test
-    void headlessCreatedTwinCanNotBeOrdered() {
-        TwinEntity x = new TwinEntity().setId(UUID.nameUUIDFromBytes("headless".getBytes()));
-        TwinCreate move = createMove(x, UuidUtils.NULLIFY_MARKER);
-        assertThrows(ServiceException.class, () -> service.reorderCreatedTwins(createMovesKit(move)));
+    void rootMovePlacesAfterAnchorOnLightPath() throws Exception {
+        TwinEntity a = root(0, "1"), b = root(1, "3");
+        stubRootLevel(Arrays.asList(a, b));
+        service.reorderTwins(movesKit(move(a, b.getId())));
+        assertEquals("3V", a.getSortOrder()); // append after the last root, no renumber
+        assertEquals(List.of(b.getId(), a.getId()), orderedIds(Arrays.asList(a, b)));
+        verify(twinRepository).saveAll(any()); // the moved root itself is persisted, siblings untouched
+    }
+
+    @Test
+    void rootPlaceFirstUsesLexicographicPredecessor() throws Exception {
+        TwinEntity x = root(0, "04"), y = root(1, "1a"), moved = root(2, null);
+        stubRootLevel(Arrays.asList(x, y, moved));
+        service.reorderTwins(movesKit(move(moved, UuidUtils.NULLIFY_MARKER)));
+        assertEquals("03", moved.getSortOrder());
+        assertEquals(List.of(moved.getId(), x.getId(), y.getId()), orderedIds(Arrays.asList(x, y, moved)));
+    }
+
+    @Test
+    void rootUnorderedAnchorFallsBackToFullRenumber() throws Exception {
+        TwinEntity a = root(0, null), b = root(1, null), c = root(2, null);
+        stubRootLevel(Arrays.asList(a, b, c));
+        service.reorderTwins(movesKit(move(a, b.getId())));
+        // full path: the (class, BA) root level is initialized by a renumber, a lands right after b
+        assertEquals(List.of(b.getId(), a.getId(), c.getId()), orderedIds(Arrays.asList(a, b, c)));
+        assertNotNull(a.getSortOrder());
+        assertNotNull(c.getSortOrder());
+        verify(twinRepository).saveAll(any());
+    }
+
+    @Test
+    void headlessRootWithoutBusinessAccountCanNotBeReordered() {
+        TwinEntity x = new TwinEntity()
+                .setId(UUID.nameUUIDFromBytes("root-no-ba".getBytes()))
+                .setTwinClassId(ROOT_CLASS) // headless, no owner BA
+                .setTwinStatus(new TwinStatusEntity().setType(StatusType.BASIC));
+        assertThrows(ServiceException.class, () -> service.reorderTwins(movesKit(move(x, UuidUtils.NULLIFY_MARKER))));
+    }
+
+    @Test
+    void createdHeadlessRootWithoutBusinessAccountIsSkipped() throws Exception {
+        TwinEntity x = new TwinEntity()
+                .setId(UUID.nameUUIDFromBytes("created-no-ba".getBytes()))
+                .setTwinClassId(ROOT_CLASS); // headless, no owner BA
+        service.reorderCreatedTwins(createMovesKit(createMove(x, UuidUtils.NULLIFY_MARKER)));
+        assertNull(x.getSortOrder()); // the move is skipped, the key stays null
+        verifyNoInteractions(twinRepository);
+    }
+
+    @Test
+    void createIntoRootLevelAfterAnchorRidesWithInsert() throws Exception {
+        TwinEntity a = root(0, "1"), b = root(1, "3");
+        stubRootLevel(Arrays.asList(a, b));
+        TwinEntity x = rootCreated(0);
+        service.reorderCreatedTwins(createMovesKit(createMove(x, b.getId())));
+        assertEquals("3V", x.getSortOrder()); // key assigned to the transient entity, INSERT carries it
+        assertEquals("1", a.getSortOrder());
+        verify(twinRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void mixedHeadAndRootBatchLocksAndMovesBothLevels() throws Exception {
+        TwinEntity a = twin(0, "1"), b = twin(1, "3");   // head level
+        TwinEntity r1 = root(2, "1"), r2 = root(3, "3"); // (class, BA) root level
+        stubLevel(Arrays.asList(a, b));
+        stubRootLevel(Arrays.asList(r1, r2));
+        service.reorderTwins(movesKit(move(a, b.getId()), move(r1, r2.getId())));
+        assertEquals("3V", a.getSortOrder());
+        assertEquals("3V", r1.getSortOrder());
+        // both levels of the batch are locked (deterministic order, no cross-level deadlock)
+        verify(lockQuery).setParameter("levelKey", "twin:" + HEAD);
+        verify(lockQuery).setParameter("levelKey", "twin_root:" + ROOT_CLASS + ":" + ROOT_BA);
     }
 }
