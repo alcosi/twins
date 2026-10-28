@@ -25,6 +25,33 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     List<TwinEntity> findByIdIn(Collection<UUID> twinIds);
 
+    @Query("select t from TwinEntity t where t.headTwinId in :headTwinIds " +
+            "order by t.headTwinId asc, t.sortOrder asc nulls last, t.createdAt desc, t.id asc")
+    List<TwinEntity> findHeadSiblingsOrderedIn(@Param("headTwinIds") Collection<UUID> headTwinIds);
+
+    // light reorder path: anchor keys only, no entity materialization
+    @Query("select t.id as id, t.headTwinId as headTwinId, t.sortOrder as sortOrder from TwinEntity t where t.id in :ids")
+    List<TwinSortOrderView> findSortOrderViewByIdIn(@Param("ids") Collection<UUID> ids);
+
+    // light reorder path: level minimum and the smallest key after the anchor in one query
+    @Query("select min(t.sortOrder) as minKey, min(case when t.sortOrder > :afterKey then t.sortOrder end) as nextKey " +
+            "from TwinEntity t where t.headTwinId = :headTwinId and t.sortOrder is not null and t.id not in :excludeIds")
+    SortOrderBounds findSortOrderBounds(@Param("headTwinId") UUID headTwinId, @Param("afterKey") String afterKey, @Param("excludeIds") Collection<UUID> excludeIds);
+
+    interface TwinSortOrderView {
+        UUID getId();
+
+        UUID getHeadTwinId();
+
+        String getSortOrder();
+    }
+
+    interface SortOrderBounds {
+        String getMinKey();
+
+        String getNextKey();
+    }
+
     boolean existsByTwinClassId(UUID twinClassId);
 
     @Modifying

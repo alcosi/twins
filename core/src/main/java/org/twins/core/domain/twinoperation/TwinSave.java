@@ -13,6 +13,10 @@ import java.util.*;
 @Accessors(chain = true)
 public abstract class TwinSave extends TwinOperation {
     protected LinkedHashMap<UUID, FieldValue> fields; // key: twinClassFieldId
+    // reorder anchor: place the twin after this sibling in its head level (update reorders an existing
+    // twin, create sets the initial placement - the key rides with the INSERT);
+    // null = do not order, UuidUtils.NULLIFY_MARKER = place first
+    protected UUID afterTwinId;
     protected Set<UUID> markersAdd;
     protected Set<String> tagsAddNew;
     protected Set<UUID> tagsAddExisted;

@@ -108,6 +108,8 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
                     I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinLinkEntity.Fields.linkSpecOnly, LinkEntity.Fields.forwardNameI18nTranslationsSpecOnly);
             case relationTwinName ->
                     toSortSpecification(ascending, TwinLinkEntity.Fields.relationTwinSpecOnly, TwinEntity.Fields.name);
+            case sortOrder ->
+                    toSortSpecification(ascending, TwinLinkEntity.Fields.sortOrder);
         };
     }
 

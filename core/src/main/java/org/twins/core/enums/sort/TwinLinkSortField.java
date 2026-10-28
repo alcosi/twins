@@ -6,5 +6,6 @@ public enum TwinLinkSortField {
     srcTwinName,
     dstTwinName,
     linkName,
-    relationTwinName
+    relationTwinName,
+    sortOrder
 }

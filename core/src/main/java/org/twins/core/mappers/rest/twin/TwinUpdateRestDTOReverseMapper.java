@@ -41,7 +41,8 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
                     .setTwinEntity(updatedTwinEntity);
             dst
                     .setAttachmentCUD(twinAttachmentCUDRestDTOReverseMapper.convert(twinUpdateDTO))
-                    .setTwinLinkCUD(twinLinkCUDRestDTOReverseMapper.convert(twinUpdateDTO));
+                    .setTwinLinkCUD(twinLinkCUDRestDTOReverseMapper.convert(twinUpdateDTO))
+                    .setAfterTwinId(twinUpdateDTO.getAfterTwinId());
             if (twinUpdateDTO.getAssignerUserId() != null) {
                 UserEntity newAssignee = userService.loadUserAndCheck(twinUpdateDTO.getAssignerUserId());
                 updatedTwinEntity

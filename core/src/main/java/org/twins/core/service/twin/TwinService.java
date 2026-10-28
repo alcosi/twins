@@ -105,6 +105,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
 
     private final TwinRepository twinRepository;
+    private final TwinSortOrderService twinSortOrderService;
     private final TwinFieldSimpleRepository twinFieldSimpleRepository;
     private final TwinFieldSimpleNonIndexedRepository twinFieldSimpleNonIndexedRepository;
     private final TwinFieldUserRepository twinFieldUserRepository;
@@ -479,6 +480,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         checkCreatePermission(twinCreateStage.getTwinCreates().stream().filter(TwinCreate::isCheckCreatePermission).map(TwinCreate::getTwinEntity).toList());
         checkTwinClassQuota(twinEntities);
         createTwinEntity(twinCreateStage);
+        // create placement moves: keys are assigned before the INSERT, so the created rows are born ordered
+        Kit<TwinCreate, UUID> sortOrderMoves = new Kit<>(TwinSortOrderService.TWIN_CREATE_KEY, DuplicateKeyMode.REPLACE);
+        for (TwinCreate twinCreate : twinCreateStage)
+            if (twinCreate.getAfterTwinId() != null)
+                sortOrderMoves.add(twinCreate);
 //        twinflowService.loadTwinflow(twinEntities);
         for (TwinCreate twinCreate : twinCreateStage) {
             TwinEntity twinEntity = twinCreate.getTwinEntity();
@@ -515,6 +521,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
             runFactoryAfterCreate(twinCreate, twinChangesCollector);
         }
+        if (sortOrderMoves.isNotEmpty())
+            twinSortOrderService.reorderCreatedTwins(sortOrderMoves); // keys ride with the INSERT done by applyChanges
     }
 
     private static ArrayList<TwinEntity> initIds(TwinCreateStage twinCreateList) {
@@ -964,10 +972,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    // transactional entry points: without an outer tx the pg_advisory_xact_lock in TwinSortOrderService
+    // releases at statement end (silently no-op) and reorder+renumber writes lose their atomicity.
+    // Internal self-calls bypass the proxy and join the caller tx; external callers join via REQUIRED.
+    @Transactional(rollbackFor = Throwable.class)
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
         updateTwin(List.of(twinUpdate), false);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public List<TwinEntity> updateTwin(List<TwinUpdate> twinUpdates, boolean validateAll) throws ServiceException {
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         updateTwin(twinUpdates, twinChangesCollector, validateAll);
@@ -975,6 +988,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).map(TwinEntity::resetCalculatedFields).toList();
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public void updateTwin(List<TwinUpdate> twinUpdates, TwinChangesCollector twinChangesCollector, boolean validateAll) throws ServiceException {
         TwinBatchFieldValidationException batchFieldValidationException = null;
         var twinUpdatesWithFields = twinUpdates.stream().filter(twinUpdate -> MapUtils.isNotEmpty(twinUpdate.getFields())).map(TwinUpdate::getDbTwinEntity).toList();
@@ -983,6 +997,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         // per-twin singleton loads in validate/dropUnchangedFields then become no-ops.
         loadFieldsValues(twinUpdatesWithFields);
         checkUpdatePermissionBatch(twinUpdates);
+        // batch mode: collect reorder moves, apply once after the loop (one level lock + load per level)
+        Kit<TwinUpdate, UUID> sortOrderMoves = twinUpdates.size() > 1
+                ? new Kit<>(TwinSortOrderService.TWIN_UPDATE_KEY, DuplicateKeyMode.REPLACE)
+                : null;
         for (TwinUpdate twinUpdate : twinUpdates) {
             if (!twinUpdate.isChanged()) continue;
             ChangesRecorder<TwinEntity, TwinEntity> changesRecorder = new ChangesRecorder<>(
@@ -991,7 +1009,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     twinUpdate.getDbTwinEntity(),
                     twinChangesCollector.getHistoryCollector(twinUpdate.getDbTwinEntity()));
             try {
-                updateTwin(twinUpdate, twinChangesCollector, changesRecorder);
+                updateTwin(twinUpdate, twinChangesCollector, changesRecorder, sortOrderMoves);
             } catch (TwinFieldValidationException validationException) {
                 if (batchFieldValidationException == null)
                     batchFieldValidationException = new TwinBatchFieldValidationException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT);
@@ -1004,10 +1022,21 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (batchFieldValidationException != null) {
             throw batchFieldValidationException;
         }
+        if (sortOrderMoves != null && sortOrderMoves.isNotEmpty())
+            twinSortOrderService.reorderTwins(sortOrderMoves);
         twinRecomputeService.triggerAffected(twinChangesCollector);
     }
 
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
+        updateTwin(twinUpdate, twinChangesCollector, twinChangesRecorder, null);
+    }
+
+    /**
+     * @param sortOrderMoves optional batch collector: when not null, the reorder move is collected
+     *                       there instead of being executed inline (caller applies the batch via
+     *                       {@link TwinSortOrderService#reorderTwins} once)
+     */
+    public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder, Kit<TwinUpdate, UUID> sortOrderMoves) throws ServiceException {
         if (!twinUpdate.isChanged())
             return;
         if (twinUpdate.isCheckEditPermission())
@@ -1034,6 +1063,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete(), twinChangesCollector);
         twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getTagsAddNew(), twinUpdate.getTagsAddExisted(), twinChangesCollector);
         twinFieldAttributeService.cudAttributes(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinFieldAttributeCUD(), twinChangesCollector);
+        if (twinUpdate.getAfterTwinId() != null) {
+            if (sortOrderMoves != null)
+                sortOrderMoves.add(twinUpdate);
+            else
+                twinSortOrderService.reorderTwins(Kit.singleton(twinUpdate, TwinSortOrderService.TWIN_UPDATE_KEY));
+        }
         runFactoryAfterUpdate(twinUpdate, twinChangesCollector);
     }
 
@@ -1462,7 +1497,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         duplicateEntity
                 .setId(newTwinId)
                 .setCreatedByUserId(authService.getApiUser().getUserId())
-                .setCreatedAt(null); // no sense to use created at from original twin
+                .setCreatedAt(null) // no sense to use created at from original twin
+                .setSortOrder(null); // duplicate is not manually ordered: copied key would clash with the source twin in the same head level
         if (duplicateEntity.getAssignerUserId() == null && Boolean.TRUE.equals(duplicateEntity.getTwinClass().getAssigneeRequired())) {
             duplicateEntity
                     .setAssignerUserId(authService.getApiUser().getUserId())

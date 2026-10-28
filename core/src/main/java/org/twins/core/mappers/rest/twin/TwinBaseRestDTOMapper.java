@@ -54,7 +54,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
     @Override
     public void map(TwinEntity src, TwinBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinMode.SHORT)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .id(src.getId())
                         .name(src.getName())
@@ -73,16 +73,13 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .pageFaceId(faceService.resolvePageFaceId(src))
                         .breadCrumbsFaceId(faceService.resolveBreadCrumbsFaceId(src))
                         .freeze(twinService.checkIsFreezeStatus(src));
-                break;
-            case SHORT:
+            case SHORT ->
                 dst
                         .id(src.getId())
                         .name(src.getName())
                         .freeze(twinService.checkIsFreezeStatus(src));
-                break;
         }
-        //TODO: remove fallback generation when twin.sort_order is persisted (docs/backlog/045)
-        dst.sortOrder(TwinSortOrderGenerator.generate(src.getCreatedAt()));
+        dst.sortOrder(src.getSortOrder());
         if (mapperContext.hasModeButNot(StatusMode.Twin2StatusMode.HIDE)) {
             TwinStatusEntity statusEntity = twinService.getStatusOrFreeze(src);
             dst.statusId(statusEntity.getId());

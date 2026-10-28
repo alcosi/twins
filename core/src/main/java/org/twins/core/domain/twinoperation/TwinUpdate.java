@@ -44,6 +44,12 @@ public class TwinUpdate extends TwinSave {
         return NULLIFY_MARKER;
     }
 
+    @Override // keep the fluent type: the field lives in TwinSave, its Lombok setter returns TwinSave
+    public TwinUpdate setAfterTwinId(UUID afterTwinId) {
+        super.setAfterTwinId(afterTwinId);
+        return this;
+    }
+
     public TwinOperation deleteMarker(UUID marker) {
         if (markersDelete == null)
             markersDelete = new HashSet<>();
@@ -52,7 +58,8 @@ public class TwinUpdate extends TwinSave {
     }
 
     public boolean isChanged() {
-        return !Objects.equals(dbTwinEntity, getTwinEntity()) ||
+        return getAfterTwinId() != null ||
+                !Objects.equals(dbTwinEntity, getTwinEntity()) ||
                 mode == Mode.sketchUpdate || // this mode helps to overcome "has changes" check logic. Sketch twin can have no direct changes, but some children dependent logic
                 MapUtils.isNotEmpty(fields) ||
                 CollectionUtils.isNotEmpty(tagsDelete) ||
