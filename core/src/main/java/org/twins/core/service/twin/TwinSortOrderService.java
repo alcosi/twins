@@ -50,8 +50,12 @@ import java.util.function.Function;
  * ({@link Level#renumber}): unordered anchor, no key below the minimum, or a key longer than
  * {@link #MAX_KEY_LENGTH}. Renumber spreads keys evenly over a fixed-width base-62 space, so the key
  * order is correct for any level size and every gap has room for midpoint inserts. Unordered siblings
- * keep null keys and sort last. Alphabet index order == byte order (digits < upper < lower), equal
+ * keep null keys and sort last until a renumber of their level adopts them - every sibling gets a key,
+ * taken in the createdAt/id order. Alphabet index order == byte order (digits < upper < lower), equal
  * length keys compare numerically - column COLLATE "C" is required.
+ * Lock scope: only the reorder entry points take the level lock. A concurrent head/class/BA change
+ * elsewhere does not hold it and can leave the moved twin with a stale key in the new level; the key
+ * is healed by the next reorder (or renumber) of that level.
  * Concurrency: advisory lock per level; level sort_order index is deliberately not unique - writers
  * of one level are serialized by the lock and renumbering rewrites keys in one flush, which would
  * violate a non-deferrable unique index on rotated keys.
@@ -157,9 +161,13 @@ public class TwinSortOrderService {
                 : twinRepository.findSortOrderBounds(level.headTwinId(), afterKey, excludeIds);
     }
 
-    /** mirror of TwinRepository.findHeadSiblingsOrderedIn ORDER BY (without the key, appended in Level) */
+    /**
+     * Tie-break of equal keys, mirror of the repository ORDER BY "t.createdAt desc, t.id asc":
+     * PostgreSQL DESC defaults to NULLS FIRST, so must this comparator (a plain .reversed() over
+     * nullsFirst would silently flip nulls to the end and diverge from the query).
+     */
     private static final Comparator<TwinEntity> TWIN_DB_ORDER = Comparator
-            .comparing(TwinEntity::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())).reversed()
+            .comparing(TwinEntity::getCreatedAt, Comparator.nullsFirst(Comparator.reverseOrder()))
             .thenComparing(TwinEntity::getId);
     /** mirror of TwinLinkRepository.findDstLinkLevelOrdered ORDER BY (without the key, appended in Level) */
     private static final Comparator<TwinLinkEntity> TWIN_LINK_DB_ORDER = Comparator

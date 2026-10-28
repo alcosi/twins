@@ -232,15 +232,19 @@ class TwinSortOrderServiceTest {
 
     /** emulates the db for the (ROOT_CLASS, ROOT_BA) root level: full load, anchor projections, bounds */
     private void stubRootLevel(List<TwinEntity> siblings) {
-        when(twinRepository.findRootSiblingsOrdered(ROOT_CLASS, ROOT_BA)).thenReturn(new ArrayList<>(siblings));
-        when(twinRepository.findRootSortOrderViewByIdIn(any())).thenAnswer(inv -> {
-            java.util.Collection<UUID> ids = inv.getArgument(0);
-            return ids.stream()
-                    .flatMap(id -> siblings.stream().filter(t -> t.getId().equals(id)))
-                    .<TwinRootSortOrderView>map(TwinRootSortOrderViewImpl::new)
-                    .toList();
-        });
-        when(twinRepository.findRootSortOrderBounds(org.mockito.ArgumentMatchers.eq(ROOT_CLASS), org.mockito.ArgumentMatchers.eq(ROOT_BA), any(), any())).thenAnswer(inv -> {
+        stubRootLevel(ROOT_BA, siblings);
+        stubRootViews(siblings);
+    }
+
+    /** queries of the (ROOT_CLASS, baId) root level without the shared view projection stub */
+    private void stubRootLevel(UUID baId, List<TwinEntity> siblings) {
+        stubRootLevel(ROOT_CLASS, baId, siblings);
+    }
+
+    /** queries of one (class, BA) root level without the shared view projection stub */
+    private void stubRootLevel(UUID classId, UUID baId, List<TwinEntity> siblings) {
+        when(twinRepository.findRootSiblingsOrdered(classId, baId)).thenReturn(new ArrayList<>(siblings));
+        when(twinRepository.findRootSortOrderBounds(org.mockito.ArgumentMatchers.eq(classId), org.mockito.ArgumentMatchers.eq(baId), any(), any())).thenAnswer(inv -> {
             String afterKey = inv.getArgument(2);
             java.util.Collection<UUID> excludeIds = inv.getArgument(3);
             String minKey = null, nextKey = null;
@@ -253,6 +257,19 @@ class TwinSortOrderServiceTest {
                     nextKey = t.getSortOrder();
             }
             return new SortOrderBoundsImpl(minKey, nextKey);
+        });
+    }
+
+    /** shared anchor projection stub: the view carries class+BA of the twin, level membership is checked by the service */
+    private void stubRootViews(List<TwinEntity> siblings) {
+        when(twinRepository.findRootSortOrderViewByIdIn(any())).thenAnswer(inv -> {
+            java.util.Collection<UUID> ids = inv.getArgument(0);
+            if (ids == null) // mockito re-invokes the stubbing call with null args
+                return java.util.List.of();
+            return ids.stream()
+                    .flatMap(id -> siblings.stream().filter(t -> t.getId().equals(id)))
+                    .<TwinRootSortOrderView>map(TwinRootSortOrderViewImpl::new)
+                    .toList();
         });
     }
 
@@ -530,5 +547,55 @@ class TwinSortOrderServiceTest {
         // both levels of the batch are locked (deterministic order, no cross-level deadlock)
         verify(lockQuery).setParameter("levelKey", "twin:" + HEAD);
         verify(lockQuery).setParameter("levelKey", "twin_root:" + ROOT_CLASS + ":" + ROOT_BA);
+    }
+
+    @Test
+    void rootAnchorOfAnotherLevelIsRejected() {
+        UUID otherBa = UUID.nameUUIDFromBytes("other-ba".getBytes());
+        TwinEntity a = root(0, "1");
+        TwinEntity foreign = root(1, "1");
+        foreign.setOwnerBusinessAccountId(otherBa); // same class, different business account
+        stubRootLevel(ROOT_BA, Arrays.asList(a));
+        stubRootViews(Arrays.asList(a, foreign));
+        assertThrows(ServiceException.class, () -> service.reorderTwins(movesKit(move(a, foreign.getId()))));
+        assertEquals("1", a.getSortOrder()); // rejected before any key is assigned
+    }
+
+    @Test
+    void siblingRootLevelsAreIndependent() throws Exception {
+        UUID otherBa = UUID.nameUUIDFromBytes("other-ba".getBytes());
+        UUID otherClass = UUID.nameUUIDFromBytes("other-class".getBytes());
+        // three levels sharing a class or a business account: (C, BA), (C, OTHER_BA), (OTHER_C, BA)
+        TwinEntity moved1 = root(0, "1"), kept1 = root(1, "3");
+        TwinEntity moved2 = root(2, "1"), kept2 = root(3, "3");
+        moved2.setOwnerBusinessAccountId(otherBa);
+        kept2.setOwnerBusinessAccountId(otherBa);
+        TwinEntity moved3 = root(4, "1"), kept3 = root(5, "3");
+        moved3.setTwinClassId(otherClass);
+        kept3.setTwinClassId(otherClass);
+        stubRootLevel(ROOT_BA, Arrays.asList(moved1, kept1));
+        stubRootLevel(otherBa, Arrays.asList(moved2, kept2));
+        stubRootLevel(otherClass, ROOT_BA, Arrays.asList(moved3, kept3));
+        service.reorderTwins(movesKit(move(moved1, UuidUtils.NULLIFY_MARKER), move(moved2, UuidUtils.NULLIFY_MARKER), move(moved3, UuidUtils.NULLIFY_MARKER)));
+        // every level gets its own light-path bounds ("2" = predecessor of "3"), neighbors untouched
+        assertEquals("2", moved1.getSortOrder());
+        assertEquals("2", moved2.getSortOrder());
+        assertEquals("2", moved3.getSortOrder());
+        assertEquals("3", kept1.getSortOrder());
+        assertEquals("3", kept2.getSortOrder());
+        assertEquals("3", kept3.getSortOrder());
+        verify(lockQuery).setParameter("levelKey", "twin_root:" + ROOT_CLASS + ":" + ROOT_BA);
+        verify(lockQuery).setParameter("levelKey", "twin_root:" + ROOT_CLASS + ":" + otherBa);
+        verify(lockQuery).setParameter("levelKey", "twin_root:" + otherClass + ":" + ROOT_BA);
+    }
+
+    @Test
+    void createIntoBrandNewRootLevelGetsInitializedKey() throws Exception {
+        stubRootLevel(ROOT_BA, new ArrayList<>()); // no committed siblings yet
+        TwinEntity x = rootCreated(0);
+        service.reorderCreatedTwins(createMovesKit(createMove(x, UuidUtils.NULLIFY_MARKER)));
+        // full path: the brand new level is initialized by a renumber of the created twin alone
+        verify(twinRepository).findRootSiblingsOrdered(ROOT_CLASS, ROOT_BA);
+        assertEquals("U", x.getSortOrder()); // renumber hands out "V" (first slot), place-first takes its predecessor
     }
 }
