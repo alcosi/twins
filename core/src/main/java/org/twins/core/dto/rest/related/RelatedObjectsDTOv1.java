@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.attachment.AttachmentRestrictionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUserDTOv1;
 import org.twins.core.dto.rest.comment.CommentDTOv1;
+import org.twins.core.dto.rest.context.ContextDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSubsetDTOv1;
@@ -20,7 +21,10 @@ import org.twins.core.dto.rest.featurer.FeaturerTypeDTOv1;
 import org.twins.core.dto.rest.history.HistoryTypeDTOv1;
 import org.twins.core.dto.rest.i18n.I18nDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.notification.*;
+import org.twins.core.dto.rest.notification.HistoryNotificationRecipientDTOv1;
+import org.twins.core.dto.rest.notification.NotificationChannelDTOv1;
+import org.twins.core.dto.rest.notification.NotificationChannelEventDTOv1;
+import org.twins.core.dto.rest.notification.NotificationSchemaDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
@@ -188,8 +192,8 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related notification channel map")
     public Map<UUID, NotificationChannelDTOv1> notificationChannelMap;
 
-    @Schema(description = "related notification context map")
-    public Map<UUID, NotificationContextDTOv1> notificationContextMap;
+    @Schema(description = "related context map")
+    public Map<UUID, ContextDTOv1> contextMap;
 
     @Schema(description = "related notification channel event map")
     public Map<UUID, NotificationChannelEventDTOv1> notificationChannelEventMap;
@@ -309,8 +313,8 @@ public class RelatedObjectsDTOv1 {
             return (T) notificationSchemaMap.get(id);
         } else if (relatedObjectClass == NotificationChannelDTOv1.class) {
             return (T) notificationChannelMap.get(id);
-        } else if (relatedObjectClass == NotificationContextDTOv1.class) {
-            return (T) notificationContextMap.get(id);
+        } else if (relatedObjectClass == ContextDTOv1.class) {
+            return (T) contextMap.get(id);
         } else if (relatedObjectClass == NotificationChannelEventDTOv1.class) {
             return (T) notificationChannelEventMap.get(id);
         } else if (relatedObjectClass == HistoryTypeDTOv1.class) {

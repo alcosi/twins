@@ -27,14 +27,24 @@ public class FieldLookuperFromContextFieldsAndContextTwinDbFields extends FieldL
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
         // we will look inside context twin fields
-        fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
+        fieldValue = lookupIfSuitable(contextTwin, lookupTwinClassField);
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
         // we will try to look deeper
         contextTwin = factoryItem.checkSingleContextItem().checkSingleContextTwin();
-        fieldValue = twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
+        fieldValue = lookupIfSuitable(contextTwin, lookupTwinClassField);
         if (TwinService.isFilled(fieldValue))
             return fieldValue;
         return null;
+    }
+
+    /**
+     * A context twin can be of a class the lookup field does not belong to (getTwinFieldValue would
+     * throw via wrapField) — such level is skipped softly: null = not found here, the lookup falls deeper.
+     */
+    private FieldValue lookupIfSuitable(TwinEntity contextTwin, TwinClassFieldEntity lookupTwinClassField) throws ServiceException {
+        if (!twinClassFieldService.isValidForClass(contextTwin.getTwinClass(), lookupTwinClassField))
+            return null;
+        return twinService.getTwinFieldValue(contextTwin, lookupTwinClassField);
     }
 }

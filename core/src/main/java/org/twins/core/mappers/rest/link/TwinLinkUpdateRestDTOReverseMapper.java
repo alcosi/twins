@@ -34,7 +34,7 @@ public class TwinLinkUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
         // The relationTwinId pointer (== id per the ID-equality invariant) feeds loadTwin's batch LoadedField.
         if (MapUtils.isNotEmpty(src.getRelationTwinFields())) {
             twinLink.setRelationTwinId(src.getId());
-            dst.setRelationTwinFields(relationTwinFieldsConverter.convertForRelationTwin(src.getId(), src.getRelationTwinFields(), mapperContext));
+            dst.setRelationTwinFields(relationTwinFieldsConverter.convertForRelationTwin(src.getId(), src.getRelationTwinFields()));
         }
         dst
                 .setTwinLink(twinLink)
@@ -50,6 +50,6 @@ public class TwinLinkUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
             if (MapUtils.isNotEmpty(dto.getRelationTwinFields()) && dto.getId() != null)
                 twinLinkIds.add(dto.getId());
         if (!twinLinkIds.isEmpty())
-            relationTwinFieldsConverter.preloadRelationTwins(twinLinkIds, mapperContext);
+            relationTwinFieldsConverter.preloadRelationTwins(twinLinkIds);
     }
 }

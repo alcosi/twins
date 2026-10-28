@@ -9,6 +9,7 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.TwinField;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.lookuper.FieldLookuperFromContextTwinDbFields;
@@ -58,14 +59,17 @@ class FieldLookuperFromContextTwinDbFieldsTest extends BaseUnitTest {
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = factoryItemWithSingleContext(contextTwin);
             var expected = filledValue(fieldId, "db-val");
+            var twinField = new TwinField(contextTwin, field); // the lookuper reads through wrapField(...).getTwinFieldValue(TwinField), not the two-arg overload
 
-            when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(expected);
+            when(twinService.wrapField(contextTwin, field)).thenReturn(twinField);
+            when(twinService.getTwinFieldValue(twinField)).thenReturn(expected);
 
             var result = lookuper.lookupFieldValue(factoryItem, field.getId());
 
             assertSame(expected, result);
             // read hits the context twin and the requested field (no other twin).
-            verify(twinService).getTwinFieldValue(contextTwin, field);
+            verify(twinService).wrapField(contextTwin, field);
+            verify(twinService).getTwinFieldValue(twinField);
         }
 
         @Test
@@ -75,8 +79,10 @@ class FieldLookuperFromContextTwinDbFieldsTest extends BaseUnitTest {
             when(twinClassFieldService.findEntitySafe(field.getId())).thenReturn(field); // the UUID entry resolves the field entity once per call
             var contextTwin = new TwinEntity().setId(UUID.randomUUID());
             var factoryItem = factoryItemWithSingleContext(contextTwin);
+            var twinField = new TwinField(contextTwin, field);
 
-            when(twinService.getTwinFieldValue(contextTwin, field)).thenReturn(null);
+            when(twinService.wrapField(contextTwin, field)).thenReturn(twinField);
+            when(twinService.getTwinFieldValue(twinField)).thenReturn(null); // not filled in DB
 
             var undefined = new FieldValueText(field); // no value set -> isUndefined()
             when(twinService.createFieldValue(field)).thenReturn(undefined);

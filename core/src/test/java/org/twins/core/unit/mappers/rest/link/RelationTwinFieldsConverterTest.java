@@ -4,6 +4,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,8 +14,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.mappers.rest.link.RelationTwinFieldsConverter;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinService;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * Relation twin field conversion (shared by the v1 and temporal v2 link add mappers):
- * link resolution goes through the MapperContext batch cache with a single-load fallback.
+ * link resolution goes through the request cache (EntityRequestCacheHolder) with a single-load fallback.
  */
 @ExtendWith(MockitoExtension.class)
 class RelationTwinFieldsConverterTest {
@@ -48,13 +49,16 @@ class RelationTwinFieldsConverterTest {
 
     private UUID linkId;
     private UUID classId;
-    private MapperContext mapperContext;
 
     @BeforeEach
     void setUp() {
         linkId = UuidUtils.generate();
         classId = UuidUtils.generate();
-        mapperContext = new MapperContext();
+    }
+
+    @AfterEach
+    void tearDown() {
+        EntityRequestCacheHolder.clear();
     }
 
     private LinkEntity link(UUID relationTwinClassId) {
@@ -67,12 +71,12 @@ class RelationTwinFieldsConverterTest {
     void shouldUseCachedLinkAndConvertWithItsClass() throws Exception {
         // given: link preloaded into the batch cache
         when(linkService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(link(classId)), LinkEntity::getId));
-        relationTwinFieldsConverter.preloadLinks(Set.of(linkId), mapperContext);
+        relationTwinFieldsConverter.preloadLinks(Set.of(linkId));
         FieldValue fieldValue = mock(FieldValue.class);
         when(twinFieldValueRestDTOReverseMapperV2.mapFields(eq(classId), any())).thenReturn(List.of(fieldValue));
 
         // when
-        List<FieldValue> result = relationTwinFieldsConverter.convert(linkId, Map.of("amount", "10"), mapperContext);
+        List<FieldValue> result = relationTwinFieldsConverter.convert(linkId, Map.of("amount", "10"));
 
         // then: cached link used, no per-item link load
         verify(linkService, never()).findEntitySafe(any(UUID.class));
@@ -87,7 +91,7 @@ class RelationTwinFieldsConverterTest {
         when(twinFieldValueRestDTOReverseMapperV2.mapFields(eq(classId), any())).thenReturn(List.of(fieldValue));
 
         // when
-        List<FieldValue> result = relationTwinFieldsConverter.convert(linkId, Map.of("amount", "10"), mapperContext);
+        List<FieldValue> result = relationTwinFieldsConverter.convert(linkId, Map.of("amount", "10"));
 
         // then
         verify(linkService).findEntitySafe(linkId);
@@ -98,11 +102,11 @@ class RelationTwinFieldsConverterTest {
     void shouldThrowWhenLinkHasNoRelationTwinClass() throws Exception {
         // given: batch-loaded link without a relation twin class
         when(linkService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(link(null)), LinkEntity::getId));
-        relationTwinFieldsConverter.preloadLinks(Set.of(linkId), mapperContext);
+        relationTwinFieldsConverter.preloadLinks(Set.of(linkId));
 
         // when + then
         ServiceException ex = assertThrows(ServiceException.class,
-                () -> relationTwinFieldsConverter.convert(linkId, Map.of("amount", "10"), mapperContext));
+                () -> relationTwinFieldsConverter.convert(linkId, Map.of("amount", "10")));
         assertTrue(ex.getMessage().contains("relationTwinFields"));
         verifyNoInteractions(twinFieldValueRestDTOReverseMapperV2);
     }
@@ -112,12 +116,12 @@ class RelationTwinFieldsConverterTest {
         // given: update path — the relation twin itself is preloaded (id == twin_link id, ID equality)
         TwinEntity relationTwin = new TwinEntity().setId(linkId).setTwinClassId(classId);
         when(twinService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(relationTwin), TwinEntity::getId));
-        relationTwinFieldsConverter.preloadRelationTwins(Set.of(linkId), mapperContext);
+        relationTwinFieldsConverter.preloadRelationTwins(Set.of(linkId));
         FieldValue fieldValue = mock(FieldValue.class);
         when(twinFieldValueRestDTOReverseMapperV2.mapFields(eq(classId), any())).thenReturn(List.of(fieldValue));
 
         // when
-        List<FieldValue> result = relationTwinFieldsConverter.convertForRelationTwin(linkId, Map.of("amount", "10"), mapperContext);
+        List<FieldValue> result = relationTwinFieldsConverter.convertForRelationTwin(linkId, Map.of("amount", "10"));
 
         // then: the relation twin's own class is used, no single load
         verify(twinService, never()).findEntitySafe(any(UUID.class));
@@ -131,7 +135,7 @@ class RelationTwinFieldsConverterTest {
 
         // when + then
         ServiceException ex = assertThrows(ServiceException.class,
-                () -> relationTwinFieldsConverter.convertForRelationTwin(linkId, Map.of("amount", "10"), mapperContext));
+                () -> relationTwinFieldsConverter.convertForRelationTwin(linkId, Map.of("amount", "10")));
         assertTrue(ex.getMessage().contains("has no relation twin"));
         verifyNoInteractions(twinFieldValueRestDTOReverseMapperV2);
     }

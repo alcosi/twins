@@ -33,7 +33,7 @@ public class TwinLinkAddRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLin
         // Relation twin initial fields (relation attributes): converted HERE, at the mapper layer —
         // the same call and pattern as TwinCreateRqRestDTOReverseMapper does for twin fields.
         if (MapUtils.isNotEmpty(src.getRelationTwinFields()))
-            dst.setRelationTwinFields(relationTwinFieldsConverter.convert(src.getLinkId(), src.getRelationTwinFields(), mapperContext));
+            dst.setRelationTwinFields(relationTwinFieldsConverter.convert(src.getLinkId(), src.getRelationTwinFields()));
     }
 
     @Override
@@ -45,6 +45,6 @@ public class TwinLinkAddRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLin
             if (MapUtils.isNotEmpty(dto.getRelationTwinFields()) && dto.getLinkId() != null)
                 linkIds.add(dto.getLinkId());
         if (!linkIds.isEmpty())
-            relationTwinFieldsConverter.preloadLinks(linkIds, mapperContext);
+            relationTwinFieldsConverter.preloadLinks(linkIds);
     }
 }
