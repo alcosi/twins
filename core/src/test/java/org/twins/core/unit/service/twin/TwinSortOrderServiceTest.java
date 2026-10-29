@@ -9,6 +9,7 @@ import org.cambium.common.util.UuidUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -55,6 +56,7 @@ import static org.mockito.Mockito.when;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class TwinSortOrderServiceTest {
     private static final UUID HEAD = UUID.nameUUIDFromBytes("head".getBytes());
+    private static final UUID HEAD_CLASS = UUID.nameUUIDFromBytes("head-class".getBytes());
 
     @Mock
     TwinRepository twinRepository;
@@ -79,6 +81,7 @@ class TwinSortOrderServiceTest {
         TwinEntity twin = new TwinEntity();
         twin.setId(UUID.nameUUIDFromBytes(("twin-" + i).getBytes()));
         twin.setHeadTwinId(HEAD);
+        twin.setTwinClassId(HEAD_CLASS);
         twin.setSortOrder(sortOrder);
         // newest first (mirror of the repository ORDER BY): twin(0) sorts before twin(1) ...
         twin.setCreatedAt(new java.sql.Timestamp(2_000_000_000L - i));
@@ -97,6 +100,7 @@ class TwinSortOrderServiceTest {
         TwinEntity twin = new TwinEntity();
         twin.setId(UUID.nameUUIDFromBytes(("created-" + i).getBytes()));
         twin.setHeadTwinId(HEAD);
+        twin.setTwinClassId(HEAD_CLASS);
         return twin;
     }
 
@@ -166,7 +170,8 @@ class TwinSortOrderServiceTest {
 
     /** emulates the db for both reorder mechanisms: full level load, anchor projections, min/next bounds */
     private void stubLevel(List<TwinEntity> siblings) {
-        when(twinRepository.findHeadSiblingsOrderedIn(any())).thenReturn(new ArrayList<>(siblings));
+        when(twinRepository.findHeadSiblingsOrdered(org.mockito.ArgumentMatchers.eq(HEAD_CLASS), any()))
+                .thenAnswer(inv -> new ArrayList<>(siblings));
         when(twinRepository.findSortOrderViewByIdIn(any())).thenAnswer(inv -> {
             java.util.Collection<UUID> ids = inv.getArgument(0);
             return ids.stream()
@@ -174,13 +179,14 @@ class TwinSortOrderServiceTest {
                     .<TwinSortOrderView>map(TwinSortOrderViewImpl::new)
                     .toList();
         });
-        when(twinRepository.findSortOrderBounds(any(), any(), any())).thenAnswer(inv -> {
-            UUID head = inv.getArgument(0);
-            String afterKey = inv.getArgument(1);
-            java.util.Collection<UUID> excludeIds = inv.getArgument(2);
+        when(twinRepository.findSortOrderBounds(org.mockito.ArgumentMatchers.eq(HEAD_CLASS), any(), any(), any())).thenAnswer(inv -> {
+            UUID head = inv.getArgument(1);
+            String afterKey = inv.getArgument(2);
+            java.util.Collection<UUID> excludeIds = inv.getArgument(3);
             String minKey = null, nextKey = null;
             for (TwinEntity t : siblings) {
-                if (!head.equals(t.getHeadTwinId()) || t.getSortOrder() == null || excludeIds.contains(t.getId()))
+                if (!head.equals(t.getHeadTwinId()) || !HEAD_CLASS.equals(t.getTwinClassId())
+                        || t.getSortOrder() == null || excludeIds.contains(t.getId()))
                     continue;
                 if (minKey == null || t.getSortOrder().compareTo(minKey) < 0)
                     minKey = t.getSortOrder();
@@ -200,6 +206,11 @@ class TwinSortOrderServiceTest {
         @Override
         public UUID getHeadTwinId() {
             return t.getHeadTwinId();
+        }
+
+        @Override
+        public UUID getTwinClassId() {
+            return t.getTwinClassId();
         }
 
         @Override
@@ -260,14 +271,14 @@ class TwinSortOrderServiceTest {
         });
     }
 
-    /** shared anchor projection stub: the view carries class+BA of the twin, level membership is checked by the service */
+    /** shared anchor projection stub: root-only rows (head_twin_id is null, mirror of the query), class+BA membership is checked by the service */
     private void stubRootViews(List<TwinEntity> siblings) {
         when(twinRepository.findRootSortOrderViewByIdIn(any())).thenAnswer(inv -> {
             java.util.Collection<UUID> ids = inv.getArgument(0);
             if (ids == null) // mockito re-invokes the stubbing call with null args
                 return java.util.List.of();
             return ids.stream()
-                    .flatMap(id -> siblings.stream().filter(t -> t.getId().equals(id)))
+                    .flatMap(id -> siblings.stream().filter(t -> t.getId().equals(id) && t.getHeadTwinId() == null))
                     .<TwinRootSortOrderView>map(TwinRootSortOrderViewImpl::new)
                     .toList();
         });
@@ -545,7 +556,7 @@ class TwinSortOrderServiceTest {
         assertEquals("3V", a.getSortOrder());
         assertEquals("3V", r1.getSortOrder());
         // both levels of the batch are locked (deterministic order, no cross-level deadlock)
-        verify(lockQuery).setParameter("levelKey", "twin:" + HEAD);
+        verify(lockQuery).setParameter("levelKey", "twin:" + HEAD + ":" + HEAD_CLASS);
         verify(lockQuery).setParameter("levelKey", "twin_root:" + ROOT_CLASS + ":" + ROOT_BA);
     }
 
@@ -559,6 +570,53 @@ class TwinSortOrderServiceTest {
         stubRootViews(Arrays.asList(a, foreign));
         assertThrows(ServiceException.class, () -> service.reorderTwins(movesKit(move(a, foreign.getId()))));
         assertEquals("1", a.getSortOrder()); // rejected before any key is assigned
+    }
+
+    @Test
+    void rootAnchorOfHeadedTwinUnderSameClassAndBAIsRejected() {
+        // a headed child of some head sharing class and BA with the root level: the root projection
+        // must not see it, the move falls into the generic "not a sibling" rejection
+        TwinEntity a = root(0, "1");
+        TwinEntity headed = twin(1, "0"); // same class+BA population would invite this anchor
+        headed.setTwinClassId(ROOT_CLASS);
+        headed.setOwnerBusinessAccountId(ROOT_BA);
+        stubRootLevel(Arrays.asList(a));
+        stubRootViews(Arrays.asList(a, headed)); // the db stub keeps headed rows out of the projection
+        assertThrows(ServiceException.class, () -> service.reorderTwins(movesKit(move(a, headed.getId()))));
+        assertEquals("1", a.getSortOrder()); // rejected before any key is assigned
+        verify(twinRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void headAnchorOfAnotherClassUnderSameHeadIsRejected() {
+        TwinEntity a = twin(0, "1");
+        TwinEntity foreign = twin(1, "1");
+        foreign.setTwinClassId(UUID.nameUUIDFromBytes("other-head-class".getBytes())); // same head, different class
+        stubLevel(Arrays.asList(a, foreign)); // the db keeps both under the head; the level is class-scoped
+        assertThrows(ServiceException.class, () -> service.reorderTwins(movesKit(move(a, foreign.getId()))));
+        assertEquals("1", a.getSortOrder()); // rejected before any key is assigned
+        verify(twinRepository, never()).saveAll(any());
+    }
+
+    @Test
+    void headLevelBoundsIgnoreSiblingsOfAnotherClass() throws Exception {
+        // twin of another class holds the lowest key under the head: the class-scoped level must not
+        // see it, so place-first takes the predecessor of "1" on the light path (no renumber)
+        TwinEntity a = twin(0, "1"), b = twin(1, "3"), moved = twin(2, null);
+        TwinEntity foreign = twin(3, "0");
+        foreign.setTwinClassId(UUID.nameUUIDFromBytes("other-head-class".getBytes()));
+        stubLevel(Arrays.asList(a, b, moved, foreign));
+        service.reorderTwins(movesKit(move(moved, UuidUtils.NULLIFY_MARKER)));
+        assertEquals("0", moved.getSortOrder()); // predecessor of the class minimum "1", foreign "0" invisible
+        // light path: only the moved twin itself is persisted, the level (and the foreign twin) untouched
+        ArgumentCaptor<Iterable<TwinEntity>> saved = ArgumentCaptor.forClass(Iterable.class);
+        verify(twinRepository).saveAll(saved.capture());
+        List<UUID> savedIds = new ArrayList<>();
+        saved.getValue().forEach(t -> savedIds.add(t.getId()));
+        assertEquals(List.of(moved.getId()), savedIds);
+        assertEquals("1", a.getSortOrder());
+        assertEquals("3", b.getSortOrder());
+        assertEquals("0", foreign.getSortOrder());
     }
 
     @Test

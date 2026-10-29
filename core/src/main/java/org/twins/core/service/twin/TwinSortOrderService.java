@@ -38,7 +38,7 @@ import java.util.function.Function;
 
 /**
  * User defined order (drag and drop): lexicographic sort keys.
- * twin level        - siblings of one head_twin_id (twin.sort_order)
+ * twin level        - children of one head_twin_id of one twin class (twin.sort_order)
  * twin root level   - headless twins of one twin class inside one business account (twin.sort_order)
  * twin_link level   - src twins within one (dst_twin_id, link_id) (twin_link.sort_order)
  * <p>
@@ -99,13 +99,14 @@ public class TwinSortOrderService {
     public static final Function<TwinLinkUpdate, UUID> TWIN_LINK_UPDATE_KEY = move -> move.getTwinLink().getId();
 
     /**
-     * Order level of a twin move: siblings of one head_twin_id (head level), or headless twins of one
-     * twin class inside one business account (root level). Headless without owner business account is
-     * not orderable - the update flow rejects it, the create flow skips the move.
+     * Order level of a twin move: children of one head_twin_id of one twin class (head level - a head
+     * can hold children of different classes, each class orders independently), or headless twins of
+     * one twin class inside one business account (root level). Headless without owner business account
+     * is not orderable - the update flow rejects it, the create flow skips the move.
      */
     private record TwinLevel(UUID headTwinId, UUID twinClassId, UUID ownerBusinessAccountId) {
-        static TwinLevel ofHead(UUID headTwinId) {
-            return new TwinLevel(headTwinId, null, null);
+        static TwinLevel ofHead(UUID headTwinId, UUID twinClassId) {
+            return new TwinLevel(headTwinId, twinClassId, null);
         }
 
         static TwinLevel ofRoot(UUID twinClassId, UUID ownerBusinessAccountId) {
@@ -116,9 +117,9 @@ public class TwinSortOrderService {
             return headTwinId == null;
         }
 
-        /** advisory lock / grouping key; "twin:<uuid>" and "twin_root:<uuid>:<uuid>" never collide */
+        /** advisory lock / grouping key; "twin:<uuid>:<uuid>" and "twin_root:<uuid>:<uuid>" never collide */
         String lockKey() {
-            return root() ? "twin_root:" + twinClassId + ":" + ownerBusinessAccountId : "twin:" + headTwinId;
+            return root() ? "twin_root:" + twinClassId + ":" + ownerBusinessAccountId : "twin:" + headTwinId + ":" + twinClassId;
         }
     }
 
@@ -126,23 +127,28 @@ public class TwinSortOrderService {
     private record AnchorRef(String sortOrder, boolean sibling) {
     }
 
-    /** level of an update move; headless without owner BA (or class) fails the whole batch */
+    /** level of an update move; missing class, or headless without owner BA, fails the whole batch */
     private static TwinLevel twinMoveLevel(TwinUpdate move) throws ServiceException {
         TwinEntity twin = move.getDbTwinEntity();
+        if (twin.getTwinClassId() == null)
+            throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID,
+                    "twin can not be reordered, twinClassId is required");
         if (twin.getHeadTwinId() != null)
-            return TwinLevel.ofHead(twin.getHeadTwinId());
-        if (twin.getTwinClassId() == null || twin.getOwnerBusinessAccountId() == null)
+            return TwinLevel.ofHead(twin.getHeadTwinId(), twin.getTwinClassId());
+        if (twin.getOwnerBusinessAccountId() == null)
             throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID,
                     "headless twin can not be reordered, ownerBusinessAccountId is required for a twin without headTwinId");
         return TwinLevel.ofRoot(twin.getTwinClassId(), twin.getOwnerBusinessAccountId());
     }
 
-    /** level of a create move; null = headless without owner BA (or class) - the move is skipped */
+    /** level of a create move; null = not orderable (no class, or headless without owner BA) - the move is skipped */
     private static TwinLevel createdMoveLevel(TwinCreate move) {
         TwinEntity twin = move.getTwinEntity();
+        if (twin.getTwinClassId() == null)
+            return null;
         if (twin.getHeadTwinId() != null)
-            return TwinLevel.ofHead(twin.getHeadTwinId());
-        if (twin.getTwinClassId() == null || twin.getOwnerBusinessAccountId() == null)
+            return TwinLevel.ofHead(twin.getHeadTwinId(), twin.getTwinClassId());
+        if (twin.getOwnerBusinessAccountId() == null)
             return null;
         return TwinLevel.ofRoot(twin.getTwinClassId(), twin.getOwnerBusinessAccountId());
     }
@@ -151,14 +157,14 @@ public class TwinSortOrderService {
     private List<TwinEntity> loadLevelSiblings(TwinLevel level) {
         return level.root()
                 ? twinRepository.findRootSiblingsOrdered(level.twinClassId(), level.ownerBusinessAccountId())
-                : twinRepository.findHeadSiblingsOrderedIn(List.of(level.headTwinId()));
+                : twinRepository.findHeadSiblingsOrdered(level.twinClassId(), level.headTwinId());
     }
 
     /** level-scoped min/next bounds of the light path */
     private SortOrderBounds sortOrderBounds(TwinLevel level, String afterKey, Set<UUID> excludeIds) {
         return level.root()
                 ? twinRepository.findRootSortOrderBounds(level.twinClassId(), level.ownerBusinessAccountId(), afterKey, excludeIds)
-                : twinRepository.findSortOrderBounds(level.headTwinId(), afterKey, excludeIds);
+                : twinRepository.findSortOrderBounds(level.twinClassId(), level.headTwinId(), afterKey, excludeIds);
     }
 
     /**
@@ -185,9 +191,9 @@ public class TwinSortOrderService {
      * full - on any renumber trigger (unordered anchor, exhausted bottom edge, no room for a midpoint,
      * key length cap) the whole level is loaded once and every move of the level is reapplied.
      * Levels are locked in a deterministic (sorted) order, so two batches touching the same levels
-     * can not deadlock each other. A level is a head level (siblings of one head_twin_id) or a root
-     * level (headless twins of one class inside one business account); a headless twin without owner
-     * business account fails the whole batch.
+     * can not deadlock each other. A level is a head level (children of one head_twin_id of one twin
+     * class) or a root level (headless twins of one class inside one business account); a headless
+     * twin without owner business account fails the whole batch.
      */
     public void reorderTwins(Kit<TwinUpdate, UUID> moves) throws ServiceException {
         if (moves == null || moves.isEmpty())
@@ -251,7 +257,9 @@ public class TwinSortOrderService {
                                     && level.ownerBusinessAccountId().equals(view.getOwnerBusinessAccountId())));
             else
                 for (TwinSortOrderView view : twinRepository.findSortOrderViewByIdIn(anchorIds))
-                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(), level.headTwinId().equals(view.getHeadTwinId())));
+                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(),
+                            level.headTwinId().equals(view.getHeadTwinId())
+                                    && level.twinClassId().equals(view.getTwinClassId())));
         for (TwinUpdate move : levelMoves) {
             UUID afterTwinId = move.getAfterTwinId();
             if (afterTwinId == null)
@@ -375,7 +383,9 @@ public class TwinSortOrderService {
                                     && level.ownerBusinessAccountId().equals(view.getOwnerBusinessAccountId())));
             else
                 for (TwinSortOrderView view : twinRepository.findSortOrderViewByIdIn(anchorIds))
-                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(), level.headTwinId().equals(view.getHeadTwinId())));
+                    anchorsById.put(view.getId(), new AnchorRef(view.getSortOrder(),
+                            level.headTwinId().equals(view.getHeadTwinId())
+                                    && level.twinClassId().equals(view.getTwinClassId())));
         for (TwinCreate move : levelMoves) {
             UUID afterTwinId = move.getAfterTwinId();
             if (afterTwinId == null)
