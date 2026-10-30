@@ -69,8 +69,8 @@ public class StoragerAlcosiFileHandlerV2 extends StoragerAbstractChecked {
     @FeaturerParam(
             name = "fileHandlerUploadPath", description = "Upload endpoint",
             optional = true,
-            defaultValue = "/api/resize/save/synced",
-            exampleValues = {"/api/resize/save/synced", "/api/resize/async/save/synced"}
+            defaultValue = "/api/process/sync",
+            exampleValues = {"/api/process/sync", "/api/resize/async/save/synced"}
     )
     public static final FeaturerParamString fileHandlerUploadPath = new FeaturerParamString("fileHandlerUploadPath");
 
