@@ -25,23 +25,54 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     List<TwinEntity> findByIdIn(Collection<UUID> twinIds);
 
-    @Query("select t from TwinEntity t where t.headTwinId in :headTwinIds " +
-            "order by t.headTwinId asc, t.sortOrder asc nulls last, t.createdAt desc, t.id asc")
-    List<TwinEntity> findHeadSiblingsOrderedIn(@Param("headTwinIds") Collection<UUID> headTwinIds);
+    // head reorder path (children of one head twin of one class - a head can hold children of
+    // different classes, each class orders independently): full level load
+    @Query("select t from TwinEntity t where t.headTwinId = :headTwinId and t.twinClassId = :twinClassId " +
+            "order by t.sortOrder asc nulls last, t.createdAt desc, t.id asc")
+    List<TwinEntity> findHeadSiblingsOrdered(@Param("twinClassId") UUID twinClassId, @Param("headTwinId") UUID headTwinId);
 
     // light reorder path: anchor keys only, no entity materialization
-    @Query("select t.id as id, t.headTwinId as headTwinId, t.sortOrder as sortOrder from TwinEntity t where t.id in :ids")
+    @Query("select t.id as id, t.headTwinId as headTwinId, t.twinClassId as twinClassId, t.sortOrder as sortOrder from TwinEntity t where t.id in :ids")
     List<TwinSortOrderView> findSortOrderViewByIdIn(@Param("ids") Collection<UUID> ids);
 
     // light reorder path: level minimum and the smallest key after the anchor in one query
     @Query("select min(t.sortOrder) as minKey, min(case when t.sortOrder > :afterKey then t.sortOrder end) as nextKey " +
-            "from TwinEntity t where t.headTwinId = :headTwinId and t.sortOrder is not null and t.id not in :excludeIds")
-    SortOrderBounds findSortOrderBounds(@Param("headTwinId") UUID headTwinId, @Param("afterKey") String afterKey, @Param("excludeIds") Collection<UUID> excludeIds);
+            "from TwinEntity t where t.headTwinId = :headTwinId and t.twinClassId = :twinClassId and t.sortOrder is not null and t.id not in :excludeIds")
+    SortOrderBounds findSortOrderBounds(@Param("twinClassId") UUID twinClassId, @Param("headTwinId") UUID headTwinId, @Param("afterKey") String afterKey, @Param("excludeIds") Collection<UUID> excludeIds);
 
     interface TwinSortOrderView {
         UUID getId();
 
         UUID getHeadTwinId();
+
+        UUID getTwinClassId();
+
+        String getSortOrder();
+    }
+
+    // root reorder path (headless twins of one class in one business account): full level load
+    @Query("select t from TwinEntity t where t.headTwinId is null and t.twinClassId = :twinClassId and t.ownerBusinessAccountId = :ownerBusinessAccountId " +
+            "order by t.sortOrder asc nulls last, t.createdAt desc, t.id asc")
+    List<TwinEntity> findRootSiblingsOrdered(@Param("twinClassId") UUID twinClassId, @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId);
+
+    // root reorder path: anchor keys only, no entity materialization; head_twin_id is null keeps
+    // the projection root-only - a headed twin of the same class+BA is not a root sibling and must
+    // fall into the generic "anchor is not a sibling" rejection
+    @Query("select t.id as id, t.twinClassId as twinClassId, t.ownerBusinessAccountId as ownerBusinessAccountId, t.sortOrder as sortOrder from TwinEntity t " +
+            "where t.id in :ids and t.headTwinId is null")
+    List<TwinRootSortOrderView> findRootSortOrderViewByIdIn(@Param("ids") Collection<UUID> ids);
+
+    // root reorder path: level minimum and the smallest key after the anchor in one query
+    @Query("select min(t.sortOrder) as minKey, min(case when t.sortOrder > :afterKey then t.sortOrder end) as nextKey " +
+            "from TwinEntity t where t.headTwinId is null and t.twinClassId = :twinClassId and t.ownerBusinessAccountId = :ownerBusinessAccountId and t.sortOrder is not null and t.id not in :excludeIds")
+    SortOrderBounds findRootSortOrderBounds(@Param("twinClassId") UUID twinClassId, @Param("ownerBusinessAccountId") UUID ownerBusinessAccountId, @Param("afterKey") String afterKey, @Param("excludeIds") Collection<UUID> excludeIds);
+
+    interface TwinRootSortOrderView {
+        UUID getId();
+
+        UUID getTwinClassId();
+
+        UUID getOwnerBusinessAccountId();
 
         String getSortOrder();
     }
