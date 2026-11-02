@@ -427,8 +427,8 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     private TwinEntity headTwin;
 
     // Count API: scratch fields for a "group by dynamic field" dimension (not persisted).
-    // groupedTwinClassFieldId is the field grouped by; groupedFieldValue is the value of that
-    // field for the group (number/text/boolean/optionId, as returned by the TwinCounter featurer).
+    // groupedTwinClassFieldId is the field grouped by; groupedFieldValue is the storage value
+    // of that field for the group (text, decimal, boolean, timestamp, or datalist option id).
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
