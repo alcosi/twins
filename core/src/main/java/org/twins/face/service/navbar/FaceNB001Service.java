@@ -57,7 +57,7 @@ public class FaceNB001Service extends EntitySecureFindServiceImpl<FaceNB001Entit
                 FaceNB001Entity::getFaceId,
                 FaceNB001Entity::getMenuItems,
                 FaceNB001Entity::setMenuItems,
-                faceNB001MenuItemRepository::findByFaceIdInAndParentFaceMenuItemIdIsNull,
+                faceNB001MenuItemRepository::findByFaceIdInAndParentFaceMenuItemIdIsNullOrderByOrderAscKeyAsc,
                 FaceNB001MenuItemEntity::getId,
                 FaceNB001MenuItemEntity::getFaceId,
                 FaceNB001MenuItemEntity::setFaceNB001);
