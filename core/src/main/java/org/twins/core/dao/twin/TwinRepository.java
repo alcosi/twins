@@ -92,6 +92,9 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select distinct t.headTwinId from TwinEntity t where t.twinClassId = :twinClassId and t.headTwinId is not null")
     Set<UUID> findDistinctHeadTwinIdByTwinClassId(UUID twinClassId);
 
+    @Query("select distinct t.headTwinId from TwinEntity t where t.id in :twinIds and t.headTwinId is not null")
+    Set<UUID> findDistinctHeadTwinIdByIdIn(@Param("twinIds") Collection<UUID> twinIds);
+
     @Transactional
     @Modifying
     @Query(value = "update TwinEntity set headTwinId = :newVal where headTwinId = :oldVal and twinClassId = :twinClassId")
