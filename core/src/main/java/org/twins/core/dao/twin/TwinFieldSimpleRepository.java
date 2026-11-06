@@ -39,7 +39,13 @@ public interface TwinFieldSimpleRepository extends TwinFieldRepository<TwinField
 
     TwinFieldSimpleEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
 
-    void deleteByTwinId(UUID twinId);
+    /**
+     * Bulk delete, executed as immediate SQL: a queued derived delete flushes after pending inserts,
+     * which breaks the delete-then-reinsert in system bootstrap (unique key twin_id + twin_class_field_id).
+     */
+    @Modifying
+    @Query("delete from TwinFieldSimpleEntity f where f.twinId = :twinId")
+    void deleteByTwinId(@Param("twinId") UUID twinId);
 
     @Query(value = """
             select distinct field.twinClassFieldId
