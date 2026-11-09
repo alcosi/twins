@@ -18,17 +18,19 @@ This document describes the full chain for creating a REST API to manage setting
 
 Each settings entity exposes the following endpoints. All batch operations accept collections.
 
-| Operation | Method | URL | Description |
-|---|---|---|---|
-| Create (batch) | `POST` | `/private/{entity}/v1` | Create one or more entities |
-| Update (batch) | `PUT` | `/private/{entity}/v1` | Update one or more entities |
-| Delete (batch) | `POST` | `/private/{entity}/delete/v1` | Delete one or more entities by ID list |
-| View (single) | `GET` | `/private/{entity}/{entityId}/v1` | Get entity by ID |
-| Search | `POST` | `/private/{entity}/search/v1` | Search with pagination + sorting |
-| Count | `POST` | `/private/{entity}/search/count/v1` | Count with grouping |
-| Export SQL | `POST` | `/private/{entity}/export/sql/v1` | Export entities as SQL INSERT file download |
+| Operation | Method | URL | Permission | Description |
+|---|---|---|---|---|
+| Create (batch) | `POST` | `/private/{entity}/v1` | `{ENTITY}_CREATE` | Create one or more entities |
+| Update (batch) | `PUT` | `/private/{entity}/v1` | `{ENTITY}_UPDATE` | Update one or more entities |
+| Delete (batch) | `POST` | `/private/{entity}/delete/v1` | `{ENTITY}_DELETE` | Delete one or more entities by ID list |
+| View (single) | `GET` | `/private/{entity}/{entityId}/v1` | `{ENTITY}_MANAGE` or `{ENTITY}_VIEW` | Get entity by ID |
+| Search | `POST` | `/private/{entity}/search/v1` | `{ENTITY}_MANAGE` or `{ENTITY}_VIEW` | Search with pagination + sorting |
+| Count | `POST` | `/private/{entity}/search/count/v1` | `{ENTITY}_MANAGE` or `{ENTITY}_VIEW` | Count with grouping |
+| Export SQL | `POST` | `/private/{entity}/export/sql/v1` | `{ENTITY}_MANAGE` | Export entities as SQL INSERT file download |
 
 > **Batch-first**: create and update always accept `List<...DTO>` even for a single item. The client sends a list with one element.
+
+> **Search controllers — MANAGE or VIEW.** Guard every `{Entity}SearchController` with both permissions: `@ProtectedBy({Permissions.{ENTITY}_MANAGE, Permissions.{ENTITY}_VIEW})`. `anyOf` defaults to `true`, so either permission is enough. Do not guard a search endpoint with `{ENTITY}_VIEW` alone: a holder of `{ENTITY}_MANAGE` must keep access to the list when `{ENTITY}_VIEW` was not granted personally.
 
 ---
 
@@ -264,6 +266,8 @@ public class {Entity}SearchController extends ApiController {
     }
 }
 ```
+
+`@ProtectedBy` on a search controller lists `{ENTITY}_MANAGE` and `{ENTITY}_VIEW` together. Either permission grants access. A search endpoint protected by `{ENTITY}_VIEW` alone is incorrect: MANAGE without a personal VIEW grant must still reach the list.
 
 ### 3.6 Count Controller
 
@@ -600,6 +604,31 @@ public class {Entity}RestDTOMapper extends RestSimpleDTOMapper<{Entity}Entity, {
 }
 ```
 
+### Reference fields go through show modes
+
+A field that points at another object — an FK id with `@RelatedObject`, or any association the response can expand — is mapped through a show mode. The id is always written on the DTO. The related object is loaded and placed into `relatedObjects` only when the client selects that mode.
+
+Do not embed the target DTO on the source DTO, and do not load the association on every request.
+
+1. Add a pointer mode `{Owner}2{Target}Mode` (`HIDE`, `SHORT`, `DETAILED`) on the target mode enum. It implements `MapperModePointer` and `point()` maps each value to the target mode.
+2. Inject the target mapper with `@MapperModePointerBinding(modes = {Owner}2{Target}Mode.class)`.
+3. In `map`, when `mapperContext.hasModeButNot({Owner}2{Target}Mode.HIDE)`: call `service.load{Field}(src)`, then `targetMapper.postpone(loaded, mapperContext.forkOnPoint(mapperContext.getModeOrUse({Owner}2{Target}Mode.SHORT)))`. `getModeOrUse` keeps `DETAILED` when the client asked for it and falls back to `SHORT`.
+4. In `beforeCollectionConversion`, the same check calls the collection overload of `load{Field}`, so a list is one query. See [load_method_pattern.md](load_method_pattern.md).
+
+If the mode is absent, `hasModeButNot(HIDE)` is false: the response contains the id only.
+
+```java
+@MapperModePointerBinding(modes = UserMode.{Entity}2UserMode.class)
+private final UserRestDTOMapper userRestDTOMapper;
+
+// inside map, after the scalar fields:
+if (mapperContext.hasModeButNot(UserMode.{Entity}2UserMode.HIDE)) {
+    {entity}Service.loadCreatedByUser(src);
+    userRestDTOMapper.postpone(src.getCreatedByUser(),
+            mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.{Entity}2UserMode.SHORT)));
+}
+```
+
 ### Reverse Mapper (DTO → Domain Object)
 
 ```java
@@ -650,7 +679,7 @@ public class {Entity}CountRestDTOMapper
 
 ## 7. Sorting — see [api_sorting_architecture.md](api_sorting_architecture.md)
 
-1. Create enum `{Entity}SortField` in `enums.sort` — pure names, no fieldPath
+1. Create enum `{Entity}SortField` in `enums.sort` — pure names, no fieldPath. Do not include the primary key `id`
 2. Add `sortField` and `sortDirection` fields to `SearchRqDTOv1` (not SearchDTO)
 3. Implement `createSortSpecification()` in `{Entity}SearchService` with switch
 4. Use `CommonSpecification.toSortSpecification(ascending, fieldPath...)` for regular fields
@@ -721,11 +750,13 @@ When creating a new settings API, verify:
 - [ ] Group field enum in `enums.sort` with low-cardinality fields only
 - [ ] DTOs following [dto_code_convention.md](dto_code_convention.md)
 - [ ] Forward mapper with `beforeCollectionConversion` for load methods
+- [ ] Every reference field (`@RelatedObject` / FK to another object) is mapped through a show mode: id on the DTO, `postpone` into `relatedObjects` only when the mode is not `HIDE`
 - [ ] Reverse mappers for create/update/search
 - [ ] Count mapper with conditional loading by groupFields
 - [ ] CRUD service extending `TwinsEntitySecureFindService` with all 4 abstract methods
 - [ ] Search service extending `EntitySearchService` with all 8 abstract methods
 - [ ] Controllers split by operation, each with `@ProtectedBy`
+- [ ] Search controller uses `@ProtectedBy({Permissions.{ENTITY}_MANAGE, Permissions.{ENTITY}_VIEW})` — not `{ENTITY}_VIEW` alone
 - [ ] Flyway migration with FK inline, `IF NOT EXISTS`, no `public.` schema qualifier
 - [ ] Indexes for all FK columns and sort/group fields
 - [ ] `@Transactional(rollbackFor = Throwable.class)` on all write methods

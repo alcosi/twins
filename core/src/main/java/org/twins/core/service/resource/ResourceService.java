@@ -10,6 +10,7 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -21,6 +22,7 @@ import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.storage.StorageService;
+import org.twins.core.service.user.UserService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -33,10 +35,15 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
+    /** Relative uri of the public download endpoint served by ResourcePublicController. */
+    public static final String DOWNLOAD_URI_TEMPLATE = "/public/resource/%s/v1";
+
     protected final FeaturerService featurerService;
     protected final ResourceRepository resourceRepository;
     protected final StorageService storageService;
     protected final AuthService authService;
+    @Lazy
+    protected final UserService userService;
 
     /**
      * Retrieves a resource file from storage based on the specified resource ID and access permissions.
@@ -224,6 +231,28 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
                 TwinClassEntity::getIconDarkResourceId,
                 TwinClassEntity::getIconDarkResource,
                 TwinClassEntity::setIconDarkResource);
+    }
+
+    public void loadUploadedByUser(ResourceEntity resource) throws ServiceException {
+        loadUploadedByUser(Collections.singletonList(resource));
+    }
+
+    public void loadUploadedByUser(Collection<ResourceEntity> resources) throws ServiceException {
+        userService.load(resources,
+                ResourceEntity::getUploadedByUserId,
+                ResourceEntity::getUploadedByUser,
+                ResourceEntity::setUploadedByUser);
+    }
+
+    public void loadStorage(ResourceEntity resource) throws ServiceException {
+        loadStorage(Collections.singletonList(resource));
+    }
+
+    public void loadStorage(Collection<ResourceEntity> resources) throws ServiceException {
+        storageService.load(resources,
+                ResourceEntity::getStorageId,
+                ResourceEntity::getStorage,
+                ResourceEntity::setStorage);
     }
 
 }

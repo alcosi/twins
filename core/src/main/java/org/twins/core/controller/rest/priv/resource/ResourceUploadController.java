@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.file.FileData;
 import org.cambium.common.util.MultipartFileUtils;
-import org.cambium.common.util.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,21 +22,25 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.domain.resource.ResourceUploadItem;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.dto.rest.attachment.AttachmentCreateDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentCreateRqDTOv1;
 import org.twins.core.dto.rest.resource.ResourceUploadRsDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.attachment.AttachmentCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.resource.ResourceRestDTOMapper;
 import org.twins.core.service.resource.ResourceUploadService;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 /**
  * File upload endpoint accepting the same multipart contract as the twin attachment flow:
@@ -55,9 +58,10 @@ import java.util.Map;
 public class ResourceUploadController extends ApiController {
     private static final String REQUEST_PART = "request";
     private static final String FILES_PART = "files";
-    private static final String MULTIPART_SCHEME = "multipart://";
     private final ResourceUploadService resourceUploadService;
     private final AttachmentCreateRestDTOReverseMapper attachmentCreateRestDTOReverseMapper;
+    private final ResourceRestDTOMapper resourceRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "resourceUploadV1", summary = "Upload files as domain resources",
@@ -72,12 +76,27 @@ public class ResourceUploadController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/resource/upload/v1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> resourceUploadV1(
+            @MapperContextBinding(roots = ResourceRestDTOMapper.class, response = ResourceUploadRsDTOv1.class)
+            @Schema(hidden = true) MapperContext mapperContext,
             @Schema(hidden = true) MultipartHttpServletRequest request,
             @Schema(implementation = AttachmentCreateRqDTOv1.class) @RequestPart(name = REQUEST_PART, required = false) byte[] requestBytes,
             @RequestPart(name = FILES_PART, required = false) List<MultipartFile> files) {
         ResourceUploadRsDTOv1 rs = new ResourceUploadRsDTOv1();
+        // parsed outside try: malformed json part must surface as 400 ResponseStatusException (same as the twin flow mapRequest),
+        // not as the generic 500 error body the catch block below produces
+        List<AttachmentCreateDTOv1> attachments = parseAttachments(requestBytes);
         try {
-            return new ResponseEntity<>(resourceUploadService.uploadResources(collectUploadItems(request, requestBytes, files)), HttpStatus.OK);
+            List<ResourceEntity> stored;
+            if (attachments != null && !attachments.isEmpty()) {
+                attachmentCreateRestDTOReverseMapper.preProcessAttachments(attachments, MultipartFileUtils.collectFiles(request));
+                stored = resourceUploadService.uploadAttachments(attachments);
+            } else {
+                stored = resourceUploadService.upload(collectRawFiles(request, files));
+            }
+            rs
+                    .setFiles(resourceRestDTOMapper.convertCollection(stored, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+            return new ResponseEntity<>(rs, HttpStatus.OK);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -86,60 +105,27 @@ public class ResourceUploadController extends ApiController {
     }
 
     /**
-     * Builds upload items in the attachments order when the json part is present (FE-style request),
-     * otherwise treats every raw file part as a file (Swagger/curl style).
+     * Swagger/curl style: no json part, every raw file part is a {@link FileData}.
      */
-    private List<ResourceUploadItem> collectUploadItems(MultipartHttpServletRequest request, byte[] requestBytes, List<MultipartFile> files) throws ServiceException {
-        List<AttachmentCreateDTOv1> attachments = parseAttachments(requestBytes);
-        if (attachments != null && !attachments.isEmpty()) {
-            Map<String, MultipartFile> filesMap = MultipartFileUtils.collectFiles(request);
-            attachmentCreateRestDTOReverseMapper.preProcessAttachments(attachments, filesMap);
-            List<ResourceUploadItem> items = new ArrayList<>();
-            for (AttachmentCreateDTOv1 att : attachments) {
-                FileData domainFile = att.getDomainFile();
-                if (domainFile != null) {
-                    String partName = att.storageLink.substring(MULTIPART_SCHEME.length());
-                    MultipartFile part = filesMap.get(partName);
-                    items.add(new ResourceUploadItem()
-                            .setFileName(resolveFileName(att.title, part != null ? part.getOriginalFilename() : null, partName))
-                            .setContent(domainFile.content()));
-                } else {
-                    items.add(new ResourceUploadItem()
-                            .setFileName(StringUtils.isNotEmpty(att.title) ? att.title : att.storageLink)
-                            .setExternalUri(att.storageLink));
-                }
-            }
-            return items;
-        }
-        // Swagger/curl style: no json part - every raw part is a file
-        List<ResourceUploadItem> items = new ArrayList<>();
+    private List<FileData> collectRawFiles(MultipartHttpServletRequest request, List<MultipartFile> files) throws ServiceException {
+        List<FileData> rawFiles = new ArrayList<>();
         if (files != null)
             for (MultipartFile file : files)
-                items.add(item(file));
-        java.util.Iterator<String> partNames = request.getFileNames();
+                rawFiles.add(toFileData(file));
+        Iterator<String> partNames = request.getFileNames();
         while (partNames.hasNext()) {
             String fileName = partNames.next();
             if (REQUEST_PART.equals(fileName) || FILES_PART.equals(fileName))
                 continue;
             for (MultipartFile file : request.getFiles(fileName))
-                items.add(item(file));
+                rawFiles.add(toFileData(file));
         }
-        return items;
+        return rawFiles;
     }
 
-    private String resolveFileName(String title, String partFileName, String partName) {
-        if (StringUtils.isNotEmpty(title))
-            return title;
-        if (StringUtils.isNotEmpty(partFileName))
-            return partFileName;
-        return partName;
-    }
-
-    private ResourceUploadItem item(MultipartFile file) throws ServiceException {
+    private FileData toFileData(MultipartFile file) throws ServiceException {
         try {
-            return new ResourceUploadItem()
-                    .setFileName(file.getOriginalFilename())
-                    .setContent(file.getInputStream());
+            return new FileData(file.getInputStream(), file.getOriginalFilename(), file.getSize());
         } catch (IOException e) {
             throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, "can not read file part [" + file.getName() + "]");
         }

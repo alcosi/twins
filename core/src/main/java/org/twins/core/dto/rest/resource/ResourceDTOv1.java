@@ -18,18 +18,28 @@ import java.util.UUID;
 public class ResourceDTOv1 {
     @Schema(description = "resource id, file can be downloaded via GET /public/resource/{id}/v1", example = DTOExamples.UUID_ID)
     public UUID id;
-    @Schema(description = "domain id the file belongs to")
-    public UUID domainId;
+
     @Schema(description = "uploader user id", example = DTOExamples.USER_ID)
     @RelatedObject(type = UserDTOv1.class, name = "uploadedByUser")
     public UUID uploadedByUserId;
+
+    @Schema(description = "storage id", example = DTOExamples.RESOURCE_STORAGE_ID)
+    @RelatedObject(type = StorageDTOv1.class, name = "storage")
+    public UUID storageId;
+
     @Schema(description = "original file name")
     public String originalFileName;
+
     @Schema(description = "file size in bytes")
     public Long sizeInBytes;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "upload timestamp", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
+
     @Schema(description = "relative download uri served by twins")
     public String downloadUri;
+
+    @Schema(description = "direct link to the stored file in the domain storage")
+    public String storageLink;
 }

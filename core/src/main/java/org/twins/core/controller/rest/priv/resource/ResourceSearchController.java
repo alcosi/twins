@@ -35,15 +35,14 @@ import org.twins.core.service.resource.ResourceSearchService;
 
 /**
  * Lists files uploaded through {@link ResourceUploadController} of the caller's domain
- * (DomainId header, standard ApiUser flow). Guarded by the dedicated
- * {@link Permissions#RESOURCE} permission; the listing contains file metadata only, never the
- * storage keys.
+ * (DomainId header, standard ApiUser flow). Guarded by RESOURCE_MANAGE or RESOURCE_VIEW;
+ * the listing contains file metadata only, never the storage keys.
  */
 @Tag(name = ApiTag.RESOURCE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-@ProtectedBy(Permissions.RESOURCE_VIEW)
+@ProtectedBy({Permissions.RESOURCE_MANAGE, Permissions.RESOURCE_VIEW})
 public class ResourceSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;

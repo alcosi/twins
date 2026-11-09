@@ -12,6 +12,7 @@ import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.ResourceRepository;
 import org.twins.core.domain.search.ResourceSearch;
 import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.ResourceGroupField;
 import org.twins.core.enums.sort.ResourceSortField;
 import org.twins.core.service.EntitySearchService;
 
@@ -25,7 +26,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 @Service
 @RequiredArgsConstructor
 public class ResourceSearchService extends EntitySearchService
-        <ResourceSearch, ResourceEntity, ResourceSortField, Void> {
+        <ResourceSearch, ResourceEntity, ResourceSortField, ResourceGroupField> {
     private final ResourceRepository resourceRepository;
 
     @Override
@@ -54,8 +55,17 @@ public class ResourceSearchService extends EntitySearchService
         return Specification.allOf(
                 checkFieldUuid(domainId, ResourceEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, ResourceEntity.Fields.id),
-                checkFieldLikeIn(search.getOriginalFileNameLikeList(), false, true, ResourceEntity.Fields.originalFileName),
-                checkUuidIn(search.getUploadedByUserIdList(), false, false, ResourceEntity.Fields.uploadedByUserId)
+                checkUuidIn(search.getIdExcludeList(), true, false, ResourceEntity.Fields.id),
+                checkFieldLikeContainsIn(search.getOriginalFileNameLikeList(), false, true, ResourceEntity.Fields.originalFileName),
+                checkFieldLikeContainsIn(search.getOriginalFileNameNotLikeList(), true, true, ResourceEntity.Fields.originalFileName),
+                checkUuidIn(search.getUploadedByUserIdList(), false, false, ResourceEntity.Fields.uploadedByUserId),
+                checkUuidIn(search.getUploadedByUserIdExcludeList(), true, false, ResourceEntity.Fields.uploadedByUserId),
+                checkUuidIn(search.getStorageIdList(), false, false, ResourceEntity.Fields.storageId),
+                checkUuidIn(search.getStorageIdExcludeList(), true, false, ResourceEntity.Fields.storageId),
+                checkFieldLikeContainsIn(search.getStorageFileKeyLikeList(), false, true, ResourceEntity.Fields.storageFileKey),
+                checkFieldLikeContainsIn(search.getStorageFileKeyNotLikeList(), true, true, ResourceEntity.Fields.storageFileKey),
+                checkFieldLongRange(search.getSizeInBytes(), ResourceEntity.Fields.sizeInBytes),
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), ResourceEntity.Fields.createdAt)
         );
     }
 
@@ -68,7 +78,6 @@ public class ResourceSearchService extends EntitySearchService
     public Specification<ResourceEntity> createSortSpecification(ResourceSortField sortField, SortDirection sortDirection, Locale locale) throws ServiceException {
         boolean ascending = sortDirection != SortDirection.DESC;
         return switch (sortField) {
-            case id -> toSortSpecification(ascending, ResourceEntity.Fields.id);
             case originalFileName -> toSortSpecification(ascending, ResourceEntity.Fields.originalFileName);
             case sizeInBytes -> toSortSpecification(ascending, ResourceEntity.Fields.sizeInBytes);
             case createdAt -> toSortSpecification(ascending, ResourceEntity.Fields.createdAt);
@@ -77,13 +86,18 @@ public class ResourceSearchService extends EntitySearchService
     }
 
     @Override
-    public String convertToEntityField(Void groupField) throws ServiceException {
-        // grouping is not supported for resources
-        return null;
+    public String convertToEntityField(ResourceGroupField groupField) {
+        return switch (groupField) {
+            case uploadedByUserId -> ResourceEntity.Fields.uploadedByUserId;
+            case storageId -> ResourceEntity.Fields.storageId;
+        };
     }
 
     @Override
-    public void mapGroupedField(ResourceEntity entity, Void field, Object o) {
-        // grouping is not supported for resources
+    public void mapGroupedField(ResourceEntity entity, ResourceGroupField field, Object o) {
+        switch (field) {
+            case uploadedByUserId -> entity.setUploadedByUserId((UUID) o);
+            case storageId -> entity.setStorageId((UUID) o);
+        }
     }
 }
