@@ -9,6 +9,7 @@ import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.context.ContextEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListSubsetEntity;
@@ -18,7 +19,10 @@ import org.twins.core.dao.factory.*;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.notification.*;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
+import org.twins.core.dao.notification.NotificationChannelEntity;
+import org.twins.core.dao.notification.NotificationChannelEventEntity;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -38,6 +42,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.service.SystemIdLookup;
 
 import java.util.*;
@@ -49,7 +54,6 @@ public class MapperContext {
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
     private MapperModeMap modes = new MapperModeMap();
-    private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
     /**
      * Postponed related objects: outer key is the registered class of the postponed object (see
@@ -108,7 +112,7 @@ public class MapperContext {
             HistoryNotificationRecipientEntity.class,
             NotificationSchemaEntity.class,
             NotificationChannelEntity.class,
-            NotificationContextEntity.class,
+            ContextEntity.class,
             NotificationChannelEventEntity.class,
             HistoryTypeEntity.class,
             ActionRestrictionReasonEntity.class,
@@ -331,41 +335,20 @@ public class MapperContext {
         return configuredMode == null;
     }
 
-    public <S> S getFromCache(Class<S> clazz, String cacheId) {
-        if (cacheId == null) {
-            log.debug("CacheId is null for class[{}]", clazz.getSimpleName());
-            return null;
-        }
-        Hashtable<String, Object> cache = cachedObjects.get(clazz);
-        if (cache == null)
-            return null;
-        Object obj = cache.get(cacheId);
-        if (obj == null)
-            return null;
-        else if (clazz.isInstance(obj)) {
-            debugLog(obj, " was found by cacheId[" + cacheId + "]");
-            return (S) obj;
-        } else
-            log.error("Incorrect cached object type loaded by cacheId[{}]. Expected[{}] but got[{}]", cacheId, clazz.getSimpleName(), obj.getClass().getSimpleName());
-        return null;
+    /**
+     * Conversion cache — backed by the request-wide {@link EntityRequestCacheHolder}, so services can
+     * preload the same entries mappers read. The Class key is the NAMESPACE of what the cache is about
+     * (usually an entity class — the cached values themselves may be of any type, e.g. converted DTOs,
+     * preloaded entities or per-entity collected data); the string cacheId is the entry key inside the
+     * namespace (usually a feature prefix + entity id).
+     */
+    public <S> S getFromCache(Class<?> cacheType, String cacheId) {
+        return EntityRequestCacheHolder.get(cacheType, cacheId);
     }
 
-    public void putToCache(Class clazz, String cacheId, Object obj) {
-        if (cacheId == null) {
-            log.debug("CacheId is null for class[{}]", clazz.getSimpleName());
-            return;
-        }
-        Hashtable<String, Object> cache = cachedObjects.get(clazz);
-        if (cache == null) {
-            cache = new Hashtable<>();
-            cachedObjects.put(clazz, cache);
-            debugLog(obj, " was added to cache with id[" + cacheId + "]");
-        }
-        if (!clazz.isInstance(obj)) {
-            log.error("Incorrect cached object type");
-            return;
-        }
-        cache.put(cacheId, obj);
+    /** See {@link #getFromCache(Class, String)} for the cache semantics. */
+    public void putToCache(Class<?> cacheType, String cacheId, Object obj) {
+        EntityRequestCacheHolder.put(cacheType, cacheId, obj);
     }
 
     public MapperModeMap isolateModes() {
@@ -376,7 +359,6 @@ public class MapperContext {
         MapperContext mapperContext = new MapperContext();
         mapperContext.lazyRelations = this.lazyRelations;
         mapperContext.modes = isolateModes(); // new map with presets
-        mapperContext.cachedObjects = this.cachedObjects; // same map
         mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
         return mapperContext;
     }
@@ -417,7 +399,6 @@ public class MapperContext {
     public MapperContext cloneWithFlushedModes() {
         MapperContext mapperContext = new MapperContext();
         mapperContext.lazyRelations = this.lazyRelations;
-        mapperContext.cachedObjects = this.cachedObjects; // same map
         mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
         linkToRelatedObjects(this, mapperContext);
         return mapperContext;

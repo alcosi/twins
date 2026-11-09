@@ -3,14 +3,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.github.javaparser:javaparser-core:3.26.2'
+        classpath 'com.github.javaparser:javaparser-core:3.28.2'
     }
 }
 
 plugins {
     // id 'war'
     id 'java'
-    id 'org.springframework.boot' version '4.0.8'
+    id 'org.springframework.boot' version '4.0.9'
     id 'net.nemerosa.versioning' version '3.1.0'
     id 'com.bmuschko.docker-remote-api' version '10.0.0'
     id 'com.google.protobuf' version '0.10.0'
@@ -84,11 +84,11 @@ task pushDockerImage(type: DockerBuildImage) {
 }
 
 dependencies {
-    implementation platform("org.springframework.boot:spring-boot-dependencies:4.0.8")
-    compileOnly 'org.projectlombok:lombok:1.18.46'
-    annotationProcessor 'org.projectlombok:lombok:1.18.46'
+    implementation platform("org.springframework.boot:spring-boot-dependencies:4.0.9")
+    compileOnly 'org.projectlombok:lombok:1.18.48'
+    annotationProcessor 'org.projectlombok:lombok:1.18.48'
     implementation("org.springframework:spring-web")
-    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.21.0'
     implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.5.0'
     implementation group: 'commons-codec', name: 'commons-codec', version: '1.22.0'
     implementation("org.springframework.boot:spring-boot-starter-web") {
@@ -105,18 +105,18 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-jetty')
     implementation("org.springframework.amqp:spring-rabbit")
     implementation("org.springframework.amqp:spring-amqp")
-    implementation('org.apache.httpcomponents.client5:httpclient5:5.6.2')
+    implementation('org.apache.httpcomponents.client5:httpclient5:5.6.4')
     implementation("org.springframework.boot:spring-boot-starter-jdbc") {
         exclude group: "com.zaxxer", module: "HikariCP"
     }
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     runtimeOnly("org.postgresql:postgresql")
-    implementation('io.hypersistence:hypersistence-utils-hibernate-71:3.15.2')
-    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3')
-    implementation 'io.swagger.core.v3:swagger-core-jakarta:2.2.53'
+    implementation('io.hypersistence:hypersistence-utils-hibernate-71:3.16.0')
+    implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.1.1')
+    implementation 'io.swagger.core.v3:swagger-core-jakarta:2.2.55'
     implementation('org.springframework.boot:spring-boot-starter-validation')
-    implementation group: 'commons-validator', name: 'commons-validator', version: '1.10.1'
-    implementation group: 'com.google.guava', name: 'guava', version: '33.7.0-jre'
+    implementation group: 'commons-validator', name: 'commons-validator', version: '1.11.0'
+    implementation group: 'com.google.guava', name: 'guava', version: '33.7.2-jre'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     implementation 'org.cache2k:cache2k-api:2.6.1.Final', 'org.cache2k:cache2k-core:2.6.1.Final', 'org.cache2k:cache2k-spring:2.6.1.Final'
@@ -133,10 +133,10 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    runtimeOnly 'io.grpc:grpc-netty-shaded:1.83.1'
-    implementation 'io.grpc:grpc-protobuf:1.83.1'
-    implementation 'io.grpc:grpc-stub:1.83.1'
-    implementation 'com.google.protobuf:protobuf-java:4.36.0'
+    runtimeOnly 'io.grpc:grpc-netty-shaded:1.85.1'
+    implementation 'io.grpc:grpc-protobuf:1.85.1'
+    implementation 'io.grpc:grpc-stub:1.85.1'
+    implementation 'com.google.protobuf:protobuf-java:4.36.2'
     implementation("io.github.breninsul:log4j2-masking-factory:1.0.3")
     implementation 'com.github.f4b6a3:uuid-creator:6.1.1'
     implementation 'io.github.resilience4j:resilience4j-spring-boot4:2.4.0'
@@ -226,11 +226,11 @@ task generateTypeScriptDTOsTask(type: GenerateTypeScriptDTOsTask) {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.25.5"
+        artifact = "com.google.protobuf:protoc:4.36.2"
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.83.1'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.85.1'
         }
     }
     generateProtoTasks {

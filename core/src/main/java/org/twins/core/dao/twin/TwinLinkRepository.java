@@ -89,6 +89,29 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     @Query(value = "select distinct dstTwinId from TwinLinkEntity where linkId = :linkId")
     Set<UUID> findDstTwinIdsByLinkId(@Param("linkId") UUID linkId);
 
+    @Query("select tl from TwinLinkEntity tl where tl.dstTwinId = :dstTwinId and tl.linkId = :linkId " +
+            "order by tl.sortOrder asc nulls last, tl.createdAt asc, tl.id asc")
+    List<TwinLinkEntity> findDstLinkLevelOrdered(@Param("dstTwinId") UUID dstTwinId, @Param("linkId") UUID linkId);
+
+    // light reorder path: anchor keys only, no entity materialization
+    @Query("select tl.id as id, tl.srcTwinId as srcTwinId, tl.sortOrder as sortOrder from TwinLinkEntity tl " +
+            "where tl.dstTwinId = :dstTwinId and tl.linkId = :linkId and tl.srcTwinId in :srcTwinIds")
+    List<TwinLinkSortOrderView> findSortOrderViewByLevelAndSrcIds(@Param("dstTwinId") UUID dstTwinId, @Param("linkId") UUID linkId, @Param("srcTwinIds") Collection<UUID> srcTwinIds);
+
+    // light reorder path: level minimum and the smallest key after the anchor in one query
+    @Query("select min(tl.sortOrder) as minKey, min(case when tl.sortOrder > :afterKey then tl.sortOrder end) as nextKey " +
+            "from TwinLinkEntity tl where tl.dstTwinId = :dstTwinId and tl.linkId = :linkId and tl.sortOrder is not null and tl.id not in :excludeIds")
+    TwinRepository.SortOrderBounds findSortOrderBounds(@Param("dstTwinId") UUID dstTwinId, @Param("linkId") UUID linkId,
+                                                       @Param("afterKey") String afterKey, @Param("excludeIds") Collection<UUID> excludeIds);
+
+    interface TwinLinkSortOrderView {
+        UUID getId();
+
+        UUID getSrcTwinId();
+
+        String getSortOrder();
+    }
+
 
     //todo think about batch query
     @Transactional

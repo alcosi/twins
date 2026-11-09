@@ -138,6 +138,8 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
                     return toSortSpecification(ascending, TwinEntity.Fields.createdAt);
                 case EXTERNAL_ID:
                     return toSortSpecification(ascending, TwinEntity.Fields.externalId);
+                case SORT_ORDER:
+                    return toSortSpecification(ascending, TwinEntity.Fields.sortOrder);
                 case FLAVOR_DATA_LIST_OPTION_ID:
                     return I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinEntity.Fields.flavorDataListOptionSpecOnly, DataListOptionEntity.Fields.optionI18nTranslationsSpecOnly);
                 case TWIN_CLASS_ID:

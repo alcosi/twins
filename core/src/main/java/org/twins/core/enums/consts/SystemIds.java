@@ -75,6 +75,7 @@ public final class SystemIds {
             public static final UUID TAGS             = UUID.fromString("00000000-0000-0000-0011-000000000015");
             public static final UUID MARKERS          = UUID.fromString("00000000-0000-0000-0011-000000000016");
             public static final UUID FLAVOR_ID = UUID.fromString("00000000-0000-0000-0011-000000000017");
+            public static final UUID SORT_ORDER = UUID.fromString("00000000-0000-0000-0011-000000000018");
             /**
              * All TwinClassField UUIDs that belong to system TwinClasses (USER / GLOBAL_ANCESTOR /
              * TWINS_GLOSSARY). Enumerated explicitly to keep this class self-contained — no

@@ -24,7 +24,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -65,9 +64,9 @@ class TwinLinkAddRestDTOReverseMapperTest {
         UUID linkId1 = UuidUtils.generate();
         UUID linkId2 = UuidUtils.generate();
         FieldValue fieldValue = mock(FieldValue.class);
-        when(relationTwinFieldsConverter.convert(eq(linkId1), eq(Map.of("amount", "10")), any(MapperContext.class)))
+        when(relationTwinFieldsConverter.convert(eq(linkId1), eq(Map.of("amount", "10"))))
                 .thenReturn(List.of(fieldValue));
-        when(relationTwinFieldsConverter.convert(eq(linkId2), eq(Map.of("amount", "20")), any(MapperContext.class)))
+        when(relationTwinFieldsConverter.convert(eq(linkId2), eq(Map.of("amount", "20"))))
                 .thenReturn(List.of(fieldValue));
 
         // when
@@ -76,7 +75,7 @@ class TwinLinkAddRestDTOReverseMapperTest {
                 dto(linkId2, Map.of("amount", "20"))), new MapperContext());
 
         // then: ONE batch preload with both ids, conversion delegated per link
-        verify(relationTwinFieldsConverter, times(1)).preloadLinks(eq(Set.of(linkId1, linkId2)), any(MapperContext.class));
+        verify(relationTwinFieldsConverter, times(1)).preloadLinks(eq(Set.of(linkId1, linkId2)));
         assertEquals(2, result.size());
         assertEquals(List.of(fieldValue), result.get(0).getRelationTwinFields());
         assertEquals(List.of(fieldValue), result.get(1).getRelationTwinFields());

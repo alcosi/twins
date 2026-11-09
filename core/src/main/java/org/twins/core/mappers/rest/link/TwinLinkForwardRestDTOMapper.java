@@ -34,6 +34,7 @@ public class TwinLinkForwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEn
 
     @Override
     public void map(TwinLinkEntity src, TwinLinkDTOv1 dst, MapperContext mapperContext) throws Exception {
+        dst.setSortOrder(src.getSortOrder());
         switch (mapperContext.getModeOrUse(TwinLinkMode.DETAILED)) {
             case DETAILED:
                 dst

@@ -19,6 +19,8 @@ public class I18nCacheCleanupFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
+            // drop leftovers of a previous ERROR dispatch on this pooled worker (the filter does not re-run on error dispatches)
+            EntityRequestCacheHolder.clear();
             filterChain.doFilter(request, response);
         } finally {
             I18nCacheHolder.clear();

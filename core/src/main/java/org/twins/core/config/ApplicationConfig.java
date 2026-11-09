@@ -41,6 +41,7 @@ import org.twins.core.config.filter.I18nCacheCleanupFilter;
 import org.twins.core.config.filter.LoggingFilter;
 import org.twins.core.config.filter.UncaughtExceptionFilter;
 import org.twins.core.featurer.scheduler.Scheduler;
+import org.twins.core.holder.EntityRequestCacheHolder;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.sql.DataSource;
@@ -168,6 +169,26 @@ public class ApplicationConfig {
         EntitySmartService entitySmartService = new EntitySmartService();
         entitySmartService.setDaoPackages(new String[]{"org.twins.core.dao", "org.cambium.i18n.dao"});
         return entitySmartService;
+    }
+
+    /**
+     * Enforces the {@link EntityRequestCacheHolder} cleanup contract on every pooled task executor
+     * (see its javadoc): pooled worker threads must never serve stale entries to the next task.
+     * Clear-before drops leftovers of a task that died before its own finally; clear-after is the
+     * contract proper. One decorator covers all scheduler executors below (they autowire it
+     * optionally) and the {@code @Async} executor in {@link AsyncConfig} — the contract becomes a
+     * mechanism, not a convention.
+     */
+    @Bean
+    public TaskDecorator entityRequestCacheCleanupTaskDecorator() {
+        return runnable -> () -> {
+            EntityRequestCacheHolder.clear();
+            try {
+                runnable.run();
+            } finally {
+                EntityRequestCacheHolder.clear();
+            }
+        };
     }
 
     /**

@@ -63,7 +63,7 @@ class TwinLinkUpdateRestDTOReverseMapperTest {
         UUID dstTwinId = UuidUtils.generate();
         when(twinService.findEntitySafe(dstTwinId)).thenReturn(new TwinEntity().setId(dstTwinId));
         FieldValue fieldValue = mock(FieldValue.class);
-        when(relationTwinFieldsConverter.convertForRelationTwin(eq(twinLinkId), eq(Map.of("amount", "99")), any(MapperContext.class)))
+        when(relationTwinFieldsConverter.convertForRelationTwin(eq(twinLinkId), eq(Map.of("amount", "99"))))
                 .thenReturn(List.of(fieldValue));
 
         // when
@@ -83,7 +83,7 @@ class TwinLinkUpdateRestDTOReverseMapperTest {
         UUID withoutFieldsId = UuidUtils.generate();
         UUID dstTwinId = UuidUtils.generate();
         when(twinService.findEntitySafe(dstTwinId)).thenReturn(new TwinEntity().setId(dstTwinId));
-        when(relationTwinFieldsConverter.convertForRelationTwin(eq(withFieldsId), any(), any(MapperContext.class)))
+        when(relationTwinFieldsConverter.convertForRelationTwin(eq(withFieldsId), any()))
                 .thenReturn(List.of(mock(FieldValue.class)));
 
         // when
@@ -92,7 +92,7 @@ class TwinLinkUpdateRestDTOReverseMapperTest {
                 dto(withoutFieldsId, dstTwinId, null)), new MapperContext());
 
         // then: ONE batch preload with only the field-carrying id
-        verify(relationTwinFieldsConverter, times(1)).preloadRelationTwins(eq(Set.of(withFieldsId)), any(MapperContext.class));
+        verify(relationTwinFieldsConverter, times(1)).preloadRelationTwins(eq(Set.of(withFieldsId)));
         assertEquals(2, result.size());
         assertNull(result.get(1).getRelationTwinFields());
         assertNull(result.get(1).getTwinLink().getRelationTwinId(), "no pointer without relationTwinFields — plain updates must not load/throw on a missing relation twin");

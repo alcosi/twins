@@ -6,6 +6,7 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Base composition object for twin_link save operations — mirrors the TwinClassSave/TwinClassCreate pattern:
@@ -24,4 +25,10 @@ public class TwinLinkSave {
      * lookups are batched in beforeCollectionConversion via the MapperContext cache (no N+1).
      */
     private List<FieldValue> relationTwinFields;
+
+    /**
+     * Reorder anchor: id of the src twin after which this link's src twin goes in the
+     * (dstTwinId, linkId) level; null = do not reorder, UuidUtils.NULLIFY_MARKER = place first.
+     */
+    private UUID afterTwinId;
 }

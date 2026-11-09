@@ -10,6 +10,7 @@ import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.context.ContextEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListSubsetEntity;
@@ -19,7 +20,10 @@ import org.twins.core.dao.factory.*;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.notification.*;
+import org.twins.core.dao.notification.HistoryNotificationRecipientEntity;
+import org.twins.core.dao.notification.NotificationChannelEntity;
+import org.twins.core.dao.notification.NotificationChannelEventEntity;
+import org.twins.core.dao.notification.NotificationSchemaEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -125,7 +129,7 @@ public class RelatedObjectsRestDTOConverter {
                 descriptor(RelatedObjectsDTOv1::setHistoryNotificationRecipientMap, source(HistoryNotificationRecipientEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setNotificationSchemaMap, source(NotificationSchemaEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setNotificationChannelMap, source(NotificationChannelEntity.class)),
-                descriptor(RelatedObjectsDTOv1::setNotificationContextMap, source(NotificationContextEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setContextMap, source(ContextEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setNotificationChannelEventMap, source(NotificationChannelEventEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setTwinValidatorSetMap, source(TwinValidatorSetEntity.class)),
                 // String id: does not fit Function<T, UUID>

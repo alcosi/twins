@@ -42,6 +42,9 @@ public class TwinLinkEntity extends PersistableEntity implements PublicCloneable
     @Column(name = "link_id")
     private UUID linkId;
 
+    @Column(name = "sort_order")
+    private String sortOrder;
+
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 

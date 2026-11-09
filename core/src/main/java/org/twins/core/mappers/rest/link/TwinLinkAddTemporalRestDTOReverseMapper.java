@@ -53,7 +53,7 @@ public class TwinLinkAddTemporalRestDTOReverseMapper extends RestSimpleDTOMapper
         dst.setTwinLink(twinLink);
         // Relation twin initial fields (relation attributes): same mapper-layer conversion as the v1 add mapper
         if (MapUtils.isNotEmpty(src.getRelationTwinFields()))
-            dst.setRelationTwinFields(relationTwinFieldsConverter.convert(src.getLinkId(), src.getRelationTwinFields(), mapperContext));
+            dst.setRelationTwinFields(relationTwinFieldsConverter.convert(src.getLinkId(), src.getRelationTwinFields()));
     }
 
     @Override
@@ -65,6 +65,6 @@ public class TwinLinkAddTemporalRestDTOReverseMapper extends RestSimpleDTOMapper
             if (MapUtils.isNotEmpty(dto.getRelationTwinFields()) && dto.getLinkId() != null)
                 linkIds.add(dto.getLinkId());
         if (!linkIds.isEmpty())
-            relationTwinFieldsConverter.preloadLinks(linkIds, mapperContext);
+            relationTwinFieldsConverter.preloadLinks(linkIds);
     }
 }

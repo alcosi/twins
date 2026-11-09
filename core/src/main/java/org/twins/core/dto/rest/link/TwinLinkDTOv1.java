@@ -44,4 +44,7 @@ public class TwinLinkDTOv1 {
     @Schema(description = "created by user id", example = DTOExamples.USER_ID)
     @RelatedObject(type = UserDTOv1.class, name = "createdByUser")
     public UUID createdByUserId;
+
+    @Schema(description = "user defined order key (lexicographic)")
+    public String sortOrder;
 }

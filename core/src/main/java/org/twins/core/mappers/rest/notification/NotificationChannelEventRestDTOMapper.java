@@ -7,10 +7,11 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.notification.NotificationChannelEventEntity;
 import org.twins.core.dto.rest.notification.NotificationChannelEventDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.context.ContextRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.ContextMode;
 import org.twins.core.mappers.rest.mappercontext.modes.NotificationChannelEventMode;
 import org.twins.core.mappers.rest.mappercontext.modes.NotificationChannelMode;
-import org.twins.core.mappers.rest.mappercontext.modes.NotificationContextMode;
 import org.twins.core.service.notification.NotificationChannelEventService;
 
 import java.util.Collection;
@@ -22,8 +23,8 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
     @MapperModePointerBinding(modes = NotificationChannelMode.NotificationChannelEvent2NotificationChannelMode.class)
     private final NotificationChannelRestDTOMapper notificationChannelRestDTOMapper;
 
-    @MapperModePointerBinding(modes = NotificationContextMode.NotificationChannelEvent2NotificationContextMode.class)
-    private final NotificationContextRestDTOMapper notificationContextRestDTOMapper;
+    @MapperModePointerBinding(modes = ContextMode.NotificationChannelEvent2ContextMode.class)
+    private final ContextRestDTOMapper contextRestDTOMapper;
 
     private final NotificationChannelEventService notificationChannelEventService;
 
@@ -35,7 +36,7 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
                         .setId(src.getId())
                         .setNotificationChannelId(src.getNotificationChannelId())
                         .setEventCode(src.getEventCode())
-                        .setNotificationContextId(src.getNotificationContextId())
+                        .setContextId(src.getContextId())
                         .setUniqueInBatch(src.isUniqueInBatch());
                 break;
             case SHORT:
@@ -52,12 +53,12 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(NotificationChannelMode.NotificationChannelEvent2NotificationChannelMode.SHORT)));
         }
 
-        if (mapperContext.hasModeButNot(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.HIDE)) {
-            dst.setNotificationContextId(src.getNotificationContextId());
+        if (mapperContext.hasModeButNot(ContextMode.NotificationChannelEvent2ContextMode.HIDE)) {
+            dst.setContextId(src.getContextId());
 
-            notificationChannelEventService.loadNotificationContext(src);
-            notificationContextRestDTOMapper.postpone(src.getNotificationContext(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.SHORT)));
+            notificationChannelEventService.loadContext(src);
+            contextRestDTOMapper.postpone(src.getContext(),
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(ContextMode.NotificationChannelEvent2ContextMode.SHORT)));
         }
     }
 
@@ -67,8 +68,8 @@ public class NotificationChannelEventRestDTOMapper extends RestSimpleDTOMapper<N
         if (mapperContext.hasModeButNot(NotificationChannelMode.NotificationChannelEvent2NotificationChannelMode.HIDE)) {
             notificationChannelEventService.loadNotificationChannel(srcCollection);
         }
-        if (mapperContext.hasModeButNot(NotificationContextMode.NotificationChannelEvent2NotificationContextMode.HIDE)) {
-            notificationChannelEventService.loadNotificationContext(srcCollection);
+        if (mapperContext.hasModeButNot(ContextMode.NotificationChannelEvent2ContextMode.HIDE)) {
+            notificationChannelEventService.loadContext(srcCollection);
         }
     }
 }
