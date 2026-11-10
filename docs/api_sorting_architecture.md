@@ -62,7 +62,7 @@ public enum DomainBusinessAccountUserSortField {
 
 No constructor, no fieldPath, no SortField<T>. Pure data carrier.
 
-Do not put the entity primary key `id` in a sort enum. `id` is not a sort key. The default sort is a business field such as `createdAt` (`ResourceSortField` sorts by `originalFileName`, `sizeInBytes`, `createdAt`, `uploadedByUserId`).
+Do not put the entity primary key `id` in a sort enum. `id` is not a sort key. The default sort is a business field such as `createdAt` (`ResourceSortField` sorts by `originalFileName`, `sizeInBytes`, `createdAt`, `uploadedByUserName`).
 
 ### 2. Static helpers in `CommonSpecification` and `I18nSpecification`
 

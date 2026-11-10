@@ -7,7 +7,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dto.rest.resource.StorageDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.StorageMode;
@@ -18,7 +18,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.StorageMode;
 public class StorageRestDTOMapper extends RestSimpleDTOMapper<StorageEntity, StorageDTOv1> {
 
     @MapperModePointerBinding(modes = FeaturerMode.Storage2FeaturerMode.class)
-    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
 
     @Override
     public void map(StorageEntity src, StorageDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -37,8 +37,8 @@ public class StorageRestDTOMapper extends RestSimpleDTOMapper<StorageEntity, Sto
         }
         if (mapperContext.hasModeButNot(FeaturerMode.Storage2FeaturerMode.HIDE)) {
             dst.setStorageFeaturerId(src.getStorageFeaturerId());
-            featurerRestDTOMapper.postpone(src.getStorageFeaturerId(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.Storage2FeaturerMode.SHORT)));
+            featurerParametrizedRestDTOMapper.postpone(src.getStorageFeaturerId(), src.getStoragerParams(),
+                    mapperContext.forkOnPoint(FeaturerMode.Storage2FeaturerMode.SHORT));
         }
     }
 

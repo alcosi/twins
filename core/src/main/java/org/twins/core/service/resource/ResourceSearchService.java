@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.resource.ResourceRepository;
 import org.twins.core.domain.search.ResourceSearch;
 import org.twins.core.enums.SortDirection;
@@ -81,7 +82,7 @@ public class ResourceSearchService extends EntitySearchService
             case originalFileName -> toSortSpecification(ascending, ResourceEntity.Fields.originalFileName);
             case sizeInBytes -> toSortSpecification(ascending, ResourceEntity.Fields.sizeInBytes);
             case createdAt -> toSortSpecification(ascending, ResourceEntity.Fields.createdAt);
-            case uploadedByUserId -> toSortSpecification(ascending, ResourceEntity.Fields.uploadedByUserId);
+            case uploadedByUserName -> toSortSpecification(ascending, ResourceEntity.Fields.uploadedByUser, UserEntity.Fields.name);
         };
     }
 

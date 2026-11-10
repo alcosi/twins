@@ -35,8 +35,6 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
-    /** Relative uri of the public download endpoint served by ResourcePublicController. */
-    public static final String DOWNLOAD_URI_TEMPLATE = "/public/resource/%s/v1";
 
     protected final FeaturerService featurerService;
     protected final ResourceRepository resourceRepository;

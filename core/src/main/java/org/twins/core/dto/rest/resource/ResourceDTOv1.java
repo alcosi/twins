@@ -37,9 +37,6 @@ public class ResourceDTOv1 {
     @Schema(description = "upload timestamp", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
 
-    @Schema(description = "relative download uri served by twins")
-    public String downloadUri;
-
     @Schema(description = "direct link to the stored file in the domain storage")
     public String storageLink;
 }

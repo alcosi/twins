@@ -28,6 +28,7 @@ public class ResourceRestDTOMapper extends RestSimpleDTOMapper<ResourceEntity, R
 
     @Override
     public void map(ResourceEntity src, ResourceDTOv1 dst, MapperContext mapperContext) throws Exception {
+        resourceService.loadStorage(src);
         dst
                 .setId(src.getId())
                 .setUploadedByUserId(src.getUploadedByUserId())
@@ -35,14 +36,12 @@ public class ResourceRestDTOMapper extends RestSimpleDTOMapper<ResourceEntity, R
                 .setOriginalFileName(src.getOriginalFileName())
                 .setSizeInBytes(src.getSizeInBytes())
                 .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
-                .setDownloadUri(String.format(ResourceService.DOWNLOAD_URI_TEMPLATE, src.getId()))
-                .setStorageLink(src.getStorage() != null ? resourceService.getResourceUri(src) : null);
+                .setStorageLink(resourceService.getResourceUri(src));
         if (mapperContext.hasModeButNot(UserMode.Resource2UserMode.HIDE)) {
             resourceService.loadUploadedByUser(src);
             userRestDTOMapper.postpone(src.getUploadedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Resource2UserMode.SHORT)));
         }
         if (mapperContext.hasModeButNot(StorageMode.Resource2StorageMode.HIDE)) {
-            resourceService.loadStorage(src);
             storageRestDTOMapper.postpone(src.getStorage(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StorageMode.Resource2StorageMode.SHORT)));
         }
     }
