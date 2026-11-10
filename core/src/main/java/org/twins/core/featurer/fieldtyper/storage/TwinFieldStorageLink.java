@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.twinlink.TwinLinkService;
 
@@ -51,5 +52,10 @@ public class TwinFieldStorageLink extends TwinFieldStorage {
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
+        return null;
     }
 }

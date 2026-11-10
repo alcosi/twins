@@ -3,9 +3,12 @@ package org.twins.core.featurer.fieldtyper.storage;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+
+import java.util.UUID;
 
 import java.util.Collection;
 
@@ -32,5 +35,10 @@ public class TwinFieldStorageSimple extends TwinFieldStorageMater<TwinFieldSimpl
     @Override
     public void initEmpty(TwinEntity twinEntity) {
         twinEntity.setTwinFieldSimpleKit(new Kit<>(TwinFieldSimpleEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
+        return countGroupByColumn(fieldId, TwinEntity.Fields.fieldsSimpleSpecOnly, TwinFieldSimpleEntity.Fields.value);
     }
 }
