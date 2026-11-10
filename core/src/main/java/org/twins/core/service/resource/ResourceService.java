@@ -9,8 +9,8 @@ import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.resource.ResourceEntity;
@@ -53,6 +53,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     @Transactional(readOnly = true)
     public InputStreamResponse getResourceFile(UUID resourceId) throws ServiceException {
         var resource = findEntitySafe(resourceId);
+        loadStorage(resource);
         StorageEntity storage = resource.getStorage();
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         var stream = fileService.getFileAsStream(resource.getStorageFileKey(), storage.getStoragerParams());
@@ -135,6 +136,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public void deleteResource(UUID resourceId) throws ServiceException {
         var resource = findEntitySafe(resourceId);
+        loadStorage(resource);
         StorageEntity storage = resource.getStorage();
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         storager.tryDeleteFile(resource.getStorageFileKey(), storage.getStoragerParams());
@@ -156,6 +158,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         var resource = findEntitySafe(resourceId);
         if (resource.getStorageId().equals(newStorageId))
             return resource;
+        loadStorage(resource);
         StorageEntity oldStorage = resource.getStorage();
         StorageEntity newStorage = storageService.findEntitySafe(newStorageId);
 
@@ -180,6 +183,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
 
     public String getResourceUri(ResourceEntity resourceEntity) throws ServiceException {
         if (resourceEntity != null) {
+            loadStorage(resourceEntity);
             var featurer = featurerService.getFeaturer(resourceEntity.getStorage().getStorageFeaturerId(), Storager.class);
             return featurer.getFileUri(resourceEntity.getId(), resourceEntity.getStorageFileKey(), resourceEntity.getStorage().getStoragerParams()).toString();
         }
