@@ -5,6 +5,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -132,5 +133,10 @@ public class TwinFieldStorageDependent extends TwinFieldStorage {
         TwinFieldStorageDependent that = (TwinFieldStorageDependent) o;
         return Objects.equals(this.twinClassFieldId, that.twinClassFieldId)
                 && Objects.equals(this.operandFieldIds, that.operandFieldIds);
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return null;
     }
 }

@@ -1,7 +1,9 @@
 package org.twins.core.featurer.fieldtyper.storage;
 
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twin.TwinFieldCalcProjection;
 
 import java.math.BigDecimal;
@@ -53,5 +55,10 @@ public abstract class TwinFieldStorageCalc extends TwinFieldStorage {
     @Override
     public Collection<UUID> findUsedFields(UUID twinClassId, Set<UUID> twinClassFieldIdSet) {
         return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return null;
     }
 }

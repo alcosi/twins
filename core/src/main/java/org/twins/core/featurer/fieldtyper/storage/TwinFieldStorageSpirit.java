@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.*;
 
@@ -49,6 +51,11 @@ public class TwinFieldStorageSpirit extends TwinFieldStorage {
     @Override
     public void deleteTwinFieldsForTwins(Map<UUID, Set<UUID>> deleteMap) {
         //nothing to delete
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return null;
     }
 
 }

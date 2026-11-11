@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.i18n.specifications.I18nSpecification;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -25,6 +26,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.auth.AuthService;
@@ -34,9 +36,12 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.usergroup.UserGroupService;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkClassWithDomain;
@@ -194,6 +199,13 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
             entity.setCreatedByUserId((UUID) value);
         else if (field.equals(SystemIds.TwinClassField.Base.HEAD_ID))
             entity.setHeadTwinId((UUID) value);
+        else {
+            // dynamic twin class field — store the grouped value generically for the count DTO;
+            // one entry per field, so several dynamic dimensions survive the round trip
+            if (entity.getGroupedFieldValues() == null)
+                entity.setGroupedFieldValues(new HashMap<>());
+            entity.getGroupedFieldValues().put(field, value);
+        }
     }
 
     private static org.hibernate.query.SortDirection toHibernateDirection(SortDirection direction) {
@@ -224,6 +236,36 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
 
     public Map<UUID, Long> countByGroupFields(BasicSearch basicSearch, TwinEntity.BasicField basicField) throws ServiceException {
         return countByGroupFields(basicSearch, basicField.getId());
+    }
+
+    /**
+     * Provider path for twin grouping: basic system field -> direct root field (reusing the
+     * {@link #convertToEntityField(UUID)} groupable whitelist); dynamic twin class field ->
+     * {@link org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage#countGroup}. Provider order
+     * matches the {@code groupFields} iteration (the row columns are read back in that order).
+     */
+    @Override
+    protected List<GroupExpressionProvider<TwinEntity>> resolveGroupProviders(BasicSearch search, Set<UUID> groupFields) throws ServiceException {
+        List<GroupExpressionProvider<TwinEntity>> providers = new ArrayList<>(groupFields.size());
+        for (UUID fieldId : groupFields) {
+            TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(fieldId);
+            if (basicField != null) {
+                providers.add(GroupExpressionProvider.ofField(convertToEntityField(fieldId)));
+            } else {
+                providers.add(countGroup(twinClassFieldService.findEntitySafe(fieldId)));
+            }
+        }
+        return providers;
+    }
+
+    private GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
+        GroupExpressionProvider<TwinEntity> group = fieldTyper.getStorage(field).countGroup(field);
+        if (group == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                    "Field " + field.getId() + " is not countable; " + field.logShort());
+        }
+        return group;
     }
 
 

@@ -4,7 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.*;
 
@@ -50,5 +52,10 @@ public class TwinFieldStorageAttachment extends TwinFieldStorage {
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return null;
     }
 }

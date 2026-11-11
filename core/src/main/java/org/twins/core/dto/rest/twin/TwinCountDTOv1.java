@@ -12,6 +12,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
+import java.util.Map;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
@@ -46,4 +47,8 @@ public class TwinCountDTOv1 extends CountDTOv1 {
     @Schema(description = "Head twin id", example = DTOExamples.UUID_ID)
     @RelatedObject(type = TwinDTOv2.class, name = "headTwin")
     public UUID headTwinId;
+
+    @Schema(description = "Dynamic field values this group is keyed by: twin class field id -> storage value " +
+            "(number/text/boolean/timestamp/dataList option id). One entry per dynamic group field from the request")
+    public Map<UUID, Object> groupedFieldValues;
 }

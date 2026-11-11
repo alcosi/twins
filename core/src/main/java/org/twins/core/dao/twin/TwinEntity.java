@@ -426,6 +426,15 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @ToString.Exclude
     private TwinEntity headTwin;
 
+    // Count API: scratch map for "group by dynamic field" dimensions (not persisted).
+    // Key is the twin class field grouped by; value is the storage value of that field
+    // for the group (text, decimal, boolean, timestamp, or datalist option id). One entry
+    // per dynamic group field, so several dynamic dimensions can be read back at once.
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Map<UUID, Object> groupedFieldValues;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

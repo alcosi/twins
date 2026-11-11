@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
@@ -61,6 +62,10 @@ public class TwinCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<Twin
             if (groupFields.contains(SystemIds.TwinClassField.Base.HEAD_ID))
                 dst.setHeadTwinId(entity.getHeadTwinId());
         }
+        // dynamic twin class field grouping — values come straight from the group expressions,
+        // one entry per dynamic group field
+        if (MapUtils.isNotEmpty(entity.getGroupedFieldValues()))
+            dst.setGroupedFieldValues(entity.getGroupedFieldValues());
         dst.setCount(src.getCount());
 
         if (needLoad(mapperContext, StatusMode.Twin2StatusMode.HIDE, src, SystemIds.TwinClassField.Base.STATUS_ID)) {
