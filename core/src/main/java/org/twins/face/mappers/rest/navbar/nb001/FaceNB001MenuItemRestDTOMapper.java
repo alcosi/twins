@@ -43,7 +43,8 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setTargetTwinId(src.getTargetTwinId())
                 .setGuardedByPermissionId(src.getPermissionId())
                 .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
-                .setChildren(convertCollection(src.getChilds())); //be afraid of endless looping!
+                .setOrder(src.getOrder())
+                .setChildren(convertCollection(src.getChilds() == null ? null : faceNB001MenuItemService.sorted(src.getChilds()))); //be afraid of endless looping!
 
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {

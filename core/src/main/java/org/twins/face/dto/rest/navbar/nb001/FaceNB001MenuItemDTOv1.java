@@ -45,4 +45,7 @@ public class FaceNB001MenuItemDTOv1 {
 
     @Schema(description = "target twin id")
     private UUID targetTwinId;
+
+    @Schema(description = "display order among siblings, smaller values are shown first")
+    public Integer order;
 }

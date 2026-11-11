@@ -56,6 +56,9 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Column(name = "parent_face_navbar_nb001_menu_item_id")
     private UUID parentFaceMenuItemId;
 
+    @Column(name = "`order`")
+    private Integer order;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
@@ -82,7 +85,7 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
 
     @Deprecated
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_page_face_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "target_page_face_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity targetPageFace;
