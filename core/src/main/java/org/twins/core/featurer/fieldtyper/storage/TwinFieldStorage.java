@@ -10,6 +10,7 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.Collection;
 import java.util.Map;
@@ -52,11 +53,10 @@ public abstract class TwinFieldStorage {
      * GROUP BY expression for the twin count API.
      * {@code null} means this storage is not a count dimension.
      * A new storage does not compile until it decides: return a column group, or {@code null}.
-     *
-     * @param distinct count each twin once per group. Used by storages that can keep several
-     *                 rows of one field on one twin (a multiple datalist). Other storages ignore it.
+     * A storage that keeps several rows of one field on one twin (a multiple datalist) decides
+     * itself whether to count each twin once per group.
      */
-    public abstract GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct);
+    public abstract GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) throws ServiceException;
 
     protected final GroupExpressionProvider<TwinEntity> countGroupByColumn(UUID fieldId, String collection, String attribute) {
         return countGroupByColumn(fieldId, collection, attribute, false);

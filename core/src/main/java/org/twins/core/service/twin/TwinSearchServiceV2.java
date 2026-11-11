@@ -26,6 +26,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
 import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.auth.AuthService;
@@ -61,7 +62,6 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
     @Lazy
     private final AuthService authService;
     private final DBUService dbuService;
-    private final TwinFieldCountGroup twinFieldCountGroup;
 
     @Override
     public JpaSpecificationExecutor<TwinEntity> jpaSpecificationExecutor() {
@@ -241,8 +241,8 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
     /**
      * Provider path for twin grouping: basic system field -> direct root field (reusing the
      * {@link #convertToEntityField(UUID)} groupable whitelist); dynamic twin class field ->
-     * the value column of that field's storage. Provider order matches the {@code groupFields}
-     * iteration (the row columns are read back in that order).
+     * {@link org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage#countGroup}. Provider order
+     * matches the {@code groupFields} iteration (the row columns are read back in that order).
      */
     @Override
     protected List<GroupExpressionProvider<TwinEntity>> resolveGroupProviders(BasicSearch search, Set<UUID> groupFields) throws ServiceException {
@@ -252,10 +252,20 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
             if (basicField != null) {
                 providers.add(GroupExpressionProvider.ofField(convertToEntityField(fieldId)));
             } else {
-                providers.add(twinFieldCountGroup.create(twinClassFieldService.findEntitySafe(fieldId)));
+                providers.add(countGroup(twinClassFieldService.findEntitySafe(fieldId)));
             }
         }
         return providers;
+    }
+
+    private GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
+        GroupExpressionProvider<TwinEntity> group = fieldTyper.getStorage(field).countGroup(field);
+        if (group == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                    "Field " + field.getId() + " is not countable; " + field.logShort());
+        }
+        return group;
     }
 
 

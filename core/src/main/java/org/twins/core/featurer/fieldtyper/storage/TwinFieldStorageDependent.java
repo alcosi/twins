@@ -136,7 +136,7 @@ public class TwinFieldStorageDependent extends TwinFieldStorage {
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
         return null;
     }
 }

@@ -6,6 +6,7 @@ import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.*;
@@ -55,7 +56,7 @@ public class TwinFieldStorageLink extends TwinFieldStorage {
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
         return null;
     }
 }

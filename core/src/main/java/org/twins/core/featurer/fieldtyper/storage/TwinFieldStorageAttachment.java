@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.*;
 
@@ -54,7 +55,7 @@ public class TwinFieldStorageAttachment extends TwinFieldStorage {
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
         return null;
     }
 }

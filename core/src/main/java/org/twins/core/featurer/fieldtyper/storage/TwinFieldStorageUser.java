@@ -7,6 +7,7 @@ import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldUserEntity;
 import org.twins.core.dao.twin.TwinFieldUserRepository;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -49,7 +50,7 @@ public class TwinFieldStorageUser extends TwinFieldStorageMater<TwinFieldUserEnt
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
         return null;
     }
 }

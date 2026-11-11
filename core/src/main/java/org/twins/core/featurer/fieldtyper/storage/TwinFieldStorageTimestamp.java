@@ -7,8 +7,7 @@ import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampRepository;
-
-import java.util.UUID;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.Collection;
 
@@ -38,7 +37,7 @@ public class TwinFieldStorageTimestamp extends TwinFieldStorageMater<TwinFieldTi
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
-        return countGroupByColumn(fieldId, TwinEntity.Fields.fieldsTimestampSpecOnly, TwinFieldTimestampEntity.Fields.value);
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return countGroupByColumn(field.getId(), TwinEntity.Fields.fieldsTimestampSpecOnly, TwinFieldTimestampEntity.Fields.value);
     }
 }

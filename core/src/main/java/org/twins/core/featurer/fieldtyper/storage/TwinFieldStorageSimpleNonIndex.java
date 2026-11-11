@@ -7,9 +7,9 @@ import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNonIndexedRepository;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.Collection;
-import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -37,7 +37,7 @@ public class TwinFieldStorageSimpleNonIndex extends TwinFieldStorageMater<TwinFi
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
         return null;
     }
 }

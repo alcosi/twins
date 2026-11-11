@@ -7,8 +7,7 @@ import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalRepository;
-
-import java.util.UUID;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.Collection;
 
@@ -39,7 +38,7 @@ public class TwinFieldStorageDecimal extends TwinFieldStorageMater<TwinFieldDeci
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(UUID fieldId, boolean distinct) {
-        return countGroupByColumn(fieldId, TwinEntity.Fields.fieldsDecimalSpecOnly, TwinFieldDecimalEntity.Fields.value);
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return countGroupByColumn(field.getId(), TwinEntity.Fields.fieldsDecimalSpecOnly, TwinFieldDecimalEntity.Fields.value);
     }
 }
