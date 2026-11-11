@@ -955,6 +955,15 @@ CREATE OR REPLACE FUNCTION domain_version_before_update_core(
     RETURNS uuid AS
 $$
 BEGIN
+    -- The PK is the row identity: the journal chains rows by row_id and the images carry no PK
+    -- (row_image_clean strips it), so an id change silently splits the audit history, breaks the
+    -- rollback apply (keyed by row_id) and deltas (upsert by PK) — and an id swap between two
+    -- rows would tangle the chains beyond repair. Legit "re-id" = DELETE + INSERT, journaled
+    -- cleanly as two operations. For future composite-PK tables generalize this to comparing all
+    -- PK columns (the p_pk_predicate convention of the delete core).
+    IF (p_old->>'id')::uuid IS DISTINCT FROM (p_new->>'id')::uuid THEN
+        RAISE EXCEPTION '% %: id is immutable on a versioned row (delete + insert instead)', p_table, p_row_id;
+    END IF;
     IF p_new_domain_id IS DISTINCT FROM p_old_domain_id THEN
         RAISE EXCEPTION '% %: domain_id cannot be changed directly', p_table, p_row_id;
     END IF;

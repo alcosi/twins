@@ -353,6 +353,35 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
         jdbcTemplate.update("UPDATE domain SET locked = false WHERE id = ?", domainId);
     }
 
+    // ------------------------------------------------------------------
+    // immutable PK on versioned rows (TWINS-719, 2026-11-10): the journal chains rows by
+    // row_id and the images carry no PK — an id change would silently split the audit history
+    // (an id swap between two rows would tangle it beyond repair), so the update core rejects
+    // it; the legit re-id is DELETE + INSERT
+    // ------------------------------------------------------------------
+
+    @Test
+    public void idIsImmutableOnVersionedRow() {
+        UUID newId = UUID.randomUUID();
+        DataAccessException ex = assertThrows(DataAccessException.class,
+                () -> jdbcTemplate.update("UPDATE twin_class SET id = ? WHERE id = ?", newId, twinClassId),
+                "id change on a versioned row must be rejected");
+        assertTrue(ex.getMessage() != null && ex.getMessage().contains("id is immutable on a versioned row"),
+                "unexpected exception: " + ex);
+        assertEquals(0, jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM twin_class WHERE id = ?", Integer.class, newId));
+
+        // delete + insert is the legit re-id path: both journal cleanly
+        jdbcTemplate.update("DELETE FROM twin_class WHERE id = ?", twinClassId);
+        assertEquals("DELETED", twinClassRow().get("row_status"));
+        jdbcTemplate.update(
+                "INSERT INTO twin_class (id, key, twin_class_owner_type_id, created_by_user_id, domain_id)" +
+                " VALUES (?, ?, 'system', ?, ?)",
+                newId, "DV_CLASS_REID_" + newId, userId, domainId);
+        assertEquals(1, jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM twin_class WHERE id = ? AND row_status = 'ACTIVE'", Integer.class, newId));
+    }
+
     @Test
     public void incrementalImportRequiresReleasedCurrentAndMatchingBaseHash() {
         release("1.0", "H1.0", true);
