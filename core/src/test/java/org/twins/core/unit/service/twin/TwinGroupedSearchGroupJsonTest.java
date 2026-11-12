@@ -5,13 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dto.rest.twin.TwinGroupKeyDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchGroupDTOv1;
+import org.twins.core.enums.twin.TwinGroupValueType;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,41 +18,27 @@ class TwinGroupedSearchGroupJsonTest {
             .setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
     @Test
-    void nullAssignerKeyStaysInJsonAndOtherKeysStayAbsent() throws Exception {
+    void emptyUserKeyKeepsTypeAndNullValue() throws Exception {
         TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
-                .setKey(new TwinGroupKeyDTOv1.Assigner().setAssignerUserId(null))
+                .setKey(new TwinGroupKeyDTOv1().setType(TwinGroupValueType.USER).setValue(null))
                 .setCount(3L)
                 .setTwinIdList(List.of());
         String json = mapper.writeValueAsString(dto);
-        assertTrue(json.contains("\"assignerUserId\":null"));
-        assertFalse(json.contains("twinStatusId"));
-        assertFalse(json.contains("ownerUserId"));
-        assertFalse(json.contains("groupedFieldValues"));
+        assertTrue(json.contains("\"type\":\"USER\""), json);
+        assertTrue(json.contains("\"value\":null"), json);
+        assertFalse(json.contains("linkId"), json);
     }
 
     @Test
-    void nullDynamicValueStaysInsideTheFieldMap() throws Exception {
-        UUID fieldId = UUID.fromString("95f2c8ca-8b79-4971-9726-270a11c7d031");
-        Map<UUID, Object> values = new HashMap<>();
-        values.put(fieldId, null);
-        TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
-                .setKey(new TwinGroupKeyDTOv1.Dynamic().setGroupedFieldValues(values))
-                .setCount(1L)
-                .setTwinIdList(List.of());
-        String json = mapper.writeValueAsString(dto);
-        assertTrue(json.contains("\"groupedFieldValues\""), json);
-        assertTrue(json.contains("\"" + fieldId + "\":null"), json);
-    }
-
-    @Test
-    void emptyLinkKeepsLinkIdAndNullNode() throws Exception {
+    void emptyLinkKeepsLinkIdAndNullValue() throws Exception {
         UUID linkId = UUID.fromString("5fc86b22-352e-4017-9816-1f9326d8ac08");
         TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
-                .setKey(new TwinGroupKeyDTOv1.Link().setLinkId(linkId).setLinkTwinId(null))
+                .setKey(new TwinGroupKeyDTOv1().setType(TwinGroupValueType.TWIN).setValue(null).setLinkId(linkId))
                 .setCount(1L)
                 .setTwinIdList(List.of());
         String json = mapper.writeValueAsString(dto);
+        assertTrue(json.contains("\"type\":\"TWIN\""), json);
+        assertTrue(json.contains("\"value\":null"), json);
         assertTrue(json.contains("\"linkId\":\"" + linkId + "\""), json);
-        assertTrue(json.contains("\"linkTwinId\":null"), json);
     }
 }

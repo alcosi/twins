@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -12,8 +11,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TwinGroupedSearchGroupV1")
 public class TwinGroupedSearchGroupDTOv1 {
-    @JsonUnwrapped
-    @Schema(description = "Only the requested group field is present. A null value is the empty key")
+    @Schema(description = "Group key. type selects the relatedObjects map, value is the id in that map or the scalar itself")
     public TwinGroupKeyDTOv1 key;
 
     @Schema(description = "Number of distinct leaves in this subtree")

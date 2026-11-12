@@ -34,9 +34,7 @@ import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -195,24 +193,13 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
     }
 
     private static TwinGroupKeyDTOv1 key(TwinGroup group) {
-        UUID id = group.getKey() instanceof UUID uuid ? uuid : null;
-        return switch (group.getKeyKind()) {
-            case ASSIGNER_USER -> new TwinGroupKeyDTOv1.Assigner().setAssignerUserId(id);
-            case OWNER_USER -> new TwinGroupKeyDTOv1.Owner().setOwnerUserId(id);
-            case CREATOR_USER -> new TwinGroupKeyDTOv1.Creator().setCreatedByUserId(id);
-            case STATUS -> new TwinGroupKeyDTOv1.Status().setTwinStatusId(id);
-            case TWIN_CLASS -> new TwinGroupKeyDTOv1.TwinClass().setTwinClassId(id);
-            case HEAD -> new TwinGroupKeyDTOv1.Head().setHeadTwinId(id);
-            case FLAVOR -> new TwinGroupKeyDTOv1.Flavor().setFlavorDataListOptionId(id);
-            case DYNAMIC -> new TwinGroupKeyDTOv1.Dynamic().setGroupedFieldValues(dynamicValues(group));
-            case LINK -> new TwinGroupKeyDTOv1.Link().setLinkId(group.getLinkId()).setLinkTwinId(id);
-        };
-    }
-
-    private static Map<UUID, Object> dynamicValues(TwinGroup group) {
-        Map<UUID, Object> values = new HashMap<>();
-        values.put(group.getGroupFieldId(), group.getKey());
-        return values;
+        TwinGroupKeyDTOv1 key = new TwinGroupKeyDTOv1()
+                .setType(group.getValueType())
+                .setValue(group.getKey());
+        if (group.getKeyKind() == TwinGroupKeyKind.LINK) {
+            key.setLinkId(group.getLinkId());
+        }
+        return key;
     }
 
     private static List<UUID> ids(Collection<TwinGroup> groups, TwinGroupKeyKind... kinds) {

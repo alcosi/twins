@@ -26,10 +26,15 @@ import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.twin.TwinGroupCriterionType;
 import org.twins.core.enums.twin.TwinGroupSort;
+import org.twins.core.enums.twin.TwinGroupValueType;
 import org.twins.core.enums.twin.TwinLinkNodeEnd;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageBoolean;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -251,16 +256,22 @@ public class TwinGroupedSearchService {
         }
         twinSearchServiceV2.resolveGroupProvider(criterion.getFieldId());
         TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(criterion.getFieldId());
-        criterion.setBasicField(basicField).setKeyKind(keyKind(basicField));
+        TwinGroupKeyKind kind = keyKind(basicField);
+        criterion.setBasicField(basicField).setKeyKind(kind);
         if (basicField == null) {
             TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(criterion.getFieldId());
             FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
             TwinFieldStorage storage = fieldTyper.getStorage(field);
+            boolean dataList = TwinGroupKeyValues.isDataList(storage);
             criterion.setDynamicField(field)
                     .setStorage(storage)
-                    .setDataListOption(TwinGroupKeyValues.isDataList(storage));
-        } else if (basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID) {
-            criterion.setDataListOption(true);
+                    .setDataListOption(dataList)
+                    .setValueType(dynamicValueType(storage, dataList));
+        } else {
+            if (basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID) {
+                criterion.setDataListOption(true);
+            }
+            criterion.setValueType(valueType(kind));
         }
     }
 
@@ -272,7 +283,7 @@ public class TwinGroupedSearchService {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "duplicate group criterion " + criterion.getLinkId());
         }
         linkService.findEntitySafe(criterion.getLinkId());
-        criterion.setKeyKind(TwinGroupKeyKind.LINK);
+        criterion.setKeyKind(TwinGroupKeyKind.LINK).setValueType(TwinGroupValueType.TWIN);
     }
 
     private Specification<TwinEntity> memberOrder(List<TwinMemberSort> memberSorts, Locale locale) throws ServiceException {
@@ -296,6 +307,33 @@ public class TwinGroupedSearchService {
             spec = spec.and(twinSearchServiceV2.createSortSpecification(sort.getFieldId(), sort.getDirection(), locale));
         }
         return spec.and(toSortSpecification(true, TwinEntity.Fields.id));
+    }
+
+    private static TwinGroupValueType valueType(TwinGroupKeyKind kind) {
+        return switch (kind) {
+            case ASSIGNER_USER, OWNER_USER, CREATOR_USER -> TwinGroupValueType.USER;
+            case STATUS -> TwinGroupValueType.STATUS;
+            case TWIN_CLASS -> TwinGroupValueType.TWIN_CLASS;
+            case HEAD, LINK -> TwinGroupValueType.TWIN;
+            case FLAVOR -> TwinGroupValueType.DATA_LIST_OPTION;
+            case DYNAMIC -> TwinGroupValueType.TEXT;
+        };
+    }
+
+    private static TwinGroupValueType dynamicValueType(TwinFieldStorage storage, boolean dataList) {
+        if (dataList || storage instanceof TwinFieldStorageDatalist) {
+            return TwinGroupValueType.DATA_LIST_OPTION;
+        }
+        if (storage instanceof TwinFieldStorageDecimal) {
+            return TwinGroupValueType.DECIMAL;
+        }
+        if (storage instanceof TwinFieldStorageBoolean) {
+            return TwinGroupValueType.BOOLEAN;
+        }
+        if (storage instanceof TwinFieldStorageTimestamp) {
+            return TwinGroupValueType.TIMESTAMP;
+        }
+        return TwinGroupValueType.TEXT;
     }
 
     private static TwinGroupKeyKind keyKind(TwinEntity.BasicField basicField) throws ServiceException {

@@ -69,6 +69,7 @@ public final class TwinTreeAssembler {
                     .setKey(bucket.key)
                     .setCount(bucket.leafIds.size())
                     .setKeyKind(criterion.getKeyKind())
+                    .setValueType(criterion.getValueType())
                     .setGroupFieldId(criterion.getFieldId())
                     .setLinkId(criterion.getLinkId())
                     .setDataListOption(criterion.isDataListOption());

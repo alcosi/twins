@@ -180,26 +180,21 @@ function has(object, key) {
 function norm(value) {
   return value == null ? null : value;
 }
+function keyOf(group, type) {
+  return group.key && group.key.type === type ? norm(group.key.value) : undefined;
+}
 const readers = {
-  status: (group) => (has(group, "twinStatusId") ? norm(group.twinStatusId) : undefined),
-  assignee: (group) => (has(group, "assignerUserId") ? norm(group.assignerUserId) : undefined),
-  link: (group) => (has(group, "linkTwinId") ? norm(group.linkTwinId) : undefined),
-  work: (group) => {
-    const map = group.groupedFieldValues;
-    if (!map || !has(map, WORK)) return undefined;
-    return norm(map[WORK]);
-  },
-  bool: (group) => {
-    const map = group.groupedFieldValues;
-    if (!map || !has(map, BOOL)) return undefined;
-    return norm(map[BOOL]);
-  },
+  status: (group) => keyOf(group, "STATUS"),
+  assignee: (group) => keyOf(group, "USER"),
+  link: (group) => (group.key && has(group.key, "linkId") ? norm(group.key.value) : undefined),
+  work: (group) => keyOf(group, "DATA_LIST_OPTION"),
+  bool: (group) => keyOf(group, "BOOLEAN"),
 };
 function actual(groups, kinds) {
   return (groups || []).map((group) => ({
     key: readers[kinds[0]](group),
-    present: readers[kinds[0]](group) !== undefined || (kinds[0] === "link" ? has(group, "linkId") : false),
-    linkId: group.linkId,
+    present: readers[kinds[0]](group) !== undefined || (kinds[0] === "link" ? Boolean(group.key && has(group.key, "linkId")) : false),
+    linkId: group.key ? group.key.linkId : undefined,
     count: Number(group.count),
     hasTwins: has(group, "twinIdList"),
     hasGroups: has(group, "groups"),
@@ -478,7 +473,7 @@ try {
   const boolProblems = [];
   if (boolBody.__http !== 200) boolProblems.push(boolBody.statusDetails);
   else compareTree(boolGot, boolWant, boolProblems, "bool");
-  const nullBool = (boolBody.groups || []).find((group) => group.groupedFieldValues && Object.values(group.groupedFieldValues)[0] === null);
+  const nullBool = (boolBody.groups || []).find((group) => group.key && group.key.type === "BOOLEAN" && group.key.value === null);
   add("boolean field keeps true, false and a null key", boolProblems.length === 0 && Boolean(nullBool), boolProblems.length ? boolProblems : {
     keys: boolGot.map((group) => group.key),
   });
