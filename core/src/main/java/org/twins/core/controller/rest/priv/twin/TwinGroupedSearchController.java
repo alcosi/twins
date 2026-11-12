@@ -22,9 +22,11 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.twin.TwinGroupCriterion;
 import org.twins.core.domain.twin.TwinGroupedSearch;
 import org.twins.core.domain.twin.TwinGroupedSearchResult;
 import org.twins.core.domain.twin.TwinMemberSort;
+import org.twins.core.dto.rest.twin.TwinGroupCriterionDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSortDTOv1;
@@ -51,7 +53,7 @@ public class TwinGroupedSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinGroupedSearchV1", summary = "Search twins grouped by one field, returning every group and every twin in it")
+    @Operation(operationId = "twinGroupedSearchV1", summary = "Search twins of one class and fold them into a tree of up to 3 field or link criteria")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Grouped twins", content = {
                     @Content(mediaType = "application/json", schema =
@@ -67,11 +69,9 @@ public class TwinGroupedSearchController extends ApiController {
             BasicSearch search = request.getSearch() == null ? null : twinSearchDTOReverseMapper.convert(request.getSearch());
             TwinGroupedSearchResult result = twinGroupedSearchService.search(new TwinGroupedSearch()
                     .setSearch(search)
-                    .setGroupFieldId(request.getGroupFieldId())
-                    .setGroupSort(request.getGroupSort())
+                    .setCriteria(criteria(request.getCriteria()))
                     .setMemberSorts(memberSorts(request.getMemberSorts())));
             rs
-                    .setGroupFieldId(result.getGroupFieldId())
                     .setGroups(twinGroupedSearchGroupRestDTOMapper.convertCollection(result.getGroups(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -80,6 +80,26 @@ public class TwinGroupedSearchController extends ApiController {
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    private static List<TwinGroupCriterion> criteria(List<TwinGroupCriterionDTOv1> criteria) {
+        if (criteria == null) {
+            return null;
+        }
+        List<TwinGroupCriterion> result = new ArrayList<>(criteria.size());
+        for (TwinGroupCriterionDTOv1 criterion : criteria) {
+            if (criterion == null) {
+                result.add(null);
+                continue;
+            }
+            result.add(new TwinGroupCriterion()
+                    .setType(criterion.getType())
+                    .setFieldId(criterion.getFieldId())
+                    .setLinkId(criterion.getLinkId())
+                    .setNodeEnd(criterion.getNodeEnd())
+                    .setSort(criterion.getSort()));
+        }
+        return result;
     }
 
     private static List<TwinMemberSort> memberSorts(List<TwinSortDTOv1> sorts) {

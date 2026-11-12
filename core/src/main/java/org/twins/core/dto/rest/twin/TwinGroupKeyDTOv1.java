@@ -107,4 +107,18 @@ public abstract class TwinGroupKeyDTOv1 {
             return groupedFieldValues;
         }
     }
+
+    @Data
+    @Accessors(chain = true)
+    @EqualsAndHashCode(callSuper = false)
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    @Schema(name = "TwinGroupLinkKeyV1")
+    public static class Link extends TwinGroupKeyDTOv1 {
+        @Schema(description = "Link id of this criterion", example = DTOExamples.UUID_ID)
+        public UUID linkId;
+
+        @Schema(description = "Twin id on the node end of the link. Null is the group of leaves without this link", example = DTOExamples.UUID_ID)
+        @RelatedObject(type = TwinDTOv2.class, name = "linkTwin")
+        public UUID linkTwinId;
+    }
 }

@@ -15,9 +15,12 @@ public class TwinGroupedSearchGroupDTOv1 {
     @Schema(description = "Only the requested group field is present. A null value is the empty key")
     public TwinGroupKeyDTOv1 key;
 
-    @Schema(description = "Number of twins in this group. Equals twins.size()")
+    @Schema(description = "Number of distinct leaves in this subtree")
     public Long count;
 
-    @Schema(description = "Twins of this group, in member sort order")
+    @Schema(description = "Nested groups. Present on every level except the last")
+    public List<TwinGroupedSearchGroupDTOv1> groups;
+
+    @Schema(description = "Leaves of the flat search. Present only on the last level, in member sort order")
     public List<TwinDTOv2> twins;
 }

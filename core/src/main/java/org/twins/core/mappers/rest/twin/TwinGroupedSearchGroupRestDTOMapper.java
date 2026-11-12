@@ -11,6 +11,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.twin.TwinGroup;
+import org.twins.core.domain.twin.TwinGroupKeyKind;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinGroupKeyDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchGroupDTOv1;
@@ -37,6 +38,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -67,8 +69,16 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
     @Override
     public void map(TwinGroup src, TwinGroupedSearchGroupDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst.setKey(key(src));
+        dst.setCount((long) src.getCount());
+        if (src.getGroups() != null) {
+            List<TwinGroupedSearchGroupDTOv1> nested = new ArrayList<>(src.getGroups().size());
+            for (TwinGroup child : src.getGroups()) {
+                nested.add(convert(child, mapperContext));
+            }
+            dst.setGroups(nested);
+            return;
+        }
         List<TwinEntity> twins = src.getTwins() == null ? List.of() : src.getTwins();
-        dst.setCount((long) twins.size());
         List<TwinDTOv2> leaves = new ArrayList<>(twins.size());
         for (TwinEntity twin : twins) {
             leaves.add(twinRestDTOMapperV2.convert(twin, mapperContext));
@@ -81,26 +91,29 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         if (srcCollection == null || srcCollection.isEmpty()) {
             return;
         }
+        List<TwinGroup> nodes = new ArrayList<>();
         List<TwinEntity> twins = new ArrayList<>();
-        for (TwinGroup group : srcCollection) {
-            if (group.getTwins() != null) {
-                twins.addAll(group.getTwins());
-            }
-        }
+        collect(srcCollection, nodes, twins);
         twinRestDTOMapperV2.beforeCollectionConversion(twins, mapperContext);
-        TwinGroup sample = srcCollection.iterator().next();
-        List<UUID> ids = uuidKeys(srcCollection);
-        switch (sample.getKeyKind()) {
-            case ASSIGNER_USER, OWNER_USER, CREATOR_USER -> loadUsers(ids, mapperContext);
-            case STATUS -> loadStatuses(ids, mapperContext);
-            case TWIN_CLASS -> loadClasses(ids, mapperContext);
-            case HEAD -> loadHeads(ids, mapperContext);
-            case FLAVOR -> loadOptions(ids, mapperContext, DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT);
-            case DYNAMIC -> {
-                if (sample.isDataListOption()) {
-                    loadOptions(ids, mapperContext, DataListOptionMode.TwinField2DataListOptionMode.SHORT);
-                }
+        loadUsers(ids(nodes, TwinGroupKeyKind.ASSIGNER_USER, TwinGroupKeyKind.OWNER_USER, TwinGroupKeyKind.CREATOR_USER), mapperContext);
+        loadStatuses(ids(nodes, TwinGroupKeyKind.STATUS), mapperContext);
+        loadClasses(ids(nodes, TwinGroupKeyKind.TWIN_CLASS), mapperContext);
+        loadHeads(ids(nodes, TwinGroupKeyKind.HEAD), mapperContext);
+        loadLinkTwins(ids(nodes, TwinGroupKeyKind.LINK), mapperContext);
+        loadOptions(ids(nodes, TwinGroupKeyKind.FLAVOR), mapperContext, DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT);
+        loadOptions(dataListIds(nodes), mapperContext, DataListOptionMode.TwinField2DataListOptionMode.SHORT);
+    }
+
+    private static void collect(Collection<TwinGroup> nodes, List<TwinGroup> all, List<TwinEntity> twins) {
+        if (nodes == null) {
+            return;
+        }
+        for (TwinGroup node : nodes) {
+            all.add(node);
+            if (node.getTwins() != null) {
+                twins.addAll(node.getTwins());
             }
+            collect(node.getGroups(), all, twins);
         }
     }
 
@@ -148,6 +161,17 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         twinBaseRestDTOMapper.postpone(heads.getCollection(), mapperContext);
     }
 
+    private void loadLinkTwins(List<UUID> ids, MapperContext mapperContext) throws Exception {
+        if (ids.isEmpty() || !mapperContext.hasModeButNot(TwinMode.HIDE)) {
+            return;
+        }
+        Kit<TwinEntity, UUID> nodes = twinService.findEntities(ids,
+                EntitySmartService.ListFindMode.ifMissedIgnore,
+                EntitySmartService.ReadPermissionCheckMode.ifDeniedLog,
+                EntitySmartService.EntityValidateMode.none);
+        twinBaseRestDTOMapper.postpone(nodes.getCollection(), mapperContext);
+    }
+
     private void loadOptions(List<UUID> ids, MapperContext mapperContext, MapperModePointer<DataListOptionMode> mode) throws Exception {
         if (ids.isEmpty() || !mapperContext.hasModeButNot(DataListOptionMode.HIDE)) {
             return;
@@ -170,6 +194,7 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
             case HEAD -> new TwinGroupKeyDTOv1.Head().setHeadTwinId(id);
             case FLAVOR -> new TwinGroupKeyDTOv1.Flavor().setFlavorDataListOptionId(id);
             case DYNAMIC -> new TwinGroupKeyDTOv1.Dynamic().setGroupedFieldValues(dynamicValues(group));
+            case LINK -> new TwinGroupKeyDTOv1.Link().setLinkId(group.getLinkId()).setLinkTwinId(id);
         };
     }
 
@@ -179,10 +204,21 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         return values;
     }
 
-    private static List<UUID> uuidKeys(Collection<TwinGroup> groups) {
+    private static List<UUID> ids(Collection<TwinGroup> groups, TwinGroupKeyKind... kinds) {
+        Set<TwinGroupKeyKind> accepted = Set.of(kinds);
         List<UUID> ids = new ArrayList<>();
         for (TwinGroup group : groups) {
-            if (group.getKey() instanceof UUID id) {
+            if (accepted.contains(group.getKeyKind()) && group.getKey() instanceof UUID id) {
+                ids.add(id);
+            }
+        }
+        return ids;
+    }
+
+    private static List<UUID> dataListIds(Collection<TwinGroup> groups) {
+        List<UUID> ids = new ArrayList<>();
+        for (TwinGroup group : groups) {
+            if (group.getKeyKind() == TwinGroupKeyKind.DYNAMIC && group.isDataListOption() && group.getKey() instanceof UUID id) {
                 ids.add(id);
             }
         }

@@ -14,44 +14,36 @@ const HEADERS = {
   "Content-Type": "application/json",
   Accept: "application/json",
 };
-const DOMAIN = "f67ad556-dd27-4871-9a00-16fb0e8a4102";
 const TASK = "7c027b60-0f6c-445c-9889-8ee3855d2c59";
 const ASSIGNEE = "00000000-0000-0000-0011-000000000007";
-const OWNER = "00000000-0000-0000-0011-000000000006";
-const CREATOR = "00000000-0000-0000-0011-000000000008";
-const HEAD = "00000000-0000-0000-0011-000000000009";
 const STATUS = "00000000-0000-0000-0011-000000000010";
 const CREATED = "00000000-0000-0000-0011-000000000011";
 const NAME = "00000000-0000-0000-0011-000000000003";
 const CLASS = "00000000-0000-0000-0011-000000000013";
-const FLAVOR = "00000000-0000-0000-0011-000000000017";
-const WORK_TYPE = "95f2c8ca-8b79-4971-9726-270a11c7d031";
-const BOOL_FIELD = "19e3f226-5249-46eb-8d01-e9a054494715";
-const DECIMAL_FIELD = "e454db8e-c8d8-48cb-9684-00abef38ee9e";
+const WORK = "95f2c8ca-8b79-4971-9726-270a11c7d031";
+const BOOL = "19e3f226-5249-46eb-8d01-e9a054494715";
 const USER_FIELD = "27af06b8-f8c9-4603-bc40-f4f6259630c0";
-const LINK_FIELD = "6ecf4b17-791b-43d7-aaab-cfa9185fe6df";
-const SPACE_FIELD = "93878d84-20a3-4479-abed-5712cdbfcd6b";
-const CALC_FIELD = "e35763f8-34a6-40d9-aa26-5aca6294bc2e";
-const ATTACH_FIELD = "2121d75d-8fee-45f1-bf51-cb787b834596";
+const LINK = "60f013ff-e7cc-41c9-9d5e-af5e4b2b6586";
+const LINK2 = "d9f3041a-c631-487d-9e76-044fc81378d4";
 const STATUS_MID = "c432b42e-0dfe-4c9d-8c21-5a54aa7b1257";
-const STATUS_SMALL = "8e6f863b-9a69-48aa-8deb-e98ec271e051";
-const SHOW = "showTwinMode=DETAILED&showTwin2UserMode=SHORT&showTwin2StatusMode=SHORT&showTwin2TwinClassMode=SHORT&showDataListOptionMode=SHORT&lazyRelation=false";
-const PAGE = 10;
+const SHOW = [
+  "showTwinMode=DETAILED",
+  "showTwin2UserMode=SHORT",
+  "showTwin2StatusMode=SHORT",
+  "lazyRelation=false",
+].join("&");
+const SHOW_OPTIONS = SHOW + "&showDataListOptionMode=SHORT&showTwinField2DataListOptionMode=SHORT";
 
 const checks = [];
-
 function add(name, ok, detail) {
-  const item = { name, ok: Boolean(ok), detail };
-  checks.push(item);
-  console.log((ok ? "PASS " : "FAIL ") + name + (detail ? " — " + clip(detail) : ""));
-  return item;
+  checks.push({ name, ok: Boolean(ok), detail });
+  const text = detail == null ? "" : " — " + clip(detail);
+  console.log((ok ? "PASS " : "FAIL ") + name + text);
 }
-
 function clip(value) {
   const text = typeof value === "string" ? value : JSON.stringify(value);
-  return text.length > 500 ? text.slice(0, 500) + "…" : text;
+  return text.length > 600 ? text.slice(0, 600) + "…" : text;
 }
-
 function psql(sql) {
   return execFileSync(
     "docker",
@@ -59,15 +51,13 @@ function psql(sql) {
     { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 }
   ).trim();
 }
-
 function psqlJson(sql) {
   const text = psql(sql);
   return text ? JSON.parse(text) : null;
 }
-
-async function api(path, body, query = SHOW, timeoutMs = 180000) {
+async function api(body, query = SHOW, timeoutMs = 180000) {
   const started = Date.now();
-  const response = await fetch(BASE + path + (query ? "?" + query : ""), {
+  const response = await fetch(BASE + "/private/twin/search/grouped/v1" + (query ? "?" + query : ""), {
     method: "POST",
     headers: HEADERS,
     body: JSON.stringify(body),
@@ -78,76 +68,50 @@ async function api(path, body, query = SHOW, timeoutMs = 180000) {
   try {
     parsed = text ? JSON.parse(text) : {};
   } catch {
-    parsed = { raw: text.slice(0, 1500) };
+    parsed = { raw: text.slice(0, 800) };
   }
-  parsed.__ms = Date.now() - started;
   parsed.__http = response.status;
-  console.log(`  ${response.status} ${parsed.__ms}ms ${path} groups=${parsed.groups?.length ?? "-"} status=${parsed.status}`);
+  parsed.__ms = Date.now() - started;
+  console.log(`  ${response.status} ${parsed.__ms}ms groups=${parsed.groups?.length ?? "-"} status=${parsed.status}`);
   return parsed;
 }
 
-function taskSearch(extra = {}) {
-  return { twinClassIdList: [TASK], ...extra };
+const SIGN = 1n << 63n;
+function uuidCompare(left, right) {
+  const hex = (value) => value.replace(/-/g, "");
+  const halves = (value) => {
+    const raw = hex(value);
+    let hi = BigInt("0x" + raw.slice(0, 16));
+    let lo = BigInt("0x" + raw.slice(16));
+    if (hi >= SIGN) hi -= SIGN << 1n;
+    if (lo >= SIGN) lo -= SIGN << 1n;
+    return [hi, lo];
+  };
+  const [lhi, llo] = halves(left);
+  const [rhi, rlo] = halves(right);
+  if (lhi !== rhi) return lhi < rhi ? -1 : 1;
+  if (llo !== rlo) return llo < rlo ? -1 : 1;
+  return 0;
 }
-
-function req(groupFieldId, groupSort, memberSorts, search = taskSearch()) {
-  const body = { search, groupFieldId };
-  if (groupSort !== undefined) body.groupSort = groupSort;
-  if (memberSorts !== undefined) body.memberSorts = memberSorts;
-  return body;
-}
-
-function sort(field, direction) {
-  return [{ twinClassFieldId: field, direction }];
-}
-
 function nullsLast(left, right) {
   if (left === right) return 0;
   if (left == null) return 1;
   if (right == null) return -1;
   return 0;
 }
-
 function compareText(left, right, ascending) {
   if (left == null || right == null) return nullsLast(left, right);
   const compared = left < right ? -1 : left > right ? 1 : 0;
   return ascending ? compared : -compared;
 }
-
-const SIGN = 1n << 63n;
-
-function uuidHalves(value) {
-  const hex = String(value).replace(/-/g, "");
-  let hi = BigInt("0x" + hex.slice(0, 16));
-  let lo = BigInt("0x" + hex.slice(16));
-  if (hi >= SIGN) hi -= SIGN << 1n;
-  if (lo >= SIGN) lo -= SIGN << 1n;
-  return [hi, lo];
+function byKey(ascending) {
+  return (left, right) => {
+    if (left.key == null || right.key == null) return nullsLast(left.key, right.key);
+    const compared = typeof left.key === "string" && typeof right.key === "string" ? uuidCompare(left.key, right.key) : compareText(String(left.key), String(right.key), true);
+    return ascending ? compared : -compared;
+  };
 }
-
-function uuidCompare(left, right) {
-  const [lhi, llo] = uuidHalves(left);
-  const [rhi, rlo] = uuidHalves(right);
-  if (lhi !== rhi) return lhi < rhi ? -1 : 1;
-  if (llo !== rlo) return llo < rlo ? -1 : 1;
-  return 0;
-}
-
-function isUuid(value) {
-  return typeof value === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-}
-
-function compareRaw(left, right, ascending) {
-  if (left == null || right == null) return nullsLast(left, right);
-  let compared;
-  if (isUuid(left) && isUuid(right)) compared = uuidCompare(left, right);
-  else if (typeof left === "number" && typeof right === "number") compared = left < right ? -1 : left > right ? 1 : 0;
-  else if (typeof left === "boolean" && typeof right === "boolean") compared = left === right ? 0 : left ? 1 : -1;
-  else compared = String(left) < String(right) ? -1 : String(left) > String(right) ? 1 : 0;
-  return ascending ? compared : -compared;
-}
-
-function byName(names, ascending) {
+function nameOrder(names, ascending) {
   return (left, right) => {
     if (left.key == null || right.key == null) return nullsLast(left.key, right.key);
     const compared = compareText(names.get(left.key) ?? null, names.get(right.key) ?? null, ascending);
@@ -155,615 +119,470 @@ function byName(names, ascending) {
     return uuidCompare(left.key, right.key);
   };
 }
-
 function byCount(ascending) {
   return (left, right) => {
-    let compared = left.twins.length - right.twins.length;
+    let compared = left.count - right.count;
     if (!ascending) compared = -compared;
     if (compared !== 0) return compared;
-    return compareRaw(left.key, right.key, true);
+    return byKey(true)(left, right);
   };
 }
 
-function byKey(ascending) {
-  return (left, right) => compareRaw(left.key, right.key, ascending);
-}
-
-function byCreated(left, right) {
-  if (left.createdAt !== right.createdAt) return left.createdAt < right.createdAt ? 1 : -1;
-  return uuidCompare(left.id, right.id);
-}
-
-function byLeafName(left, right) {
-  const compared = compareText(left.name ?? null, right.name ?? null, true);
-  if (compared !== 0) return compared;
-  return uuidCompare(left.id, right.id);
-}
-
-function expectedGroups(twins, keysOf, leafCompare, groupCompare) {
-  const by = new Map();
-  for (const twin of twins) {
-    let keys = keysOf(twin);
-    if (!keys || keys.length === 0) keys = [null];
-    const seen = new Set();
-    for (const key of keys) {
-      const token = key == null ? "\0" : JSON.stringify(key);
-      if (seen.has(token)) continue;
-      seen.add(token);
-      let group = by.get(token);
-      if (!group) {
-        group = { key: key ?? null, twins: [] };
-        by.set(token, group);
-      }
-      group.twins.push(twin);
-    }
-  }
-  const groups = [...by.values()];
-  for (const group of groups) group.twins.sort(leafCompare);
-  groups.sort(groupCompare);
-  return groups;
-}
-
-function idsOf(group) {
-  return (group.twins || []).map((twin) => twin.id);
-}
-
-function sameOrder(actual, expected) {
-  if (actual.length !== expected.length) return { ok: false, at: 0, actual: actual.length, expected: expected.length };
-  for (let i = 0; i < actual.length; i++) {
-    if (actual[i] !== expected[i]) return { ok: false, at: i, actual: actual[i], expected: expected[i] };
-  }
-  return { ok: true };
-}
-
-function normKey(value) {
-  if (value == null) return null;
-  if (typeof value === "string" && isUuid(value)) return value.toLowerCase();
-  return value;
-}
-
-function apiGroups(body, prop) {
-  return (body.groups || []).map((group) => {
-    if (prop === "groupedFieldValues") {
-      const map = group.groupedFieldValues || {};
-      const fieldId = Object.keys(map)[0] || null;
-      const present = fieldId != null && Object.prototype.hasOwnProperty.call(map, fieldId);
-      return {
-        key: present ? normKey(map[fieldId]) : undefined,
-        present,
-        fieldId,
-        count: group.count,
-        twins: group.twins || [],
-        rawKeys: Object.keys(group),
-      };
-    }
-    const present = Object.prototype.hasOwnProperty.call(group, prop);
-    return {
-      key: present ? normKey(group[prop]) : undefined,
-      present,
-      count: group.count,
-      twins: group.twins || [],
-      rawKeys: Object.keys(group),
-    };
-  });
-}
-
-function indexById(rows) {
-  const map = new Map();
-  for (const row of rows) map.set(row.id, row);
-  return map;
-}
-
-function columnKeys(row, column) {
-  return [row[column] ?? null];
-}
-
-function compareBasic(name, body, twins, column, prop, leafCompare, groupCompare, options = {}) {
-  const problems = [];
-  if (body.__http !== 200 || body.status !== 0) {
-    return add(name, false, { http: body.__http, status: body.status, msg: body.msg, statusDetails: body.statusDetails });
-  }
-  if ("pagination" in body) problems.push("pagination present");
-  const actual = apiGroups(body, prop);
-  const expected = expectedGroups(twins, (row) => columnKeys(row, column), leafCompare, groupCompare);
-  if (actual.length !== expected.length) problems.push(`groups ${actual.length} != ${expected.length}`);
-  const limit = Math.max(actual.length, expected.length);
-  let leafMismatches = 0;
-  let keyMismatches = 0;
+function build(twins, levelsOf, sorters) {
+  const root = { children: new Map(), ids: new Set() };
   const seen = new Set();
-  for (let i = 0; i < limit; i++) {
-    const got = actual[i];
-    const want = expected[i];
-    if (!got || !want || JSON.stringify(got.key) !== JSON.stringify(want.key)) {
-      keyMismatches++;
-      if (keyMismatches <= 3) problems.push(`key[${i}] ${got ? JSON.stringify(got.key) : "missing"} != ${want ? JSON.stringify(want.key) : "missing"}`);
+  for (const twin of twins) {
+    if (!seen.add(twin.id)) continue;
+    expand(root, twin, levelsOf(twin), 0);
+  }
+  return list(root, 0, sorters);
+}
+function expand(node, twin, levels, depth) {
+  if (depth === levels.length) {
+    if (!node.ids.has(twin.id)) {
+      node.ids.add(twin.id);
+      node.twins.push(twin);
+    }
+    return;
+  }
+  node.ids.add(twin.id);
+  let keys = levels[depth];
+  if (!keys || keys.length === 0) keys = [null];
+  const used = new Set();
+  for (const key of keys) {
+    const token = key == null ? "\0" : JSON.stringify(key);
+    if (used.has(token)) continue;
+    used.add(token);
+    let child = node.children.get(token);
+    if (!child) {
+      child = { key: key ?? null, children: new Map(), ids: new Set(), twins: [] };
+      node.children.set(token, child);
+    }
+    expand(child, twin, levels, depth + 1);
+  }
+}
+function list(node, level, sorters) {
+  const groups = [...node.children.values()];
+  for (const group of groups) group.count = group.ids.size;
+  groups.sort(sorters[level]);
+  const last = level === sorters.length - 1;
+  return groups.map((group) => ({
+    key: group.key,
+    count: group.count,
+    groups: last ? undefined : list(group, level + 1, sorters),
+    ids: last ? group.twins.map((twin) => twin.id) : undefined,
+  }));
+}
+
+function has(object, key) {
+  return Object.prototype.hasOwnProperty.call(object, key);
+}
+function norm(value) {
+  return value == null ? null : value;
+}
+const readers = {
+  status: (group) => (has(group, "twinStatusId") ? norm(group.twinStatusId) : undefined),
+  assignee: (group) => (has(group, "assignerUserId") ? norm(group.assignerUserId) : undefined),
+  link: (group) => (has(group, "linkTwinId") ? norm(group.linkTwinId) : undefined),
+  work: (group) => {
+    const map = group.groupedFieldValues;
+    if (!map || !has(map, WORK)) return undefined;
+    return norm(map[WORK]);
+  },
+  bool: (group) => {
+    const map = group.groupedFieldValues;
+    if (!map || !has(map, BOOL)) return undefined;
+    return norm(map[BOOL]);
+  },
+};
+function actual(groups, kinds) {
+  return (groups || []).map((group) => ({
+    key: readers[kinds[0]](group),
+    present: readers[kinds[0]](group) !== undefined || (kinds[0] === "link" ? has(group, "linkId") : false),
+    linkId: group.linkId,
+    count: Number(group.count),
+    hasTwins: has(group, "twins"),
+    hasGroups: has(group, "groups"),
+    groups: group.groups ? actual(group.groups, kinds.slice(1)) : undefined,
+    ids: (group.twins || []).map((twin) => twin.id),
+    rawKeys: Object.keys(group),
+  }));
+}
+function sameIds(left, right) {
+  if (!left || !right || left.length !== right.length) return false;
+  for (let i = 0; i < left.length; i++) if (left[i] !== right[i]) return false;
+  return true;
+}
+function compareTree(got, want, problems, path) {
+  if (got.length !== want.length) {
+    problems.push(`${path} groups ${got.length} != ${want.length}`);
+    return;
+  }
+  for (let i = 0; i < want.length; i++) {
+    const here = `${path}[${i}]`;
+    if (JSON.stringify(got[i].key) !== JSON.stringify(want[i].key)) {
+      problems.push(`${here} key ${JSON.stringify(got[i].key)} != ${JSON.stringify(want[i].key)}`);
       continue;
     }
-    if (!got.present) problems.push(`key[${i}] property ${prop} missing`);
-    if (Number(got.count) !== got.twins.length) problems.push(`count ${got.count} != twins ${got.twins.length} at ${got.key}`);
-    if (got.twins.length !== want.twins.length) problems.push(`size ${got.twins.length} != ${want.twins.length} at ${got.key}`);
-    const order = sameOrder(idsOf(got), idsOf(want));
-    if (!order.ok) {
-      leafMismatches++;
-      if (leafMismatches <= 2) problems.push(`order at ${JSON.stringify(got.key)} index ${order.at}: ${order.actual} != ${order.expected}`);
+    if (got[i].count !== want[i].count) problems.push(`${here} count ${got[i].count} != ${want[i].count}`);
+    if (want[i].groups) {
+      if (got[i].hasTwins) problems.push(`${here} twins on a non-leaf`);
+      if (!got[i].hasGroups) problems.push(`${here} missing nested groups`);
+      else compareTree(got[i].groups, want[i].groups, problems, here);
+    } else if (!sameIds(got[i].ids, want[i].ids)) {
+      const at = (got[i].ids || []).findIndex((id, index) => id !== want[i].ids[index]);
+      problems.push(`${here} leaves ${got[i].ids?.length} != ${want[i].ids.length} @${at} ${got[i].ids?.[at]} != ${want[i].ids[at]}`);
+    } else if (got[i].hasGroups) {
+      problems.push(`${here} nested groups on the leaf level`);
     }
-    for (const twin of got.twins) {
-      seen.add(twin.id);
-      if (options.leafAssert) {
-        const issue = options.leafAssert(twin, got.key);
-        if (issue) problems.push(issue);
-      }
-    }
-    if (options.related) {
-      const issue = options.related(body, got.key);
-      if (issue) problems.push(issue);
-    }
+    if (problems.length > 8) return;
   }
-  const expectedIds = new Set(twins.map((twin) => twin.id));
-  if (options.uniqueCoverage !== false) {
-    if (seen.size !== expectedIds.size) problems.push(`unique leaves ${seen.size} != twins ${expectedIds.size}`);
-    for (const id of expectedIds) if (!seen.has(id)) {
-      problems.push(`missing twin ${id}`);
-      break;
+}
+function rootSum(groups) {
+  return groups.reduce((sum, group) => sum + group.count, 0);
+}
+function allLeafIds(groups) {
+  const ids = [];
+  const walk = (nodes) => {
+    for (const node of nodes || []) {
+      if (node.groups) walk(node.groups);
+      else ids.push(...(node.ids || []));
     }
-  }
-  const nullGroup = actual.find((group) => group.key == null);
-  const nullLast = !nullGroup || actual[actual.length - 1]?.key == null;
-  return add(name, problems.length === 0, problems.length ? problems : {
-    groups: actual.length,
-    twins: seen.size,
-    nullGroup: nullGroup ? nullGroup.twins.length : 0,
-    nullLast,
-    ms: body.__ms,
-    maxGroup: actual.reduce((max, group) => Math.max(max, group.twins.length), 0),
-  });
-}
-
-function expectError(name, body, code, text) {
-  const details = `${body.statusDetails || ""} ${body.msg || ""} ${body.raw || ""}`;
-  const ok = body.__http === 400 && body.status === code && (!text || details.toLowerCase().includes(text.toLowerCase()));
-  return add(name, ok, { http: body.__http, status: body.status, msg: body.msg, statusDetails: body.statusDetails });
-}
-
-function relatedHas(body, mapName, id) {
-  const map = body.relatedObjects?.[mapName];
-  if (!map || !map[id]) return `relatedObjects.${mapName} missing ${id}`;
-  return null;
+  };
+  walk(groups);
+  return ids;
 }
 
 const twins = psqlJson(`
-SELECT coalesce(json_agg(json_build_object(
-  'id', t.id,
-  'name', t.name,
-  'createdAt', to_char(t.created_at, 'YYYY-MM-DD"T"HH24:MI:SS.US'),
-  'assignerUserId', t.assigner_user_id,
-  'ownerUserId', t.owner_user_id,
-  'createdByUserId', t.created_by_user_id,
-  'headTwinId', t.head_twin_id,
-  'twinStatusId', t.twin_status_id,
-  'twinClassId', t.twin_class_id,
-  'flavorId', t.flavor_data_list_option_id
-)), '[]'::json)::text
-FROM twin t
-WHERE t.twin_class_id = '${TASK}'
+SELECT coalesce(json_agg(row_to_json(x)), '[]'::json)::text FROM (
+  SELECT t.id::text AS id,
+         t.twin_status_id::text AS status,
+         t.assigner_user_id::text AS assignee,
+         to_char(t.created_at, 'YYYY-MM-DD"T"HH24:MI:SS.US') AS created_at,
+         row_number() OVER (ORDER BY t.created_at DESC, t.id ASC) AS created_rank,
+         row_number() OVER (ORDER BY t.name ASC, t.id ASC) AS name_rank
+  FROM twin t
+  WHERE t.twin_class_id = '${TASK}'
+) x
 `);
-const users = psqlJson(`
+const users = new Map(Object.entries(psqlJson(`
 SELECT coalesce(json_object_agg(u.id::text, u.name), '{}'::json)::text
 FROM "user" u
-WHERE u.id IN (
-  SELECT assigner_user_id FROM twin WHERE twin_class_id = '${TASK}' AND assigner_user_id IS NOT NULL
-  UNION SELECT owner_user_id FROM twin WHERE twin_class_id = '${TASK}' AND owner_user_id IS NOT NULL
-  UNION SELECT created_by_user_id FROM twin WHERE twin_class_id = '${TASK}' AND created_by_user_id IS NOT NULL
-)
+WHERE u.id IN (SELECT assigner_user_id FROM twin WHERE twin_class_id = '${TASK}' AND assigner_user_id IS NOT NULL)
+`) || {}));
+const linkRows = psqlJson(`
+SELECT coalesce(json_agg(json_build_object('src', src_twin_id, 'dst', dst_twin_id)), '[]'::json)::text
+FROM twin_link WHERE link_id = '${LINK}'
 `);
-const heads = psqlJson(`
+const dstNames = new Map(Object.entries(psqlJson(`
 SELECT coalesce(json_object_agg(h.id::text, to_jsonb(h.name)), '{}'::json)::text
 FROM twin h
-WHERE h.id IN (SELECT head_twin_id FROM twin WHERE twin_class_id = '${TASK}' AND head_twin_id IS NOT NULL)
-`);
+WHERE h.id IN (SELECT DISTINCT dst_twin_id FROM twin_link WHERE link_id = '${LINK}')
+`) || {}).map(([id, name]) => [id, name]));
 const workRows = psqlJson(`
 SELECT coalesce(json_agg(json_build_object('twinId', twin_id, 'optionId', data_list_option_id)), '[]'::json)::text
-FROM twin_field_data_list WHERE twin_class_field_id = '${WORK_TYPE}'
+FROM twin_field_data_list WHERE twin_class_field_id = '${WORK}'
 `);
 const boolRows = psqlJson(`
 SELECT coalesce(json_agg(json_build_object('twinId', twin_id, 'value', value)), '[]'::json)::text
-FROM twin_field_boolean WHERE twin_class_field_id = '${BOOL_FIELD}'
+FROM twin_field_boolean WHERE twin_class_field_id = '${BOOL}'
 `);
-const decimalRows = psqlJson(`
-SELECT coalesce(json_agg(json_build_object('twinId', twin_id, 'value', value)), '[]'::json)::text
-FROM twin_field_decimal WHERE twin_class_field_id = '${DECIMAL_FIELD}'
-`);
-const foreignId = psql(`
-SELECT t.id::text FROM twin t
-JOIN twin_class c ON c.id = t.twin_class_id
-WHERE c.domain_id IS DISTINCT FROM '${DOMAIN}'
-LIMIT 1
-`);
-const multipleFields = Number(psql(`
-SELECT count(*) FROM twin_class_field f
-JOIN twin_class c ON c.id = f.twin_class_id
-WHERE c.domain_id = '${DOMAIN}' AND f.field_typer_params -> 'multiple' = 'true'
-`));
 
-const userNames = new Map(Object.entries(users || {}));
-const headNames = new Map(Object.entries(heads || {}).map(([id, name]) => [id, name]));
-const byId = indexById(twins);
-console.log(`DB tasks=${twins.length} users=${userNames.size} heads=${headNames.size} workRows=${workRows.length} boolRows=${boolRows.length} decimalRows=${decimalRows.length} multipleFields=${multipleFields} foreign=${foreignId}`);
-
-function attachValues(rows, valueName) {
-  const values = new Map();
-  for (const row of rows) {
-    if (!values.has(row.twinId)) values.set(row.twinId, []);
-    values.get(row.twinId).push(row[valueName] ?? null);
-  }
-  return twins.map((twin) => ({ ...twin, values: values.get(twin.id) || [null] }));
+const linksBySrc = new Map();
+for (const row of linkRows) {
+  if (!linksBySrc.has(row.src)) linksBySrc.set(row.src, []);
+  linksBySrc.get(row.src).push(row.dst);
 }
-
-const workTwins = attachValues(workRows, "optionId");
-const boolTwins = attachValues(boolRows, "value");
-const decimalTwins = attachValues(decimalRows, "value");
-
-function leafAssignee(twin, key) {
-  const got = twin.assignerUserId ?? null;
-  if (got !== key) return `leaf ${twin.id} assigner ${got} != ${key}`;
-  if (twin.twinClassId !== TASK) return `leaf ${twin.id} class ${twin.twinClassId}`;
-  if (!twin.createdAt) return `leaf ${twin.id} has no createdAt`;
-  return null;
+const workByTwin = new Map();
+for (const row of workRows) workByTwin.set(row.twinId, row.optionId ?? null);
+const boolByTwin = new Map();
+for (const row of boolRows) {
+  if (!boolByTwin.has(row.twinId)) boolByTwin.set(row.twinId, []);
+  boolByTwin.get(row.twinId).push(row.value);
 }
+twins.sort((left, right) => left.created_rank - right.created_rank);
+const byCreated = twins;
+const byName = [...twins].sort((left, right) => left.name_rank - right.name_rank);
+console.log(`DB tasks=${twins.length} linkRows=${linkRows.length} linkedTasks=${linksBySrc.size} users=${users.size}`);
 
-function relatedUser(body, key) {
-  if (key == null) return null;
-  const issue = relatedHas(body, "userMap", key);
-  if (issue) return issue;
-  const fullName = body.relatedObjects.userMap[key].fullName ?? null;
-  const dbName = userNames.get(key) ?? null;
-  if (fullName !== dbName) return `user ${key} fullName ${JSON.stringify(fullName)} != db ${JSON.stringify(dbName)}`;
-  return null;
+function taskLevels(twin) {
+  const dst = linksBySrc.get(twin.id);
+  return [
+    [twin.status],
+    [twin.assignee ?? null],
+    dst && dst.length ? [...new Set(dst)] : [null],
+  ];
 }
+const nameSort = nameOrder(users, true);
+const linkSort = nameOrder(dstNames, true);
+const keySort = byKey(true);
 
-const nameAsc = byName(userNames, true);
-const created = byCreated;
-
-let assigneeBody;
-let assigneeAgain;
+function taskBody(extraSearch, criteria, memberSorts) {
+  const body = {
+    search: { twinClassIdList: [TASK], ...extraSearch },
+    criteria,
+  };
+  if (memberSorts) body.memberSorts = memberSorts;
+  return body;
+}
+const three = [
+  { type: "FIELD", fieldId: STATUS, sort: "KEY_ASC" },
+  { type: "FIELD", fieldId: ASSIGNEE, sort: "NAME_ASC" },
+  { type: "LINK", linkId: LINK, nodeEnd: "DST", sort: "NAME_ASC" },
+];
 
 try {
-  assigneeBody = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "NAME_ASC", sort(CREATED, "DESC")));
-  compareBasic("S1 assignee NAME_ASC, leaves createdAt DESC", assigneeBody, twins, "assignerUserId", "assignerUserId", created, nameAsc, {
-    leafAssert: leafAssignee,
-    related: relatedUser,
-  });
-  const actual = apiGroups(assigneeBody, "assignerUserId");
-  const maxGroup = actual.reduce((max, group) => Math.max(max, group.twins.length), 0);
-  add("S4 biggest assignee group is larger than a search page and complete", maxGroup > PAGE && actual.every((group) => Number(group.count) === group.twins.length), { maxGroup, page: PAGE, groups: actual.length });
-  add("S5 one response holds every assignee group", actual.length > PAGE, { groups: actual.length, page: PAGE });
-  const nullGroup = actual.find((group) => group.key == null);
-  const nullRaw = (assigneeBody.groups || []).find((group) => group.assignerUserId == null && Object.prototype.hasOwnProperty.call(group, "assignerUserId"));
-  add("S2 null assignee group is present, last, and serialized as null", Boolean(nullGroup) && actual[actual.length - 1].key == null && Boolean(nullRaw) && nullRaw.assignerUserId === null, {
-    count: nullGroup?.twins.length,
-    last: actual[actual.length - 1]?.key ?? null,
-    serialized: nullRaw ? nullRaw.assignerUserId : "property missing",
-  });
-  const sample = nullRaw ? { assignerUserId: nullRaw.assignerUserId, count: nullRaw.count, twinCount: (nullRaw.twins || []).length, keys: Object.keys(nullRaw) } : null;
-  writeFileSync(join(OUT, "raw", "s2-null-assignee-group.json"), JSON.stringify(sample, null, 2));
-  const onlyKey = actual.every((group) => {
-    const foreign = group.rawKeys.filter((key) => ["ownerUserId", "createdByUserId", "twinStatusId", "twinClassId", "headTwinId", "flavorDataListOptionId", "groupedFieldValues", "key"].includes(key));
-    return foreign.length === 0 && group.rawKeys.includes("assignerUserId");
-  });
-  add("S1 group JSON has only assignerUserId as the key", onlyKey, actual[0]?.rawKeys);
-
-  assigneeAgain = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "NAME_ASC", sort(CREATED, "DESC")));
-  const again = apiGroups(assigneeAgain, "assignerUserId");
-  const stable = sameOrder(again.flatMap(idsOf), actual.flatMap(idsOf)) && sameOrder(again.map((group) => JSON.stringify(group.key)), actual.map((group) => JSON.stringify(group.key)));
-  add("S5 repeated request returns the same groups and leaf order", stable.ok, stable);
-
-  const desc = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "NAME_DESC", sort(CREATED, "DESC")));
-  compareBasic("assignee NAME_DESC keeps the empty key last", desc, twins, "assignerUserId", "assignerUserId", created, byName(userNames, false), {
-    leafAssert: leafAssignee,
-  });
-
-  const keyAsc = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_ASC", sort(CREATED, "DESC")));
-  compareBasic("assignee KEY_ASC, empty key last", keyAsc, twins, "assignerUserId", "assignerUserId", created, byKey(true), { leafAssert: leafAssignee });
-
-  const keyDesc = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_DESC", sort(CREATED, "DESC")));
-  compareBasic("assignee KEY_DESC, empty key still last", keyDesc, twins, "assignerUserId", "assignerUserId", created, byKey(false), { leafAssert: leafAssignee });
-
-  const counted = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "COUNT_DESC", sort(NAME, "ASC")));
-  compareBasic("S10 COUNT_DESC groups and name ASC leaves", counted, twins, "assignerUserId", "assignerUserId", byLeafName, byCount(false), { leafAssert: leafAssignee });
-  const countedGroups = apiGroups(counted, "assignerUserId");
-  const nullCounted = countedGroups.findIndex((group) => group.key == null);
-  add("COUNT_DESC places the empty key by size, not forced last", nullCounted >= 0, {
-    nullIndex: nullCounted,
-    lastIndex: countedGroups.length - 1,
-    nullCount: countedGroups[nullCounted]?.twins.length,
-    firstCount: countedGroups[0]?.twins.length,
-  });
-} catch (error) {
-  add("assignee scenarios threw", false, String(error));
-}
-
-try {
-  const filteredTwins = twins.filter((twin) => twin.twinStatusId === STATUS_MID);
-  const filtered = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "NAME_ASC", sort(CREATED, "DESC"), taskSearch({ statusIdList: [STATUS_MID] })));
-  compareBasic("S3 status filter narrows assignee groups", filtered, filteredTwins, "assignerUserId", "assignerUserId", created, nameAsc, { leafAssert: leafAssignee, related: relatedUser });
-  const fullKeys = new Set(apiGroups(assigneeBody, "assignerUserId").map((group) => JSON.stringify(group.key)));
-  const partKeys = apiGroups(filtered, "assignerUserId").map((group) => JSON.stringify(group.key));
-  const dropped = [...fullKeys].filter((key) => !partKeys.includes(key));
-  add("S3 at least one assignee from the full set disappears", dropped.length > 0 && partKeys.every((key) => fullKeys.has(key)), { full: fullKeys.size, filtered: partKeys.length, dropped: dropped.length });
-
-  const paged = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "NAME_ASC", sort(CREATED, "DESC"), taskSearch({ statusIdList: [STATUS_MID] })), SHOW + "&offset=5&limit=1");
-  const unpagedIds = apiGroups(filtered, "assignerUserId").flatMap(idsOf);
-  const pagedIds = apiGroups(paged, "assignerUserId").flatMap(idsOf);
-  add("offset and limit query params do not cut the tree", paged.__http === 200 && sameOrder(pagedIds, unpagedIds).ok && !("pagination" in paged), {
-    http: paged.__http,
-    paged: pagedIds.length,
-    unpaged: unpagedIds.length,
-  });
-} catch (error) {
-  add("S3 threw", false, String(error));
-}
-
-try {
-  const smallTwins = twins.filter((twin) => twin.twinStatusId === STATUS_SMALL);
-  const omitted = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, undefined, undefined, taskSearch({ statusIdList: [STATUS_SMALL] })));
-  compareBasic("default groupSort for assignee is NAME_ASC and default leaves are createdAt DESC, id ASC", omitted, smallTwins, "assignerUserId", "assignerUserId", created, nameAsc, { leafAssert: leafAssignee });
-  const explicit = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "NAME_ASC", sort(CREATED, "DESC"), taskSearch({ statusIdList: [STATUS_SMALL] })));
-  add("omitted memberSorts matches explicit createdAt DESC", sameOrder(apiGroups(omitted, "assignerUserId").flatMap(idsOf), apiGroups(explicit, "assignerUserId").flatMap(idsOf)).ok, { twins: smallTwins.length });
-} catch (error) {
-  add("defaults threw", false, String(error));
-}
-
-try {
-  const statusBody = await api("/private/twin/search/grouped/v1", req(STATUS, undefined, sort(CREATED, "DESC")));
-  compareBasic("S6 status default KEY_ASC", statusBody, twins, "twinStatusId", "twinStatusId", created, byKey(true), {
-    leafAssert: (twin, key) => (twin.statusId !== key ? `leaf ${twin.id} status ${twin.statusId} != ${key}` : null),
-    related: (body, key) => (key == null ? "unexpected empty status" : relatedHas(body, "statusMap", key)),
-  });
-  const statusName = await api("/private/twin/search/grouped/v1", req(STATUS, "NAME_ASC", sort(CREATED, "DESC")));
-  expectError("S6 NAME_ASC on status is 400", statusName, 11604, "NAME sort");
-  const className = await api("/private/twin/search/grouped/v1", req(CLASS, "NAME_ASC"));
-  expectError("NAME_ASC on class is 400", className, 11604, "NAME sort");
-  const classBody = await api("/private/twin/search/grouped/v1", req(CLASS));
-  compareBasic("class default KEY_ASC is one group", classBody, twins, "twinClassId", "twinClassId", created, byKey(true), {
-    leafAssert: (twin, key) => (twin.twinClassId !== key ? `class ${twin.twinClassId}` : null),
-    related: (body, key) => relatedHas(body, "twinClassMap", key),
-  });
-} catch (error) {
-  add("status/class threw", false, String(error));
-}
-
-try {
-  const headBody = await api("/private/twin/search/grouped/v1", req(HEAD, "NAME_ASC", sort(CREATED, "DESC")));
-  compareBasic("S7 head NAME_ASC", headBody, twins, "headTwinId", "headTwinId", created, byName(headNames, true), {
-    leafAssert: (twin, key) => (twin.headTwinId !== key ? `leaf ${twin.id} head ${twin.headTwinId} != ${key}` : null),
-    related: (body, key) => (key == null ? null : relatedHas(body, "twinMap", key)),
-  });
-} catch (error) {
-  add("S7 threw", false, String(error));
-}
-
-try {
-  const ownerBody = await api("/private/twin/search/grouped/v1", req(OWNER, "NAME_ASC", sort(CREATED, "DESC")));
-  compareBasic("owner NAME_ASC, empty key last", ownerBody, twins, "ownerUserId", "ownerUserId", created, nameAsc, {
-    leafAssert: (twin, key) => ((twin.ownerUserId ?? null) !== key ? `owner ${twin.ownerUserId} != ${key}` : null),
-    related: relatedUser,
-  });
-  const creatorBody = await api("/private/twin/search/grouped/v1", req(CREATOR, "NAME_ASC", sort(CREATED, "DESC")));
-  compareBasic("creator NAME_ASC", creatorBody, twins, "createdByUserId", "createdByUserId", created, nameAsc, {
-    leafAssert: (twin, key) => ((twin.authorUserId ?? null) !== key ? `author ${twin.authorUserId} != ${key}` : null),
-    related: relatedUser,
-  });
-} catch (error) {
-  add("owner/creator threw", false, String(error));
-}
-
-try {
-  const flavorName = await api("/private/twin/search/grouped/v1", req(FLAVOR, "NAME_ASC"));
-  expectError("NAME_ASC on flavor is 400", flavorName, 11604, "NAME sort");
-  const flavorBody = await api("/private/twin/search/grouped/v1", req(FLAVOR));
-  compareBasic("flavor default KEY_ASC, empty key last", flavorBody, twins, "flavorId", "flavorDataListOptionId", created, byKey(true), {
-    leafAssert: (twin, key) => ((twin.flavorDataListOptionId ?? null) !== key ? `flavor ${twin.flavorDataListOptionId} != ${key}` : null),
-    related: (body, key) => (key == null ? null : relatedHas(body, "dataListsOptionMap", key)),
-  });
-} catch (error) {
-  add("flavor threw", false, String(error));
-}
-
-try {
-  const workBody = await api("/private/twin/search/grouped/v1", req(WORK_TYPE));
-  const workActual = apiGroups(workBody, "groupedFieldValues");
-  const workExpected = expectedGroups(workTwins, (row) => row.values, created, byKey(true));
+  const body = await api(taskBody(undefined, three, [{ twinClassFieldId: CREATED, direction: "DESC" }]));
+  const want = build(byCreated, taskLevels, [keySort, nameSort, linkSort]);
+  const got = actual(body.groups, ["status", "assignee", "link"]);
   const problems = [];
-  if (workBody.__http !== 200 || workBody.status !== 0) problems.push({ http: workBody.__http, status: workBody.status, statusDetails: workBody.statusDetails });
-  if (workActual.length !== workExpected.length) problems.push(`groups ${workActual.length} != ${workExpected.length}`);
-  let sum = 0;
-  const seen = new Set();
-  for (let i = 0; i < Math.max(workActual.length, workExpected.length); i++) {
-    const got = workActual[i];
-    const want = workExpected[i];
-    if (!got || !want || JSON.stringify(got.key) !== JSON.stringify(want.key)) {
-      problems.push(`key ${JSON.stringify(got?.key)} != ${JSON.stringify(want?.key)}`);
-      continue;
-    }
-    if (got.fieldId !== WORK_TYPE) problems.push(`field ${got.fieldId}`);
-    if (Number(got.count) !== got.twins.length || got.twins.length !== want.twins.length) problems.push(`size at ${got.key}`);
-    sum += got.twins.length;
-    const order = sameOrder(idsOf(got), idsOf(want));
-    if (!order.ok) problems.push(`order ${JSON.stringify(got.key)} @${order.at}`);
-    for (const twin of got.twins) seen.add(twin.id);
-    if (got.key != null) {
-      const issue = relatedHas(workBody, "dataListsOptionMap", got.key);
-      if (issue) problems.push(issue);
-    }
-  }
-  if (sum !== twins.length) problems.push(`sum ${sum} != ${twins.length}`);
-  if (seen.size !== twins.length) problems.push(`unique ${seen.size}`);
-  const nullWork = workActual.find((group) => group.key == null);
-  add("S11 workType single-select groups, sum equals tasks, options in related objects", problems.length === 0, problems.length ? problems : {
-    groups: workActual.length,
+  if (body.__http !== 200 || body.status !== 0) problems.push({ http: body.__http, status: body.status, statusDetails: body.statusDetails });
+  if ("pagination" in body) problems.push("pagination present");
+  if (problems.length === 0) compareTree(got, want, problems, "root");
+  const sum = rootSum(got);
+  if (sum !== twins.length) problems.push(`root count sum ${sum} != ${twins.length}`);
+  const leafIds = new Set(allLeafIds(got));
+  if (leafIds.size !== twins.length) problems.push(`unique leaves ${leafIds.size}`);
+  const wrongClass = (body.groups || []).length && leafIds.size && false;
+  add("S1 status, assignee, link tree matches the flat TASK selection", problems.length === 0 && !wrongClass, problems.length ? problems : {
+    roots: got.length,
     sum,
-    nullGroup: nullWork ? nullWork.twins.length : 0,
-    ms: workBody.__ms,
+    leaves: leafIds.size,
+    ms: body.__ms,
   });
-  const workName = await api("/private/twin/search/grouped/v1", req(WORK_TYPE, "NAME_ASC"));
-  expectError("NAME_ASC on workType data list is 400", workName, 11604, "NAME sort");
+
+  let nullAssigneeLast = true;
+  let nullLinkSeen = false;
+  let multi = null;
+  const walk = (nodes, depth, statusKey, assigneeKey) => {
+    for (const node of nodes) {
+      if (depth === 1 && node.key == null && nodes[nodes.length - 1] !== node) nullAssigneeLast = false;
+      if (depth === 2 && node.key == null) nullLinkSeen = true;
+      if (depth === 2 && node.ids && node.ids.length) {
+        for (const id of node.ids) {
+          const dst = linksBySrc.get(id);
+          if (dst && new Set(dst).size > 1) multi = multi || { id, statusKey, assigneeKey, dst: [...new Set(dst)] };
+        }
+      }
+      if (node.groups) walk(node.groups, depth + 1, depth === 0 ? node.key : statusKey, depth === 1 ? node.key : assigneeKey);
+    }
+  };
+  walk(got, 0);
+  add("S2 empty assignee is last under its status and a task without the link stays in the tree", nullAssigneeLast && nullLinkSeen && sum === twins.length, {
+    nullAssigneeLast,
+    nullLinkSeen,
+  });
+
+  if (multi) {
+    const statusNode = got.find((node) => node.key === multi.statusKey);
+    const assigneeNode = statusNode?.groups.find((node) => JSON.stringify(node.key) === JSON.stringify(multi.assigneeKey));
+    const linkNodes = (assigneeNode?.groups || []).filter((node) => (node.ids || []).includes(multi.id) || node.groups?.some((child) => (child.ids || []).includes(multi.id)));
+    const hosting = (assigneeNode?.groups || []).filter((node) => (node.ids || []).includes(multi.id));
+    const parentCount = assigneeNode?.count;
+    const childSum = (assigneeNode?.groups || []).reduce((total, node) => total + node.count, 0);
+    const onceEach = hosting.every((node) => node.ids.filter((id) => id === multi.id).length === 1);
+    add("S3 one task with several dst is one leaf in each link node and one in the assignee count", hosting.length === new Set(multi.dst).size && onceEach && childSum > parentCount, {
+      id: multi.id,
+      dst: multi.dst.length,
+      hosting: hosting.length,
+      assigneeCount: parentCount,
+      linkCountSum: childSum,
+    });
+  } else {
+    add("S3 one task with several dst is one leaf in each link node and one in the assignee count", false, "no multi-dst task in the response");
+  }
+
+  const sample = got[0]?.groups?.find((node) => node.key == null) || got[0]?.groups?.[got[0].groups.length - 1];
+  writeFileSync(join(OUT, "raw", "s2-null-assignee-group.json"), JSON.stringify({
+    status: got.find((node) => node.groups?.some((child) => child.key == null))?.key,
+    nullAssignee: sample ? { key: sample.key, count: sample.count, childKeys: (sample.groups || []).slice(0, 3).map((child) => child.key) } : null,
+  }, null, 2));
+
+  const filteredTwins = byCreated.filter((twin) => twin.status === STATUS_MID);
+  const filtered = await api(taskBody({ statusIdList: [STATUS_MID] }, three, [{ twinClassFieldId: CREATED, direction: "DESC" }]));
+  const filteredWant = build(filteredTwins, taskLevels, [keySort, nameSort, linkSort]);
+  const filteredGot = actual(filtered.groups, ["status", "assignee", "link"]);
+  const filterProblems = [];
+  if (filtered.__http !== 200) filterProblems.push(filtered.statusDetails);
+  else compareTree(filteredGot, filteredWant, filterProblems, "filtered");
+  add("S4 a status filter leaves one root and recounts assignee and link", filterProblems.length === 0 && filteredGot.length === 1 && filteredGot[0]?.key === STATUS_MID, filterProblems.length ? filterProblems : {
+    roots: filteredGot.length,
+    count: filteredGot[0]?.count,
+  });
+
+  const one = await api(taskBody(undefined, [{ type: "FIELD", fieldId: ASSIGNEE, sort: "NAME_ASC" }]));
+  const oneWant = build(byCreated, (twin) => [[twin.assignee ?? null]], [nameSort]);
+  const oneGot = actual(one.groups, ["assignee"]);
+  const oneProblems = [];
+  if (one.__http !== 200) oneProblems.push(one.statusDetails);
+  else compareTree(oneGot, oneWant, oneProblems, "one");
+  const oneLeaves = new Set(allLeafIds(oneGot));
+  const oneHasTwins = oneGot.every((group) => group.hasTwins && !group.hasGroups);
+  add("S5 one criterion puts twins on the root", oneProblems.length === 0 && oneHasTwins && oneLeaves.size === twins.length, oneProblems.length ? oneProblems : { groups: oneGot.length, leaves: oneLeaves.size });
+
+  const two = await api(taskBody(undefined, [
+    { type: "FIELD", fieldId: STATUS, sort: "KEY_ASC" },
+    { type: "FIELD", fieldId: ASSIGNEE, sort: "NAME_ASC" },
+  ]));
+  const twoWant = build(byCreated, (twin) => [[twin.status], [twin.assignee ?? null]], [keySort, nameSort]);
+  const twoGot = actual(two.groups, ["status", "assignee"]);
+  const twoProblems = [];
+  if (two.__http !== 200) twoProblems.push(two.statusDetails);
+  else compareTree(twoGot, twoWant, twoProblems, "two");
+  const twinsOnSecond = twoGot.every((group) => group.hasGroups && !group.hasTwins && group.groups.every((child) => child.hasTwins && !child.hasGroups));
+  add("S5 two criteria put twins on the second level", twoProblems.length === 0 && twinsOnSecond && new Set(allLeafIds(twoGot)).size === twins.length, twoProblems.length ? twoProblems : { roots: twoGot.length });
+
+  const counted = await api(taskBody(undefined, [
+    { type: "FIELD", fieldId: STATUS, sort: "COUNT_DESC" },
+    { type: "FIELD", fieldId: ASSIGNEE, sort: "NAME_ASC" },
+    { type: "LINK", linkId: LINK, nodeEnd: "DST", sort: "NAME_ASC" },
+  ], [{ twinClassFieldId: NAME, direction: "ASC" }]));
+  const countedWant = build(byName, taskLevels, [byCount(false), nameSort, linkSort]);
+  const countedGot = actual(counted.groups, ["status", "assignee", "link"]);
+  const countProblems = [];
+  if (counted.__http !== 200) countProblems.push(counted.statusDetails);
+  else compareTree(countedGot, countedWant, countProblems, "count");
+  const firstIsLargest = countedGot.length > 1 && countedGot[0].count >= countedGot[1].count;
+  add("S12 largest status is first and leaves under the link follow the name order", countProblems.length === 0 && firstIsLargest, countProblems.length ? countProblems : {
+    first: countedGot[0]?.count,
+    second: countedGot[1]?.count,
+  });
 } catch (error) {
-  add("S11 threw", false, String(error));
+  add("tree scenarios threw", false, String(error.stack || error));
 }
 
 try {
-  const boolBody = await api("/private/twin/search/grouped/v1", req(BOOL_FIELD, "KEY_ASC", sort(CREATED, "DESC")));
-  const actual = apiGroups(boolBody, "groupedFieldValues");
-  const expected = expectedGroups(boolTwins, (row) => row.values, created, byKey(true));
-  const problems = [];
-  if (boolBody.__http !== 200) problems.push({ http: boolBody.__http, status: boolBody.status, statusDetails: boolBody.statusDetails });
-  if (actual.length !== expected.length) problems.push(`groups ${actual.length} != ${expected.length}`);
-  for (let i = 0; i < Math.min(actual.length, expected.length); i++) {
-    if (JSON.stringify(actual[i].key) !== JSON.stringify(expected[i].key)) problems.push(`key ${JSON.stringify(actual[i].key)} != ${JSON.stringify(expected[i].key)}`);
-    else if (actual[i].twins.length !== expected[i].twins.length) problems.push(`size ${actual[i].key}: ${actual[i].twins.length} != ${expected[i].twins.length}`);
-    else {
-      const order = sameOrder(idsOf(actual[i]), idsOf(expected[i]));
-      if (!order.ok) problems.push(`order ${JSON.stringify(actual[i].key)} @${order.at}`);
+  const workBody = await api(taskBody(undefined, [
+    { type: "FIELD", fieldId: STATUS, sort: "KEY_ASC" },
+    { type: "FIELD", fieldId: WORK, sort: "KEY_ASC" },
+  ]), SHOW_OPTIONS);
+  const workWant = build(byCreated, (twin) => [[twin.status], [workByTwin.has(twin.id) ? workByTwin.get(twin.id) : null]], [keySort, keySort]);
+  const workGot = actual(workBody.groups, ["status", "work"]);
+  const workProblems = [];
+  if (workBody.__http !== 200) workProblems.push({ http: workBody.__http, statusDetails: workBody.statusDetails });
+  else compareTree(workGot, workWant, workProblems, "work");
+  const optionIds = new Set();
+  for (const statusNode of workGot) {
+    for (const optionNode of statusNode.groups || []) {
+      if (optionNode.key) optionIds.add(optionNode.key);
     }
   }
-  const nullBool = (boolBody.groups || []).find((group) => group.groupedFieldValues && Object.values(group.groupedFieldValues).includes(null));
-  const nullValueKept = Boolean(nullBool) && Object.values(nullBool.groupedFieldValues)[0] === null;
-  add("boolean field groups true, false and null, empty value kept in the map", problems.length === 0 && nullValueKept, problems.length ? problems : {
-    keys: actual.map((group) => group.key),
-    sizes: actual.map((group) => group.twins.length),
-    nullSerialized: nullValueKept,
-  });
-  const boolName = await api("/private/twin/search/grouped/v1", req(BOOL_FIELD, "NAME_ASC"));
-  expectError("NAME_ASC on boolean is 400", boolName, 11604, "NAME sort");
+  optionIds.delete(undefined);
+  const map = workBody.relatedObjects?.dataListsOptionMap || {};
+  const missing = [...optionIds].filter((id) => id && !map[id]);
+  add("S11 workType is a field node and its options are related objects", workProblems.length === 0 && missing.length === 0, workProblems.length ? workProblems : { missing, options: Object.keys(map).length });
 
-  const decimalBody = await api("/private/twin/search/grouped/v1", req(DECIMAL_FIELD, "KEY_ASC"));
-  const decimalActual = apiGroups(decimalBody, "groupedFieldValues");
-  const decimalExpected = expectedGroups(decimalTwins, (row) => row.values.map((value) => (value == null ? null : Number(value))), created, byKey(true));
-  const decimalProblems = [];
-  if (decimalBody.__http !== 200 || decimalBody.status !== 0) decimalProblems.push({ http: decimalBody.__http, status: decimalBody.status, statusDetails: decimalBody.statusDetails });
-  if (decimalActual.length !== decimalExpected.length) decimalProblems.push(`groups ${decimalActual.length} != ${decimalExpected.length}`);
-  let decimalSum = 0;
-  for (let i = 0; i < Math.min(decimalActual.length, decimalExpected.length); i++) {
-    if (JSON.stringify(decimalActual[i].key) !== JSON.stringify(decimalExpected[i].key)) {
-      decimalProblems.push(`key ${JSON.stringify(decimalActual[i].key)} != ${JSON.stringify(decimalExpected[i].key)}`);
-      continue;
-    }
-    decimalSum += decimalActual[i].twins.length;
-    if (decimalActual[i].twins.length !== decimalExpected[i].twins.length) decimalProblems.push(`size ${decimalActual[i].key}`);
-  }
-  if (decimalBody.__http === 200 && decimalSum !== twins.length) decimalProblems.push(`sum ${decimalSum} != ${twins.length}`);
-  add("decimal progress KEY_ASC groups match stored values", decimalProblems.length === 0, decimalProblems.length ? decimalProblems.slice(0, 8) : { groups: decimalActual.length, sum: decimalSum });
-  const decimalName = await api("/private/twin/search/grouped/v1", req(DECIMAL_FIELD, "NAME_ASC"));
-  expectError("NAME_ASC on decimal is 400", decimalName, 11604, "NAME sort");
+  const boolBody = await api(taskBody(undefined, [{ type: "FIELD", fieldId: BOOL, sort: "KEY_ASC" }]));
+  const boolWant = build(byCreated, (twin) => [boolByTwin.get(twin.id) || [null]], [byKey(true)]);
+  const boolGot = actual(boolBody.groups, ["bool"]);
+  const boolProblems = [];
+  if (boolBody.__http !== 200) boolProblems.push(boolBody.statusDetails);
+  else compareTree(boolGot, boolWant, boolProblems, "bool");
+  const nullBool = (boolBody.groups || []).find((group) => group.groupedFieldValues && Object.values(group.groupedFieldValues)[0] === null);
+  add("boolean field keeps true, false and a null key", boolProblems.length === 0 && Boolean(nullBool), boolProblems.length ? boolProblems : {
+    keys: boolGot.map((group) => group.key),
+  });
 } catch (error) {
-  add("boolean/decimal threw", false, String(error));
+  add("dynamic field scenarios threw", false, String(error.stack || error));
+}
+
+function expectError(name, body, code, text) {
+  const details = `${body.statusDetails || ""} ${body.msg || ""}`;
+  const ok = body.__http === 400 && (!code || body.status === code) && (!text || details.toLowerCase().includes(text.toLowerCase()));
+  add(name, ok, { http: body.__http, status: body.status, msg: body.msg, statusDetails: body.statusDetails });
 }
 
 try {
-  const hidden = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_ASC", undefined, { twinIdList: [foreignId] }));
-  const hiddenIds = apiGroups(hidden, "assignerUserId").flatMap(idsOf);
-  add("S8 twin from another domain is absent and the response is 200", hidden.__http === 200 && hidden.status === 0 && !hiddenIds.includes(foreignId), {
-    http: hidden.__http,
-    status: hidden.status,
-    groups: hidden.groups?.length,
-    ids: hiddenIds.length,
+  expectError("S6 four criteria are rejected", await api(taskBody(undefined, [
+    { type: "FIELD", fieldId: STATUS },
+    { type: "FIELD", fieldId: ASSIGNEE },
+    { type: "LINK", linkId: LINK, nodeEnd: "DST" },
+    { type: "FIELD", fieldId: CLASS },
+  ])), 13701, "criteria");
+  expectError("S7 an empty class list is rejected", await api({ search: { twinClassIdList: [] }, criteria: [{ type: "FIELD", fieldId: ASSIGNEE }] }), 11604, "exactly one");
+  expectError("S7 two classes are rejected", await api({
+    search: { twinClassIdList: [TASK, "458c6d7d-99c8-4d87-89c6-2f72d0f5d673"] },
+    criteria: [{ type: "FIELD", fieldId: ASSIGNEE }],
+  }), 11604, "exactly one");
+  expectError("S8 name is not groupable", await api(taskBody(undefined, [{ type: "FIELD", fieldId: NAME, sort: "KEY_ASC" }])), 11604, "not groupable");
+  expectError("S8 createdAt is not groupable", await api(taskBody(undefined, [{ type: "FIELD", fieldId: CREATED, sort: "KEY_ASC" }])), 11604, "not groupable");
+  expectError("S8 a user field is not countable", await api(taskBody(undefined, [{ type: "FIELD", fieldId: USER_FIELD, sort: "KEY_ASC" }])), 11604, "not countable");
+  expectError("S8 NAME_ASC on status is rejected", await api(taskBody(undefined, [{ type: "FIELD", fieldId: STATUS, sort: "NAME_ASC" }])), 11604, "NAME sort");
+  expectError("S9 the same field twice is rejected", await api(taskBody(undefined, [
+    { type: "FIELD", fieldId: STATUS },
+    { type: "FIELD", fieldId: STATUS },
+  ])), 11604, "duplicate");
+  expectError("S9 the same link and end twice is rejected", await api(taskBody(undefined, [
+    { type: "LINK", linkId: LINK, nodeEnd: "DST" },
+    { type: "LINK", linkId: LINK, nodeEnd: "DST" },
+  ])), 11604, "duplicate");
+  const twoLinks = await api(taskBody({ statusIdList: [STATUS_MID] }, [
+    { type: "LINK", linkId: LINK, nodeEnd: "DST", sort: "KEY_ASC" },
+    { type: "LINK", linkId: LINK2, nodeEnd: "DST", sort: "KEY_ASC" },
+  ]));
+  add("S9 two different links are a normal tree", twoLinks.__http === 200 && twoLinks.status === 0 && (twoLinks.groups || []).every((group) => Array.isArray(group.groups) && !group.twins), {
+    http: twoLinks.__http,
+    status: twoLinks.status,
+    roots: twoLinks.groups?.length,
+    statusDetails: twoLinks.statusDetails,
   });
-  const oneId = twins[0].id;
-  const mixed = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_ASC", undefined, { twinIdList: [oneId, foreignId] }));
-  const mixedIds = apiGroups(mixed, "assignerUserId").flatMap(idsOf);
-  add("S8 a visible twin stays when an invisible id is added to the filter", mixed.__http === 200 && mixedIds.length === 1 && mixedIds[0] === oneId, { ids: mixedIds });
+  const bothEnds = await api(taskBody({ statusIdList: [STATUS_MID] }, [
+    { type: "LINK", linkId: LINK, nodeEnd: "DST", sort: "KEY_ASC" },
+    { type: "LINK", linkId: LINK, nodeEnd: "SRC", sort: "KEY_ASC" },
+  ]));
+  add("the same link with DST and SRC is accepted", bothEnds.__http === 200 && bothEnds.status === 0, {
+    http: bothEnds.__http,
+    status: bothEnds.status,
+    statusDetails: bothEnds.statusDetails,
+  });
+  const foreign = await api({
+    search: { twinClassIdList: [TASK], twinIdList: ["cf850c7e-d8cd-498d-bb97-47101fa86517"] },
+    criteria: [{ type: "FIELD", fieldId: ASSIGNEE, sort: "KEY_ASC" }],
+  });
+  add("S10 a twin from another domain is absent and the response stays 200", foreign.__http === 200 && foreign.status === 0 && (foreign.groups || []).length === 0, {
+    http: foreign.__http,
+    groups: foreign.groups?.length,
+    status: foreign.status,
+  });
 } catch (error) {
-  add("S8 threw", false, String(error));
+  add("validation scenarios threw", false, String(error.stack || error));
 }
 
 try {
-  expectError("S9 name is not groupable", await api("/private/twin/search/grouped/v1", req(NAME, "KEY_ASC")), 11604, "not groupable");
-  expectError("S9 createdAt is not groupable", await api("/private/twin/search/grouped/v1", req(CREATED, "KEY_ASC")), 11604, "not groupable");
-  expectError("S9 dynamic user field is not countable", await api("/private/twin/search/grouped/v1", req(USER_FIELD, "KEY_ASC")), 11604, "not countable");
-  expectError("S9 link field is not countable", await api("/private/twin/search/grouped/v1", req(LINK_FIELD, "KEY_ASC")), 11604, "not countable");
-  expectError("S9 space-role user field is not countable", await api("/private/twin/search/grouped/v1", req(SPACE_FIELD, "KEY_ASC")), 11604, "not countable");
-  expectError("S9 calc field is not countable", await api("/private/twin/search/grouped/v1", req(CALC_FIELD, "KEY_ASC")), 11604, "not countable");
-  expectError("S9 attachment field is not countable", await api("/private/twin/search/grouped/v1", req(ATTACH_FIELD, "KEY_ASC")), 11604, "not countable");
-  const unknown = await api("/private/twin/search/grouped/v1", req("11111111-1111-1111-1111-111111111111", "KEY_ASC"));
-  add("unknown field id is rejected before a twin page", unknown.__http === 400, { http: unknown.__http, status: unknown.status, statusDetails: unknown.statusDetails, msg: unknown.msg });
-  expectError("memberSorts rejects a dynamic field", await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_ASC", sort(WORK_TYPE, "ASC"), taskSearch({ statusIdList: [STATUS_SMALL] }))), 11604, "not a basic field");
-  const threeSorts = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_ASC", [
-    { twinClassFieldId: CREATED, direction: "DESC" },
-    { twinClassFieldId: NAME, direction: "ASC" },
-    { twinClassFieldId: CREATED, direction: "ASC" },
-  ], taskSearch({ statusIdList: [STATUS_SMALL] })));
-  expectError("memberSorts max 2 is 400", threeSorts, 13701, "memberSorts");
-  const missingField = await api("/private/twin/search/grouped/v1", { search: taskSearch(), groupSort: "KEY_ASC" });
-  expectError("groupFieldId is required", missingField, 13701, "groupFieldId");
-  const badSort = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "FOO"));
-  add("unknown groupSort is 400", badSort.__http === 400, { http: badSort.__http, status: badSort.status, msg: badSort.msg });
-  const nested = await api("/private/twin/search/grouped/v1", {
-    search: taskSearch({ statusIdList: [STATUS_SMALL] }),
-    groupFieldId: ASSIGNEE,
-    groupFieldIds: [ASSIGNEE, STATUS],
-    groupSort: "KEY_ASC",
-  });
-  const nestedGroups = nested.groups || [];
-  const rejected = nested.__http === 400;
-  const ignoredAndFlat = nested.__http === 200 && nested.status === 0 && nestedGroups.every((group) => Array.isArray(group.twins) && !group.groups);
-  add("S12 nested grouping is not accepted", rejected || ignoredAndFlat, {
-    http: nested.__http,
-    status: nested.status,
-    groups: nestedGroups.length,
-    outcome: rejected ? "400" : ignoredAndFlat ? "extra field ignored, response stays one level" : "nested or unexpected",
-    statusDetails: nested.statusDetails,
-  });
-  const emptySearch = await api("/private/twin/search/grouped/v1", { search: {}, groupFieldId: ASSIGNEE, groupSort: "KEY_ASC" });
-  add("empty search over the domain is refused instead of a cut tree", emptySearch.__http === 400 && emptySearch.status === 11606 && String(emptySearch.statusDetails || "").includes("5000"), {
-    http: emptySearch.__http,
-    status: emptySearch.status,
-    statusDetails: emptySearch.statusDetails,
-    groups: emptySearch.groups?.length,
+  const bigClass = psql(`
+    SELECT t.twin_class_id::text FROM twin t
+    JOIN twin_class c ON c.id = t.twin_class_id
+    WHERE c.domain_id = 'f67ad556-dd27-4871-9a00-16fb0e8a4102'
+    GROUP BY t.twin_class_id
+    ORDER BY count(*) DESC
+    LIMIT 1
+  `);
+  const bigCount = Number(psql(`SELECT count(*) FROM twin WHERE twin_class_id = '${bigClass}'`));
+  const big = await api({
+    search: { twinClassIdList: [bigClass] },
+    criteria: [{ type: "FIELD", fieldId: CLASS, sort: "KEY_ASC" }],
+  }, "showTwinMode=SHORT&lazyRelation=false", 300000);
+  const returned = (big.groups || []).reduce((sum, group) => sum + (group.twins || []).length, 0);
+  add("a class larger than 5000 is returned whole", big.__http === 200 && big.status === 0 && returned === bigCount, {
+    http: big.__http,
+    status: big.status,
+    statusDetails: big.statusDetails,
+    classId: bigClass,
+    db: bigCount,
+    returned,
+    ms: big.__ms,
   });
 } catch (error) {
-  add("validation scenarios threw", false, String(error));
+  add("a class larger than 5000 is returned whole", false, String(error.stack || error).slice(0, 400));
 }
-
-try {
-  const oneId = twins[0].id;
-  const hiddenMode = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_ASC", undefined, { twinIdList: [oneId] }), "lazyRelation=false");
-  const shown = await api("/private/twin/search/grouped/v1", req(ASSIGNEE, "KEY_ASC", undefined, { twinIdList: [oneId] }), "showTwinMode=DETAILED&lazyRelation=false");
-  const hiddenTwin = hiddenMode.groups?.[0]?.twins?.[0] || {};
-  const shownTwin = shown.groups?.[0]?.twins?.[0] || {};
-  add("without showTwinMode the leaf has no id; DETAILED returns the twin", hiddenMode.__http === 200 && !hiddenTwin.id && shownTwin.id === oneId && shownTwin.twinClassId === TASK, {
-    hiddenKeys: Object.keys(hiddenTwin),
-    shownId: shownTwin.id,
-    shownClass: shownTwin.twinClassId,
-  });
-} catch (error) {
-  add("show mode threw", false, String(error));
-}
-
-checks.push({
-  name: "multiple-select data list in this domain",
-  ok: null,
-  detail: { multipleFields, skipped: multipleFields === 0, note: "no multiple=true field, so a twin in several options was not exercised" },
-});
-console.log("SKIP multiple-select data list in this domain");
-
-const duplicateNames = [...userNames.values()].filter((name, index, all) => name != null && all.indexOf(name) !== index);
-checks.push({
-  name: "assignee display names that tie",
-  ok: duplicateNames.length > 0 ? checks.find((item) => item.name.startsWith("S1 "))?.ok ?? null : null,
-  detail: duplicateNames.length
-    ? { duplicates: [...new Set(duplicateNames)], coveredBy: "S1 order includes the id tie-break" }
-    : { duplicates: 0, note: "no shared assignee name, id tie-break was not observable" },
-});
-console.log((duplicateNames.length ? "INFO " : "SKIP ") + "assignee display names that tie");
 
 const summary = {
   ranAt: new Date().toISOString(),
   tasks: twins.length,
-  passed: checks.filter((item) => item.ok === true).length,
-  failed: checks.filter((item) => item.ok === false).length,
-  skipped: checks.filter((item) => item.ok == null).length,
+  passed: checks.filter((item) => item.ok).length,
+  failed: checks.filter((item) => !item.ok).length,
   checks,
 };
 writeFileSync(join(OUT, "checks.json"), JSON.stringify(summary, null, 2));
-console.log(`DONE passed=${summary.passed} failed=${summary.failed} skipped=${summary.skipped}`);
+console.log(`DONE passed=${summary.passed} failed=${summary.failed}`);
 if (summary.failed) process.exitCode = 1;

@@ -1,10 +1,10 @@
 {
-  "assignerUserId": null,
-  "count": 87,
-  "twinCount": 87,
-  "keys": [
-    "count",
-    "assignerUserId",
-    "twins"
-  ]
+  "status": "8e6f863b-9a69-48aa-8deb-e98ec271e051",
+  "nullAssignee": {
+    "key": null,
+    "count": 2,
+    "childKeys": [
+      null
+    ]
+  }
 }

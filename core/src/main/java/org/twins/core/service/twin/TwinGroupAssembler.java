@@ -46,7 +46,11 @@ public final class TwinGroupAssembler {
                 group(groups, null).getTwins().add(twin);
             }
         }
-        return new ArrayList<>(groups.values());
+        List<TwinGroup> result = new ArrayList<>(groups.values());
+        for (TwinGroup group : result) {
+            group.setCount(group.getTwins().size());
+        }
+        return result;
     }
 
     @FunctionalInterface
@@ -60,7 +64,7 @@ public final class TwinGroupAssembler {
 
     public static Comparator<TwinGroup> counts(boolean ascending) {
         return (left, right) -> {
-            int byCount = Long.compare(left.getTwins().size(), right.getTwins().size());
+            int byCount = Integer.compare(left.getCount(), right.getCount());
             if (!ascending) {
                 byCount = -byCount;
             }
@@ -103,7 +107,7 @@ public final class TwinGroupAssembler {
     private static TwinGroup group(Map<Object, TwinGroup> groups, Object key) {
         TwinGroup group = groups.get(key);
         if (group == null) {
-            group = new TwinGroup().setKey(key);
+            group = new TwinGroup().setKey(key).setTwins(new ArrayList<>());
             groups.put(key, group);
         }
         return group;

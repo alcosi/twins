@@ -19,6 +19,14 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     List<TwinLinkEntity> findBySrcTwinIdInOrDstTwinIdIn(Set<UUID> srcTwinIdList, Set<UUID> dstTwinIdList);
     List<TwinLinkEntity> findBySrcTwinIdIn(Set<UUID> srcTwinIdList);
 
+    @Query("""
+            select tl from TwinLinkEntity tl
+            where tl.linkId in :linkIds
+              and (tl.srcTwinId in :twinIds or tl.dstTwinId in :twinIds)
+            """)
+    List<TwinLinkEntity> findByLinkIdInAndEndpointIn(@Param("linkIds") Collection<UUID> linkIds,
+                                                     @Param("twinIds") Collection<UUID> twinIds);
+
     @Modifying
     @Query(value = "from TwinLinkEntity twinLink " +
             "where twinLink.id in (:linkIdList) and (twinLink.srcTwinId = :twinId or twinLink.dstTwinId = :twinId)")

@@ -45,4 +45,16 @@ class TwinGroupedSearchGroupJsonTest {
         assertTrue(json.contains("\"groupedFieldValues\""), json);
         assertTrue(json.contains("\"" + fieldId + "\":null"), json);
     }
+
+    @Test
+    void emptyLinkKeepsLinkIdAndNullNode() throws Exception {
+        UUID linkId = UUID.fromString("5fc86b22-352e-4017-9816-1f9326d8ac08");
+        TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
+                .setKey(new TwinGroupKeyDTOv1.Link().setLinkId(linkId).setLinkTwinId(null))
+                .setCount(1L)
+                .setTwins(List.of());
+        String json = mapper.writeValueAsString(dto);
+        assertTrue(json.contains("\"linkId\":\"" + linkId + "\""), json);
+        assertTrue(json.contains("\"linkTwinId\":null"), json);
+    }
 }

@@ -8,5 +8,6 @@ public enum TwinGroupKeyKind {
     TWIN_CLASS,
     HEAD,
     FLAVOR,
-    DYNAMIC
+    DYNAMIC,
+    LINK
 }
