@@ -38,6 +38,7 @@ public class ResourceCountRestDTOMapper extends RestSimpleDTOMapper<CountResult<
         dst
                 .setUploadedByUserId(entity.getUploadedByUserId())
                 .setStorageId(entity.getStorageId())
+                .setIsPublic(entity.getIsPublic())
                 .setCount(src.getCount());
         if (needLoad(mapperContext, UserMode.Resource2UserMode.HIDE, src, ResourceGroupField.uploadedByUserId)) {
             resourceService.loadUploadedByUser(entity);

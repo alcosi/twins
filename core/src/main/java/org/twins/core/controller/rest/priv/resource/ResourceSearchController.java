@@ -22,7 +22,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dto.rest.resource.ResourceSearchRqDTOv1;
 import org.twins.core.dto.rest.resource.ResourceSearchRsDTOv1;
@@ -31,10 +30,11 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.resource.ResourceRestDTOMapper;
 import org.twins.core.mappers.rest.resource.ResourceSearchRestDTOReverseMapper;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.resource.ResourceSearchService;
 
 /**
- * Lists files uploaded through {@link ResourceUploadController} of the caller's domain
+ * Lists files uploaded through {@link ResourceCreateController} of the caller's domain
  * (DomainId header, standard ApiUser flow). Guarded by RESOURCE_MANAGE or RESOURCE_VIEW;
  * the listing contains file metadata only, never the storage keys.
  */
@@ -51,10 +51,8 @@ public class ResourceSearchController extends ApiController {
     private final ResourceRestDTOMapper resourceRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "resourceSearchV1", summary = "Uploaded resources search",
-            description = "Lists files uploaded via /private/resource/upload/v1 of the DomainId domain. "
-                    + "Pagination via query params (offset/limit), sorting via sortField/sortDirection in the body, "
-                    + "total count is returned in pagination.total.")
+    @Operation(operationId = "resourceSearchV1", summary = "Domain resources search",
+            description = "")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Uploaded resources", content = {
                     @Content(mediaType = "application/json", schema =

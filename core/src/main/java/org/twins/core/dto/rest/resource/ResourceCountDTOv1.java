@@ -23,4 +23,7 @@ public class ResourceCountDTOv1 extends CountDTOv1 {
     @Schema(description = "storage id", example = DTOExamples.RESOURCE_STORAGE_ID)
     @RelatedObject(type = StorageDTOv1.class, name = "storage")
     public UUID storageId;
+
+    @Schema(description = "public flag: resource is available via the public download api (GET /public/resource/{id}/v1)")
+    public Boolean isPublic;
 }

@@ -39,4 +39,7 @@ public class ResourceDTOv1 {
 
     @Schema(description = "direct link to the stored file in the domain storage")
     public String storageLink;
+
+    @Schema(description = "public flag: resource is available via the public download api (GET /public/resource/{id}/v1)")
+    public Boolean isPublic;
 }

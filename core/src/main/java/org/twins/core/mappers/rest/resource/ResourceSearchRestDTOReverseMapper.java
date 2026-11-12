@@ -29,7 +29,8 @@ public class ResourceSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Reso
                 .setStorageFileKeyLikeList(src.getStorageFileKeyLikeList())
                 .setStorageFileKeyNotLikeList(src.getStorageFileKeyNotLikeList())
                 .setSizeInBytes(longRangeDTOReverseMapper.convert(src.getSizeInBytes()))
-                .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
+                .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()))
+                .setIsPublic(src.getIsPublic());
     }
 
 }

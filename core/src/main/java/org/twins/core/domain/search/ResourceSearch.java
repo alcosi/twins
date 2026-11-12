@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.math.LongRange;
+import org.cambium.common.util.Ternary;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.domain.DataTimeRange;
 
@@ -24,4 +25,5 @@ public class ResourceSearch extends EntitySearch<ResourceEntity> {
     private Set<String> storageFileKeyNotLikeList;
     private LongRange sizeInBytes;
     private DataTimeRange createdAt;
+    private Ternary isPublic;
 }

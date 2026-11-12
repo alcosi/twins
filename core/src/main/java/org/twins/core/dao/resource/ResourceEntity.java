@@ -42,6 +42,9 @@ public class ResourceEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "public")
+    private Boolean isPublic;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude

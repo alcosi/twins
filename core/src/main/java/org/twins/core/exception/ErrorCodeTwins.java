@@ -208,7 +208,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     INVALID_TEMPORAL_REFERENCE(13604, "invalid temporal reference format"),
     TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account"),
     VALIDATION_DTO_FAILED(13701, "dto bean validation failed"),
-    MALFORMED_REQUEST_BODY(13702, "request body is malformed");
+    MALFORMED_REQUEST_BODY(13702, "request body is malformed"),
+    RESOURCE_NOT_PUBLIC(13801, "resource is not available via public api", HttpStatus.NOT_FOUND);
 
     private final int code;
     private final String message;

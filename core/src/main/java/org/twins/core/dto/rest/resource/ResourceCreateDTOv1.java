@@ -1,8 +1,10 @@
 package org.twins.core.dto.rest.resource;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.file.FileData;
 import org.twins.core.dto.rest.DTOExamples;
 
 @Data
@@ -14,4 +16,11 @@ public class ResourceCreateDTOv1 {
 
     @Schema(description = "Optional resource name override, defaults to the uploaded file name", example = DTOExamples.ATTACHMENT_TITLE)
     public String title;
+
+    @Schema(description = "Public flag: resource is available via the public download api (GET /public/resource/{id}/v1). Defaults to true")
+    public Boolean isPublic;
+
+    @JsonIgnore
+    @Schema(hidden = true)
+    public FileData file; // resolved from storageLink against the multipart parts by the controller; never comes from json
 }

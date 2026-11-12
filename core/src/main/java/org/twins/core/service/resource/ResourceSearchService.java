@@ -66,7 +66,8 @@ public class ResourceSearchService extends EntitySearchService
                 checkFieldLikeContainsIn(search.getStorageFileKeyLikeList(), false, true, ResourceEntity.Fields.storageFileKey),
                 checkFieldLikeContainsIn(search.getStorageFileKeyNotLikeList(), true, true, ResourceEntity.Fields.storageFileKey),
                 checkFieldLongRange(search.getSizeInBytes(), ResourceEntity.Fields.sizeInBytes),
-                checkFieldLocalDateTimeBetween(search.getCreatedAt(), ResourceEntity.Fields.createdAt)
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), ResourceEntity.Fields.createdAt),
+                checkTernary(search.getIsPublic(), ResourceEntity.Fields.isPublic)
         );
     }
 
@@ -91,6 +92,7 @@ public class ResourceSearchService extends EntitySearchService
         return switch (groupField) {
             case uploadedByUserId -> ResourceEntity.Fields.uploadedByUserId;
             case storageId -> ResourceEntity.Fields.storageId;
+            case isPublic -> ResourceEntity.Fields.isPublic;
         };
     }
 
@@ -99,6 +101,7 @@ public class ResourceSearchService extends EntitySearchService
         switch (field) {
             case uploadedByUserId -> entity.setUploadedByUserId((UUID) o);
             case storageId -> entity.setStorageId((UUID) o);
+            case isPublic -> entity.setIsPublic((Boolean) o);
         }
     }
 }

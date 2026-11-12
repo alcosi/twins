@@ -59,7 +59,7 @@ public class ResourcePublicController extends ApiController {
         log.info("Started resource " + resourceId + " download");
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            var file = resourceService.getResourceFile(resourceId);
+            var file = resourceService.getPublicResourceFile(resourceId);
             serverRs.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.maxAge(httpCacheLifetime).cachePublic().immutable().getHeaderValue());
             return ResponseEntity.ok(file);
         } catch (ServiceException se) {

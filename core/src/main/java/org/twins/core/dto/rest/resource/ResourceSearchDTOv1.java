@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.resource;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.Ternary;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 import org.twins.core.dto.rest.LongRangeDTOv1;
 
@@ -48,4 +49,7 @@ public class ResourceSearchDTOv1 {
 
     @Schema(description = "created at")
     public DataTimeRangeDTOv1 createdAt;
+
+    @Schema(description = "public flag filter")
+    public Ternary isPublic;
 }

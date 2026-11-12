@@ -36,6 +36,7 @@ public class ResourceRestDTOMapper extends RestSimpleDTOMapper<ResourceEntity, R
                 .setOriginalFileName(src.getOriginalFileName())
                 .setSizeInBytes(src.getSizeInBytes())
                 .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
+                .setIsPublic(src.getIsPublic())
                 .setStorageLink(resourceService.getResourceUri(src));
         if (mapperContext.hasModeButNot(UserMode.Resource2UserMode.HIDE)) {
             resourceService.loadUploadedByUser(src);
