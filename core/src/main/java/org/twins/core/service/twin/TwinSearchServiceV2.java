@@ -239,6 +239,18 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
     }
 
     /**
+     * One grouping dimension, the same acceptance rule as {@code POST /private/twin/count/v1}:
+     * a basic column from {@link #convertToEntityField(UUID)}, or a dynamic field whose storage
+     * {@code countGroup} is non-null.
+     */
+    public GroupExpressionProvider<TwinEntity> resolveGroupProvider(UUID groupFieldId) throws ServiceException {
+        if (groupFieldId == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "groupFieldId is required");
+        }
+        return resolveGroupProviders(emptySearch(), Set.of(groupFieldId)).getFirst();
+    }
+
+    /**
      * Provider path for twin grouping: basic system field -> direct root field (reusing the
      * {@link #convertToEntityField(UUID)} groupable whitelist); dynamic twin class field ->
      * {@link org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage#countGroup}. Provider order

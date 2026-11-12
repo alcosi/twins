@@ -1,6 +1,7 @@
 package org.twins.core.unit.featurer.fieldtyper.storage;
 
 import org.cambium.common.kit.Kit;
+import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,8 @@ class TwinFieldStorageDatalistTest extends BaseUnitTest {
 
     @Mock
     private TwinClassFieldService twinClassFieldService;
+    @Mock
+    private FeaturerService featurerService;
 
 
     private UUID fieldId;
@@ -57,7 +60,7 @@ class TwinFieldStorageDatalistTest extends BaseUnitTest {
     }
 
     private TwinFieldStorageDatalist loadableStorage() {
-        var storage = new TwinFieldStorageDatalist(twinFieldDataListRepository);
+        var storage = new TwinFieldStorageDatalist(twinFieldDataListRepository, featurerService);
         setBaseField(storage, "twinService", twinService);
         setBaseField(storage, "twinClassFieldService", twinClassFieldService);
         return storage;
