@@ -56,7 +56,7 @@ public class DataListSubsetSearchService extends EntitySearchService
     public Specification<DataListSubsetEntity> createFilterSpecification(DataListSubsetSearch search, UUID domainId, Locale locale) throws ServiceException {
         return Specification.allOf(
                 //domain isolation goes through the parent data list (same as TwinClassFieldSearchService does via twinClass)
-                checkUuid(domainId, false, false, DataListSubsetEntity.Fields.dataListSpecOnly, DataListEntity.Fields.domainId),
+                checkUuid(domainId, false, false, DataListSubsetEntity.Fields.dataListSpecOnly, DataListEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdList(), false, false, DataListSubsetEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, DataListSubsetEntity.Fields.id),
                 checkUuidIn(search.getDataListIdList(), false, false, DataListSubsetEntity.Fields.dataListId),

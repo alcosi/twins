@@ -10,9 +10,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Table(name = "twin_class_field_validator")
 @Accessors(chain = true)
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinClassFieldValidatorEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

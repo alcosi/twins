@@ -42,7 +42,7 @@ public class TwinAccessSpecificationFactory {
         UUID domainId = apiUser.getDomainId();
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
             // twin.twinClass.domainId = domainId
-            return checkFieldUuid(domainId, concatArray(twinEntityFieldPath, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
+            return checkFieldUuid(domainId, concatArray(twinEntityFieldPath, TwinEntity.Fields.twinClass, TwinClassEntity.DOMAIN_ID));
         }
         userGroupService.loadGroupsForCurrentUser();
         return Specification.allOf(

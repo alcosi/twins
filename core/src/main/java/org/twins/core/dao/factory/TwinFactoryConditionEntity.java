@@ -9,7 +9,9 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Data
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinFactoryConditionEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

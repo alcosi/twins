@@ -9,10 +9,12 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Table(name = "history")
 @FieldNameConstants
 @DynamicUpdate
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class HistoryEntity implements EasyLoggable {
     @Id
     private UUID id;

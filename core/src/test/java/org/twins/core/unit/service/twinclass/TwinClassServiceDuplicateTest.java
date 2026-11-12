@@ -291,7 +291,8 @@ class TwinClassServiceDuplicateTest extends BaseUnitTest {
 
         @Test
         void throwsOnDuplicateNewKeyInBatch() {
-            TwinClassEntity src2 = new TwinClassEntity().setId(UUID.randomUUID()).setDomainId(domainId);
+            TwinClassEntity src2 = new TwinClassEntity().setId(UUID.randomUUID());
+            src2.setDomainId(domainId);
 
             List<TwinClassDuplicate> batch = List.of(
                     duplicateOf(srcClass, newKey, false),
@@ -306,7 +307,8 @@ class TwinClassServiceDuplicateTest extends BaseUnitTest {
 
         @Test
         void acceptsBatchWithDistinctKeys() throws ServiceException {
-            TwinClassEntity src2 = new TwinClassEntity().setId(UUID.randomUUID()).setDomainId(domainId);
+            TwinClassEntity src2 = new TwinClassEntity().setId(UUID.randomUUID());
+            src2.setDomainId(domainId);
 
             stubSaveSafeAndCapture();
 
@@ -334,7 +336,8 @@ class TwinClassServiceDuplicateTest extends BaseUnitTest {
         @Test
         @Disabled("TODO: implement existsById/existsByDomainIdAndKey check before saveSafe")
         void throwsForEachConflictingKeyInBatch() throws ServiceException {
-            TwinClassEntity src2 = new TwinClassEntity().setId(UUID.randomUUID()).setDomainId(domainId);
+            TwinClassEntity src2 = new TwinClassEntity().setId(UUID.randomUUID());
+            src2.setDomainId(domainId);
             String conflictKey = "conflict_key";
 
             stubSaveSafeAndCapture();

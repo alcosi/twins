@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.query.SortDirection;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -12,6 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_search_sort")
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinSearchSortEntity implements EasyLoggable {
     @Id
     private UUID id;

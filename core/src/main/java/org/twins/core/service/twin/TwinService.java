@@ -17,7 +17,6 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.ScopeNotActiveException;
@@ -53,6 +52,7 @@ import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
@@ -97,7 +97,7 @@ import static org.twins.core.featurer.fieldtyper.FieldTyperList.LIST_SPLITTER;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
+public class TwinService extends TwinsEntityAccessService<TwinEntity> {
 
     // resolve AOP problem: one-service self-invocation methods
     @Autowired
@@ -680,7 +680,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             var twinEntity = twinCreate.getTwinEntity();
             if (twinEntity.getId() == null)
                 twinEntity.setId(UuidUtils.generate()); // this id is necessary for fields and links. Because the entity is not stored currently
-            twinEntity.setCreateElseUpdate(true);
+            twinEntity.setNewRow(true);
             fillOwner(twinEntity);
             if (twinEntity.getHeadTwinId() == null && twinEntity.getHierarchyTree() == null) {
                 TwinHeadService.initRootHierarchy(twinEntity);
@@ -874,7 +874,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             basicSearch
                     .setTwinNameLikeList(Set.of(name))
                     .setTwinClassIdList(Set.of(twinClass.getId()));
-            if (!twinEntity.isCreateElseUpdate()) {
+            if (!twinEntity.isNew()) {
                 basicSearch.setTwinIdExcludeList(Set.of(twinEntity.getId()));
             }
             if (twinSearchServiceV2.exists(basicSearch)) {
@@ -1499,6 +1499,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setCreatedByUserId(authService.getApiUser().getUserId())
                 .setCreatedAt(null) // no sense to use created at from original twin
                 .setSortOrder(null); // duplicate is not manually ordered: copied key would clash with the source twin in the same head level
+        // the duplicate is a NEW row (fresh id) — create for the whole downstream pipeline:
+        // CREATE-mode validators and field editability, *OnCreate history types, persist on save
+        duplicateEntity.setNewRow(true);
         if (duplicateEntity.getAssignerUserId() == null && Boolean.TRUE.equals(duplicateEntity.getTwinClass().getAssigneeRequired())) {
             duplicateEntity
                     .setAssignerUserId(authService.getApiUser().getUserId())
@@ -2028,7 +2031,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         List<TwinField> edit = new ArrayList<>();
         for (TwinField twinField : collection) {
             TwinEntity twin = twinField.getTwin();
-            (twin != null && twin.isCreateElseUpdate() ? create : edit).add(twinField);
+            (twin != null && twin.isNew() ? create : edit).add(twinField);
         }
         loadEditableFlag(create, TwinClassFieldAction.CREATE);
         loadEditableFlag(edit, TwinClassFieldAction.EDIT);
@@ -2150,7 +2153,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         List<TwinEntity> create = new ArrayList<>();
         List<TwinEntity> edit = new ArrayList<>();
         for (TwinEntity twin : collection) {
-            (twin.isCreateElseUpdate() ? create : edit).add(twin);
+            (twin.isNew() ? create : edit).add(twin);
         }
         loadFieldEditability(create, TwinClassFieldAction.CREATE);
         loadFieldEditability(edit, TwinClassFieldAction.EDIT);
@@ -2494,7 +2497,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (MapUtils.isEmpty(fields))
             return;
         TwinEntity twin = twinUpdate.getDbTwinEntity();
-        if (twin == null || twin.isCreateElseUpdate())
+        if (twin == null || twin.isNew())
             return;
         var iterator = fields.entrySet().iterator();
         loadFieldsValues(twin);

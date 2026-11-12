@@ -4,6 +4,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -238,7 +239,7 @@ class TwinLinkServiceRelationTwinTest {
                 if (survivingRelationTwin.getId().equals(entity.getRelationTwinId()))
                     entity.setRelationTwin(survivingRelationTwin);
             return null;
-        }).when(twinService).load(any(), any(org.cambium.service.EntitySecureFindServiceImpl.LoadedField[].class));
+        }).when(twinService).load(any(), any(EntityAccessServiceImpl.LoadedField[].class));
 
         // when
         twinLinkService.addLinks(srcTwin, creates(twinLink), new TwinChangesCollector());
@@ -268,7 +269,7 @@ class TwinLinkServiceRelationTwinTest {
                 if (survivingRelationTwin.getId().equals(entity.getRelationTwinId()))
                     entity.setRelationTwin(survivingRelationTwin);
             return null;
-        }).when(twinService).load(any(), any(org.cambium.service.EntitySecureFindServiceImpl.LoadedField[].class));
+        }).when(twinService).load(any(), any(EntityAccessServiceImpl.LoadedField[].class));
         FieldValue fieldValue = mock(FieldValue.class);
         when(fieldValue.getTwinClassField()).thenReturn(new org.twins.core.dao.twinclass.TwinClassFieldEntity().setId(UuidUtils.generate()));
         TwinLinkCreate twinLinkCreate = new TwinLinkCreate();
@@ -355,7 +356,7 @@ class TwinLinkServiceRelationTwinTest {
                 if (relationTwin.getId().equals(entity.getRelationTwinId()))
                     entity.setRelationTwin(relationTwin);
             return null;
-        }).when(twinService).load(any(), any(org.cambium.service.EntitySecureFindServiceImpl.LoadedField[].class));
+        }).when(twinService).load(any(), any(EntityAccessServiceImpl.LoadedField[].class));
         lenient().when(historyService.linkUpdated(any(TwinLinkEntity.class), any(TwinEntity.class), anyBoolean()))
                 .thenReturn(new HistoryCollectorMultiTwin());
         FieldValue fieldValue = mock(FieldValue.class);

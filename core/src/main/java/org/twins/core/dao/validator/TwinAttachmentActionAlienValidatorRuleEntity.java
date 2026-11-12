@@ -7,7 +7,9 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -15,6 +17,7 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Table(name = "twin_attachment_action_alien_validator_rule")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinAttachmentActionAlienValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     private UUID id;

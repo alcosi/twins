@@ -3,14 +3,17 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.*;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "twin_business_account_alias_counter")
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class TwinBusinessAccountAliasCounterEntity {
     @Id
     private UUID id;

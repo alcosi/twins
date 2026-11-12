@@ -3,13 +3,16 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.*;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "twin_status_group")
+@DataScope(DataScopeType.DOMAIN)
 public class TwinStatusGroupEntity {
     @Id
     private UUID id;
@@ -19,7 +22,7 @@ public class TwinStatusGroupEntity {
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "key")

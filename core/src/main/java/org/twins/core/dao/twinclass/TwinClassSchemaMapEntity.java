@@ -3,12 +3,15 @@ package org.twins.core.dao.twinclass;
 import jakarta.persistence.*;
 import lombok.*;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "twin_class_schema_map")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinClassSchemaMapEntity {
     @Id
     private UUID id;

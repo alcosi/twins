@@ -243,7 +243,7 @@ public class FeaturerService {
         if (needLoad == null)
             return;
         List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdInOrderByOrderAsc(needLoad.getIdSet());
-        // EntitySecureFindServiceImpl.loadKit cannot be used because there is not uniq id for params and KitGrouped will throw an exception on key duplicates
+        // EntityAccessServiceImpl.loadKit cannot be used because there is not uniq id for params and KitGrouped will throw an exception on key duplicates
         Map<Integer, List<FeaturerParamEntity>> paramsGroupedByFeaturerId = allParams.stream()
                 .collect(Collectors.groupingBy(FeaturerParamEntity::getFeaturerId));
         for (FeaturerEntity featurerEntity : needLoad.getCollection()) {

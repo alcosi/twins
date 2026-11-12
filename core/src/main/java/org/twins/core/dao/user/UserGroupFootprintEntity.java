@@ -10,6 +10,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Immutable;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Immutable
 @Table(name = "user_group_footprint")
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class UserGroupFootprintEntity implements EasyLoggable {
     @Id
     private UUID id;

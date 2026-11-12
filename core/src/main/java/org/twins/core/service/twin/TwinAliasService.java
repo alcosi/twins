@@ -20,7 +20,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.twin.TwinAliasType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -36,7 +36,7 @@ import static org.twins.core.enums.twin.TwinAliasType.*;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinAliasService extends TwinsEntitySecureFindService<TwinAliasEntity> {
+public class TwinAliasService extends TwinsEntityAccessService<TwinAliasEntity> {
     private final TwinAliasRepository twinAliasRepository;
     private final AuthService authService;
     @Lazy

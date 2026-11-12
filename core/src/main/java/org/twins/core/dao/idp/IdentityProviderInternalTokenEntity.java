@@ -7,6 +7,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class IdentityProviderInternalTokenEntity implements EasyLoggable {
     @Id
     private UUID id;
@@ -29,7 +32,7 @@ public class IdentityProviderInternalTokenEntity implements EasyLoggable {
     @Column(name = "user_id")
     private UUID userId;
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "active_business_account_id")

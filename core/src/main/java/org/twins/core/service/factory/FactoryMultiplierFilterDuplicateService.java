@@ -6,7 +6,7 @@ import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
@@ -32,12 +32,12 @@ public class FactoryMultiplierFilterDuplicateService extends EntityDuplicateServ
     private final FactoryConditionSetDuplicateService factoryConditionSetDuplicateService;
 
     @Override
-    protected EntitySecureFindServiceImpl<TwinFactoryMultiplierFilterEntity> entityService() {
+    protected EntityAccessServiceImpl<TwinFactoryMultiplierFilterEntity> entityService() {
         return factoryMultiplierFilterService;
     }
 
     @Override
-    protected EntitySecureFindServiceImpl<TwinFactoryMultiplierEntity> entityParentService() {
+    protected EntityAccessServiceImpl<TwinFactoryMultiplierEntity> entityParentService() {
         return factoryMultiplierService;
     }
 

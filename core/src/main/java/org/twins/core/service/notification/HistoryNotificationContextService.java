@@ -4,6 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySmartService;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.context.ContextCollectorEntity;
 import org.twins.core.dao.history.HistoryEntity;
@@ -12,6 +16,7 @@ import org.twins.core.dao.notification.HistoryNotificationTaskEntity;
 import org.twins.core.dao.notification.NotificationChannelEventEntity;
 import org.twins.core.featurer.context.ContextCollector;
 import org.twins.core.featurer.context.ContextCollectorBatch;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.domain.DomainUserService;
 import org.twins.core.service.i18n.I18nService;
 

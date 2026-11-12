@@ -11,7 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.notification.NotificationChannelEntity;
 import org.twins.core.dao.notification.NotificationChannelRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -20,7 +20,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class NotificationChannelService extends TwinsEntitySecureFindService<NotificationChannelEntity> {
+public class NotificationChannelService extends TwinsEntityAccessService<NotificationChannelEntity> {
     @Getter
     private final NotificationChannelRepository repository;
 

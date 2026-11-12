@@ -8,8 +8,10 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Table(name = "twin_field_twin_class")
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinFieldTwinClassEntity extends TwinFieldBaseEntity {
 
     @Column(name = "twin_class_id")

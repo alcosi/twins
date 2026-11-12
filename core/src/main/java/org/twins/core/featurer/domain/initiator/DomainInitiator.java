@@ -124,7 +124,6 @@ public abstract class DomainInitiator extends FeaturerTwins {
         UUID twinClassId = UuidUtils.generate();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setId(twinClassId)
-                .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
                 .setUniqueName(false)
                 .setKey("DOMAIN_USER_FOR_" + domainEntity.getKey().toUpperCase())
@@ -135,6 +134,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setAssigneeRequired(false)
                 .setExtendsTwinClassId(SystemIds.TwinClass.GLOBAL_ANCESTOR)
                 .setExtendsHierarchyTree(LTreeUtils.convertToChainLTreeFormat(SystemIds.TwinClass.GLOBAL_ANCESTOR, twinClassId));
+        // separate statement: the inherited chain setter returns DomainConfigEntity (saved directly, no autofill here)
+        twinClassEntity.setDomainId(domainEntity.getId());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
@@ -179,7 +180,6 @@ public abstract class DomainInitiator extends FeaturerTwins {
     @Transactional
     protected UUID createAncestorTwinClass(DomainEntity domainEntity) throws ServiceException {
         TwinClassEntity twinClassEntity = new TwinClassEntity()
-                .setDomainId(domainEntity.getId())
                 .setAbstractt(true)
                 .setUniqueName(false)
                 .setKey(domainEntity.getKey().toUpperCase())
@@ -188,6 +188,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setExtendsTwinClassId(SystemIds.TwinClass.GLOBAL_ANCESTOR)
                 .setCreatedByUserId(SystemIds.User.SYSTEM)
                 .setAssigneeRequired(false);
+        // separate statement: the inherited chain setter returns DomainConfigEntity (saved directly, no autofill here)
+        twinClassEntity.setDomainId(domainEntity.getId());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinClassEntity.getId();
     }

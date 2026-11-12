@@ -6,6 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -14,6 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "event")
+@DataScope(DataScopeType.SYSTEM)
 public class EventEntity implements EasyLoggable {
     @Id
     private UUID id;

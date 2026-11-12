@@ -8,8 +8,10 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.enums.action.TwinClassFieldAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin_class_field_action_validation_rule")
 @Accessors(chain = true)
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinClassFieldActionValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     private UUID id;

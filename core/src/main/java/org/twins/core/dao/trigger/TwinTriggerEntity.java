@@ -11,8 +11,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_trigger")
+@DataScope(DataScopeType.DOMAIN)
 public class TwinTriggerEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;
@@ -31,7 +34,7 @@ public class TwinTriggerEntity implements EasyLoggable, Identifiable<UUID> {
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "twin_trigger_featurer_id")

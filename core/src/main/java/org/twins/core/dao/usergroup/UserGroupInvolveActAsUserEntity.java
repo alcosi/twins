@@ -8,8 +8,10 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "user_group_involve_act_as_user")
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN)
 public class UserGroupInvolveActAsUserEntity implements EasyLoggable {
     @Id
     private UUID id;
@@ -28,7 +31,7 @@ public class UserGroupInvolveActAsUserEntity implements EasyLoggable {
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "machine_user_id")

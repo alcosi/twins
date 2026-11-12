@@ -10,7 +10,9 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Table(name = "twin_validator_set")
 @Accessors(chain = true)
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinValidatorSetEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

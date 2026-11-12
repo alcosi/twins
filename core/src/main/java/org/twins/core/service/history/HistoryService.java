@@ -12,7 +12,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -36,6 +35,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.history.HistoryType;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinActionService;
@@ -54,7 +54,7 @@ import java.util.function.Function;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
+public class HistoryService extends TwinsEntityAccessService<HistoryEntity> {
     @Lazy
     private final TwinClassFieldService twinClassFieldService;
     private final HistoryRepository historyRepository;
@@ -151,7 +151,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 historyEntity.setTwinClassFieldId(context.getField().getId());
                 if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
                     if (StringUtils.isEmpty(context.templateFromValue()))
-                        if (twinEntity.isCreateElseUpdate()) {
+                        if (twinEntity.isNew()) {
                             historyEntity.setHistoryType(HistoryType.fieldCreatedOnCreate);
                         } else {
                             historyEntity.setHistoryType(HistoryType.fieldChanged);
@@ -233,7 +233,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
-        if (attachmentEntity.getTwin().isCreateElseUpdate()) {
+        if (attachmentEntity.getTwin().isNew()) {
             return new HistoryItem<>(HistoryType.attachmentCreateOnCreate, new HistoryContextAttachment()
                     .shotAttachment(attachmentEntity));
         } else {
@@ -386,7 +386,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setTwinLinkId(twinLinkId)
                 .shotLink(linkEntity, forward, i18nService)
                 .shotDstTwin(dstTwinEntity);
-        if (dstTwinEntity.isCreateElseUpdate()) {
+        if (dstTwinEntity.isNew()) {
             return new HistoryItem<>(HistoryType.linkCreatedOnCreate, context);
         } else {
             return new HistoryItem<>(HistoryType.linkCreated, context);
@@ -415,7 +415,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         HistoryContextSpaceRoleUserChange context = new HistoryContextSpaceRoleUserChange()
                 .setRoleId(roleId)
                 .setTargetedUserIds(userIdList);
-        if (twinEntity.isCreateElseUpdate()) {
+        if (twinEntity.isNew()) {
             return new HistoryItem<>(HistoryType.spaceRoleUserAddedOnCreate, context);
         } else {
             return new HistoryItem<>(HistoryType.spaceRoleUserAdded, context);

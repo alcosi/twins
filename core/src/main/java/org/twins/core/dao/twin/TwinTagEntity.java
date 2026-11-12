@@ -8,8 +8,10 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Table(name = "twin_tag", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"twin_id", "tag_data_list_option_id"}, name = "idx_twin_tag_unique")
 })
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinTagEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

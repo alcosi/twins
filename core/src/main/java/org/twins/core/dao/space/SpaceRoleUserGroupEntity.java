@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @Data
 @Table(name = "space_role_user_group")
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class SpaceRoleUserGroupEntity {
     @Id
     private UUID id;

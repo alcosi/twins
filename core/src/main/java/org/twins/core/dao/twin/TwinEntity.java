@@ -15,8 +15,10 @@ import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
 import org.hibernate.generator.EventType;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.PersistableEntity;
 import org.twins.core.dao.ResettableTransientState;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -29,11 +31,11 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.domain.field.rule.FieldRulesApplyResult;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.status.StatusType;
 import org.twins.core.enums.twin.LoadState;
 import org.twins.core.enums.twin.TwinAliasType;
@@ -72,10 +74,13 @@ import java.util.function.Function;
 @Entity
 @Accessors(chain = true)
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Table(name = "twin")
 @FieldNameConstants
 @DynamicUpdate
-public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientState, Identifiable<UUID> {
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
+public class TwinEntity extends PersistableEntity implements Cloneable, EasyLoggable, ResettableTransientState {
     @Id
     private UUID id;
 
@@ -199,11 +204,6 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity breadCrumbsFace;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean createElseUpdate = false;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -701,7 +701,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     }
 
     public TwinEntity clone() {
-        return new TwinEntity()
+        TwinEntity clone = new TwinEntity()
                 .setId(id)
                 .setTwinClassId(twinClassId)
                 .setTwinClass(twinClass)
@@ -727,6 +727,10 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
+        // keep the insert/update discriminator: clones of loaded twins stay updates (factory
+        // multipliers), clones of fresh ones stay creates
+        clone.setNewRow(isNew());
+        return clone;
     }
 
     public TwinEntity resetTransientState() {

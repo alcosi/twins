@@ -36,7 +36,7 @@ import org.twins.core.enums.domain.DomainType;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.enums.twin.TwinRole;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
 import org.twins.core.service.i18n.I18nService;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class PermissionService extends TwinsEntitySecureFindService<PermissionEntity> {
+public class PermissionService extends TwinsEntityAccessService<PermissionEntity> {
 
     private final PermissionRepository permissionRepository;
     private final PermissionSchemaRepository permissionSchemaRepository;

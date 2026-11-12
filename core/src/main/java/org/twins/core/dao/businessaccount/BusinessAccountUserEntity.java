@@ -7,7 +7,9 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "business_account_user")
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class BusinessAccountUserEntity implements EasyLoggable {
     @Id
     private UUID id;

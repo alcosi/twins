@@ -6,9 +6,11 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Table(name = "twin_pointer_validator_rule")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinPointerValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
     @Column(name = "id")

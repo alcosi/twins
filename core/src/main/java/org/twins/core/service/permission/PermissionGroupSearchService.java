@@ -37,7 +37,7 @@ public class PermissionGroupSearchService {
     public PermissionGroupEntity findPermissionGroupByKey(String id) throws ServiceException {
         Optional<PermissionGroupEntity> entity = permissionGroupRepository.findBy(
                 Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionGroupEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionGroupEntity.Fields.twinClass, TwinClassEntity.DOMAIN_ID),
                         checkFieldStringLike(id, PermissionGroupEntity.Fields.key)
                 ), FluentQuery.FetchableFluentQuery::one
         );

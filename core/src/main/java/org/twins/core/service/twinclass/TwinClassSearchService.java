@@ -87,7 +87,7 @@ public class TwinClassSearchService extends EntitySearchService
 
         return
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
-                        .and(checkUuid(domainId, false, false, TwinClassEntity.Fields.domainId))
+                        .and(checkUuid(domainId, false, false, TwinClassEntity.DOMAIN_ID))
                         .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdList(), false, false, TwinClassEntity.Fields.id))
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdExcludeList(), true, false, TwinClassEntity.Fields.id))

@@ -7,12 +7,15 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
 @Entity
 @Table(name = "face_component_type")
+@DataScope(DataScopeType.SYSTEM)
 public class FaceComponentTypeEntity {
     @Id
     private String id;

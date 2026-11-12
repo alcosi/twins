@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KeyUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -38,12 +38,12 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     private final AuthService authService;
 
     @Override
-    protected EntitySecureFindServiceImpl<TwinClassEntity> entityService() {
+    protected EntityAccessServiceImpl<TwinClassEntity> entityService() {
         return twinClassService;
     }
 
     @Override
-    protected EntitySecureFindServiceImpl<Void> entityParentService() {
+    protected EntityAccessServiceImpl<Void> entityParentService() {
         return null; // top-level entity
     }
 
@@ -86,7 +86,7 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     protected TwinClassEntity createNewEntity(TwinClassDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinClassEntity original = duplicate.getOriginalEntity();
         log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
-        return new TwinClassEntity()
+        TwinClassEntity duplicate = new TwinClassEntity()
                 .setId(null)
                 .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
                 .setCreatedByUserId(authService.getApiUser().getUser().getId())
@@ -104,7 +104,6 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
                 .setIconLightResourceId(original.getIconLightResourceId())
                 .setIconLightResource(original.getIconLightResource())
                 .setCreatedAt(Timestamp.from(Instant.now()))
-                .setDomainId(original.getDomainId())
                 .setOwnerType(original.getOwnerType())
                 .setViewPermissionId(original.getViewPermissionId())
                 .setCreatePermissionId(original.getCreatePermissionId())
@@ -126,6 +125,10 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
                 .setHeadHierarchyCounterDirectChildren(0)
                 .setExtendsHierarchyCounterDirectChildren(0)
                 .setTwinCounter(0);
+        // explicit domain copy wins over the saveSafe autofill (a duplicated system row must stay
+        // system); separate statement — the inherited chain setter returns DomainConfigEntity
+        duplicate.setDomainId(original.getDomainId());
+        return duplicate;
     }
 
     @Override

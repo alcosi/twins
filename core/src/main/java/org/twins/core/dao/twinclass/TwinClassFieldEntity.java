@@ -10,14 +10,16 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.DomainConfigEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.projection.ProjectionEntity;
 import org.twins.core.dao.recompute.TwinRecomputeOnFieldEntity;
 import org.twins.core.dao.validator.TwinClassFieldActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinClassFieldValidatorEntity;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinClassFieldAction;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.service.SystemIdLookup;
 
@@ -25,10 +27,13 @@ import java.util.*;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 @FieldNameConstants
-public class TwinClassFieldEntity implements EasyLoggable, Identifiable<UUID> {
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
+public class TwinClassFieldEntity extends DomainConfigEntity implements EasyLoggable {
 
     @Id
     private UUID id;

@@ -57,7 +57,7 @@ public class TwinflowFactorySearchService extends EntitySearchService
     @Override
     public Specification<TwinflowFactoryEntity> createFilterSpecification(TwinflowFactorySearch search, UUID domainId, Locale locale) throws ServiceException {
         return Specification.allOf(
-                checkUuid(domainId, false, true, TwinflowFactoryEntity.Fields.twinflowSpecOnly, TwinflowEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
+                checkUuid(domainId, false, true, TwinflowFactoryEntity.Fields.twinflowSpecOnly, TwinflowEntity.Fields.twinClassSpecOnly, TwinClassEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdSet(), false, false, TwinflowFactoryEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeSet(), true, true, TwinflowFactoryEntity.Fields.id),
                 checkUuidIn(search.getTwinflowIdSet(), false, false, TwinflowFactoryEntity.Fields.twinflowId),

@@ -5,8 +5,10 @@ import lombok.*;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Table(name = "permission_grant_global")
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class PermissionGrantGlobalEntity implements EasyLoggable {
     @Id
     private UUID id;

@@ -9,6 +9,8 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Data
 @Table(name = "twin_archive")
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class TwinArchiveEntity implements Cloneable, EasyLoggable {
 
     @Id

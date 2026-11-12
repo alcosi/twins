@@ -8,10 +8,12 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.trigger.TwinTriggerTaskStatus;
 
 import java.sql.Timestamp;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_trigger_task")
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class TwinTriggerTaskEntity implements EasyLoggable {
 
     @Id

@@ -442,7 +442,18 @@ public enum Permissions {
     TWIN_POINTER_CREATE(SystemIds.Permission.TwinPointer.CREATE),
     TWIN_POINTER_VIEW(SystemIds.Permission.TwinPointer.VIEW),
     TWIN_POINTER_UPDATE(SystemIds.Permission.TwinPointer.UPDATE),
-    TWIN_POINTER_DELETE(SystemIds.Permission.TwinPointer.DELETE)
+    TWIN_POINTER_DELETE(SystemIds.Permission.TwinPointer.DELETE),
+
+    // DOMAIN VERSION permissions
+    DOMAIN_VERSION_MANAGE(SystemIds.Permission.DomainVersion.MANAGE),
+    DOMAIN_VERSION_CREATE(SystemIds.Permission.DomainVersion.CREATE),
+    DOMAIN_VERSION_VIEW(SystemIds.Permission.DomainVersion.VIEW),
+    DOMAIN_VERSION_UPDATE(SystemIds.Permission.DomainVersion.UPDATE),
+    DOMAIN_VERSION_DELETE(SystemIds.Permission.DomainVersion.DELETE),
+
+    // DOMAIN VERSION AUDIT permissions (read-only data — no CREATE/UPDATE/DELETE)
+    DOMAIN_VERSION_AUDIT_MANAGE(SystemIds.Permission.DomainVersionAudit.MANAGE),
+    DOMAIN_VERSION_AUDIT_VIEW(SystemIds.Permission.DomainVersionAudit.VIEW)
     ;
 
     private final UUID id;

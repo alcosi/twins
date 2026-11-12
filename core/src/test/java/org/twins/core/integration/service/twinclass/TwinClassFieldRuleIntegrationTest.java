@@ -121,10 +121,9 @@ public class TwinClassFieldRuleIntegrationTest extends BaseIntegrationTest {
 
         domainId = UUID.randomUUID();
 
-        // Step 1: Create twin class with domainId = null to break circularity
+        // Step 1: Create twin class with domainId = null to break circularity (null is the default)
         twinClass = new TwinClassEntity()
                 .setId(UUID.randomUUID())
-                .setDomainId(null) // Break circularity
                 .setKey("TEST_CLASS")
                 .setOwnerType(OwnerType.SYSTEM)
                 .setCreatedByUserId(userId)

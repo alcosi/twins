@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_search")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
 public class TwinClassSearchEntity implements EasyLoggable {
     @Id
     private UUID id;

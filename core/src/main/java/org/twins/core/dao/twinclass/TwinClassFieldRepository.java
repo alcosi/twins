@@ -3,9 +3,9 @@ package org.twins.core.dao.twinclass;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.twins.core.dao.DomainConfigRepository;
 
 import java.util.Collection;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldEntity, UUID>, JpaSpecificationExecutor<TwinClassFieldEntity> {
+public interface TwinClassFieldRepository extends DomainConfigRepository<TwinClassFieldEntity>, JpaSpecificationExecutor<TwinClassFieldEntity> {
 
     List<TwinClassFieldEntity> findByTwinClassId(UUID twinClassId);
 

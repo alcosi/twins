@@ -9,9 +9,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-import org.twins.core.enums.history.HistoryType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.history.HistoryTypeConverter;
 import org.twins.core.dao.history.context.HistoryContext;
+import org.twins.core.enums.datascope.DataScopeType;
+import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @Table(name = "draft_history")
 @FieldNameConstants
 @DynamicUpdate
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class DraftHistoryEntity implements EasyLoggable {
     @Id
     private UUID id;

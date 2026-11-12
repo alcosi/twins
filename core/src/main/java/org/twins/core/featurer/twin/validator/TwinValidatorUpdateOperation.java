@@ -14,15 +14,15 @@ import java.util.Properties;
 @Component
 @Featurer(id = FeaturerTwins.ID_1624,
         name = "Twin update operation",
-        description = "Validator for checking that the twin is being updated (not created). Driven by the TwinEntity.createElseUpdate flag: valid when the flag is false (update), invalid when it is true (create). Use the inverted mode to assert a create operation instead.")
+        description = "Validator for checking that the twin is being updated (not created). Driven by the TwinEntity.isNew flag: valid when the flag is false (update), invalid when it is true (create). Use the inverted mode to assert a create operation instead.")
 public class TwinValidatorUpdateOperation extends TwinValidator {
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         var result = new CollectionValidationResult();
         for (var twinEntity : twinEntityCollection) {
-            // createElseUpdate == true means a create operation; an update operation is when it is false.
-            boolean isUpdate = !twinEntity.isCreateElseUpdate();
+            // isNew == true means a create operation; an update operation is when it is false.
+            boolean isUpdate = !twinEntity.isNew();
             result.getTwinsResults().put(twinEntity.getId(), buildResult(
                     isUpdate,
                     invert,

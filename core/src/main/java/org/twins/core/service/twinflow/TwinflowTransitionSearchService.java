@@ -38,7 +38,7 @@ public class TwinflowTransitionSearchService {
     private Specification<TwinflowTransitionEntity> createTwinflowTransitionEntitySearchSpecification(TransitionSearch search) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
         return Specification.allOf(
-                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowTransitionEntity.Fields.twinflowSpecOnly, TwinflowEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
+                checkUuid(authService.getApiUser().getDomainId(), false, true, TwinflowTransitionEntity.Fields.twinflowSpecOnly, TwinflowEntity.Fields.twinClassSpecOnly, TwinClassEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdList(), false, false, TwinflowTransitionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinflowTransitionEntity.Fields.id),
                 joinAndSearchByI18NFieldDirect(TwinflowTransitionEntity.Fields.nameI18nTranslationsSpecOnly, search.getNameLikeList(), locale, true, false),

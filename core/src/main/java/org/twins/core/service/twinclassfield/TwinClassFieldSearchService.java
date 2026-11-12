@@ -87,7 +87,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
             throw new RuntimeException(e);
         }
         return Specification.allOf(
-                checkUuid(domainId, false, !search.isExcludeSystemFields(), TwinClassFieldEntity.Fields.twinClassSpecOnly, TwinClassEntity.Fields.domainId),
+                checkUuid(domainId, false, !search.isExcludeSystemFields(), TwinClassFieldEntity.Fields.twinClassSpecOnly, TwinClassEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
                 checkTwinClassAndInheritable(twinClassIdMapResolved, false, TwinClassFieldEntity.Fields.twinClassId, TwinClassFieldEntity.Fields.inheritable),

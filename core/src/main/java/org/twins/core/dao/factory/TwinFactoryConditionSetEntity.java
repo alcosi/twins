@@ -9,8 +9,10 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_factory_condition_set")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinFactoryConditionSetEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

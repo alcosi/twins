@@ -6,10 +6,12 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.DomainConfigEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.status.StatusType;
 
 import java.util.List;
@@ -17,10 +19,13 @@ import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "twin_status")
 @FieldNameConstants
-public class TwinStatusEntity implements EasyLoggable, Identifiable<UUID> {
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
+public class TwinStatusEntity extends DomainConfigEntity implements EasyLoggable {
     @Id
     private UUID id;
 

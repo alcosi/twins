@@ -7,12 +7,14 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.factory.FactoryLauncher;
 
 import java.sql.Timestamp;
@@ -25,6 +27,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twinflow")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinflowEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

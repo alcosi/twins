@@ -5,14 +5,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.twins.core.dao.DomainConfigRepository;
 
 import java.util.*;
 
 @Repository
-public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUID>, JpaSpecificationExecutor<TwinClassEntity> {
+public interface TwinClassRepository extends DomainConfigRepository<TwinClassEntity>, JpaSpecificationExecutor<TwinClassEntity> {
     String CACHE_TWIN_CLASS_BY_ID = "TwinClassRepository.findById";
 
     @Override
@@ -22,8 +22,6 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     Page<TwinClassEntity> findByDomainId(UUID domainId, Pageable pageable);
 
     Page<TwinClassEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids, Pageable pageable);
-
-    TwinClassEntity findByDomainIdAndId(UUID domainId, UUID id);
 
     @Query(value = "select extendsTwinClassId from TwinClassEntity where id = :twinClassId")
     UUID findExtendedClassId(@Param("twinClassId") UUID twinClassId);

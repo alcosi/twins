@@ -7,8 +7,10 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nLocaleEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "domain_locale")
+@DataScope(DataScopeType.DOMAIN)
 public class DomainLocaleEntity implements EasyLoggable {
     @Id
     private UUID id;
@@ -26,7 +29,7 @@ public class DomainLocaleEntity implements EasyLoggable {
         id = UuidUtils.ifNullGenerate(id);
     }
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "i18n_locale_id")

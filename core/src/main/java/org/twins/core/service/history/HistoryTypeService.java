@@ -13,7 +13,7 @@ import java.util.function.Function;
 
 /**
  * String-keyed dictionary service for {@code history_type}. Does not extend
- * {@code EntitySecureFindServiceImpl}: that base is UUID-typed end to end
+ * {@code EntityAccessServiceImpl}: that base is UUID-typed end to end
  * ({@code entityRepository(): CrudRepository<T, UUID>}, {@code findEntitiesSafe(Collection<UUID>})},
  * and a String-keyed {@code load} overload cannot coexist with the UUID one (identical erasure).
  * {@link #load} mirrors the base-class load shape (same four functional arguments, same idempotent

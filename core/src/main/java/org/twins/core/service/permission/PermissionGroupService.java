@@ -13,7 +13,7 @@ import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionGroupRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Optional;
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class PermissionGroupService extends TwinsEntitySecureFindService<PermissionGroupEntity> {
+public class PermissionGroupService extends TwinsEntityAccessService<PermissionGroupEntity> {
     final PermissionGroupRepository permissionGroupRepository;
     final AuthService authService;
 

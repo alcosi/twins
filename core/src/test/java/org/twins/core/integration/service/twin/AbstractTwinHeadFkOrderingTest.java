@@ -128,10 +128,9 @@ public abstract class AbstractTwinHeadFkOrderingTest extends BaseIntegrationTest
 
         UUID domainId = UUID.randomUUID();
 
-        // Twin class with domainId = null first to break circularity
+        // Twin class with domainId = null first to break circularity (null is the default)
         twinClass = new TwinClassEntity()
                 .setId(UUID.randomUUID())
-                .setDomainId(null)
                 .setKey("TEST_HEAD_CHAIN_CLASS")
                 .setOwnerType(OwnerType.SYSTEM)
                 .setCreatedByUserId(userId)
