@@ -24,7 +24,7 @@ class TwinGroupedSearchGroupJsonTest {
         TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
                 .setKey(new TwinGroupKeyDTOv1.Assigner().setAssignerUserId(null))
                 .setCount(3L)
-                .setTwins(List.of());
+                .setTwinIdList(List.of());
         String json = mapper.writeValueAsString(dto);
         assertTrue(json.contains("\"assignerUserId\":null"));
         assertFalse(json.contains("twinStatusId"));
@@ -40,7 +40,7 @@ class TwinGroupedSearchGroupJsonTest {
         TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
                 .setKey(new TwinGroupKeyDTOv1.Dynamic().setGroupedFieldValues(values))
                 .setCount(1L)
-                .setTwins(List.of());
+                .setTwinIdList(List.of());
         String json = mapper.writeValueAsString(dto);
         assertTrue(json.contains("\"groupedFieldValues\""), json);
         assertTrue(json.contains("\"" + fieldId + "\":null"), json);
@@ -52,7 +52,7 @@ class TwinGroupedSearchGroupJsonTest {
         TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
                 .setKey(new TwinGroupKeyDTOv1.Link().setLinkId(linkId).setLinkTwinId(null))
                 .setCount(1L)
-                .setTwins(List.of());
+                .setTwinIdList(List.of());
         String json = mapper.writeValueAsString(dto);
         assertTrue(json.contains("\"linkId\":\"" + linkId + "\""), json);
         assertTrue(json.contains("\"linkTwinId\":null"), json);

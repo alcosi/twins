@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -21,6 +22,6 @@ public class TwinGroupedSearchGroupDTOv1 {
     @Schema(description = "Nested groups. Present on every level except the last")
     public List<TwinGroupedSearchGroupDTOv1> groups;
 
-    @Schema(description = "Leaves of the flat search. Present only on the last level, in member sort order")
-    public List<TwinDTOv2> twins;
+    @Schema(description = "Leaf twin ids of the flat search, in member sort order. Present only on the last level. Full twins are in relatedObjects.twinMap when showTwinMode is set")
+    public List<UUID> twinIdList;
 }

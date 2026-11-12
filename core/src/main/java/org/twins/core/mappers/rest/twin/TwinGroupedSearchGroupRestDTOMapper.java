@@ -12,7 +12,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupKeyKind;
-import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinGroupKeyDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchGroupDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -79,11 +78,13 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
             return;
         }
         List<TwinEntity> twins = src.getTwins() == null ? List.of() : src.getTwins();
-        List<TwinDTOv2> leaves = new ArrayList<>(twins.size());
+        List<UUID> ids = new ArrayList<>(twins.size());
         for (TwinEntity twin : twins) {
-            leaves.add(twinRestDTOMapperV2.convert(twin, mapperContext));
+            if (twin.getId() != null) {
+                ids.add(twin.getId());
+            }
         }
-        dst.setTwins(leaves);
+        dst.setTwinIdList(ids);
     }
 
     @Override
@@ -94,7 +95,17 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         List<TwinGroup> nodes = new ArrayList<>();
         List<TwinEntity> twins = new ArrayList<>();
         collect(srcCollection, nodes, twins);
-        twinRestDTOMapperV2.beforeCollectionConversion(twins, mapperContext);
+        if (mapperContext.hasModeButNot(TwinMode.HIDE)) {
+            List<TwinEntity> unique = new ArrayList<>();
+            Set<UUID> seen = new java.util.LinkedHashSet<>();
+            for (TwinEntity twin : twins) {
+                if (twin.getId() != null && seen.add(twin.getId())) {
+                    unique.add(twin);
+                }
+            }
+            twinRestDTOMapperV2.beforeCollectionConversion(unique, mapperContext);
+            twinRestDTOMapperV2.postpone(unique, mapperContext);
+        }
         loadUsers(ids(nodes, TwinGroupKeyKind.ASSIGNER_USER, TwinGroupKeyKind.OWNER_USER, TwinGroupKeyKind.CREATOR_USER), mapperContext);
         loadStatuses(ids(nodes, TwinGroupKeyKind.STATUS), mapperContext);
         loadClasses(ids(nodes, TwinGroupKeyKind.TWIN_CLASS), mapperContext);

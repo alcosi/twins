@@ -201,10 +201,10 @@ function actual(groups, kinds) {
     present: readers[kinds[0]](group) !== undefined || (kinds[0] === "link" ? has(group, "linkId") : false),
     linkId: group.linkId,
     count: Number(group.count),
-    hasTwins: has(group, "twins"),
+    hasTwins: has(group, "twinIdList"),
     hasGroups: has(group, "groups"),
     groups: group.groups ? actual(group.groups, kinds.slice(1)) : undefined,
-    ids: (group.twins || []).map((twin) => twin.id),
+    ids: group.twinIdList || [],
     rawKeys: Object.keys(group),
   }));
 }
@@ -520,7 +520,7 @@ try {
     { type: "LINK", linkId: LINK, nodeEnd: "DST", sort: "KEY_ASC" },
     { type: "LINK", linkId: LINK2, nodeEnd: "DST", sort: "KEY_ASC" },
   ]));
-  add("S9 two different links are a normal tree", twoLinks.__http === 200 && twoLinks.status === 0 && (twoLinks.groups || []).every((group) => Array.isArray(group.groups) && !group.twins), {
+  add("S9 two different links are a normal tree", twoLinks.__http === 200 && twoLinks.status === 0 && (twoLinks.groups || []).every((group) => Array.isArray(group.groups) && !group.twinIdList), {
     http: twoLinks.__http,
     status: twoLinks.status,
     roots: twoLinks.groups?.length,
@@ -562,7 +562,7 @@ try {
     search: { twinClassIdList: [bigClass] },
     criteria: [{ type: "FIELD", fieldId: CLASS, sort: "KEY_ASC" }],
   }, "showTwinMode=SHORT&lazyRelation=false", 300000);
-  const returned = (big.groups || []).reduce((sum, group) => sum + (group.twins || []).length, 0);
+  const returned = (big.groups || []).reduce((sum, group) => sum + (group.twinIdList || []).length, 0);
   add("a class larger than 5000 is returned whole", big.__http === 200 && big.status === 0 && returned === bigCount, {
     http: big.__http,
     status: big.status,
