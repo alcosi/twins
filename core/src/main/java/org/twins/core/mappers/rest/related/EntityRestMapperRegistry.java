@@ -15,6 +15,7 @@ import org.twins.core.dao.context.ContextEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListSubsetEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
@@ -53,6 +54,7 @@ import org.twins.core.mappers.rest.context.ContextRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListSubsetRestDTOMapper;
+import org.twins.core.mappers.rest.domainversion.DomainVersionRestDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.factory.*;
 import org.twins.core.mappers.rest.featurer.FeaturerParametrizedRestDTOMapper;
@@ -141,6 +143,7 @@ public class EntityRestMapperRegistry {
     private final CommentRestDTOMapper commentRestDTOMapper;
     private final I18nRestDTOMapper i18nRestDTOMapper;
     private final TierRestDTOMapper tierRestDTOMapper;
+    private final DomainVersionRestDTOMapper domainVersionRestDTOMapper;
     private final AttachmentRestrictionRestDTOMapper attachmentRestrictionRestDTOMapper;
     private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
     private final TwinClassFieldRuleRestDTOMapper twinClassFieldRuleRestDTOMapper;
@@ -201,6 +204,7 @@ public class EntityRestMapperRegistry {
         register(TwinCommentEntity.class, commentRestDTOMapper, CommentMode.DETAILED);
         register(I18nEntity.class, i18nRestDTOMapper, I18nMode.DETAILED);
         register(TierEntity.class, tierRestDTOMapper, TierMode.DETAILED);
+        register(DomainVersionEntity.class, domainVersionRestDTOMapper, DomainVersionMode.DETAILED);
         register(TwinAttachmentRestrictionEntity.class, attachmentRestrictionRestDTOMapper, AttachmentRestrictionMode.SHOW); // HIDE/SHOW mode enum
         register(TwinClassFreezeEntity.class, twinClassFreezeDTOMapper, TwinClassFreezeMode.DETAILED);
         register(TwinClassFieldRuleEntity.class, twinClassFieldRuleRestDTOMapper, TwinClassFieldRuleMode.DETAILED);

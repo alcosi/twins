@@ -14,6 +14,7 @@ import org.twins.core.dao.context.ContextEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListSubsetEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
@@ -136,7 +137,8 @@ public class RelatedObjectsRestDTOConverter {
                 descriptor(RelatedObjectsDTOv1::setHistoryTypeMap, source(HistoryTypeEntity.class, entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), HistoryTypeEntity::getId)),
                 descriptor(RelatedObjectsDTOv1::setActionRestrictionReasonMap, source(ActionRestrictionReasonEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setTwinPointerMap, source(TwinPointerEntity.class)),
-                descriptor(RelatedObjectsDTOv1::setDataListSubsetMap, source(DataListSubsetEntity.class))
+                descriptor(RelatedObjectsDTOv1::setDataListSubsetMap, source(DataListSubsetEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setDomainVersionMap, source(DomainVersionEntity.class))
         );
     }
 
