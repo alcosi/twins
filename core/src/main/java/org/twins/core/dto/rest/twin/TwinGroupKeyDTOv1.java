@@ -6,8 +6,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.enums.twin.TwinGroupValueType;
 
-import java.util.UUID;
-
 @Data
 @Accessors(chain = true)
 @Schema(name = "TwinGroupKeyV1")
@@ -18,9 +16,6 @@ public class TwinGroupKeyDTOv1 {
     @JsonInclude(JsonInclude.Include.ALWAYS)
     @Schema(description = "Group key. Null is the empty group. For TWIN, USER, STATUS, TWIN_CLASS and DATA_LIST_OPTION this is the id in the matching relatedObjects map")
     public Object value;
-
-    @Schema(description = "Link id. Present only when the level is a LINK criterion")
-    public UUID linkId;
 
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public Object getValue() {

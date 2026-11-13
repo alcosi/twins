@@ -3,13 +3,17 @@ package org.twins.core.unit.service.twin;
 import org.cambium.common.kit.KitGrouped;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dao.twin.TwinEntity;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
+import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.service.twin.TwinGroupKeyValues;
 import org.twins.core.service.twinlink.TwinLinkService;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,6 +41,17 @@ class TwinGroupKeyValuesTest {
                 TwinFieldDataListEntity::getId,
                 TwinFieldDataListEntity::getTwinClassFieldId));
         assertEquals(Arrays.asList(option, null), TwinGroupKeyValues.dynamic(task, field, storage));
+    }
+
+    @Test
+    void decimalZeroWithDifferentScaleIsOneKey() throws Exception {
+        UUID fieldId = UUID.randomUUID();
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
+        TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
+        twin.setTwinFieldDecimalKit(new Kit<>(
+                List.of(new TwinFieldDecimalEntity().setId(UUID.randomUUID()).setTwinClassFieldId(fieldId).setValue(new BigDecimal("0.00"))),
+                TwinFieldDecimalEntity::getTwinClassFieldId));
+        assertEquals(List.of(BigDecimal.ZERO), TwinGroupKeyValues.dynamic(twin, field, mock(TwinFieldStorageDecimal.class)));
     }
 
     @Test

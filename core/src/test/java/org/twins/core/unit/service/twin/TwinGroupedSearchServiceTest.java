@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
@@ -25,6 +26,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinGroupedSearchService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.user.UserService;
 import org.cambium.featurer.FeaturerService;
@@ -39,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,6 +51,8 @@ class TwinGroupedSearchServiceTest {
     private TwinSearchServiceV2 twinSearchServiceV2;
     @Mock
     private TwinClassFieldService twinClassFieldService;
+    @Mock
+    private TwinClassService twinClassService;
     @Mock
     private FeaturerService featurerService;
     @Mock
@@ -64,7 +70,7 @@ class TwinGroupedSearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, featurerService,
+        service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, twinClassService, featurerService,
                 userService, twinService, null, authService);
     }
 
@@ -103,7 +109,9 @@ class TwinGroupedSearchServiceTest {
         UUID ann = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
         TwinEntity task = new TwinEntity().setId(UUID.randomUUID()).setAssignerUserId(ann);
         TwinEntity unassigned = new TwinEntity().setId(UUID.randomUUID());
+        when(twinClassService.findEntitySafe(classId)).thenReturn(new TwinClassEntity().setId(classId));
         when(twinSearchServiceV2.resolveGroupProvider(assigneeId)).thenReturn(GroupExpressionProvider.ofField("assignerUserId"));
+        when(twinSearchServiceV2.count(any(Specification.class))).thenReturn(2L);
         when(authService.getApiUser()).thenReturn(apiUser);
         when(apiUser.getDomainId()).thenReturn(UUID.randomUUID());
         when(apiUser.getLocale()).thenReturn(Locale.ENGLISH);
@@ -121,6 +129,25 @@ class TwinGroupedSearchServiceTest {
         assertEquals(Arrays.asList(ann, null), result.getGroups().stream().map(TwinGroup::getKey).toList());
         assertEquals(List.of(task.getId()), result.getGroups().get(0).getTwins().stream().map(TwinEntity::getId).toList());
         assertNull(result.getGroups().get(1).getKey());
+    }
+
+    @Test
+    void selectionAboveTheLimitIsRejected() throws Exception {
+        UUID classId = UUID.randomUUID();
+        UUID assigneeId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
+        when(twinClassService.findEntitySafe(classId)).thenReturn(new TwinClassEntity().setId(classId));
+        when(twinSearchServiceV2.resolveGroupProvider(assigneeId)).thenReturn(GroupExpressionProvider.ofField("assignerUserId"));
+        when(authService.getApiUser()).thenReturn(apiUser);
+        when(apiUser.getDomainId()).thenReturn(UUID.randomUUID());
+        when(apiUser.getLocale()).thenReturn(Locale.ENGLISH);
+        when(twinSearchServiceV2.createFilterSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
+        when(twinSearchServiceV2.count(any(Specification.class))).thenReturn((long) TwinGroupedSearchService.MAX_TWINS + 1);
+
+        ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
+                .setSearch(classes(classId))
+                .setLevels(List.of(assignee(TwinGroupSort.KEY_ASC)))));
+        assertEquals(ErrorCodeTwins.TWIN_SEARCH_INCORRECT.getCode(), exception.getErrorCode());
+        verify(executor, never()).findAll(any(Specification.class));
     }
 
     private static BasicSearch classes(UUID... classIds) {

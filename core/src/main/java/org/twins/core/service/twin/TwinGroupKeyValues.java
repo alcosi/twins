@@ -20,6 +20,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -45,7 +46,10 @@ public final class TwinGroupKeyValues {
             return single(twin.getTwinFieldSimpleKit(), fieldId, TwinFieldSimpleEntity::getValue);
         }
         if (storage instanceof TwinFieldStorageDecimal) {
-            return single(twin.getTwinFieldDecimalKit(), fieldId, TwinFieldDecimalEntity::getValue);
+            return single(twin.getTwinFieldDecimalKit(), fieldId, row -> {
+                BigDecimal value = row.getValue();
+                return value == null ? null : value.stripTrailingZeros();
+            });
         }
         if (storage instanceof TwinFieldStorageBoolean) {
             return single(twin.getTwinFieldBooleanKit(), fieldId, TwinFieldBooleanEntity::getValue);

@@ -165,7 +165,7 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         }
         Kit<TwinEntity, UUID> heads = twinService.findEntities(ids,
                 EntitySmartService.ListFindMode.ifMissedIgnore,
-                EntitySmartService.ReadPermissionCheckMode.none,
+                EntitySmartService.ReadPermissionCheckMode.ifDeniedLog,
                 EntitySmartService.EntityValidateMode.none);
         twinBaseRestDTOMapper.postpone(heads.getCollection(), mapperContext);
     }

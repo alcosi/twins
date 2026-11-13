@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -36,6 +37,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.user.UserService;
 
@@ -54,8 +56,11 @@ import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecif
 @Service
 @RequiredArgsConstructor
 public class TwinGroupedSearchService {
+    public static final int MAX_TWINS = 5_000;
+
     private final TwinSearchServiceV2 twinSearchServiceV2;
     private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassService twinClassService;
     private final FeaturerService featurerService;
     private final UserService userService;
     private final TwinService twinService;
@@ -65,12 +70,21 @@ public class TwinGroupedSearchService {
     @Transactional(readOnly = true, rollbackFor = Throwable.class)
     public TwinGroupedSearchResult search(TwinGroupedSearch request) throws ServiceException {
         BasicSearch search = requireSingleClass(request == null ? null : request.getSearch());
-        List<TwinGroupCriterion> levels = resolveCriteria(request.getLevels());
+        UUID classId = search.getTwinClassIdList().iterator().next();
+        TwinClassEntity twinClass = twinClassService.findEntitySafe(classId);
+        List<TwinGroupCriterion> levels = resolveCriteria(request.getLevels(), twinClass);
 
         ApiUser apiUser = authService.getApiUser();
         Specification<TwinEntity> filter = twinSearchServiceV2.createFilterSpecification(search, apiUser.getDomainId(), apiUser.getLocale());
+        Long total = twinSearchServiceV2.count(filter);
+        if (total != null && total > MAX_TWINS) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_INCORRECT,
+                    "grouped search matches " + total + " twins, limit is " + MAX_TWINS);
+        }
         Specification<TwinEntity> ordered = filter.and(memberOrder(request.getMemberSorts(), apiUser.getLocale()));
-        List<TwinEntity> twins = twinSearchServiceV2.jpaSpecificationExecutor().findAll(ordered);
+        List<TwinEntity> twins = total == null || total == 0
+                ? List.of()
+                : twinSearchServiceV2.jpaSpecificationExecutor().findAll(ordered);
         if (twins == null) {
             twins = List.of();
         }
@@ -81,7 +95,7 @@ public class TwinGroupedSearchService {
             leaves.add(new TwinTreeAssembler.Leaf(twin, levelKeys(twin, levels)));
         }
         List<TwinGroup> groups = TwinTreeAssembler.assemble(leaves, levels);
-        sortTree(groups, 0, levels);
+        sortTree(groups, levels);
         return new TwinGroupedSearchResult().setGroups(groups);
     }
 
@@ -103,27 +117,57 @@ public class TwinGroupedSearchService {
         if (twins.isEmpty()) {
             return;
         }
-        Kit<TwinEntity, UUID> kit = new Kit<>(twins, TwinEntity::getId);
-        Set<TwinFieldStorage> loaded = new HashSet<>();
+        Set<TwinFieldStorage> considered = new HashSet<>();
         for (TwinGroupCriterion criterion : criteria) {
             TwinFieldStorage storage = criterion.getStorage();
-            if (storage != null && loaded.add(storage) && !storage.isLoaded(twins.get(0))) {
-                storage.load(kit);
+            if (storage == null || !considered.add(storage)) {
+                continue;
+            }
+            List<TwinEntity> needLoad = new ArrayList<>();
+            for (TwinEntity twin : twins) {
+                if (!storage.isLoaded(twin)) {
+                    needLoad.add(twin);
+                }
+            }
+            if (!needLoad.isEmpty()) {
+                storage.load(new Kit<>(needLoad, TwinEntity::getId));
             }
         }
     }
 
-    private void sortTree(List<TwinGroup> groups, int level, List<TwinGroupCriterion> criteria) throws ServiceException {
-        if (groups == null || groups.isEmpty()) {
+    private void sortTree(List<TwinGroup> roots, List<TwinGroupCriterion> criteria) throws ServiceException {
+        sortLevel(List.of(roots), 0, criteria);
+    }
+
+    private void sortLevel(List<List<TwinGroup>> siblingLists, int level, List<TwinGroupCriterion> criteria) throws ServiceException {
+        if (level >= criteria.size()) {
             return;
         }
-        TwinGroupCriterion criterion = criteria.get(level);
-        groups.sort(order(criterion, groups));
-        if (level < criteria.size() - 1) {
-            for (TwinGroup group : groups) {
-                sortTree(group.getGroups(), level + 1, criteria);
+        List<TwinGroup> atLevel = new ArrayList<>();
+        for (List<TwinGroup> siblings : siblingLists) {
+            if (siblings != null) {
+                atLevel.addAll(siblings);
             }
         }
+        if (atLevel.isEmpty()) {
+            return;
+        }
+        Comparator<TwinGroup> comparator = order(criteria.get(level), atLevel);
+        for (List<TwinGroup> siblings : siblingLists) {
+            if (siblings != null && siblings.size() > 1) {
+                siblings.sort(comparator);
+            }
+        }
+        if (level == criteria.size() - 1) {
+            return;
+        }
+        List<List<TwinGroup>> children = new ArrayList<>();
+        for (TwinGroup group : atLevel) {
+            if (group.getGroups() != null) {
+                children.add(group.getGroups());
+            }
+        }
+        sortLevel(children, level + 1, criteria);
     }
 
     private Comparator<TwinGroup> order(TwinGroupCriterion criterion, List<TwinGroup> groups) throws ServiceException {
@@ -154,7 +198,7 @@ public class TwinGroupedSearchService {
         if (criterion.getValueType() == TwinGroupValueType.TWIN) {
             Kit<TwinEntity, UUID> nodes = twinService.findEntities(ids,
                     EntitySmartService.ListFindMode.ifMissedIgnore,
-                    EntitySmartService.ReadPermissionCheckMode.none,
+                    EntitySmartService.ReadPermissionCheckMode.ifDeniedLog,
                     EntitySmartService.EntityValidateMode.none);
             for (TwinEntity node : nodes) {
                 names.put(node.getId(), node.getName());
@@ -178,7 +222,7 @@ public class TwinGroupedSearchService {
         return search;
     }
 
-    private List<TwinGroupCriterion> resolveCriteria(List<TwinGroupCriterion> criteria) throws ServiceException {
+    private List<TwinGroupCriterion> resolveCriteria(List<TwinGroupCriterion> criteria, TwinClassEntity twinClass) throws ServiceException {
         if (criteria == null || criteria.isEmpty() || criteria.size() > 3) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "levels accepts from 1 to 3 items");
         }
@@ -187,7 +231,7 @@ public class TwinGroupedSearchService {
             if (criterion == null) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "criterion is required");
             }
-            resolveField(criterion, seen);
+            resolveField(criterion, seen, twinClass);
             if (criterion.getSort() == null) {
                 criterion.setSort(defaultSort(criterion));
             }
@@ -199,7 +243,7 @@ public class TwinGroupedSearchService {
         return criteria;
     }
 
-    private void resolveField(TwinGroupCriterion criterion, Set<String> seen) throws ServiceException {
+    private void resolveField(TwinGroupCriterion criterion, Set<String> seen, TwinClassEntity twinClass) throws ServiceException {
         if (criterion.getFieldId() == null) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "fieldId is required");
         }
@@ -212,6 +256,10 @@ public class TwinGroupedSearchService {
         criterion.setBasicField(basicField).setKeyKind(kind);
         if (basicField == null) {
             TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(criterion.getFieldId());
+            if (!twinClassService.isInstanceOf(twinClass, field.getTwinClassId())) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                        "Field " + field.getId() + " does not belong to the searched class");
+            }
             FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
             TwinFieldStorage storage = fieldTyper.getStorage(field);
             boolean dataList = TwinGroupKeyValues.isDataList(storage);
