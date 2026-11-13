@@ -392,10 +392,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- the signature changed (jsonb payload params -> resource ids + the hash rename): CREATE OR
+-- REPLACE cannot alter parameter types, drop the old signature first (no-op on a fresh database)
+DROP FUNCTION IF EXISTS domain_operation_release_end(uuid, varchar, jsonb, varchar, jsonb, varchar, jsonb, varchar, bigint, varchar, varchar);
 CREATE OR REPLACE FUNCTION domain_operation_release_end(
-    p_domain_id uuid, p_version varchar, p_json_file jsonb, p_hash varchar,
-    p_delta_file jsonb, p_delta_hash varchar,
-    p_rollback_delta_file jsonb DEFAULT NULL, p_rollback_delta_hash varchar DEFAULT NULL,
+    p_domain_id uuid, p_version varchar, p_full_snapshot_resource_id uuid, p_full_snapshot_hash varchar,
+    p_delta_resource_id uuid, p_delta_hash varchar,
+    p_rollback_delta_resource_id uuid DEFAULT NULL, p_rollback_delta_hash varchar DEFAULT NULL,
     p_release_duration bigint DEFAULT NULL, p_name varchar DEFAULT NULL, p_description varchar DEFAULT NULL)
     RETURNS uuid AS
 $$
@@ -424,27 +427,27 @@ BEGIN
     IF btrim(coalesce(p_version, '')) = '' THEN
         RAISE EXCEPTION 'release label must not be empty for domain %', p_domain_id;
     END IF;
-    IF p_json_file IS NULL THEN
-        RAISE EXCEPTION 'release snapshot (json_file) must not be null for domain %', p_domain_id;
+    IF p_full_snapshot_resource_id IS NULL THEN
+        RAISE EXCEPTION 'release snapshot (full_snapshot_resource_id) must not be null for domain %', p_domain_id;
     END IF;
-    IF btrim(coalesce(p_hash, '')) = '' THEN
-        RAISE EXCEPTION 'release hash must not be empty for domain %', p_domain_id;
+    IF btrim(coalesce(p_full_snapshot_hash, '')) = '' THEN
+        RAISE EXCEPTION 'release snapshot hash must not be empty for domain %', p_domain_id;
     END IF;
-    IF (p_delta_file IS NULL) <> (p_delta_hash IS NULL) THEN
-        RAISE EXCEPTION 'forward delta must be a pair (delta_file, delta_hash) for domain %', p_domain_id;
+    IF (p_delta_resource_id IS NULL) <> (p_delta_hash IS NULL) THEN
+        RAISE EXCEPTION 'forward delta must be a pair (delta_resource_id, delta_hash) for domain %', p_domain_id;
     END IF;
-    IF (p_rollback_delta_file IS NULL) <> (p_rollback_delta_hash IS NULL) THEN
-        RAISE EXCEPTION 'rollback delta must be a pair (rollback_delta_file, rollback_delta_hash) for domain %', p_domain_id;
+    IF (p_rollback_delta_resource_id IS NULL) <> (p_rollback_delta_hash IS NULL) THEN
+        RAISE EXCEPTION 'rollback delta must be a pair (rollback_delta_resource_id, rollback_delta_hash) for domain %', p_domain_id;
     END IF;
 
     SELECT EXISTS (SELECT 1 FROM domain_version WHERE domain_id = p_domain_id AND status = 'RELEASED')
       INTO v_has_previous;
     IF v_has_previous THEN
-        IF p_delta_file IS NULL OR p_rollback_delta_file IS NULL THEN
+        IF p_delta_resource_id IS NULL OR p_rollback_delta_resource_id IS NULL THEN
             RAISE EXCEPTION 'a non-first release of domain % requires both forward and rollback deltas', p_domain_id;
         END IF;
     ELSE
-        IF p_rollback_delta_file IS NOT NULL THEN
+        IF p_rollback_delta_resource_id IS NOT NULL THEN
             RAISE EXCEPTION 'the first release of domain % has no rollback delta', p_domain_id;
         END IF;
     END IF;
@@ -462,11 +465,11 @@ BEGIN
            version = p_version,
            name = coalesce(p_name, name),
            description = coalesce(p_description, description),
-           json_file = p_json_file,
-           hash = p_hash,
-           delta_file = p_delta_file,
+           full_snapshot_resource_id = p_full_snapshot_resource_id,
+           full_snapshot_hash = p_full_snapshot_hash,
+           delta_resource_id = p_delta_resource_id,
            delta_hash = p_delta_hash,
-           rollback_delta_file = p_rollback_delta_file,
+           rollback_delta_resource_id = p_rollback_delta_resource_id,
            rollback_delta_hash = p_rollback_delta_hash,
            previous_domain_version_id = v_previous_id,
            "order" = v_order,
@@ -509,7 +512,7 @@ BEGIN
     v_lock_key := domain_version_edit_lock_key(p_domain_id);
     PERFORM pg_advisory_xact_lock(v_lock_key);
 
-    SELECT d.operation_status, dv.id, dv.status, dv.hash
+    SELECT d.operation_status, dv.id, dv.status, dv.full_snapshot_hash
       INTO v_operation_status, v_version_id, v_version_status, v_hash
       FROM domain d
       JOIN domain_version dv ON dv.id = d.current_domain_version_id
@@ -587,7 +590,7 @@ BEGIN
     v_import_id := uuid_generate_v7_custom();
 
     PERFORM set_config('twins.domain_version_op', 'on', true);
-    INSERT INTO domain_version (id, domain_id, version, status, "order", hash, previous_domain_version_id, released_at)
+    INSERT INTO domain_version (id, domain_id, version, status, "order", full_snapshot_hash, previous_domain_version_id, released_at)
     VALUES (v_import_id, p_domain_id, v_label, 'RELEASED', v_order, p_content_hash, v_previous_id, CURRENT_TIMESTAMP);
     UPDATE domain SET current_domain_version_id = v_import_id WHERE id = p_domain_id;
     IF v_keep_window IS NOT NULL THEN
@@ -1032,7 +1035,14 @@ $$ LANGUAGE plpgsql;
 -- INSERT decision: skip_insert asks the wrapper to RETURN NULL (the row was resurrected in
 -- place). A composite, not a bare stamp: a NULL stamp is legitimate on the protected path
 -- (internal writers stamp rows themselves) and cannot double as the skip signal.
-CREATE TYPE domain_version_insert_decision AS (skip_insert boolean, stamp uuid);
+-- CREATE TYPE has no IF NOT EXISTS — the DO guard keeps the script re-runnable
+-- (the IT re-applies it per test)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'domain_version_insert_decision') THEN
+        CREATE TYPE domain_version_insert_decision AS (skip_insert boolean, stamp uuid);
+    END IF;
+END $$;
 
 CREATE OR REPLACE FUNCTION domain_version_before_insert_handle(p_table text, p_new jsonb)
     RETURNS domain_version_insert_decision AS

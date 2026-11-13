@@ -48,12 +48,18 @@ CREATE TABLE domain_version (
                                    CHECK (status IN ('OPEN','RELEASED')),
     "order"                    bigint,                    -- монотонный счётчик домена; присваивается при релизе
                                                               -- и импорте, у открытого окна NULL; сортировка/walk цепочки
-    json_file                  jsonb,                     -- полный снапшот состояния (у импорта — опционально)
-    hash                       varchar,                   -- SHA-256 полного состояния; у релиза и импорта — всегда
-    delta_file                 jsonb,                     -- прямая дельта prev → этот релиз (инкрементальный импорт
-                                                              -- между средами); NULL у первого релиза
+    -- снапшоты и дельты могут быть большими: payload'ы лежат в resource-хранилище,
+    -- в строке версии — только FK на resource и SHA-256-хэши (2026-11-11)
+    full_snapshot_resource_id  uuid REFERENCES resource(id)
+                                   ON UPDATE CASCADE ON DELETE RESTRICT,  -- полный снапшот состояния
+    full_snapshot_hash         varchar,                   -- SHA-256 полного состояния; у релиза и импорта — всегда
+    delta_resource_id          uuid REFERENCES resource(id)
+                                   ON UPDATE CASCADE ON DELETE RESTRICT,  -- прямая дельта prev → этот релиз
+                                                              -- (инкрементальный импорт между средами)
     delta_hash                 varchar,
-    rollback_delta_file        jsonb,                     -- обратная дельта этот релиз → prev (локальный возврат)
+    rollback_delta_resource_id uuid REFERENCES resource(id)
+                                   ON UPDATE CASCADE ON DELETE RESTRICT,  -- обратная дельта этот релиз → prev
+                                                              -- (локальный возврат); NULL у первого релиза
     rollback_delta_hash        varchar,
     previous_domain_version_id uuid REFERENCES domain_version(id)
                                    ON UPDATE CASCADE ON DELETE SET NULL,
@@ -66,6 +72,10 @@ CREATE UNIQUE INDEX domain_version_unique ON domain_version(domain_id, version);
 CREATE UNIQUE INDEX domain_version_one_open_per_domain ON domain_version(domain_id) WHERE status = 'OPEN';
 CREATE INDEX domain_version_prev_idx ON domain_version(previous_domain_version_id);
 CREATE INDEX domain_version_order_idx ON domain_version(domain_id, "order" DESC);
+-- по индексу на каждый FK ресурсов (RESTRICT защищает payload'ы истории от удаления)
+CREATE INDEX domain_version_full_snapshot_resource_idx ON domain_version(full_snapshot_resource_id);
+CREATE INDEX domain_version_delta_resource_idx ON domain_version(delta_resource_id);
+CREATE INDEX domain_version_rollback_delta_resource_idx ON domain_version(rollback_delta_resource_id);
 ```
 
 `(domain_id, version)` даёт занятость лейблов (проверяется и на UPDATE при `release_end`);
@@ -560,8 +570,9 @@ FULL-restore по снапшоту универсален, но выравнив
 строку пару колонок:
 
 ```sql
-ALTER TABLE domain_version ADD COLUMN rollback_delta_file jsonb;   -- дельта НА предыдущий релиз
-ALTER TABLE domain_version ADD COLUMN rollback_delta_hash varchar; -- SHA-256 документа дельты
+ALTER TABLE domain_version ADD COLUMN rollback_delta_resource_id uuid  -- дельта НА предыдущий релиз
+    REFERENCES resource(id) ON UPDATE CASCADE ON DELETE RESTRICT;      -- (payload в resource-хранилище)
+ALTER TABLE domain_version ADD COLUMN rollback_delta_hash varchar;     -- SHA-256 документа дельты
 ```
 
 - строится при релизе одновременно с прямой дельтой: это один и тот же diff пары снапшотов

@@ -14,8 +14,10 @@ import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.domain.DomainVersionRepository;
 import org.twins.core.enums.domain.DomainVersionStatus;
 import org.twins.core.service.TwinsEntityAccessService;
+import org.twins.core.service.resource.ResourceService;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
@@ -27,6 +29,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class DomainVersionService extends TwinsEntityAccessService<DomainVersionEntity> {
     private final DomainVersionRepository domainVersionRepository;
+    private final ResourceService resourceService;
 
     @Override
     public CrudRepository<DomainVersionEntity, UUID> entityRepository() {
@@ -73,5 +76,30 @@ public class DomainVersionService extends TwinsEntityAccessService<DomainVersion
                 DomainConfigEntity::getDomainVersionId,
                 DomainConfigEntity::getDomainVersion,
                 DomainConfigEntity::setDomainVersion);
+    }
+
+    /**
+     * Batch-loads the payload resources (full snapshot / forward delta / rollback delta) of the given
+     * versions in one pass — Variant A of docs/load_method_pattern.md with several FKs to the same
+     * target table drained in a single load call (TwinClassService.loadPermissions precedent).
+     */
+    public void loadResources(DomainVersionEntity src) throws ServiceException {
+        loadResources(Collections.singletonList(src));
+    }
+
+    public void loadResources(Collection<DomainVersionEntity> srcCollection) throws ServiceException {
+        resourceService.load(srcCollection,
+                new LoadedField<>(
+                        DomainVersionEntity::getFullSnapshotResourceId,
+                        DomainVersionEntity::getFullSnapshotResource,
+                        DomainVersionEntity::setFullSnapshotResource),
+                new LoadedField<>(
+                        DomainVersionEntity::getDeltaResourceId,
+                        DomainVersionEntity::getDeltaResource,
+                        DomainVersionEntity::setDeltaResource),
+                new LoadedField<>(
+                        DomainVersionEntity::getRollbackDeltaResourceId,
+                        DomainVersionEntity::getRollbackDeltaResource,
+                        DomainVersionEntity::setRollbackDeltaResource));
     }
 }

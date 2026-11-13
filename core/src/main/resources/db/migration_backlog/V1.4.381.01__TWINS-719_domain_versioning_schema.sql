@@ -20,11 +20,22 @@ CREATE TABLE IF NOT EXISTS domain_version
         CONSTRAINT domain_version_status_ck CHECK (status IN ('OPEN', 'RELEASED')),
     "order"                    bigint,                    -- monotonic per domain counter, assigned at release/import;
                                                            -- NULL for the open window; used for sorting/chain walk
-    json_file                  jsonb,                     -- full snapshot of the configuration state
-    hash                       varchar,                   -- SHA-256 of the full snapshot (always set for RELEASED)
-    delta_file                 jsonb,                     -- forward delta: prev release -> this release (cross-env import)
+    -- snapshots/deltas can be large: the payloads live in resource storage, the version row
+    -- holds only the resource FKs and their SHA-256 hashes
+    full_snapshot_resource_id  uuid                       -- full snapshot of the configuration state
+        CONSTRAINT domain_version_full_snapshot_resource_fk
+            REFERENCES resource (id)
+            ON UPDATE CASCADE ON DELETE RESTRICT,
+    full_snapshot_hash         varchar,                   -- SHA-256 of the full snapshot (always set for RELEASED)
+    delta_resource_id          uuid                       -- forward delta: prev release -> this release (cross-env import)
+        CONSTRAINT domain_version_delta_resource_fk
+            REFERENCES resource (id)
+            ON UPDATE CASCADE ON DELETE RESTRICT,
     delta_hash                 varchar,
-    rollback_delta_file        jsonb,                     -- reverse delta: this release -> prev release (local restore)
+    rollback_delta_resource_id uuid                       -- reverse delta: this release -> prev release (local restore)
+        CONSTRAINT domain_version_rollback_delta_resource_fk
+            REFERENCES resource (id)
+            ON UPDATE CASCADE ON DELETE RESTRICT,
     rollback_delta_hash        varchar,
     previous_domain_version_id uuid
         CONSTRAINT domain_version_prev_version_fk
@@ -58,6 +69,16 @@ CREATE INDEX IF NOT EXISTS domain_version_released_idx
 -- count-grouping support (every count/search is domain-scoped, so the group field index leads with domain_id)
 CREATE INDEX IF NOT EXISTS domain_version_status_idx
     ON domain_version (domain_id, status);
+
+-- payload resource FKs
+CREATE INDEX IF NOT EXISTS domain_version_full_snapshot_resource_idx
+    ON domain_version (full_snapshot_resource_id);
+
+CREATE INDEX IF NOT EXISTS domain_version_delta_resource_idx
+    ON domain_version (delta_resource_id);
+
+CREATE INDEX IF NOT EXISTS domain_version_rollback_delta_resource_idx
+    ON domain_version (rollback_delta_resource_id);
 
 -- ============================================================================
 -- 2. domain_version_audit — full change history, written by all paths

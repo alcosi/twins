@@ -7,7 +7,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.enums.domain.DomainVersionStatus;
 
 import java.sql.Timestamp;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -33,7 +32,7 @@ public class DomainVersionDTOv1 {
     public Long order;
 
     @Schema(description = "SHA-256 of the full snapshot (always set for RELEASED)")
-    public String hash;
+    public String fullSnapshotHash;
 
     @Schema(description = "SHA-256 of the forward delta (prev release -> this release)")
     public String deltaHash;
@@ -56,12 +55,12 @@ public class DomainVersionDTOv1 {
     @Schema(description = "release duration (ms)", example = "3500")
     public Long releaseDuration;
 
-    @Schema(description = "full snapshot of the configuration state (DETAILED mode only)")
-    public Map<String, Object> jsonFile;
+    @Schema(description = "resource holding the full snapshot of the configuration state (DETAILED mode only)", example = DTOExamples.UUID_ID)
+    public UUID fullSnapshotResourceId;
 
-    @Schema(description = "forward delta: prev release -> this release, for cross-env import (DETAILED mode only)")
-    public Map<String, Object> deltaFile;
+    @Schema(description = "resource holding the forward delta: prev release -> this release, for cross-env import (DETAILED mode only)", example = DTOExamples.UUID_ID)
+    public UUID deltaResourceId;
 
-    @Schema(description = "reverse delta: this release -> prev release, for local restore (DETAILED mode only)")
-    public Map<String, Object> rollbackDeltaFile;
+    @Schema(description = "resource holding the reverse delta: this release -> prev release, for local restore (DETAILED mode only)", example = DTOExamples.UUID_ID)
+    public UUID rollbackDeltaResourceId;
 }

@@ -1,6 +1,5 @@
 package org.twins.core.dao.domain;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,15 +8,14 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
-import org.hibernate.annotations.Type;
 import org.twins.core.dao.PersistableEntity;
 import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.domain.DomainVersionStatus;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -62,27 +60,24 @@ public class DomainVersionEntity extends PersistableEntity implements EasyLoggab
     @Column(name = "order")
     private Long order;
 
-    // full snapshot of the configuration state
-    @Type(JsonType.class)
-    @Column(name = "json_file", columnDefinition = "jsonb")
-    private Map<String, Object> jsonFile;
+    // full snapshot of the configuration state — a resource (snapshots can be large)
+    @Column(name = "full_snapshot_resource_id")
+    private UUID fullSnapshotResourceId;
 
     // SHA-256 of the full snapshot (always set for RELEASED)
-    @Column(name = "hash")
-    private String hash;
+    @Column(name = "full_snapshot_hash")
+    private String fullSnapshotHash;
 
-    // forward delta: prev release -> this release (cross-env import)
-    @Type(JsonType.class)
-    @Column(name = "delta_file", columnDefinition = "jsonb")
-    private Map<String, Object> deltaFile;
+    // forward delta: prev release -> this release (cross-env import) — a resource
+    @Column(name = "delta_resource_id")
+    private UUID deltaResourceId;
 
     @Column(name = "delta_hash")
     private String deltaHash;
 
-    // reverse delta: this release -> prev release (local restore)
-    @Type(JsonType.class)
-    @Column(name = "rollback_delta_file", columnDefinition = "jsonb")
-    private Map<String, Object> rollbackDeltaFile;
+    // reverse delta: this release -> prev release (local restore) — a resource
+    @Column(name = "rollback_delta_resource_id")
+    private UUID rollbackDeltaResourceId;
 
     @Column(name = "rollback_delta_hash")
     private String rollbackDeltaHash;
@@ -113,6 +108,22 @@ public class DomainVersionEntity extends PersistableEntity implements EasyLoggab
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "previous_domain_version_id", insertable = false, updatable = false)
     private DomainVersionEntity previousDomainVersion;
+
+    // payload resources (snapshot/deltas) — transient, batch-loaded via DomainVersionService.loadResources
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ResourceEntity fullSnapshotResource;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ResourceEntity deltaResource;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ResourceEntity rollbackDeltaResource;
 
     @PrePersist
     protected void onCreate() {

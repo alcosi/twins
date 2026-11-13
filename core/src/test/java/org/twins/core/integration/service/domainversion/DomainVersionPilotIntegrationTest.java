@@ -67,6 +67,7 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
     private UUID userId;
     private UUID twinClassId;
     private UUID dataListId;
+    private UUID storageId;
 
     private void stubApiUser() throws ServiceException {
         ApiUser apiUser = Mockito.mock(ApiUser.class);
@@ -108,6 +109,14 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
                 " VALUES (?, ?, 'basic', (SELECT id FROM twin_class WHERE domain_id IS NULL LIMIT 1), ?, ?, ?, ?, 3401)",
                 domainId, "DV_TEST_" + domainId, idpId, permSchemaId, flowSchemaId, classSchemaId);
 
+        // version payloads (snapshot/deltas) are resources: a storage for them
+        // (2901 = StoragerLocalStatic; the storager itself is never invoked, the row is for the FK)
+        storageId = UUID.randomUUID();
+        jdbcTemplate.update(
+                "INSERT INTO storage (id, domain_id, storager_featurer_id, description)" +
+                " VALUES (?, ?, 2901, 'DV test storage')",
+                storageId, domainId);
+
         // pilot rows created BEFORE the pilot migrations: the backfill must stamp them
         twinClassId = UUID.randomUUID();
         jdbcTemplate.update(
@@ -144,7 +153,7 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
 
     private Map<String, Object> currentVersion() {
         return jdbcTemplate.queryForMap(
-                "SELECT dv.id, dv.status, dv.version, dv.\"order\", dv.hash" +
+                "SELECT dv.id, dv.status, dv.version, dv.\"order\", dv.full_snapshot_hash" +
                 "  FROM domain d JOIN domain_version dv ON dv.id = d.current_domain_version_id" +
                 " WHERE d.id = ?", domainId);
     }
@@ -160,18 +169,30 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
                 "SELECT row_status, domain_version_id FROM twin_class WHERE id = ?", twinClassId);
     }
 
+    // a version payload: the test only needs a valid resource row, the content is never read
+    private UUID newResource(String fileKey) {
+        UUID id = UUID.randomUUID();
+        jdbcTemplate.update(
+                "INSERT INTO resource (id, domain_id, storage_id, storage_file_key, size_in_bytes)" +
+                " VALUES (?, ?, ?, ?, 0)",
+                id, domainId, storageId, fileKey);
+        return id;
+    }
+
     private UUID release(String label, String hash, boolean first) {
         UUID window = jdbcTemplate.queryForObject(
                 "SELECT domain_operation_release_start(?::uuid)", UUID.class, domainId);
         if (first) {
             jdbcTemplate.update(
-                    "SELECT domain_operation_release_end(?::uuid, ?, ?::jsonb, ?, ?::jsonb, ?)",
-                    domainId, label, "{\"snapshot\":\"" + label + "\"}", hash, "{\"delta\":\"full\"}", "DH_" + label);
+                    "SELECT domain_operation_release_end(?::uuid, ?, ?::uuid, ?, ?::uuid, ?)",
+                    domainId, label, newResource("snapshot_" + label), hash,
+                    newResource("delta_" + label), "DH_" + label);
         } else {
             jdbcTemplate.update(
-                    "SELECT domain_operation_release_end(?::uuid, ?, ?::jsonb, ?, ?::jsonb, ?, ?::jsonb, ?, ?::jsonb, ?)",
-                    domainId, label, "{\"snapshot\":\"" + label + "\"}", hash,
-                    "{\"delta\":\"d\"}", "FWD_" + label, "{\"delta\":\"r\"}", "RWD_" + label);
+                    "SELECT domain_operation_release_end(?::uuid, ?, ?::uuid, ?, ?::uuid, ?, ?::uuid, ?)",
+                    domainId, label, newResource("snapshot_" + label), hash,
+                    newResource("delta_" + label), "FWD_" + label,
+                    newResource("rollback_delta_" + label), "RWD_" + label);
         }
         return window;
     }
@@ -260,8 +281,8 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
         jdbcTemplate.update("SELECT domain_operation_release_start(?::uuid)", domainId);
         jdbcTemplate.update("SELECT domain_operation_abort(?::uuid)", domainId);
         assertForbidden(() -> jdbcTemplate.update(
-                        "SELECT domain_operation_release_end(?::uuid, '1.1', ?::jsonb, 'H', NULL, NULL)",
-                        domainId, "{\"s\":1}"),
+                        "SELECT domain_operation_release_end(?::uuid, '1.1', ?::uuid, 'H', NULL, NULL)",
+                        domainId, newResource("snapshot_1.1")),
                 "non-first release must require forward and rollback deltas");
         release("1.1", "H1.1", false);
 
@@ -399,7 +420,7 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
 
         jdbcTemplate.update("SELECT domain_operation_import_start(?::uuid, 'INCREMENTAL', 'H1.0')", domainId);
         jdbcTemplate.update("SELECT domain_operation_import_end(?::uuid, 'H_IMPORTED', NULL)", domainId);
-        assertEquals("H_IMPORTED", currentVersion().get("hash"));
+        assertEquals("H_IMPORTED", currentVersion().get("full_snapshot_hash"));
     }
 
     // ------------------------------------------------------------------
@@ -549,7 +570,7 @@ public class DomainVersionPilotIntegrationTest extends BaseIntegrationTest {
         Map<String, Object> current = currentVersion();
         assertEquals("RELEASED", current.get("status"));
         assertEquals("restore of 1.0", current.get("version"));
-        assertEquals("H_FULL_IMPORT", current.get("hash"));
+        assertEquals("H_FULL_IMPORT", current.get("full_snapshot_hash"));
         assertEquals(2, versionCount()); // 1.0 + import version, the window is gone
     }
 

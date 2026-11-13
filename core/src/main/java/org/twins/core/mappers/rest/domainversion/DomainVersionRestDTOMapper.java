@@ -24,7 +24,7 @@ public class DomainVersionRestDTOMapper extends RestSimpleDTOMapper<DomainVersio
                     .setDescription(src.getDescription())
                     .setStatus(src.getStatus())
                     .setOrder(src.getOrder())
-                    .setHash(src.getHash())
+                    .setFullSnapshotHash(src.getFullSnapshotHash())
                     .setDeltaHash(src.getDeltaHash())
                     .setRollbackDeltaHash(src.getRollbackDeltaHash())
                     .setPreviousDomainVersionId(src.getPreviousDomainVersionId())
@@ -32,10 +32,11 @@ public class DomainVersionRestDTOMapper extends RestSimpleDTOMapper<DomainVersio
                     .setStartDuration(src.getStartDuration())
                     .setReleasedAt(src.getReleasedAt())
                     .setReleaseDuration(src.getReleaseDuration())
-                    // snapshot/delta payloads can be heavy — DETAILED only
-                    .setJsonFile(src.getJsonFile())
-                    .setDeltaFile(src.getDeltaFile())
-                    .setRollbackDeltaFile(src.getRollbackDeltaFile());
+                    // snapshot/delta payloads live in resource storage (can be large) — ids are
+                    // still DETAILED-only to keep the version row mapping symmetrical
+                    .setFullSnapshotResourceId(src.getFullSnapshotResourceId())
+                    .setDeltaResourceId(src.getDeltaResourceId())
+                    .setRollbackDeltaResourceId(src.getRollbackDeltaResourceId());
             case SHORT -> dst
                     .setId(src.getId())
                     .setVersion(src.getVersion())
