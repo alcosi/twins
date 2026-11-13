@@ -86,7 +86,7 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
     protected TwinClassEntity createNewEntity(TwinClassDuplicate duplicate, EntityDuplicateCollector duplicateCollector) throws ServiceException {
         TwinClassEntity original = duplicate.getOriginalEntity();
         log.info("{} will be duplicated with new key[{}]", original.logShort(), duplicate.getNewKey());
-        TwinClassEntity duplicate = new TwinClassEntity()
+        TwinClassEntity copy = new TwinClassEntity()
                 .setId(null)
                 .setKey(KeyUtils.upperCaseNullFriendly(duplicate.getNewKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT))
                 .setCreatedByUserId(authService.getApiUser().getUser().getId())
@@ -127,8 +127,8 @@ public class TwinClassDuplicateService extends EntityDuplicateService<TwinClassD
                 .setTwinCounter(0);
         // explicit domain copy wins over the saveSafe autofill (a duplicated system row must stay
         // system); separate statement — the inherited chain setter returns DomainConfigEntity
-        duplicate.setDomainId(original.getDomainId());
-        return duplicate;
+        copy.setDomainId(original.getDomainId());
+        return copy;
     }
 
     @Override

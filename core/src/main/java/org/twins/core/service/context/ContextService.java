@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerGroup;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -19,6 +18,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.context.ContextCollector;
 import org.twins.core.featurer.context.ContextCollectorBatch;
 import org.twins.core.holder.I18nCacheHolder;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -29,7 +29,7 @@ import java.util.function.Function;
 @Lazy
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class ContextService extends EntitySecureFindServiceImpl<ContextEntity> {
+public class ContextService extends TwinsEntityAccessService<ContextEntity> {
     private final FeaturerService featurerService;
     private final ContextRepository contextRepository;
     private final ContextCollectorService contextCollectorService;
