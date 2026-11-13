@@ -542,4 +542,90 @@ public interface TwinFieldDecimalRepository extends TwinFieldRepository<TwinFiel
         );
         return mapNativeQueryResults(results);
     }
+
+    // Fields are resolved by key, flavor by option title: SUPPLY_PORTION fields are design-time data, their UUIDs are not guaranteed to match between environments.
+    @Query(value = """
+            WITH portionClass AS (
+                SELECT tc.id
+                FROM twin_class tc
+                WHERE tc.key = 'SUPPLY_PORTION'
+            ), quantityFields AS (
+                SELECT f.id
+                FROM twin_class_field f
+                JOIN portionClass pc ON f.twin_class_id = pc.id
+                WHERE f.key IN ('issuedQuantity', 'issuedQuantityProjectAndWarehouse', 'usedQuantity', 'defectiveQuantity', 'remainingQuantityTask', 'remainingQuantityProjectAndWarehouse')
+            )
+            SELECT count(*)
+            FROM twin_field_decimal tfd
+            JOIN quantityFields qf ON qf.id = tfd.twin_class_field_id
+            WHERE tfd.value < 0
+            """, nativeQuery = true)
+    long countSupplyPortionNegativeQuantity();
+
+    @Query(value = """
+            WITH portionClass AS (
+                SELECT tc.id AS class_id, tc.flavor_data_list_id
+                FROM twin_class tc
+                WHERE tc.key = 'SUPPLY_PORTION'
+            ), taskFlavor AS (
+                SELECT dlo.id
+                FROM data_list_option dlo
+                JOIN portionClass pc ON dlo.data_list_id = pc.flavor_data_list_id
+                WHERE dlo.option = 'Task portion'
+            ), quantityFields AS (
+                SELECT f.id, f.key
+                FROM twin_class_field f
+                JOIN portionClass pc ON f.twin_class_id = pc.class_id
+                WHERE f.key IN ('issuedQuantity', 'issuedQuantityProjectAndWarehouse', 'usedQuantity', 'defectiveQuantity', 'remainingQuantityTask', 'remainingQuantityProjectAndWarehouse')
+            ), portionQuantities AS (
+                SELECT
+                    t.id AS twin_id,
+                    t.flavor_data_list_option_id AS flavor,
+                    coalesce(max(tfd.value) FILTER (WHERE qf.key = 'issuedQuantity'), 0) AS issued_quantity_task,
+                    coalesce(max(tfd.value) FILTER (WHERE qf.key = 'issuedQuantityProjectAndWarehouse'), 0) AS issued_quantity_project_and_warehouse,
+                    coalesce(max(tfd.value) FILTER (WHERE qf.key = 'usedQuantity'), 0) AS used_quantity,
+                    coalesce(max(tfd.value) FILTER (WHERE qf.key = 'defectiveQuantity'), 0) AS defective_quantity,
+                    coalesce(max(tfd.value) FILTER (WHERE qf.key = 'remainingQuantityTask'), 0) AS remaining_quantity_task,
+                    coalesce(max(tfd.value) FILTER (WHERE qf.key = 'remainingQuantityProjectAndWarehouse'), 0) AS remaining_quantity_project_and_warehouse
+                FROM twin t
+                JOIN portionClass pc ON pc.class_id = t.twin_class_id
+                LEFT JOIN twin_field_decimal tfd ON tfd.twin_id = t.id
+                LEFT JOIN quantityFields qf ON qf.id = tfd.twin_class_field_id
+                GROUP BY t.id, t.flavor_data_list_option_id
+            )
+            SELECT count(*)
+            FROM portionQuantities pq
+            WHERE abs(CASE
+                    WHEN pq.flavor = (SELECT id FROM taskFlavor LIMIT 1)
+                        THEN pq.issued_quantity_task - (pq.used_quantity + pq.defective_quantity + pq.remaining_quantity_task)
+                    ELSE pq.issued_quantity_project_and_warehouse - (pq.used_quantity + pq.defective_quantity + pq.remaining_quantity_project_and_warehouse)
+                END) > 0.005
+            """, nativeQuery = true)
+    long countSupplyPortionQuantityConservationMismatch();
+
+    @Query(value = """
+            WITH portionClass AS (
+                SELECT tc.id AS class_id, tc.flavor_data_list_id
+                FROM twin_class tc
+                WHERE tc.key = 'SUPPLY_PORTION'
+            ), taskFlavor AS (
+                SELECT dlo.id
+                FROM data_list_option dlo
+                JOIN portionClass pc ON dlo.data_list_id = pc.flavor_data_list_id
+                WHERE dlo.option = 'Task portion'
+            ), usedField AS (
+                SELECT f.id
+                FROM twin_class_field f
+                JOIN portionClass pc ON f.twin_class_id = pc.class_id
+                WHERE f.key = 'usedQuantity'
+            )
+            SELECT count(*)
+            FROM twin t
+            JOIN portionClass pc ON pc.class_id = t.twin_class_id
+            JOIN twin_field_decimal tfd ON tfd.twin_id = t.id
+            JOIN usedField uf ON uf.id = tfd.twin_class_field_id
+            WHERE tfd.value > 0
+              AND t.flavor_data_list_option_id IS DISTINCT FROM (SELECT id FROM taskFlavor LIMIT 1)
+            """, nativeQuery = true)
+    long countSupplyPortionUsedQuantityOnNonTaskFlavor();
 }
