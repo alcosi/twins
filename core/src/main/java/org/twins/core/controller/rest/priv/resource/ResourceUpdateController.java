@@ -64,7 +64,7 @@ public class ResourceUpdateController extends ApiController {
         return processUpdate(mapperContext, request, Collections.emptyMap());
     }
 
-    @Operation(operationId = "resourceUpdateV1", summary = "Resource batch update with file replacement",
+    @Operation(operationId = "resourceUpdateMultipartV1", summary = "Resource batch update with file replacement",
             description = "Same as the json variant, plus each update item may carry storageLink = \"multipart://<part_name>\" "
                     + "to replace the stored file with the given multipart part (non-multipart link is stored as an external uri). "
                     + "The resource name follows the new file name unless originalFileName is set on the item.")

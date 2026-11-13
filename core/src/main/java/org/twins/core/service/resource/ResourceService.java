@@ -4,6 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
@@ -39,6 +40,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
+@Slf4j
 public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
 
     protected final FeaturerService featurerService;
@@ -49,34 +51,20 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     protected final UserService userService;
 
     /**
-     * Retrieves a resource file from storage based on the specified resource ID and access permissions.
+     * Finds a resource for the public download api. Public download must work for anonymous and
+     * cross-domain callers, so no read-permission check here: the resource.public flag is the only
+     * guard. Non-public resources are reported as not found to avoid leaking their existence.
      *
      * @param resourceId the unique identifier of the resource to retrieve
-     * @return a {@code DomainFile} object containing the file's data, original file name, and size information
-     * @throws ServiceException if the resource with the specified {@code resourceId} is not found or any error occurs during file retrieval
-     */
-    @Transactional(readOnly = true)
-    public InputStreamResponse getResourceFile(UUID resourceId) throws ServiceException {
-        return getResourceFile(findEntitySafe(resourceId));
-    }
-
-    /**
-     * Retrieves a resource file from storage, but only if the resource is marked as public
-     * (see {@code resource.public} column). Non-public resources are reported as not found
-     * to avoid leaking their existence.
-     *
-     * @param resourceId the unique identifier of the resource to retrieve
-     * @return the resource file stream
+     * @return the public resource entity
      * @throws ServiceException if the resource is not found or is not public
      */
     @Transactional(readOnly = true)
-    public InputStreamResponse getPublicResourceFile(UUID resourceId) throws ServiceException {
-        // public download must work for anonymous and cross-domain callers, so no read-permission
-        // check here: the resource.public flag is the only guard
+    public ResourceEntity findPublicResource(UUID resourceId) throws ServiceException {
         var resource = findEntityPublic(resourceId);
         if (!resource.getIsPublic())
             throw new ServiceException(ErrorCodeTwins.RESOURCE_NOT_PUBLIC, "resource " + resourceId + " is not public");
-        return getResourceFile(resource);
+        return resource;
     }
 
     public InputStreamResponse getResourceFile(ResourceEntity resource) throws ServiceException {
@@ -108,7 +96,13 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         AddedFileKey addedFileKey = storager.addExternalUrlFile(resourceId, externalResourceUri, storage.getStoragerParams());
-        return createResource(storage, originalFileName, resourceId, addedFileKey, isPublic);
+        try {
+            return resourceRepository.save(createResource(storage, originalFileName, resourceId, addedFileKey, isPublic));
+        } catch (Throwable t) {
+            // the tx will roll back; delete the already stored file to not leave an orphan in the storage
+            tryDeleteFileSilently(storager, addedFileKey.fileKey(), storage.getStoragerParams());
+            throw t;
+        }
     }
 
     /**
@@ -149,7 +143,13 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         AddedFileKey addedFileKey = fileService.addFile(resourceId, inputStream, storage.getStoragerParams());
-        return createResource(storage, originalFileName, resourceId, addedFileKey, isPublic);
+        try {
+            return resourceRepository.save(createResource(storage, originalFileName, resourceId, addedFileKey, isPublic));
+        } catch (Throwable t) {
+            // the tx will roll back; delete the already stored file to not leave an orphan in the storage
+            tryDeleteFileSilently(fileService, addedFileKey.fileKey(), storage.getStoragerParams());
+            throw t;
+        }
     }
 
     /**
@@ -164,23 +164,35 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
     public List<ResourceEntity> createResources(List<ResourceCreate> createList) throws ServiceException {
         if (createList == null || createList.isEmpty())
-            return Collections.emptyList();
+            throw new ServiceException(ErrorCodeTwins.RESOURCE_CREATE_REQUEST_EMPTY, "resource create request has no files");
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         List<ResourceEntity> result = new ArrayList<>(createList.size());
-        for (ResourceCreate create : createList) {
-            UUID resourceId = UuidUtils.generate();
-            AddedFileKey addedFileKey;
-            String fileName;
-            if (create.getFile() != null) {
-                addedFileKey = storager.addFile(resourceId, create.getFile().content(), storage.getStoragerParams());
-                fileName = StringUtils.isNotEmpty(create.getTitle()) ? create.getTitle() : create.getFile().originalFileName();
-            } else {
-                addedFileKey = storager.addExternalUrlFile(resourceId, create.getExternalResourceUri(), storage.getStoragerParams());
-                fileName = StringUtils.isNotEmpty(create.getTitle()) ? create.getTitle() : create.getExternalResourceUri();
+        List<AddedFileKey> storedFiles = new ArrayList<>(createList.size());
+        try {
+            for (ResourceCreate create : createList) {
+                if (create.getFile() == null && StringUtils.isEmpty(create.getExternalResourceUri()))
+                    throw new ServiceException(ErrorCodeTwins.RESOURCE_FILE_OR_LINK_REQUIRED, "resource item must carry a file (multipart link) or an external uri");
+                UUID resourceId = UuidUtils.generate();
+                AddedFileKey addedFileKey;
+                String fileName;
+                if (create.getFile() != null) {
+                    addedFileKey = storager.addFile(resourceId, create.getFile().content(), storage.getStoragerParams());
+                    fileName = StringUtils.isNotEmpty(create.getTitle()) ? create.getTitle() : create.getFile().originalFileName();
+                } else {
+                    addedFileKey = storager.addExternalUrlFile(resourceId, create.getExternalResourceUri(), storage.getStoragerParams());
+                    fileName = StringUtils.isNotEmpty(create.getTitle()) ? create.getTitle() : create.getExternalResourceUri();
+                }
+                storedFiles.add(addedFileKey);
+                result.add(createResource(storage, fileName, resourceId, addedFileKey, create.getIsPublic()));
             }
-            result.add(createResource(storage, fileName, resourceId, addedFileKey, create.getIsPublic()));
+            resourceRepository.saveAll(result);
+        } catch (Throwable t) {
+            // the tx will roll back; delete the already stored files to not leave orphans in the storage
+            for (AddedFileKey storedFile : storedFiles)
+                tryDeleteFileSilently(storager, storedFile.fileKey(), storage.getStoragerParams());
+            throw t;
         }
         return result;
     }
@@ -198,7 +210,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
                 .setStorageFileKey(addedFileKey.fileKey())
                 .setIsPublic(isPublic == null || isPublic);
         validateEntity(resource, EntitySmartService.EntityValidateMode.beforeSave);
-        return resourceRepository.save(resource);
+        return resource;
     }
 
     /**
@@ -215,8 +227,10 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         loadStorage(resource);
         StorageEntity storage = resource.getStorage();
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
-        storager.tryDeleteFile(resource.getStorageFileKey(), storage.getStoragerParams());
         entitySmartService.deleteAndLog(resource.getId(), resourceRepository);
+        // the storage file is deleted last and never fails the tx: an orphan file is cheaper
+        // than a row pointing at a deleted file
+        tryDeleteFileSilently(storager, resource.getStorageFileKey(), storage.getStoragerParams());
     }
 
     /**
@@ -233,7 +247,11 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     public List<ResourceEntity> updateResources(Collection<ResourceUpdate> updates) throws ServiceException {
         if (updates == null || updates.isEmpty())
             return Collections.emptyList();
-        Kit<ResourceEntity, UUID> entitiesKit = findEntitiesSafe(updates.stream().map(ResourceUpdate::getId).toList());
+        Set<UUID> ids = new HashSet<>(updates.size());
+        for (ResourceUpdate update : updates)
+            if (update.getId() == null || !ids.add(update.getId()))
+                throw new ServiceException(ErrorCodeTwins.RESOURCE_UPDATE_DUPLICATE_ID, "duplicate or empty resource id in update batch: " + update.getId());
+        Kit<ResourceEntity, UUID> entitiesKit = findEntitiesSafe(ids.stream().toList());
         // bulk-load storages for entities with file replacement
         List<ResourceEntity> withFileReplace = new ArrayList<>();
         for (ResourceUpdate update : updates)
@@ -242,6 +260,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         loadStorage(withFileReplace);
         ChangesHelperMulti<ResourceEntity> changes = new ChangesHelperMulti<>();
         List<ResourceEntity> allEntities = new ArrayList<>(updates.size());
+        List<ReplacedFile> replacedFiles = new ArrayList<>();
         for (ResourceUpdate update : updates) {
             ResourceEntity entity = entitiesKit.get(update.getId());
             allEntities.add(entity);
@@ -251,14 +270,25 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
             updateEntityFieldByValueIfNotNull(update.getIsPublic(), entity,
                     ResourceEntity::getIsPublic, ResourceEntity::setIsPublic, ResourceEntity.Fields.isPublic, changesHelper);
             if (update.getFile() != null || update.getExternalResourceUri() != null)
-                replaceResourceFile(entity, update, changesHelper);
+                replacedFiles.add(new ReplacedFile(entity, replaceResourceFile(entity, update, changesHelper)));
             changes.add(entity, changesHelper);
         }
         updateSafe(changes);
+        // old files are deleted only after the db update succeeded and never fail the tx:
+        // an orphan file is cheaper than a row pointing at a deleted file
+        for (ReplacedFile replacedFile : replacedFiles)
+            tryDeleteFileSilently(
+                    featurerService.getFeaturer(replacedFile.entity().getStorage().getStorageFeaturerId(), Storager.class),
+                    replacedFile.oldFileKey(),
+                    replacedFile.entity().getStorage().getStoragerParams());
         return allEntities;
     }
 
-    protected void replaceResourceFile(ResourceEntity entity, ResourceUpdate update, ChangesHelper changesHelper) throws ServiceException {
+    /**
+     * Stores the replacement file and updates the entity fields. Returns the previous storage file key —
+     * the caller deletes it only after the db update succeeded.
+     */
+    protected String replaceResourceFile(ResourceEntity entity, ResourceUpdate update, ChangesHelper changesHelper) throws ServiceException {
         StorageEntity storage = entity.getStorage();
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturerId(), Storager.class);
         AddedFileKey addedFileKey;
@@ -270,7 +300,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
             addedFileKey = storager.addExternalUrlFile(entity.getId(), update.getExternalResourceUri(), storage.getStoragerParams());
             newFileName = update.getExternalResourceUri();
         }
-        storager.tryDeleteFile(entity.getStorageFileKey(), storage.getStoragerParams());
+        String oldFileKey = entity.getStorageFileKey();
         if (changesHelper.isChanged(ResourceEntity.Fields.storageFileKey, entity.getStorageFileKey(), addedFileKey.fileKey()))
             entity.setStorageFileKey(addedFileKey.fileKey());
         if (changesHelper.isChanged(ResourceEntity.Fields.sizeInBytes, entity.getSizeInBytes(), addedFileKey.fileSize()))
@@ -278,45 +308,17 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         // name follows the new file unless explicitly set on the update item
         if (update.getOriginalFileName() == null && StringUtils.isNotEmpty(newFileName) && changesHelper.isChanged(ResourceEntity.Fields.originalFileName, entity.getOriginalFileName(), newFileName))
             entity.setOriginalFileName(newFileName);
+        return oldFileKey;
     }
 
-    /**
-     * Transfers a resource from one storage location to another.
-     *
-     * @param resourceId   the unique identifier of the resource to be transferred
-     * @param newStorageId the unique identifier of the target storage location
-     * @return the newly transferred ResourceEntity with updated storage details
-     * @throws ServiceException if an error occurs during transfer or if the resource/storage cannot be found
-     */
-    @Transactional(readOnly = false, rollbackFor = Throwable.class)
-    public ResourceEntity transferResource(UUID resourceId, UUID newStorageId) throws ServiceException {
-        UUID newResourceId = UuidUtils.generate();
+    private record ReplacedFile(ResourceEntity entity, String oldFileKey) {}
 
-        var resource = findEntitySafe(resourceId);
-        if (resource.getStorageId().equals(newStorageId))
-            return resource;
-        loadStorage(resource);
-        StorageEntity oldStorage = resource.getStorage();
-        StorageEntity newStorage = storageService.findEntitySafe(newStorageId);
-
-        Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturerId(), Storager.class);
-        Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturerId(), Storager.class);
-        InputStreamResponse fileStream = oldStorager.getFileAsStream(resource.getStorageFileKey(), oldStorage.getStoragerParams());
-        AddedFileKey addedFileKey = newStorager.addFile(newResourceId, fileStream.getContentStream(), newStorage.getStoragerParams());
-        ResourceEntity newResource = new ResourceEntity()
-                .setId(resourceId)
-                .setStorageId(newStorageId)
-                .setDomainId(resource.getDomainId())
-                .setOriginalFileName(resource.getOriginalFileName())
-                .setUploadedByUserId(resource.getUploadedByUserId())
-                .setSizeInBytes(addedFileKey.fileSize())
-                .setStorageFileKey(addedFileKey.fileKey())
-                .setIsPublic(resource.getIsPublic());
-        validateEntity(newResource, EntitySmartService.EntityValidateMode.beforeSave);
-        newResource = resourceRepository.save(newResource);
-        oldStorager.tryDeleteFile(resource.getStorageFileKey(), oldStorage.getStoragerParams());
-        resourceRepository.delete(resource);
-        return newResource;
+    private void tryDeleteFileSilently(Storager storager, String fileKey, HashMap<String, String> params) {
+        try {
+            storager.tryDeleteFile(fileKey, params);
+        } catch (Throwable t) {
+            log.error("Failed to delete storage file {}: {}", fileKey, t.getMessage(), t);
+        }
     }
 
     public String getResourceUri(ResourceEntity resourceEntity) throws ServiceException {
@@ -342,7 +344,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     /**
      * Resources are domain-isolated on private APIs: by-id view/update/delete go through
      * findEntitySafe/findEntitiesSafe and are denied cross-domain. The public download path
-     * ({@link #getPublicResourceFile(UUID)}) intentionally bypasses this check via findEntityPublic
+     * ({@link #findPublicResource(UUID)}) intentionally bypasses this check via findEntityPublic
      * and guards access with the resource.public flag instead.
      */
     @Override

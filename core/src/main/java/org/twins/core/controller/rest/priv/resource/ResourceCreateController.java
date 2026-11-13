@@ -65,7 +65,8 @@ public class ResourceCreateController extends ApiController {
             description = "Creates one or more standalone resources of the DomainId domain. "
                     + "Same multipart contract as the twin attachment flow: 'request' part is a ResourceCreateRqDTOv1 json "
                     + "(files referenced via storageLink = \"multipart://<part_name>\", any other link is stored as an external uri), "
-                    + "each referenced part carries the file itself. No validation is performed.")
+                    + "each referenced part carries the file itself. Each item must carry a file (multipart link) or an external uri; "
+                    + "an empty files list is rejected with 400.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Created resources", content = {
                     @Content(mediaType = "application/json", schema =

@@ -1,6 +1,7 @@
--- RESOURCE permissions (MCRUD): guard the standalone resource upload/search endpoints
--- (POST /private/resource/upload/v1 -> RESOURCE_CREATE, POST /private/resource/search/v1 -> RESOURCE_VIEW).
-insert into public.i18n (id, name, key, i18n_type_id) VALUES
+-- RESOURCE permissions (MCRUD): guard the standalone resource endpoints
+-- (POST /private/resource/create/v1 -> RESOURCE_CREATE, GET/POST search,view -> RESOURCE_VIEW,
+-- PUT /private/resource/v1 -> RESOURCE_UPDATE, DELETE /private/resource/{id}/v1 -> RESOURCE_DELETE).
+insert into i18n (id, name, key, i18n_type_id) VALUES
                                                           ('a207a7b1-d16b-386a-83f5-cd0d9cffc101', 'Resource manage name', null, 'permissionName'),
                                                           ('ef4d65eb-594d-3b17-b5d3-66ab79956701', 'Resource manage description', null, 'permissionDescription'),
                                                           ('a207a7b1-d16b-386a-83f5-cd0d9cffc102', 'Resource create name', null, 'permissionName'),
@@ -12,7 +13,7 @@ insert into public.i18n (id, name, key, i18n_type_id) VALUES
                                                           ('a207a7b1-d16b-386a-83f5-cd0d9cffc105', 'Resource delete name', null, 'permissionName'),
                                                           ('ef4d65eb-594d-3b17-b5d3-66ab79956705', 'Resource delete description', null, 'permissionDescription')
 on conflict (id) do update set name = excluded.name, key = excluded.key, i18n_type_id = excluded.i18n_type_id;
-insert into public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
+insert into i18n_translation (i18n_id, locale, translation, usage_counter) VALUES
                                                                                       ('a207a7b1-d16b-386a-83f5-cd0d9cffc101', 'en', 'Resource manage', 0),
                                                                                       ('ef4d65eb-594d-3b17-b5d3-66ab79956701', 'en', 'Resource manage', 0),
                                                                                       ('a207a7b1-d16b-386a-83f5-cd0d9cffc102', 'en', 'Resource create', 0),
@@ -24,7 +25,7 @@ insert into public.i18n_translation (i18n_id, locale, translation, usage_counter
                                                                                       ('a207a7b1-d16b-386a-83f5-cd0d9cffc105', 'en', 'Resource delete', 0),
                                                                                       ('ef4d65eb-594d-3b17-b5d3-66ab79956705', 'en', 'Resource delete', 0)
 on conflict (i18n_id,locale) do update set translation = excluded.translation, usage_counter = excluded.usage_counter;
-INSERT INTO public.permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
+INSERT INTO permission (id, key, permission_group_id, name_i18n_id, description_i18n_id) VALUES
     ('00000000-0000-0004-0062-000000000001', 'RESOURCE_MANAGE', '00000000-0000-0000-0005-000000000001', 'a207a7b1-d16b-386a-83f5-cd0d9cffc101', 'ef4d65eb-594d-3b17-b5d3-66ab79956701'),
     ('00000000-0000-0004-0062-000000000002', 'RESOURCE_CREATE', '00000000-0000-0000-0005-000000000001', 'a207a7b1-d16b-386a-83f5-cd0d9cffc102', 'ef4d65eb-594d-3b17-b5d3-66ab79956702'),
     ('00000000-0000-0004-0062-000000000003', 'RESOURCE_VIEW',   '00000000-0000-0000-0005-000000000001', 'a207a7b1-d16b-386a-83f5-cd0d9cffc103', 'ef4d65eb-594d-3b17-b5d3-66ab79956703'),

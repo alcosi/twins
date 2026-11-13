@@ -209,7 +209,10 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_QUOTA_EXCEEDED(13605, "twin class quota exceeded for business account"),
     VALIDATION_DTO_FAILED(13701, "dto bean validation failed"),
     MALFORMED_REQUEST_BODY(13702, "request body is malformed"),
-    RESOURCE_NOT_PUBLIC(13801, "resource is not available via public api", HttpStatus.NOT_FOUND);
+    RESOURCE_NOT_PUBLIC(13801, "resource is not available via public api", HttpStatus.NOT_FOUND),
+    RESOURCE_CREATE_REQUEST_EMPTY(13802, "resource create request has no files"),
+    RESOURCE_FILE_OR_LINK_REQUIRED(13803, "resource item must carry a file (multipart link) or an external uri"),
+    RESOURCE_UPDATE_DUPLICATE_ID(13804, "duplicate resource id in update batch");
 
     private final int code;
     private final String message;
