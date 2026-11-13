@@ -3,10 +3,7 @@ package org.twins.core.featurer.storager;
 import io.github.breninsul.springHttpMessageConverter.inputStream.InputStreamResponse;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.Response;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
@@ -20,7 +17,6 @@ import org.twins.core.service.auth.AuthService;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.time.Duration;
 import java.util.HashMap;
@@ -45,8 +41,6 @@ public abstract class Storager extends FeaturerTwins {
             exampleValues = {"/", "https://twins.app/api", "/proxied-api"}
     )
     public static final FeaturerParamString selfHostDomainBaseUri = new FeaturerParamString("selfHostDomainBaseUri");
-
-    private static OkHttpClient httpClient;
 
     @Autowired
     protected AuthService authService;
@@ -209,63 +203,18 @@ public abstract class Storager extends FeaturerTwins {
     abstract protected String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException;
 
     /**
-     * Sends an HTTP GET request to the specified URI with the provided parameters and returns the response as an InputStream.
+     * Sends an HTTP GET request to the specified URI and returns the response with the file content.
+     * Goes through {@link ExternalFileFetcher}: SSRF guard (scheme allowlist, no local/private hosts)
+     * plus manually followed redirects with each hop re-validated.
      *
      * @param uri    the target URI for the HTTP request
      * @param params a HashMap containing additional parameters necessary for the request
      * @return a Response object containing the InputStream of the response body
-     * @throws ServiceException     if there is an error during property extraction
-     * @throws IOException          if an I/O error occurs while sending or receiving the HTTP request
+     * @throws ServiceException if the uri is not allowed or the file cannot be retrieved
+     * @throws IOException      if an I/O error occurs while sending or receiving the HTTP request
      */
     protected Response getInputStreamHttpResponse(URI uri, HashMap<String, String> params) throws ServiceException, IOException {
-        Duration timeoutDuration = getDownloadExternalFileConnectionTimeout(params);
-
-        if (httpClient == null) {
-            httpClient = new OkHttpClient.Builder()
-                    .proxySelector(ProxySelector.getDefault())
-                    .connectTimeout(timeoutDuration)
-                    .readTimeout(timeoutDuration)
-                    .build();
-        }
-
-        Request request = new Request.Builder()
-                .url(uri.toURL())
-                .get()
-                .build();
-
-        int maxRetries = 3;
-        IOException lastException = null;
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                Response response = httpClient.newCall(request).execute();
-
-                if (!response.isSuccessful()) {
-                    response.close();
-                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Failed to retrieve the file: HTTP Status " + response.code());
-                }
-
-                if (response.body() == null) {
-                    response.close();
-                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Failed to retrieve the file, response body is NULL");
-                }
-
-                return response;
-            } catch (IOException e) {
-                lastException = e;
-                log.warn("Attempt {}/{} failed for URI {}: {}", attempt, maxRetries, uri, e.getMessage());
-                if (attempt < maxRetries) {
-                    try {
-                        Thread.sleep(500L * attempt);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        throw new IOException("Retry interrupted", ie);
-                    }
-                }
-            }
-        }
-
-        throw lastException;
+        return ExternalFileFetcher.fetch(uri, getDownloadExternalFileConnectionTimeout(params));
     }
 
     @NotNull

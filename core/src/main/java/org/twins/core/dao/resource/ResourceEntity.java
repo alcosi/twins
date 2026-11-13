@@ -1,14 +1,11 @@
 package org.twins.core.dao.resource;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -45,23 +42,34 @@ public class ResourceEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "public")
+    private Boolean isPublic;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private StorageEntity storage;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity uploadedByUser;
+
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domain;
-
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storage_id", insertable = false, updatable = false)
-    private StorageEntity storage;
+    private StorageEntity storageSpecOnly;
 
+    @Deprecated //for specification only
+    @Getter(AccessLevel.NONE)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by_user_id", insertable = false, updatable = false)
-    private UserEntity uploadedByUser;
+    private UserEntity uploadedByUserSpecOnly;
 
     @Override
     public String easyLog(Level level) {

@@ -28,6 +28,7 @@ import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
 import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.trigger.TwinTriggerEntity;
@@ -117,6 +118,7 @@ public class MapperContext {
             HistoryTypeEntity.class,
             ActionRestrictionReasonEntity.class,
             TwinPointerEntity.class,
+            StorageEntity.class,
             FeaturerParams.class,
             EntityRef.class);
 

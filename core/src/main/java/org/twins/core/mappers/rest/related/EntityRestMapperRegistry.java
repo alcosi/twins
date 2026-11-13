@@ -29,6 +29,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
@@ -72,6 +73,7 @@ import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.projection.ProjectionTypeGroupRestDTOMapper;
 import org.twins.core.mappers.rest.projection.ProjectionTypeRestDTOMapper;
+import org.twins.core.mappers.rest.resource.StorageRestDTOMapper;
 import org.twins.core.mappers.rest.scheduler.SchedulerRestDTOMapperV1;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.system.EntityRefRestDTOMapper;
@@ -156,6 +158,7 @@ public class EntityRestMapperRegistry {
     private final HistoryTypeRestDTOMapper historyTypeRestDTOMapper;
     private final ActionRestrictionReasonRestDTOMapper actionRestrictionReasonRestDTOMapper;
     private final TwinPointerRestDTOMapper twinPointerRestDTOMapper;
+    private final StorageRestDTOMapper storageRestDTOMapper;
     private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
     private final EntityRefRestDTOMapper entityRefRestDTOMapper;
 
@@ -216,6 +219,7 @@ public class EntityRestMapperRegistry {
         register(HistoryTypeEntity.class, historyTypeRestDTOMapper, HistoryTypeMode.DETAILED);
         register(ActionRestrictionReasonEntity.class, actionRestrictionReasonRestDTOMapper, ActionRestrictionReasonMode.DETAILED);
         register(TwinPointerEntity.class, twinPointerRestDTOMapper, TwinPointerMode.DETAILED);
+        register(StorageEntity.class, storageRestDTOMapper, StorageMode.DETAILED);
     }
 
     private void register(Class<?> entityClass, RestSimpleDTOMapper<?, ?> mapper, MapperMode defaultShowMode) {

@@ -11,11 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,7 +24,6 @@ import org.twins.core.dto.rest.Response;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.resource.ResourceService;
 
-import java.time.Duration;
 import java.util.UUID;
 
 @Tag(description = "Get resource", name = ApiTag.RESOURCE)
@@ -39,8 +34,6 @@ import java.util.UUID;
 public class ResourcePublicController extends ApiController {
     private final AuthService authService;
     private final ResourceService resourceService;
-    @Value("${resource.controller.http-cache-lifetime:7d}")
-    Duration httpCacheLifetime;
 
     @Operation(operationId = "getResourceFile", summary = "File in attachment")
     @ApiResponses(value = {
@@ -59,9 +52,15 @@ public class ResourcePublicController extends ApiController {
         log.info("Started resource " + resourceId + " download");
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
-            var file = resourceService.getResourceFile(resourceId);
-            serverRs.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.maxAge(httpCacheLifetime).cachePublic().immutable().getHeaderValue());
-            return ResponseEntity.ok(file);
+            var resource = resourceService.findPublicResource(resourceId);
+            // ETag carries the storage file key: it changes on file replace, so a cached copy gets
+            // re-validated, and a resource flipped to non-public starts 404ing on the next revalidation.
+            // no-cache (not immutable): the content at this url is not immutable anymore.
+            String eTag = "\"" + resource.getStorageFileKey() + "\"";
+            serverRs.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.noCache().cachePublic().getHeaderValue());
+            if (eTag.equals(serverRq.getHeader(HttpHeaders.IF_NONE_MATCH)))
+                return ResponseEntity.status(HttpStatus.NOT_MODIFIED).eTag(eTag).build();
+            return ResponseEntity.ok().eTag(eTag).body(resourceService.getResourceFile(resource));
         } catch (ServiceException se) {
             log.error("Error downloading resource {}", resourceId, se);
             return createErrorRs(se, new Response());

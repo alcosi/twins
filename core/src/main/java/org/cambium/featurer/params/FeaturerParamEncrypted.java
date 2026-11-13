@@ -22,14 +22,14 @@ public class FeaturerParamEncrypted extends FeaturerParam<String> {
     @Override
     public String extract(Properties properties) {
         String value = (String) properties.get(key);
-        if (!value.startsWith(ENCRYPTED_VALUE_PREFIX)) return value;
+        if (value == null || !value.startsWith(ENCRYPTED_VALUE_PREFIX)) return value;
         String valueWithoutPrefix = value.substring(ENCRYPTED_VALUE_PREFIX.length());
         return getEncryptor().decrypt(valueWithoutPrefix);
     }
 
     @Override
     public String prepareForStore(String value) {
-        if (value.startsWith(ENCRYPTED_VALUE_PREFIX)) return value;
+        if (value == null || value.startsWith(ENCRYPTED_VALUE_PREFIX)) return value;
         String encryptedValue = getEncryptor().encrypt(value);
         return ENCRYPTED_VALUE_PREFIX + encryptedValue;
     }

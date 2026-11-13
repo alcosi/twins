@@ -551,7 +551,25 @@ the `factory_*_count` / `usage_count_*` / `factory_pipeline_steps_count` /
 
 ---
 
-## 14. ArchUnit Rule (planned)
+## 14. Scalar Column Types
+
+Scalar fields use **wrapper types** (`Boolean`, `Long`, `Integer`, ...), never primitives:
+
+```java
+@Column(name = "public")
+private Boolean isPublic;   // not: private boolean isPublic
+```
+
+Why:
+
+- A primitive defaults to `0`/`false` on a fresh entity — "not set" is indistinguishable from a real value. If the code forgets to set the field, INSERT silently writes `false`/`0`, bypassing the DB default (a default applies only when the column is *absent* from the INSERT list — see §13).
+- Partial projections (grouped count entities, lightweight loads) leave non-selected fields null — with primitives they would expose a fake `0`/`false`.
+
+Lombok naming note: for an `is`-prefixed **primitive** `boolean` Lombok generates `isPublic()`/`setPublic(...)`; for the **wrapper** `Boolean` it generates `getIsPublic()`/`setIsPublic(...)`.
+
+---
+
+## 15. ArchUnit Rule (planned)
 
 Access to `*SpecOnly` fields must be forbidden outside:
 

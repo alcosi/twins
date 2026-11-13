@@ -31,6 +31,12 @@ public interface TwinFieldTimestampRepository extends TwinFieldRepository<TwinFi
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
     void deleteByTwinIdAndTwinClassFieldIdIn(UUID twinId, Set<UUID> twinClassFieldIds);
-    void deleteByTwinId(UUID twinId);
+    /**
+     * Bulk delete, executed as immediate SQL: a queued derived delete flushes after pending inserts,
+     * which breaks the delete-then-reinsert in system bootstrap (unique key twin_id + twin_class_field_id).
+     */
+    @Modifying
+    @Query("delete from TwinFieldTimestampEntity f where f.twinId = :twinId")
+    void deleteByTwinId(@Param("twinId") UUID twinId);
 
 }

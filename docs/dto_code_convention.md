@@ -48,7 +48,7 @@ Rationale: required-ness diverges between the two operations. A field that is ma
 #### Create
 
 ```java
-@Schema(name = "ResourceCreate")
+@Schema(name = "ResourceCreateV1")
 public class ResourceCreateDTO {
 
     @NotNull
@@ -67,7 +67,7 @@ public class ResourceCreateDTO {
 #### Update
 
 ```java
-@Schema(name = "ResourceUpdate")
+@Schema(name = "ResourceUpdateV1")
 public class ResourceUpdateDTO {
 
     @NotNull
@@ -368,3 +368,22 @@ Duplicate endpoints reuse the existing `{Entity}ListRsDTOv1`. Do not create `Res
 * Nested DTOs are allowed only when there is a clear business necessity
 * Collections in DTOs are always initialized at the service level
 * Nullable fields must be explicitly documented via `@Schema`
+
+### 8.1 Field spacing
+
+Annotations that belong to a field stay on consecutive lines directly above that field: `@Schema`, `@RelatedObject`, `@JsonFormat`, `@Valid`, bean-validation (`@NotNull`, `@NotBlank`, `@NotEmpty`). No blank line between those annotations and the field.
+
+One blank line separates fields.
+
+```java
+@Schema(description = "uploader user id", example = DTOExamples.USER_ID)
+@RelatedObject(type = UserDTOv1.class, name = "uploadedByUser")
+public UUID uploadedByUserId;
+
+@Schema(description = "original file name")
+public String originalFileName;
+```
+
+### 8.2 Schema name
+
+`@Schema(name = ...)` on a DTO class ends with `V1`. Drop the `DTO` token from the class name and keep the version: class `ResourceSearchRqDTOv1` → schema `ResourceSearchRqV1`, class `ResourceDTOv1` → schema `ResourceV1`. A name without `V1` (`Resource`, `ResourceSearch`) is invalid.
