@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.resource;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
@@ -19,6 +20,7 @@ public class StorageRestDTOMapper extends RestSimpleDTOMapper<StorageEntity, Sto
 
     @MapperModePointerBinding(modes = FeaturerMode.Storage2FeaturerMode.class)
     private final FeaturerParametrizedRestDTOMapper featurerParametrizedRestDTOMapper;
+    private final FeaturerService featurerService;
 
     @Override
     public void map(StorageEntity src, StorageDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -31,7 +33,8 @@ public class StorageRestDTOMapper extends RestSimpleDTOMapper<StorageEntity, Sto
                     .setId(src.getId())
                     .setDescription(src.getDescription())
                     .setStorageFeaturerId(src.getStorageFeaturerId())
-                    .setStoragerParams(src.getStoragerParams())
+                    // encrypted params (credentials) are never exposed
+                    .setStoragerParams(featurerService.filterEncryptedParams(src.getStorageFeaturerId(), src.getStoragerParams()))
                     .setCreatedAt(src.getCreatedAt() != null ? src.getCreatedAt().toLocalDateTime() : null)
                     .setUpdatedAt(src.getUpdatedAt() != null ? src.getUpdatedAt().toLocalDateTime() : null);
         }

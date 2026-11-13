@@ -50,10 +50,10 @@ public class ResourceRestDTOMapper extends RestSimpleDTOMapper<ResourceEntity, R
     @Override
     public void beforeCollectionConversion(Collection<ResourceEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        // storage is needed unconditionally: map() builds storageLink for every item
+        resourceService.loadStorage(srcCollection);
         if (mapperContext.hasModeButNot(UserMode.Resource2UserMode.HIDE))
             resourceService.loadUploadedByUser(srcCollection);
-        if (mapperContext.hasModeButNot(StorageMode.Resource2StorageMode.HIDE))
-            resourceService.loadStorage(srcCollection);
     }
 
 }

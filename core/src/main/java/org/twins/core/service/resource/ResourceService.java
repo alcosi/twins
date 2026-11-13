@@ -71,7 +71,9 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      */
     @Transactional(readOnly = true)
     public InputStreamResponse getPublicResourceFile(UUID resourceId) throws ServiceException {
-        var resource = findEntitySafe(resourceId);
+        // public download must work for anonymous and cross-domain callers, so no read-permission
+        // check here: the resource.public flag is the only guard
+        var resource = findEntityPublic(resourceId);
         if (!resource.getIsPublic())
             throw new ServiceException(ErrorCodeTwins.RESOURCE_NOT_PUBLIC, "resource " + resourceId + " is not public");
         return getResourceFile(resource);
@@ -338,16 +340,14 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     }
 
     /**
-     * Always returns true, because it's "public" resources, that will be downloaded by UUID without domain check
-     *
-     * @param entity                  the resource entity to be checked for read permissions
-     * @param readPermissionCheckMode the mode used for checking read permissions
-     * @return true if read access to the entity is denied, false otherwise
-     * @throws ServiceException if an error occurs during the permission check
+     * Resources are domain-isolated on private APIs: by-id view/update/delete go through
+     * findEntitySafe/findEntitiesSafe and are denied cross-domain. The public download path
+     * ({@link #getPublicResourceFile(UUID)}) intentionally bypasses this check via findEntityPublic
+     * and guards access with the resource.public flag instead.
      */
     @Override
     public boolean isEntityReadDenied(ResourceEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
     @Override
