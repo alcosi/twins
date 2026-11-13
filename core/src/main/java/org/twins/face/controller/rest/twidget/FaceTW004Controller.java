@@ -1,4 +1,4 @@
-package org.twins.face.controller.rest.twiget;
+package org.twins.face.controller.rest.twidget;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

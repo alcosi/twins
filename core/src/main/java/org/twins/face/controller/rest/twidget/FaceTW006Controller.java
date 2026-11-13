@@ -1,4 +1,4 @@
-package org.twins.face.controller.rest.twiget;
+package org.twins.face.controller.rest.twidget;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -21,7 +21,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.face.dao.twidget.tw006.FaceTW006Entity;
-import org.twins.face.dto.rest.twidget.tw006.FaceTW006DTOv1;
 import org.twins.face.dto.rest.twidget.tw006.FaceTW006ViewRsDTOv1;
 import org.twins.face.mappers.rest.twidget.tw006.FaceTW006RestDTOMapper;
 import org.twins.face.service.twidget.FaceTW006Service;
