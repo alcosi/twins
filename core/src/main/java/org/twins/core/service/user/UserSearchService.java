@@ -196,7 +196,7 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
     private Specification<UserEntity> addSorting(UserSearch search, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
         UserSearchEntity searchEntity = search.getConfiguredSearch();
         if (searchEntity != null &&
-                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
+                (searchEntity.getForceSorting() || pagination == null || pagination.getSort() == null)) {
             UserSorter userSorter = featurerService.getFeaturer(searchEntity.getUserSorterFeaturerId(), UserSorter.class);
             var sortFunction = userSorter.createSort(searchEntity.getUserSorterParams());
             if (sortFunction != null) {

@@ -48,7 +48,7 @@ public class TwinFinderByFieldNumericGiven extends TwinFinder {
     private final TwinClassFieldService twinClassFieldService;
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties));
         FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
         if (!fieldTyper.getTwinFieldSearch().isAssignableFrom(TwinFieldValueSearchNumeric.class))

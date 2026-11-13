@@ -10,6 +10,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.SetUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassSearchEntity;
 import org.twins.core.enums.twinclass.OwnerType;
 
 import java.util.Collection;
@@ -66,6 +67,7 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
     private Set<UUID> breadCrumbsFaceIdExcludeList;
     private Set<UUID> pageFaceIdList;
     private Set<UUID> pageFaceIdExcludeList;
+    private TwinClassSearchEntity configuredSearch;
 
     public TwinClassSearch addOwnerTypeExclude() {
         ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, OwnerType.SYSTEM);

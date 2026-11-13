@@ -315,7 +315,7 @@ public class TwinSearchService {
         TwinFinder twinFinder = null;
         for (TwinSearchPredicateEntity mainSearchPredicate : searchPredicates) {
             twinFinder = featurerService.getFeaturer(mainSearchPredicate.getTwinFinderFeaturerId(), TwinFinder.class);
-            twinFinder.concat(mainSearch, mainSearchPredicate, namedParamsMap);
+            twinFinder.concatSearch(mainSearchPredicate.getTwinFinderParams(), mainSearch, namedParamsMap);
         }
         narrowSearch(mainSearch, narrowSearch);
     }

@@ -18,10 +18,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Component
@@ -39,7 +36,7 @@ public class ClassFinderExcludeIfHasAnyTwin extends ClassFinder {
     private final TwinSearchService twinSearchService;
 
     @Override
-    protected void concatSearch(Properties properties, TwinClassSearch classSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassSearch classSearch, Map<String, String> namedParamsMap) throws ServiceException {
         Set<UUID> twinClassIdSet = twinClassIds.extract(properties);
         if (twinClassIdSet.isEmpty()) {
             return;

@@ -126,7 +126,7 @@ public class TwinClassSearchController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
-                    .findTwinClasses(searchId, twinClassSearchRestDTOReverseMapper.convert(request.getNarrow()), pagination);
+                    .findTwinClasses(searchId, request.getParams(), twinClassSearchRestDTOReverseMapper.convert(request.getNarrow()), pagination);
             rs
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))

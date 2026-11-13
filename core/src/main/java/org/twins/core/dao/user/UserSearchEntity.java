@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user_search")
+@FieldNameConstants
 public class UserSearchEntity implements EasyLoggable {
     @Id
     private UUID id;
@@ -28,7 +30,7 @@ public class UserSearchEntity implements EasyLoggable {
     private String name;
 
     @Column(name = "force_sorting")
-    private boolean forceSorting;
+    private Boolean forceSorting;
 
     @Column(name = "user_sorter_featurer_id")
     private Integer userSorterFeaturerId;

@@ -11,6 +11,7 @@ import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -28,7 +29,7 @@ public class ClassFinderGivenSet extends ClassFinder {
     public static final FeaturerParamBoolean excludeGivenIds = new FeaturerParamBoolean("excludeGivenIds");
 
     @Override
-    protected void concatSearch(Properties properties, TwinClassSearch classSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassSearch classSearch, Map<String, String> namedParamsMap) throws ServiceException {
         Set<UUID> twinClassIdSet = twinClassIds.extract(properties);
         if (twinClassIdSet.isEmpty()) {
             return;

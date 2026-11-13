@@ -31,7 +31,7 @@ public abstract class TwinFinderByAssigneeUserIdRequested extends TwinFinderRequ
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         Set<UUID> userIdSet = getRequestedIds(paramKey, properties, namedParamsMap);
         if (CollectionUtils.isEmpty(userIdSet)) {
             return;

@@ -211,7 +211,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
         narrowSearch(mainSearch, narrowSearch);
         mainSearch.setConfiguredSearch(searchEntity);
         // Apply FieldSorter for configured search
-        if (searchEntity.isForceSorting() || pagination.getSort() == null) {
+        if (searchEntity.getForceSorting() || pagination.getSort() == null) {
             FieldSorter fieldSorter = featurerService.getFeaturer(searchEntity.getFieldSorterFeaturerId(), FieldSorter.class);
             var sortFunction = fieldSorter.createSort(searchEntity.getFieldSorterParams());
             if (sortFunction != null) {

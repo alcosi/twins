@@ -25,7 +25,7 @@ public class TwinFinderByHierarchyTreeContainsGiven extends TwinFinder {
     public static final FeaturerParamUUID headTwinId = new FeaturerParamUUIDTwinsTwinId("twinIds");
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         twinSearch.addHierarchyTreeContainsId(headTwinId.extract(properties));
     }
 }

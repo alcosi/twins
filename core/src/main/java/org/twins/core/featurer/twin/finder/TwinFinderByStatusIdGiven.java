@@ -29,7 +29,7 @@ public class TwinFinderByStatusIdGiven extends TwinFinder {
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         twinSearch.addStatusId(statusIds.extract(properties), exclude.extract(properties));
     }
 }

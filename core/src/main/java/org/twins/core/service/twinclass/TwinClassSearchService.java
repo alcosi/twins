@@ -8,11 +8,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.Ternary;
 import org.cambium.common.util.TernaryUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
@@ -28,12 +30,10 @@ import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.sort.TwinClassGroupField;
 import org.twins.core.enums.sort.TwinClassSortField;
 import org.twins.core.featurer.classfinder.ClassFinder;
+import org.twins.core.featurer.classfinder.sorter.ClassSorter;
 import org.twins.core.service.EntitySearchService;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -230,7 +230,7 @@ public class TwinClassSearchService extends EntitySearchService
         }
     }
 
-    public PaginationResult<TwinClassEntity> findTwinClasses(UUID searchId, TwinClassSearch narrowSearch, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinClassEntity> findTwinClasses(UUID searchId, Map<String, String> namedParamsMap, TwinClassSearch narrowSearch, SimplePagination pagination) throws ServiceException {
         if (SystemIds.TwinClassSearch.UNLIMITED.equals(searchId)) {
             return search(narrowSearch, pagination);
         }
@@ -239,9 +239,22 @@ public class TwinClassSearchService extends EntitySearchService
         TwinClassSearch mainSearch = new TwinClassSearch();
         for (TwinClassSearchPredicateEntity predicate : searchPredicates) {
             ClassFinder classFinder = featurerService.getFeaturer(predicate.getClassFinderFeaturerId(), ClassFinder.class);
-            classFinder.concatSearch(predicate.getClassFinderParams(), mainSearch);
+            classFinder.concatSearch(predicate.getClassFinderParams(), mainSearch, namedParamsMap);
         }
         narrowSearch(mainSearch, narrowSearch);
+        mainSearch.setConfiguredSearch(searchEntity);
+        // Apply ClassSorter for preset search
+        if (searchEntity.getForceSorting() || pagination.getSort() == null) {
+            ClassSorter classSorter = featurerService.getFeaturer(searchEntity.getClassSorterFeaturerId(), ClassSorter.class);
+            var sortFunction = classSorter.createSort(searchEntity.getClassSorterParams());
+            if (sortFunction != null) {
+                Specification<TwinClassEntity> spec = createFilterSpecification(mainSearch, authService.getApiUser().getDomainId(), authService.getApiUser().getLocale());
+                spec = sortFunction.apply(spec);
+                pagination.setSort(null);
+                Page<TwinClassEntity> page = twinClassRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+                return PaginationUtils.convertInPaginationResult(page, pagination);
+            }
+        }
         return search(mainSearch, pagination);
     }
 

@@ -30,7 +30,7 @@ public class TwinClassFieldSearchEntity implements EasyLoggable {
     private String name;
 
     @Column(name = "force_sorting")
-    private boolean forceSorting;
+    private Boolean forceSorting;
 
     @Column(name = "field_sorter_featurer_id")
     private Integer fieldSorterFeaturerId;
