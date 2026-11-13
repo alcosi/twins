@@ -57,7 +57,8 @@ public abstract class FieldTyperCalcBinaryMater
         }
         var firstValue = twinClassFieldService.getDecimalValue(twin, firstFieldId.extract(properties), BigDecimal.ZERO);
         var secondValue = twinClassFieldService.getDecimalValue(twin, secondFieldId.extract(properties), BigDecimal.ZERO);
-        collectChangedValue(twinFieldEntity, twinChangesCollector, calculate(firstValue, secondValue, properties));
+        var calculated = checkCalculatedResult(value.getTwinClassField(), calculate(firstValue, secondValue, properties), properties);
+        collectChangedValue(twinFieldEntity, twinChangesCollector, calculated);
     }
 
     @Override
