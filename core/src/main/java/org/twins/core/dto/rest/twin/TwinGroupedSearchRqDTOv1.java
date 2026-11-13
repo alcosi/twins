@@ -23,7 +23,7 @@ public class TwinGroupedSearchRqDTOv1 extends Request {
     @Valid
     @Size(min = 1, max = 3)
     @Schema(description = "Grouping levels, top to bottom. Each level reads its key from the leaf")
-    public List<TwinGroupCriterionDTOv1> criteria;
+    public List<TwinGroupCriterionDTOv1> levels;
 
     @Valid
     @Size(max = 2)

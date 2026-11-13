@@ -1,90 +1,75 @@
 {
-  "ranAt": "2026-11-12T13:25:22.581Z",
-  "tasks": 855,
-  "passed": 22,
-  "failed": 0,
+  "ranAt": "2026-11-13T08:28:36.292Z",
+  "passed": 16,
+  "failed": 3,
   "checks": [
     {
-      "name": "S1 status, assignee, link tree matches the flat TASK selection",
+      "name": "status, assignee and milestone link field match the flat selection",
       "ok": true,
       "detail": {
         "roots": 3,
         "sum": 855,
         "leaves": 855,
-        "ms": 24542
+        "ms": 22947
       }
     },
     {
-      "name": "S2 empty assignee is last under its status and a task without the link stays in the tree",
+      "name": "empty assignee is last and a task without the milestone link keeps type TWIN",
       "ok": true,
       "detail": {
-        "nullAssigneeLast": true,
-        "nullLinkSeen": true
+        "nullUserLast": true,
+        "nullTwin": true
       }
     },
     {
-      "name": "S3 one task with several dst is one leaf in each link node and one in the assignee count",
+      "name": "users, statuses and every leaf are in related objects; a leaf is stored once",
       "ok": true,
       "detail": {
-        "id": "8e8bd18d-9aa0-41ba-b9da-54b5b04fba8b",
-        "dst": 2,
-        "hosting": 2,
-        "assigneeCount": 1,
-        "linkCountSum": 2
-      }
-    },
-    {
-      "name": "S4 a status filter leaves one root and recounts assignee and link",
-      "ok": true,
-      "detail": {
-        "roots": 1,
-        "count": 64
-      }
-    },
-    {
-      "name": "S5 one criterion puts twins on the root",
-      "ok": true,
-      "detail": {
-        "groups": 63,
+        "missingUsers": 0,
+        "missingStatuses": 0,
+        "missingLeaves": 0,
+        "twinMap": 863,
         "leaves": 855
       }
     },
     {
-      "name": "S5 two criteria put twins on the second level",
+      "name": "without showTwinMode the leaf ids stay and twinMap is absent",
       "ok": true,
       "detail": {
-        "roots": 3
+        "ids": 855,
+        "twinMap": 0
       }
     },
     {
-      "name": "S12 largest status is first and leaves under the link follow the name order",
+      "name": "a link field with several ends counts the task once per node and once overall",
       "ok": true,
       "detail": {
-        "first": 781,
-        "second": 64
+        "groups": 5,
+        "sum": 856,
+        "unique": 855,
+        "multi": "5b4b8b56-ac74-402e-b1b5-5afbb9c632b8"
       }
     },
     {
-      "name": "S11 workType is a field node and its options are related objects",
+      "name": "workType is a DATA_LIST_OPTION and the option is in related objects",
       "ok": true,
       "detail": {
-        "missing": [],
+        "groups": 16,
         "options": 16
       }
     },
     {
-      "name": "boolean field keeps true, false and a null key",
-      "ok": true,
+      "name": "COUNT_DESC keeps the empty assignee last",
+      "ok": false,
       "detail": {
-        "keys": [
-          false,
-          true,
-          null
-        ]
+        "nullIndex": 1,
+        "last": 62,
+        "nullCount": 87,
+        "first": 501
       }
     },
     {
-      "name": "S6 four criteria are rejected",
+      "name": "four criteria are rejected before the search",
       "ok": true,
       "detail": {
         "http": 400,
@@ -94,7 +79,17 @@
       }
     },
     {
-      "name": "S7 an empty class list is rejected",
+      "name": "LINK is not a criterion type",
+      "ok": true,
+      "detail": {
+        "http": 400,
+        "status": 13702,
+        "msg": "Projection delete",
+        "statusDetails": "JSON parse error: Cannot deserialize value of type `org.twins.core.enums.twin.TwinGroupCriterionType` from String \"LINK\": not one of the values accepted for Enum class: [FIELD]"
+      }
+    },
+    {
+      "name": "two classes are rejected",
       "ok": true,
       "detail": {
         "http": 400,
@@ -104,57 +99,7 @@
       }
     },
     {
-      "name": "S7 two classes are rejected",
-      "ok": true,
-      "detail": {
-        "http": 400,
-        "status": 11604,
-        "msg": "Server error",
-        "statusDetails": "grouped search requires exactly one twin class"
-      }
-    },
-    {
-      "name": "S8 name is not groupable",
-      "ok": true,
-      "detail": {
-        "http": 400,
-        "status": 11604,
-        "msg": "Server error",
-        "statusDetails": "Field 00000000-0000-0000-0011-000000000003 is not groupable"
-      }
-    },
-    {
-      "name": "S8 createdAt is not groupable",
-      "ok": true,
-      "detail": {
-        "http": 400,
-        "status": 11604,
-        "msg": "Server error",
-        "statusDetails": "Field 00000000-0000-0000-0011-000000000011 is not groupable"
-      }
-    },
-    {
-      "name": "S8 a user field is not countable",
-      "ok": true,
-      "detail": {
-        "http": 400,
-        "status": 11604,
-        "msg": "Server error",
-        "statusDetails": "Field 27af06b8-f8c9-4603-bc40-f4f6259630c0 is not countable; twinClassField[27af06b8-f8c9-4603-bc40-f4f6259630c0]"
-      }
-    },
-    {
-      "name": "S8 NAME_ASC on status is rejected",
-      "ok": true,
-      "detail": {
-        "http": 400,
-        "status": 11604,
-        "msg": "Server error",
-        "statusDetails": "NAME sort is not supported for criterion 00000000-0000-0000-0011-000000000010"
-      }
-    },
-    {
-      "name": "S9 the same field twice is rejected",
+      "name": "the same field twice is rejected",
       "ok": true,
       "detail": {
         "http": 400,
@@ -164,54 +109,81 @@
       }
     },
     {
-      "name": "S9 the same link and end twice is rejected",
+      "name": "NAME_ASC on status is rejected",
       "ok": true,
       "detail": {
         "http": 400,
         "status": 11604,
         "msg": "Server error",
-        "statusDetails": "duplicate group criterion 60f013ff-e7cc-41c9-9d5e-af5e4b2b6586"
+        "statusDetails": "NAME sort is not supported for criterion 00000000-0000-0000-0011-000000000010"
       }
     },
     {
-      "name": "S9 two different links are a normal tree",
+      "name": "NAME_ASC on workType is rejected",
       "ok": true,
       "detail": {
-        "http": 200,
-        "status": 0,
-        "roots": 5,
-        "statusDetails": ""
+        "http": 400,
+        "status": 11604,
+        "msg": "Server error",
+        "statusDetails": "NAME sort is not supported for criterion 95f2c8ca-8b79-4971-9726-270a11c7d031"
       }
     },
     {
-      "name": "the same link with DST and SRC is accepted",
+      "name": "a user field is not countable",
       "ok": true,
       "detail": {
-        "http": 200,
-        "status": 0,
-        "statusDetails": ""
+        "http": 400,
+        "status": 11604,
+        "msg": "Server error",
+        "statusDetails": "Field 27af06b8-f8c9-4603-bc40-f4f6259630c0 is not countable; twinClassField[27af06b8-f8c9-4603-bc40-f4f6259630c0]"
       }
     },
     {
-      "name": "S10 a twin from another domain is absent and the response stays 200",
+      "name": "a twin from another domain yields an empty 200",
       "ok": true,
       "detail": {
         "http": 200,
-        "groups": 0,
-        "status": 0
+        "groups": 0
       }
     },
     {
-      "name": "a class larger than 5000 is returned whole",
+      "name": "a status filter is applied before grouping",
       "ok": true,
       "detail": {
+        "groups": 23,
+        "sum": 64
+      }
+    },
+    {
+      "name": "decimal zero is one group",
+      "ok": false,
+      "detail": {
         "http": 200,
-        "status": 0,
-        "statusDetails": "",
-        "classId": "ab750e98-70dd-404e-8164-4e0daa187164",
-        "db": 5452,
-        "returned": 5452,
-        "ms": 5298
+        "zeroGroups": 3,
+        "counts": [
+          668,
+          123,
+          40
+        ]
+      }
+    },
+    {
+      "name": "timestamp key keeps the stored clock time",
+      "ok": false,
+      "detail": {
+        "type": "TIMESTAMP",
+        "value": "2025-12-31T21:00:00.000Z"
+      }
+    },
+    {
+      "name": "boolean groups are false, true and null",
+      "ok": true,
+      "detail": {
+        "keys": [
+          false,
+          true,
+          null
+        ]
       }
     }
   ]

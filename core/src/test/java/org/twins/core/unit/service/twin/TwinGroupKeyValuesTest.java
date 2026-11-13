@@ -4,9 +4,11 @@ import org.cambium.common.kit.KitGrouped;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.service.twin.TwinGroupKeyValues;
+import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +37,18 @@ class TwinGroupKeyValuesTest {
                 TwinFieldDataListEntity::getId,
                 TwinFieldDataListEntity::getTwinClassFieldId));
         assertEquals(Arrays.asList(option, null), TwinGroupKeyValues.dynamic(task, field, storage));
+    }
+
+    @Test
+    void forwardLinkFieldUsesEachDstOnceAndAMissingLinkIsTheNullKey() {
+        UUID linkId = UUID.randomUUID();
+        UUID dst = UUID.randomUUID();
+        TwinLinkService.FindTwinLinksResult links = new TwinLinkService.FindTwinLinksResult();
+        links.getForwardLinks().add(new TwinLinkEntity().setId(UUID.randomUUID()).setLinkId(linkId).setDstTwinId(dst));
+        links.getForwardLinks().add(new TwinLinkEntity().setId(UUID.randomUUID()).setLinkId(linkId).setDstTwinId(dst));
+        assertEquals(List.of(dst), TwinGroupKeyValues.linkEnds(links, linkId, true));
+        assertEquals(Collections.singletonList(null), TwinGroupKeyValues.linkEnds(links, UUID.randomUUID(), true));
+        assertEquals(Collections.singletonList(null), TwinGroupKeyValues.linkEnds(null, linkId, true));
     }
 
     private static TwinFieldDataListEntity row(UUID fieldId, UUID optionId) {

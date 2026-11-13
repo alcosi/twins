@@ -18,6 +18,5 @@ public class TwinGroup {
     private TwinGroupKeyKind keyKind;
     private TwinGroupValueType valueType;
     private UUID groupFieldId;
-    private UUID linkId;
     private boolean dataListOption;
 }

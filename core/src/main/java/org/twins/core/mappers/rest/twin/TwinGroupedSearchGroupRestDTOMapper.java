@@ -108,7 +108,7 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         loadStatuses(ids(nodes, TwinGroupKeyKind.STATUS), mapperContext);
         loadClasses(ids(nodes, TwinGroupKeyKind.TWIN_CLASS), mapperContext);
         loadHeads(ids(nodes, TwinGroupKeyKind.HEAD), mapperContext);
-        loadLinkTwins(ids(nodes, TwinGroupKeyKind.LINK), mapperContext);
+        loadLinkTwins(linkFieldTwinIds(nodes), mapperContext);
         loadOptions(ids(nodes, TwinGroupKeyKind.FLAVOR), mapperContext, DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT);
         loadOptions(dataListIds(nodes), mapperContext, DataListOptionMode.TwinField2DataListOptionMode.SHORT);
     }
@@ -196,9 +196,6 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         TwinGroupKeyDTOv1 key = new TwinGroupKeyDTOv1()
                 .setType(group.getValueType())
                 .setValue(group.getKey());
-        if (group.getKeyKind() == TwinGroupKeyKind.LINK) {
-            key.setLinkId(group.getLinkId());
-        }
         return key;
     }
 
@@ -207,6 +204,18 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         List<UUID> ids = new ArrayList<>();
         for (TwinGroup group : groups) {
             if (accepted.contains(group.getKeyKind()) && group.getKey() instanceof UUID id) {
+                ids.add(id);
+            }
+        }
+        return ids;
+    }
+
+    private static List<UUID> linkFieldTwinIds(Collection<TwinGroup> groups) {
+        List<UUID> ids = new ArrayList<>();
+        for (TwinGroup group : groups) {
+            if (group.getKeyKind() == TwinGroupKeyKind.DYNAMIC
+                    && group.getValueType() == org.twins.core.enums.twin.TwinGroupValueType.TWIN
+                    && group.getKey() instanceof UUID id) {
                 ids.add(id);
             }
         }

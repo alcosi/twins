@@ -5,7 +5,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupCriterion;
 import org.twins.core.domain.twin.TwinGroupKeyKind;
-import org.twins.core.enums.twin.TwinGroupCriterionType;
 import org.twins.core.enums.twin.TwinGroupSort;
 import org.twins.core.service.twin.TwinGroupAssembler;
 import org.twins.core.service.twin.TwinTreeAssembler;
@@ -43,7 +42,6 @@ class TwinTreeAssemblerTest {
         assertEquals(List.of(task.getId(), task.getId()), roots.get(0).getGroups().get(0).getGroups().stream()
                 .flatMap(group -> group.getTwins().stream()).map(TwinEntity::getId).toList());
         assertNull(roots.get(1).getGroups().get(0).getGroups().get(0).getKey());
-        assertEquals(LINK, roots.get(1).getGroups().get(0).getGroups().get(0).getLinkId());
     }
 
     @Test
@@ -51,7 +49,6 @@ class TwinTreeAssemblerTest {
         TwinEntity ann = task(1, STATUS, ANN);
         TwinEntity unassigned = task(2, STATUS, null);
         TwinGroupCriterion assignee = new TwinGroupCriterion()
-                .setType(TwinGroupCriterionType.FIELD)
                 .setFieldId(ANN)
                 .setKeyKind(TwinGroupKeyKind.ASSIGNER_USER)
                 .setSort(TwinGroupSort.NAME_ASC);
@@ -70,9 +67,8 @@ class TwinTreeAssemblerTest {
     void rootLinkCountsTheSameLeafInEachRoot() {
         TwinEntity task = task(1, STATUS, ANN);
         TwinGroupCriterion link = new TwinGroupCriterion()
-                .setType(TwinGroupCriterionType.LINK)
-                .setLinkId(LINK)
-                .setKeyKind(TwinGroupKeyKind.LINK)
+                .setFieldId(LINK)
+                .setKeyKind(TwinGroupKeyKind.DYNAMIC)
                 .setSort(TwinGroupSort.KEY_ASC);
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(task, List.of(DST_1, DST_2))
@@ -85,9 +81,9 @@ class TwinTreeAssemblerTest {
 
     private static List<TwinGroupCriterion> criteria() {
         return List.of(
-                new TwinGroupCriterion().setType(TwinGroupCriterionType.FIELD).setFieldId(STATUS).setKeyKind(TwinGroupKeyKind.STATUS).setSort(TwinGroupSort.KEY_ASC),
-                new TwinGroupCriterion().setType(TwinGroupCriterionType.FIELD).setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER).setSort(TwinGroupSort.NAME_ASC),
-                new TwinGroupCriterion().setType(TwinGroupCriterionType.LINK).setLinkId(LINK).setKeyKind(TwinGroupKeyKind.LINK).setSort(TwinGroupSort.NAME_ASC)
+                new TwinGroupCriterion().setFieldId(STATUS).setKeyKind(TwinGroupKeyKind.STATUS).setSort(TwinGroupSort.KEY_ASC),
+                new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER).setSort(TwinGroupSort.NAME_ASC),
+                new TwinGroupCriterion().setFieldId(LINK).setKeyKind(TwinGroupKeyKind.DYNAMIC).setValueType(org.twins.core.enums.twin.TwinGroupValueType.TWIN).setSort(TwinGroupSort.NAME_ASC)
         );
     }
 

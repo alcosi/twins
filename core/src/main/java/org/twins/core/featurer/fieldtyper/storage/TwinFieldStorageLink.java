@@ -1,12 +1,27 @@
 package org.twins.core.featurer.fieldtyper.storage;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.featurer.FeaturerService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyperLink;
+import org.twins.core.service.link.LinkService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.*;
@@ -15,6 +30,15 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinFieldStorageLink extends TwinFieldStorage {
     private final TwinLinkService twinLinkService;
+    @Lazy
+    @Autowired
+    private FeaturerService featurerService;
+    @Lazy
+    @Autowired
+    private LinkService linkService;
+    @Lazy
+    @Autowired
+    private TwinClassFieldService twinClassFieldService;
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {
@@ -56,7 +80,32 @@ public class TwinFieldStorageLink extends TwinFieldStorage {
     }
 
     @Override
-    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
-        return null;
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) throws ServiceException {
+        FieldTyperLink typer = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyperLink.class);
+        UUID linkId = typer.getLinkId(field.getFieldTyperParams());
+        twinClassFieldService.loadTwinClass(field);
+        LinkEntity link = linkService.findEntitySafe(linkId);
+        LinkService.LinkDirection direction = linkService.detectLinkDirection(link, field.getTwinClass());
+        if (direction == LinkService.LinkDirection.invalid) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                    "Field " + field.getId() + " link direction cannot be detected");
+        }
+        boolean forward = direction == LinkService.LinkDirection.forward;
+        return new GroupExpressionProvider<>() {
+            @Override
+            public Expression<?> apply(Root<TwinEntity> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                String joinName = forward
+                        ? TwinEntity.Fields.linksBySrcTwinIdSpecOnly
+                        : TwinEntity.Fields.linksByDstTwinIdSpecOnly;
+                Join<TwinEntity, TwinLinkEntity> join = root.join(joinName, JoinType.LEFT);
+                join.on(cb.equal(join.get(TwinLinkEntity.Fields.linkId), linkId));
+                return join.get(forward ? TwinLinkEntity.Fields.dstTwinId : TwinLinkEntity.Fields.srcTwinId);
+            }
+
+            @Override
+            public boolean isDistinctGroup() {
+                return true;
+            }
+        };
     }
 }

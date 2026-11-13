@@ -53,7 +53,7 @@ public class TwinGroupedSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinGroupedSearchV1", summary = "Search twins of one class and fold them into a tree of up to 3 field or link criteria")
+    @Operation(operationId = "twinGroupedSearchV1", summary = "Search twins of one class and fold them into a tree of up to 3 levels")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Grouped twins", content = {
                     @Content(mediaType = "application/json", schema =
@@ -69,7 +69,7 @@ public class TwinGroupedSearchController extends ApiController {
             BasicSearch search = request.getSearch() == null ? null : twinSearchDTOReverseMapper.convert(request.getSearch());
             TwinGroupedSearchResult result = twinGroupedSearchService.search(new TwinGroupedSearch()
                     .setSearch(search)
-                    .setCriteria(criteria(request.getCriteria()))
+                    .setLevels(levels(request.getLevels()))
                     .setMemberSorts(memberSorts(request.getMemberSorts())));
             rs
                     .setGroups(twinGroupedSearchGroupRestDTOMapper.convertCollection(result.getGroups(), mapperContext))
@@ -82,21 +82,18 @@ public class TwinGroupedSearchController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    private static List<TwinGroupCriterion> criteria(List<TwinGroupCriterionDTOv1> criteria) {
-        if (criteria == null) {
+    private static List<TwinGroupCriterion> levels(List<TwinGroupCriterionDTOv1> levels) {
+        if (levels == null) {
             return null;
         }
-        List<TwinGroupCriterion> result = new ArrayList<>(criteria.size());
-        for (TwinGroupCriterionDTOv1 criterion : criteria) {
+        List<TwinGroupCriterion> result = new ArrayList<>(levels.size());
+        for (TwinGroupCriterionDTOv1 criterion : levels) {
             if (criterion == null) {
                 result.add(null);
                 continue;
             }
             result.add(new TwinGroupCriterion()
-                    .setType(criterion.getType())
                     .setFieldId(criterion.getFieldId())
-                    .setLinkId(criterion.getLinkId())
-                    .setNodeEnd(criterion.getNodeEnd())
                     .setSort(criterion.getSort()));
         }
         return result;

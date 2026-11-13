@@ -10,6 +10,6 @@ import java.util.List;
 @Accessors(chain = true)
 public class TwinGroupedSearch {
     private BasicSearch search;
-    private List<TwinGroupCriterion> criteria;
+    private List<TwinGroupCriterion> levels;
     private List<TwinMemberSort> memberSorts;
 }

@@ -71,7 +71,6 @@ public final class TwinTreeAssembler {
                     .setKeyKind(criterion.getKeyKind())
                     .setValueType(criterion.getValueType())
                     .setGroupFieldId(criterion.getFieldId())
-                    .setLinkId(criterion.getLinkId())
                     .setDataListOption(criterion.isDataListOption());
             if (last) {
                 group.setTwins(bucket.twins);

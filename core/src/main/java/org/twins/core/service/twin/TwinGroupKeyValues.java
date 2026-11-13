@@ -4,6 +4,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.service.twinlink.TwinLinkService;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
@@ -53,6 +55,29 @@ public final class TwinGroupKeyValues {
         }
         throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                 "Field " + fieldId + " is not countable");
+    }
+
+    public static List<Object> linkEnds(TwinLinkService.FindTwinLinksResult links, UUID linkId, boolean forward) {
+        if (links == null || linkId == null) {
+            return Collections.singletonList(null);
+        }
+        List<TwinLinkEntity> rows = forward
+                ? links.getForwardLinks().getGrouped(linkId)
+                : links.getBackwardLinks().getGrouped(linkId);
+        if (rows == null || rows.isEmpty()) {
+            return Collections.singletonList(null);
+        }
+        Set<Object> ids = new LinkedHashSet<>();
+        for (TwinLinkEntity row : rows) {
+            UUID end = forward ? row.getDstTwinId() : row.getSrcTwinId();
+            if (end != null) {
+                ids.add(end);
+            }
+        }
+        if (ids.isEmpty()) {
+            return Collections.singletonList(null);
+        }
+        return new ArrayList<>(ids);
     }
 
     public static boolean isDataList(TwinFieldStorage storage) {
