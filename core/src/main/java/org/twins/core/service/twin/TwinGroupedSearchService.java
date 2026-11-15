@@ -75,16 +75,16 @@ public class TwinGroupedSearchService {
         List<TwinGroupCriterion> levels = resolveCriteria(request.getLevels(), twinClass);
 
         ApiUser apiUser = authService.getApiUser();
+        Specification<TwinEntity> leavesOrder = memberOrder(request.getMemberSorts(), apiUser.getLocale());
         Specification<TwinEntity> filter = twinSearchServiceV2.createFilterSpecification(search, apiUser.getDomainId(), apiUser.getLocale());
         Long total = twinSearchServiceV2.count(filter);
         if (total != null && total > MAX_TWINS) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_INCORRECT,
                     "grouped search matches " + total + " twins, limit is " + MAX_TWINS);
         }
-        Specification<TwinEntity> ordered = filter.and(memberOrder(request.getMemberSorts(), apiUser.getLocale()));
         List<TwinEntity> twins = total == null || total == 0
                 ? List.of()
-                : twinSearchServiceV2.jpaSpecificationExecutor().findAll(ordered);
+                : twinSearchServiceV2.jpaSpecificationExecutor().findAll(filter.and(leavesOrder));
         if (twins == null) {
             twins = List.of();
         }
@@ -256,7 +256,7 @@ public class TwinGroupedSearchService {
         criterion.setBasicField(basicField).setKeyKind(kind);
         if (basicField == null) {
             TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(criterion.getFieldId());
-            if (!twinClassService.isInstanceOf(twinClass, field.getTwinClassId())) {
+            if (!twinClassFieldService.isValidForClass(twinClass, field)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                         "Field " + field.getId() + " does not belong to the searched class");
             }
@@ -287,6 +287,10 @@ public class TwinGroupedSearchService {
         if (direction == LinkService.LinkDirection.invalid) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                     "Field " + field.getId() + " link direction cannot be detected");
+        }
+        if (direction == LinkService.LinkDirection.backward) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                    "Field " + field.getId() + " is a backward link and cannot be used for grouped search");
         }
         criterion.setResolvedLinkId(linkId)
                 .setForwardLink(direction == LinkService.LinkDirection.forward)

@@ -34,6 +34,7 @@ import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -53,7 +54,10 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
     @MapperModePointerBinding(modes = {TwinMode.class})
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {DataListOptionMode.class})
+    @MapperModePointerBinding(modes = {
+            DataListOptionMode.TwinFlavor2DataListOptionMode.class,
+            DataListOptionMode.TwinField2DataListOptionMode.class
+    })
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
@@ -107,10 +111,13 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         loadUsers(ids(nodes, TwinGroupKeyKind.ASSIGNER_USER, TwinGroupKeyKind.OWNER_USER, TwinGroupKeyKind.CREATOR_USER), mapperContext);
         loadStatuses(ids(nodes, TwinGroupKeyKind.STATUS), mapperContext);
         loadClasses(ids(nodes, TwinGroupKeyKind.TWIN_CLASS), mapperContext);
-        loadHeads(ids(nodes, TwinGroupKeyKind.HEAD), mapperContext);
-        loadLinkTwins(linkFieldTwinIds(nodes), mapperContext);
-        loadOptions(ids(nodes, TwinGroupKeyKind.FLAVOR), mapperContext, DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT);
-        loadOptions(dataListIds(nodes), mapperContext, DataListOptionMode.TwinField2DataListOptionMode.SHORT);
+        loadHeadAndLinkTwins(ids(nodes, TwinGroupKeyKind.HEAD), linkFieldTwinIds(nodes), mapperContext);
+        loadOptions(ids(nodes, TwinGroupKeyKind.FLAVOR), mapperContext,
+                DataListOptionMode.TwinFlavor2DataListOptionMode.HIDE,
+                DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT);
+        loadOptions(dataListIds(nodes), mapperContext,
+                DataListOptionMode.TwinField2DataListOptionMode.HIDE,
+                DataListOptionMode.TwinField2DataListOptionMode.SHORT);
     }
 
     private static void collect(Collection<TwinGroup> nodes, List<TwinGroup> all, List<TwinEntity> twins) {
@@ -145,7 +152,8 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
                 EntitySmartService.ListFindMode.ifMissedIgnore,
                 EntitySmartService.ReadPermissionCheckMode.none,
                 EntitySmartService.EntityValidateMode.none);
-        twinStatusRestDTOMapper.postpone(statuses.getCollection(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT));
+        twinStatusRestDTOMapper.postpone(statuses.getCollection(),
+                mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.Twin2StatusMode.SHORT)));
     }
 
     private void loadClasses(List<UUID> ids, MapperContext mapperContext) throws Exception {
@@ -156,40 +164,41 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
                 EntitySmartService.ListFindMode.ifMissedIgnore,
                 EntitySmartService.ReadPermissionCheckMode.none,
                 EntitySmartService.EntityValidateMode.none);
-        twinClassRestDTOMapper.postpone(classes.getCollection(), mapperContext.forkOnPoint(TwinClassMode.Twin2TwinClassMode.SHORT));
+        twinClassRestDTOMapper.postpone(classes.getCollection(),
+                mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.Twin2TwinClassMode.SHORT)));
     }
 
-    private void loadHeads(List<UUID> ids, MapperContext mapperContext) throws Exception {
-        if (ids.isEmpty() || !mapperContext.hasModeButNot(TwinMode.HIDE)) {
+    private void loadHeadAndLinkTwins(List<UUID> headIds, List<UUID> linkIds, MapperContext mapperContext) throws Exception {
+        if (!mapperContext.hasModeButNot(TwinMode.HIDE)) {
             return;
         }
-        Kit<TwinEntity, UUID> heads = twinService.findEntities(ids,
+        LinkedHashSet<UUID> ids = new LinkedHashSet<>();
+        ids.addAll(headIds);
+        ids.addAll(linkIds);
+        ids.remove(null);
+        if (ids.isEmpty()) {
+            return;
+        }
+        Kit<TwinEntity, UUID> twins = twinService.findEntities(new ArrayList<>(ids),
                 EntitySmartService.ListFindMode.ifMissedIgnore,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedLog,
                 EntitySmartService.EntityValidateMode.none);
-        twinBaseRestDTOMapper.postpone(heads.getCollection(), mapperContext);
+        Collection<TwinEntity> entities = twins.getCollection();
+        twinBaseRestDTOMapper.beforeCollectionConversion(entities, mapperContext);
+        twinBaseRestDTOMapper.postpone(entities, mapperContext);
     }
 
-    private void loadLinkTwins(List<UUID> ids, MapperContext mapperContext) throws Exception {
-        if (ids.isEmpty() || !mapperContext.hasModeButNot(TwinMode.HIDE)) {
-            return;
-        }
-        Kit<TwinEntity, UUID> nodes = twinService.findEntities(ids,
-                EntitySmartService.ListFindMode.ifMissedIgnore,
-                EntitySmartService.ReadPermissionCheckMode.ifDeniedLog,
-                EntitySmartService.EntityValidateMode.none);
-        twinBaseRestDTOMapper.postpone(nodes.getCollection(), mapperContext);
-    }
-
-    private void loadOptions(List<UUID> ids, MapperContext mapperContext, MapperModePointer<DataListOptionMode> mode) throws Exception {
-        if (ids.isEmpty() || !mapperContext.hasModeButNot(DataListOptionMode.HIDE)) {
+    private <M extends MapperModePointer<DataListOptionMode>> void loadOptions(
+            List<UUID> ids, MapperContext mapperContext, M hidden, M fallback) throws Exception {
+        if (ids.isEmpty() || !mapperContext.hasModeButNot(hidden)) {
             return;
         }
         Kit<DataListOptionEntity, UUID> options = dataListOptionService.findEntities(ids,
                 EntitySmartService.ListFindMode.ifMissedIgnore,
                 EntitySmartService.ReadPermissionCheckMode.none,
                 EntitySmartService.EntityValidateMode.none);
-        dataListOptionRestDTOMapper.postpone(options.getCollection(), mapperContext.forkOnPoint(mode));
+        dataListOptionRestDTOMapper.postpone(options.getCollection(),
+                mapperContext.forkOnPoint(mapperContext.getModeOrUse(fallback)));
     }
 
     private static TwinGroupKeyDTOv1 key(TwinGroup group) {

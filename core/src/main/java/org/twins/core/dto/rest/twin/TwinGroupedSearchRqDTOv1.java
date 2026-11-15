@@ -16,6 +16,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TwinGroupedSearchRqV1")
 public class TwinGroupedSearchRqDTOv1 extends Request {
+    @NotNull
+    @Valid
     @Schema(description = "Twin filter of exactly one class. Sort does not belong here")
     public TwinSearchDTOv1 search;
 
