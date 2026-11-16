@@ -8,6 +8,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.search.ConfiguredSearchPredicate;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_comment_search_predicate")
 @FieldNameConstants
-public class TwinCommentSearchPredicateEntity implements EasyLoggable {
+public class TwinCommentSearchPredicateEntity implements EasyLoggable, ConfiguredSearchPredicate {
     @Id
     private UUID id;
 
@@ -35,6 +36,16 @@ public class TwinCommentSearchPredicateEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "comment_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> commentFinderParams;
+
+    @Override
+    public Integer getFinderFeaturerId() {
+        return commentFinderFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getFinderParams() {
+        return commentFinderParams;
+    }
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)

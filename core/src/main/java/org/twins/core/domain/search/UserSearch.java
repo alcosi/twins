@@ -18,7 +18,7 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class UserSearch {
+public class UserSearch implements ConfiguredSearchHolder<UserSearchEntity> {
     private Set<UUID> userIdList;
     private Set<UUID> userIdExcludeList;
     private Set<String> userNameLikeList;

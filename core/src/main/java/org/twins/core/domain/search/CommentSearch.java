@@ -17,7 +17,7 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class CommentSearch extends EntitySearch<TwinCommentEntity> {
+public class CommentSearch extends EntitySearch<TwinCommentEntity> implements ConfiguredSearchHolder<TwinCommentSearchEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> twinIdList;

@@ -21,7 +21,7 @@ import java.util.function.Function;
 @Accessors(chain = true)
 @FieldNameConstants
 @EqualsAndHashCode(callSuper = false)
-public class TwinClassFieldSearch extends EntitySearch<TwinClassFieldEntity> {
+public class TwinClassFieldSearch extends EntitySearch<TwinClassFieldEntity> implements ConfiguredSearchHolder<TwinClassFieldSearchEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Map<UUID, Boolean> twinClassIdMap;

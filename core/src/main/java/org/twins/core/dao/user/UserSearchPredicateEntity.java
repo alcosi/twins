@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.search.ConfiguredSearchPredicate;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "user_search_predicate")
 @FieldNameConstants
-public class UserSearchPredicateEntity implements EasyLoggable {
+public class UserSearchPredicateEntity implements EasyLoggable, ConfiguredSearchPredicate {
     @Id
     private UUID id;
 
@@ -37,6 +38,16 @@ public class UserSearchPredicateEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> userFinderParams;
+
+    @Override
+    public Integer getFinderFeaturerId() {
+        return userFinderFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getFinderParams() {
+        return userFinderParams;
+    }
 
     public String easyLog(Level level) {
         return switch (level) {

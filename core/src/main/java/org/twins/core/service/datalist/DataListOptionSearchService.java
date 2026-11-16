@@ -4,28 +4,23 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.*;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.datalist.*;
+import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.enums.SortDirection;
-import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.datalist.DataListStatus;
 import org.twins.core.enums.sort.DataListOptionGroupField;
 import org.twins.core.enums.sort.DataListOptionSortField;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.datalist.finder.DataListOptionFinder;
-import org.twins.core.featurer.datalist.sorter.DataListOptionSorter;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
@@ -33,9 +28,10 @@ import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.List;
+import java.util.Locale;
+import java.util.Properties;
+import java.util.UUID;
 
 import static org.cambium.common.util.EnumUtils.convertOrEmpty;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
@@ -56,9 +52,6 @@ public class DataListOptionSearchService extends EntitySearchService
     private final TwinClassFieldService twinClassFieldService;
     @Lazy
     private final FeaturerService featurerService;
-    private final DataListOptionSearchRepository dataListOptionSearchRepository;
-    private final DataListOptionSearchPredicateRepository dataListOptionSearchPredicateRepository;
-    private final DataListOptionSearchConfigService dataListOptionSearchConfigService;
 
     @Override
     public JpaSpecificationExecutor<DataListOptionEntity> jpaSpecificationExecutor() {
@@ -82,35 +75,6 @@ public class DataListOptionSearchService extends EntitySearchService
 
     public List<DataListOptionEntity> findDataListOptions(DataListOptionSearch search) throws ServiceException {
         return dataListOptionRepository.findAll(createFilterSpecification(search));
-    }
-
-    public PaginationResult<DataListOptionEntity> findDataListOptions(UUID searchId, Map<String, String> namedParamsMap, DataListOptionSearch narrowSearch, SimplePagination pagination) throws ServiceException {
-        if (SystemIds.DataListOptionSearch.UNLIMITED.equals(searchId)) {
-            return search(narrowSearch, pagination);
-        }
-
-        DataListOptionSearchEntity searchEntity = dataListOptionSearchConfigService.findEntitySafe(searchId);
-        List<DataListOptionSearchPredicateEntity> searchPredicates = dataListOptionSearchPredicateRepository.findByDataListOptionSearchId(searchId);
-
-        DataListOptionSearch mainSearch = new DataListOptionSearch();
-        for (DataListOptionSearchPredicateEntity predicate : searchPredicates) {
-            DataListOptionFinder optionFinder = featurerService.getFeaturer(predicate.getOptionFinderFeaturerId(), DataListOptionFinder.class);
-            optionFinder.concatSearch(predicate.getOptionFinderParams(), mainSearch, namedParamsMap);
-        }
-
-        narrowSearch(mainSearch, narrowSearch);
-        mainSearch.setConfiguredSearch(searchEntity);
-
-        return findDataListOptionsConfigured(mainSearch, pagination);
-    }
-
-    private PaginationResult<DataListOptionEntity> findDataListOptionsConfigured(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
-        if (search == null)
-            search = emptySearch();
-        Specification<DataListOptionEntity> spec = createFilterSpecification(search);
-        spec = addConfiguredSorting(search, pagination, spec);
-        Page<DataListOptionEntity> page = dataListOptionRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(page, pagination);
     }
 
     @Override
@@ -218,36 +182,5 @@ public class DataListOptionSearchService extends EntitySearchService
             case status -> entity.setStatus((DataListStatus) o);
             case custom -> entity.setCustom((Boolean) o);
         }
-    }
-
-    protected void narrowSearch(DataListOptionSearch mainSearch, DataListOptionSearch narrowSearch) {
-        if (narrowSearch == null) {
-            return;
-        }
-        for (Pair<Function<DataListOptionSearch, Set>, BiConsumer<DataListOptionSearch, Set>> functionPair : DataListOptionSearch.SET_FIELDS) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, SetUtils.narrowSet(mainSet, narrowSet));
-        }
-        for (Pair<Function<DataListOptionSearch, Ternary>, BiConsumer<DataListOptionSearch, Ternary>> functionPair : DataListOptionSearch.TERNARY_FIELD) {
-            Ternary mainTernary = functionPair.getKey().apply(mainSearch);
-            Ternary narrowTernary = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainTernary, narrowTernary));
-        }
-    }
-
-    private Specification<DataListOptionEntity> addConfiguredSorting(DataListOptionSearch search, SimplePagination pagination, Specification<DataListOptionEntity> spec) throws ServiceException {
-        DataListOptionSearchEntity searchEntity = search.getConfiguredSearch();
-        if (searchEntity != null && (searchEntity.getForceSorting() || pagination == null || pagination.getSort() == null)) {
-            DataListOptionSorter optionSorter = featurerService.getFeaturer(searchEntity.getOptionSorterFeaturerId(), DataListOptionSorter.class);
-            var sortFunction = optionSorter.createSort(searchEntity.getOptionSorterParams());
-            if (sortFunction != null) {
-                spec = sortFunction.apply(spec);
-                if (pagination != null) {
-                    pagination.setSort(null);
-                }
-            }
-        }
-        return spec;
     }
 }

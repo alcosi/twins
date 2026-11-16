@@ -8,6 +8,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.search.ConfiguredSearch;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "data_list_option_search")
 @FieldNameConstants
-public class DataListOptionSearchEntity implements EasyLoggable {
+public class DataListOptionSearchEntity implements EasyLoggable, ConfiguredSearch {
     @Id
     private UUID id;
 
@@ -41,6 +42,16 @@ public class DataListOptionSearchEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "data_list_option_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> optionSorterParams;
+
+    @Override
+    public Integer getSorterFeaturerId() {
+        return optionSorterFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getSorterParams() {
+        return optionSorterParams;
+    }
 
     @Override
     public String easyLog(Level level) {

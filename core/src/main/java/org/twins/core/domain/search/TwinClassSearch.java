@@ -22,7 +22,7 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-public class TwinClassSearch extends EntitySearch<TwinClassEntity> {
+public class TwinClassSearch extends EntitySearch<TwinClassEntity> implements ConfiguredSearchHolder<TwinClassSearchEntity> {
     private Set<UUID> twinClassIdList;
     private Set<UUID> twinClassIdExcludeList;
     private Set<String> twinClassKeyLikeList;

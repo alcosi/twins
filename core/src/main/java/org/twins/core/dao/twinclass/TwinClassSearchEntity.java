@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.domain.search.ConfiguredSearch;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_search")
 @FieldNameConstants
-public class TwinClassSearchEntity implements EasyLoggable {
+public class TwinClassSearchEntity implements EasyLoggable, ConfiguredSearch {
     @Id
     private UUID id;
 
@@ -38,6 +39,16 @@ public class TwinClassSearchEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "class_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> classSorterParams;
+
+    @Override
+    public Integer getSorterFeaturerId() {
+        return classSorterFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getSorterParams() {
+        return classSorterParams;
+    }
 
     @Override
     public String easyLog(Level level) {

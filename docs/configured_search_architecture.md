@@ -25,8 +25,9 @@ The configured search itself is **not** a stored JSON of search criteria. It is 
 | twin_class_field | `twin_class_field_search` | `twin_class_field_search_predicate` | FieldFinder (TYPE_32) | FieldSorter (TYPE_40) + force_sorting | context params |
 | user | `user_search` | `user_search_predicate` | UserFinder (TYPE_43) | UserSorter (TYPE_42) + force_sorting | |
 | data_list_option | `data_list_option_search` | `data_list_option_search_predicate` | DataListOptionFinder (TYPE_51) | DataListOptionSorter (TYPE_52) + force_sorting | |
+| twin_comment | `twin_comment_search` | `twin_comment_search_predicate` | CommentFinder (TYPE_59) | CommentSorter (TYPE_60) + force_sorting | |
 
-Each table set seeds one system row — the **UNLIMITED** configured search (`domain_id = null`, ids `00000000-0000-0000-0014-000000000001..005`, see `SystemIds`). `UNLIMITED` means "no configured search": the service skips predicate loading and runs the narrow filter directly.
+Each table set seeds one system row — the **UNLIMITED** configured search (`domain_id = null`, ids `00000000-0000-0000-0014-000000000001..006`, see `SystemIds`). `UNLIMITED` means "no configured search": the service skips predicate loading and runs the narrow filter directly.
 
 ## Data model
 
@@ -61,8 +62,9 @@ Predicate rows are always loaded in bulk by `findBy<Search>Id(...)` and executed
 
 ### JPA entities
 
-- Header entity (`TwinClassFieldSearchEntity`): flat `@Id` + columns, hstore via `@Type(PostgreSQLHStoreType.class)` → `HashMap<String,String>`.
-- Predicate entity: same + a lazy `@ManyToOne` back-reference to the header marked `@Deprecated // for specification only` (SpecOnly pattern) plus a `@Transient` header field loaded on demand.
+- Header entity (`TwinClassFieldSearchEntity`): flat `@Id` + columns, hstore via `@Type(PostgreSQLHStoreType.class)` → `HashMap<String,String>`. Implements `ConfiguredSearch` (`getSorterFeaturerId`/`getSorterParams` delegate to the entity-specific sorter columns).
+- Predicate entity: same + a lazy `@ManyToOne` back-reference to the header marked `@Deprecated // for specification only` (SpecOnly pattern) plus a `@Transient` header field loaded on demand. Implements `ConfiguredSearchPredicate` (`getFinderFeaturerId`/`getFinderParams` delegates).
+- Domain search object (`TwinClassFieldSearch`): implements `ConfiguredSearchHolder<<X>SearchEntity>` — Lombok chained accessors satisfy it; the configured search header travels inside the search object as `configuredSearch`.
 
 ## Featurer contracts
 
@@ -90,16 +92,16 @@ Not covered by the base classes: `TwinSorter` (TYPE_41) sorts twins by a *field 
 
 ## Execution flow
 
-All five services implement the same recipe (see `TwinClassFieldSearchService.findTwinClassField(searchId, params, narrow, pagination)`):
+The flow is owned by the **config service** (`<X>SearchConfigService`), so the plain `<X>SearchService` stays free-search only and new configured searches never touch it. All five non-twin implementations extend the common base `org.twins.core.service.ConfiguredSearchService<S, P, R, E>`, which implements the flow once as a template method `findConfigured(searchId, namedParamsMap, narrowSearch, pagination)` over small per-entity hooks (twin is the only exception — the same steps live in `TwinSearchService`, see "Accepted differences"):
 
 1. **UNLIMITED short-circuit** — `search(narrowSearch, pagination)` directly.
-2. **Load header** via `<X>SearchConfigService.findEntitySafe(searchId)` — a plain `EntitySecureFindServiceImpl` doing the domain check (`checkDomainAccessDenied(entity.getDomainId(), ...)`; `domain_id = null` passes for everyone).
+2. **Load header** via `findEntitySafe(searchId)` on the config service itself — a plain `EntitySecureFindServiceImpl` doing the domain check (`checkDomainAccessDenied(entity.getDomainId(), ...)`; `domain_id = null` passes for everyone).
 3. **Load predicates** in one query (`findBy<Search>Id`).
 4. **Accumulate**: `mainSearch = new XSearch()`; for each predicate resolve the finder featurer and call `concatSearch(params, mainSearch, namedParamsMap)`.
 5. **Narrow**: `narrowSearch(mainSearch, narrowSearch)` — intersect the client filter with the configured search (see below).
 6. **Remember the header**: `mainSearch.setConfiguredSearch(searchEntity)` — the header travels inside the domain search so the sort step can reach it later.
 7. **Sort**: if `forceSorting` or client sort is absent → run the sorter featurer (for twin: `twin_search_sort` rows or TwinSearchExecutor).
-8. Run the standard `EntitySearchService.search(mainSearch, pagination)` pipeline (filter specification + sort specification + pageable).
+8. Run the standard search pipeline (filter specification + sort specification + pageable).
 
 Twin adds one level of indirection: the header selects a `TwinSearchExecutor` featurer (default ID_5701) that performs steps 4–8, enabling alternative execution strategies (e.g. id-only queries, count-only, recursion-guarded subsearches).
 
@@ -136,13 +138,13 @@ Response is identical to free search (paged entity list + relatedObjects). Contr
 
 ## Consumers
 
-- **Faces** store a FK to a configured search: `face_tc001_option.twin_class_field_search_id`, `face_tc001_option.twin_class_search_id`, `face_tw004.twin_class_field_search_id`, `face_tw007.twin_class_search_id`, `face_wt001.twin_search_id`. Face services call `findX(searchId, contextParams, null, FRIENDLY)` directly (e.g. `FaceTW004Service`).
+- **Faces** store a FK to a configured search: `face_tc001_option.twin_class_field_search_id`, `face_tc001_option.twin_class_search_id`, `face_tw004.twin_class_field_search_id`, `face_tw007.twin_class_search_id`, `face_wt001.twin_search_id`. Face services call `findConfigured(searchId, contextParams, null, FRIENDLY)` directly (e.g. `FaceTW004Service`).
 - **twin_search aliases** (`twin_search_alias` + SearchDetector featurer) let a client reference a configured search by a stable alias and resolve 1..N searches at runtime.
 - Permission system: `twin_search.permission_id` gates a configured search itself.
 
 ## Lifecycle / CRUD
 
-There is **no CRUD API** for configured searches (planned separately). They are created and maintained by Flyway migrations (including data-migrations that convert legacy per-row finder configs into configured searches, e.g. `V1.3.364.01` for face_tw004). `*SearchConfigService` classes are read-only (`EntitySecureFindServiceImpl` + `findEntitySafe`).
+There is **no CRUD API** for configured searches (planned separately). They are created and maintained by Flyway migrations (including data-migrations that convert legacy per-row finder configs into configured searches, e.g. `V1.3.364.01` for face_tw004). `*SearchConfigService` classes never write to the config tables — they only resolve the header (`findEntitySafe`) and execute the configured search.
 
 ## Accepted differences (twin is the heavyweight variant)
 
@@ -169,17 +171,17 @@ Checklist per entity `<X>` (existing free-search service `<X>SearchService exten
    - indexes on `<x>_search_id` and both featurer columns (and `domain_id`);
    - insert featurer_type rows (`<X>Finder`, `<X>Sorter`) and stub featurers;
    - insert the UNLIMITED row (`domain_id = null`), register its UUID in `SystemIds`.
-2. **DAO**: `<X>SearchEntity`, `<X>SearchPredicateEntity` (SpecOnly back-reference, `@FieldNameConstants`), two `CrudRepository` interfaces with `findBy<X>SearchId`.
+2. **DAO**: `<X>SearchEntity` (implements `ConfiguredSearch` — two delegate getters for the sorter columns), `<X>SearchPredicateEntity` (implements `ConfiguredSearchPredicate`; SpecOnly back-reference, `@FieldNameConstants`), two `CrudRepository` interfaces with `findBy<X>SearchId`.
 3. **Featurers**: thin subclasses `<X>Finder extends SearchFinder<<X>Search>` and `<X>Sorter extends SearchSorter<<X>Entity>` with the `@FeaturerType` annotation, plus at least one stub implementation each.
-4. **Domain search**: add `<X>SearchEntity configuredSearch` field to `<X>Search`; make sure `SET_FIELDS`/`TERNARY_FIELD` lists cover narrowable fields.
-5. **Config service**: `<X>SearchConfigService extends EntitySecureFindServiceImpl<<X>SearchEntity>` with `isEntityReadDenied` = domain check.
-6. **Search service**: add `find<X>(UUID searchId, Map<String,String> params, <X>Search narrow, SimplePagination)` implementing the 8-step flow above.
+4. **Domain search**: add `<X>SearchEntity configuredSearch` field to `<X>Search` and `implements ConfiguredSearchHolder<<X>SearchEntity>`; make sure `SET_FIELDS`/`TERNARY_FIELD` lists cover narrowable fields.
+5. **Config service**: `<X>SearchConfigService extends ConfiguredSearchService<<X>SearchEntity, <X>SearchPredicateEntity, <X>Search, <X>Entity>>` — the 8-step flow comes from the base (`findConfigured`); implement the hooks: the 4 `EntitySecureFindServiceImpl` overrides (`isEntityReadDenied` = domain check), `unlimitedSearchId()`, `emptySearch()`, `loadPredicates()`, `finderClass()`, `narrowSearch()`, `runFreeSearch()` (delegate to `<X>SearchService`), `runConfiguredSearch()` (spec via `<X>SearchService.createFilterSpecification` + sorting + page). `authService`/`featurerService` are inherited from the base.
+6. **Search service**: untouched — no configured-search code there.
 7. **DTO + mapper**: `<X>SearchConfiguredRqDTOv1 { params, narrow }`; reuse the existing free-search DTO for `narrow` and its reverse mapper.
-8. **Controller**: `POST /private/<x>/search/{searchId}/v1` in the existing search controller, mirroring the free-search endpoint's mapper context and response DTO.
+8. **Controller**: `POST /private/<x>/search/{searchId}/v1` in the existing search controller, calling `<x>SearchConfigService.findConfigured(searchId, request.getParams(), narrow, pagination)`, mirroring the free-search endpoint's mapper context and response DTO.
 9. **Consumers** (optional): add `<x>_search_id` FK columns to faces/permissions/factories that should reference configured searches.
 
 Recommended baseline to copy: **data_list_option** (newest, cleanest) or **twin_class_field**. Copy twin only when you need aliases/executor/permissions — it is deliberately the heavyweight variant.
 
 ### Candidate entities (already have a free-search service)
 
-twin_status, twinflow, twinflow_transition, link, permission, permission_schema, space_role, user_group, data_list, factory, comment, attachment, history, scheduler_log, notification, featurer (admin).
+twin_status, twinflow, twinflow_transition, link, permission, permission_schema, space_role, user_group, data_list, factory, attachment, history, scheduler_log, notification, featurer (admin).

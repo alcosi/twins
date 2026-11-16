@@ -19,7 +19,7 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class DataListOptionSearch extends EntitySearch<DataListOptionEntity> {
+public class DataListOptionSearch extends EntitySearch<DataListOptionEntity> implements ConfiguredSearchHolder<DataListOptionSearchEntity> {
     private Set<UUID> idList;
     private Set<UUID> idExcludeList;
     private Set<UUID> dataListIdList;

@@ -128,7 +128,7 @@ public class CommentSearchController extends ApiController {
         CommentSearchRsDTOv1 rs = new CommentSearchRsDTOv1();
         try {
             PaginationResult<TwinCommentEntity> result = commentSearchConfigService
-                    .findComments(searchId, request.getParams(), commentSearchDTORestDTOMapper.convert(request.getNarrow()), pagination);
+                    .findConfigured(searchId, request.getParams(), commentSearchDTORestDTOMapper.convert(request.getNarrow()), pagination);
             rs
                     .setPagination(paginationMapper.convert(result))
                     .setComments(viewRestDTOMapper.convertCollection(result.getList(), mapperContext))
