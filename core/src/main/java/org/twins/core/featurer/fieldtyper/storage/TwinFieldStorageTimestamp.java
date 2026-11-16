@@ -3,9 +3,11 @@ package org.twins.core.featurer.fieldtyper.storage;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampRepository;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.Collection;
 
@@ -32,5 +34,10 @@ public class TwinFieldStorageTimestamp extends TwinFieldStorageMater<TwinFieldTi
     @Override
     public void initEmpty(TwinEntity twinEntity) {
         twinEntity.setTwinFieldTimestampKit(new Kit<>(TwinFieldTimestampEntity::getTwinClassFieldId)); //not empty kit, because it's immutable, and we need kit update on field serialization
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return countGroupByColumn(field.getId(), TwinEntity.Fields.fieldsTimestampSpecOnly, TwinFieldTimestampEntity.Fields.value);
     }
 }

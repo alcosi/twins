@@ -7,7 +7,9 @@ import org.cambium.common.kit.KitGrouped;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.service.space.SpaceRoleUserService;
 
 import java.util.*;
@@ -72,5 +74,10 @@ public class TwinFieldStorageSpaceRoleUser extends TwinFieldStorage {
     @Override
     boolean canBeMerged(Object o) {
         return isSameClass(o);
+    }
+
+    @Override
+    public GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) {
+        return null;
     }
 }

@@ -494,6 +494,15 @@ public final class SystemIds {
             public static final UUID COMMIT = UUID.fromString("00000000-0000-0004-0035-000000000006");
         }
 
+        public static final class Resource {
+            /** Guards the standalone resource upload/search endpoints. */
+            public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0062-000000000001");
+            public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0062-000000000002");
+            public static final UUID VIEW   = UUID.fromString("00000000-0000-0004-0062-000000000003");
+            public static final UUID UPDATE = UUID.fromString("00000000-0000-0004-0062-000000000004");
+            public static final UUID DELETE = UUID.fromString("00000000-0000-0004-0062-000000000005");
+        }
+
         public static final class DomainBusinessAccount {
             public static final UUID MANAGE = UUID.fromString("00000000-0000-0004-0036-000000000001");
             public static final UUID CREATE = UUID.fromString("00000000-0000-0004-0036-000000000002");

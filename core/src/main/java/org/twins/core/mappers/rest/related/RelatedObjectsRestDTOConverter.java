@@ -29,6 +29,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.projection.ProjectionTypeEntity;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.projection.ProjectionTypeGroupEntity;
 import org.twins.core.dao.scheduler.SchedulerEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
@@ -139,6 +140,8 @@ public class RelatedObjectsRestDTOConverter {
                 descriptor(RelatedObjectsDTOv1::setTwinPointerMap, source(TwinPointerEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setDataListSubsetMap, source(DataListSubsetEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setDomainVersionMap, source(DomainVersionEntity.class))
+                descriptor(RelatedObjectsDTOv1::setDataListSubsetMap, source(DataListSubsetEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setStorageMap, source(StorageEntity.class))
         );
     }
 

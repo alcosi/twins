@@ -18,6 +18,7 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.dao.*;
 import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
+import org.cambium.featurer.params.FeaturerParamEncrypted;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
@@ -46,6 +47,7 @@ public class FeaturerService {
     Kit<FeaturerTypeEntity, Integer> featurerTypeEntityKit = new Kit<>(FeaturerTypeEntity::getId);
     Hashtable<Integer, Map<String, FeaturerParam>> featurerParamsAnnotationsMap = new Hashtable<>();
     Hashtable<Integer, Map<String, org.cambium.featurer.params.FeaturerParam<?>>> featurerParamsMap = new Hashtable<>();
+    Hashtable<Integer, Set<String>> featurerWithEncryptedParamsMap = new Hashtable<>();
 
     @Autowired //lazy loading because of circular dependency
     public void setFeaturerList(List<Featurer> featurerList) {
@@ -116,6 +118,7 @@ public class FeaturerService {
     private void syncFeaturersParams(Class<Featurer> featurerClass, List<FeaturerParamEntity> featurerParamEntityList) {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         Map<String, org.cambium.featurer.params.FeaturerParam<?>> featurerParamsMap = new HashMap<>();
+        Set<String> featurerEncryptedParams = null;
         Map<String, FeaturerParam> featurerParamsAnnotationMap = new HashMap<>();
         for (Field field : featurerClass.getFields()) {
             try {
@@ -143,6 +146,8 @@ public class FeaturerService {
                     featurerParamEntityList.add(featurerParamEntity);
                     featurerParamsMap.put(key, instance);
                     featurerParamsAnnotationMap.put(key, featurerParamAnnotation);
+                    if (instance instanceof FeaturerParamEncrypted)
+                        featurerEncryptedParams = CollectionUtils.safeAdd(featurerEncryptedParams, key);
                 }
             } catch (IllegalAccessException e) {
                 log.error("Exception: ", e);
@@ -150,6 +155,8 @@ public class FeaturerService {
         }
         this.featurerParamsMap.put(featurerAnnotation.id(), featurerParamsMap);
         this.featurerParamsAnnotationsMap.put(featurerAnnotation.id(), featurerParamsAnnotationMap);
+        if (CollectionUtils.isNotEmpty(featurerEncryptedParams))
+            featurerWithEncryptedParamsMap.put(featurerAnnotation.id(), featurerEncryptedParams);
     }
 
 
@@ -195,6 +202,24 @@ public class FeaturerService {
     public Map<String, org.cambium.featurer.params.FeaturerParam<?>> getFeaturerParams(Integer featurerId) {
         Map<String, org.cambium.featurer.params.FeaturerParam<?>> params = featurerParamsMap.get(featurerId);
         return params != null ? params : Collections.emptyMap();
+    }
+
+    /**
+     * Returns a copy of the given params with all encrypted-typed params ({@link FeaturerParamEncrypted})
+     * removed. Use when params leave the server (REST DTOs and similar): encrypted params hold
+     * credentials and must not be exposed, even in their encrypted (stored) form.
+     */
+    public HashMap<String, String> filterEncryptedParams(Integer featurerId, HashMap<String, String> params) {
+        if (params == null || params.isEmpty())
+            return params;
+        if (featurerId == null) // Hashtable does not accept null keys; no featurer — nothing to filter
+            return params;
+        Set<String> encryptedParams = featurerWithEncryptedParamsMap.get(featurerId);
+        if (CollectionUtils.isEmpty(encryptedParams))
+            return params;
+        HashMap<String, String> result = new HashMap<>(params);
+        result.entrySet().removeIf(entry -> encryptedParams.contains(entry.getKey()));
+        return result;
     }
 
     @Cacheable("FeaturerEntityListCache")

@@ -11,6 +11,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamEncrypted;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,11 +61,11 @@ public class StoragerS3Static extends StoragerAbstractChecked {
     @FeaturerParam(name = "s3Bucket", description = "S3 bucket", optional = false, exampleValues = {"documents", "resources", "twins"})
     public static final FeaturerParamString s3Bucket = new FeaturerParamString("s3Bucket");
 
-    @FeaturerParam(name = "s3AccessKey", description = "Access key (username) for S3", optional = false, exampleValues = {"AKIAIOSFODNN7EXAMPLE"})
-    public static final FeaturerParamString s3AccessKey = new FeaturerParamString("s3AccessKey");
+    @FeaturerParam(name = "s3AccessKey", description = "Access key (username) for S3. Stored encrypted", optional = false, exampleValues = {"AKIAIOSFODNN7EXAMPLE"})
+    public static final FeaturerParamEncrypted s3AccessKey = new FeaturerParamEncrypted("s3AccessKey");
 
-    @FeaturerParam(name = "s3SecretKey", description = "Secret key (password) for S3", optional = false, exampleValues = {"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"})
-    public static final FeaturerParamString s3SecretKey = new FeaturerParamString("s3SecretKey");
+    @FeaturerParam(name = "s3SecretKey", description = "Secret key (password) for S3. Stored encrypted", optional = false, exampleValues = {"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"})
+    public static final FeaturerParamEncrypted s3SecretKey = new FeaturerParamEncrypted("s3SecretKey");
 
     @FeaturerParam(name = "basePath",
             description = "Prefix for file keys.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.",
