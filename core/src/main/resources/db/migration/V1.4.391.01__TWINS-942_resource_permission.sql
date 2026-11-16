@@ -1,4 +1,4 @@
-a-- RESOURCE permissions (MCRUD): guard the standalone resource endpoints
+-- RESOURCE permissions (MCRUD): guard the standalone resource endpoints
 -- (POST /private/resource/create/v1 -> RESOURCE_CREATE, GET/POST search,view -> RESOURCE_VIEW,
 -- PUT /private/resource/v1 -> RESOURCE_UPDATE, DELETE /private/resource/{id}/v1 -> RESOURCE_DELETE).
 insert into i18n (id, name, key, i18n_type_id) VALUES
