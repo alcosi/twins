@@ -11,7 +11,6 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.twin.TwinGroup;
-import org.twins.core.domain.twin.TwinGroupOptionSource;
 import org.twins.core.dto.rest.twin.TwinGroupKeyDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchGroupDTOv1;
 import org.twins.core.enums.twin.TwinGroupKeyType;
@@ -113,10 +112,10 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         loadStatuses(ids(nodes, TwinGroupKeyType.STATUS), mapperContext);
         loadClasses(ids(nodes, TwinGroupKeyType.TWIN_CLASS), mapperContext);
         loadTwins(ids(nodes, TwinGroupKeyType.TWIN), mapperContext);
-        loadOptions(optionIds(nodes, TwinGroupOptionSource.FLAVOR), mapperContext,
+        loadOptions(ids(nodes, TwinGroupKeyType.DATA_LIST_OPTION_FLAVOR), mapperContext,
                 DataListOptionMode.TwinFlavor2DataListOptionMode.HIDE,
                 DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT);
-        loadOptions(optionIds(nodes, TwinGroupOptionSource.TWIN_FIELD), mapperContext,
+        loadOptions(ids(nodes, TwinGroupKeyType.DATA_LIST_OPTION_FIELD), mapperContext,
                 DataListOptionMode.TwinField2DataListOptionMode.HIDE,
                 DataListOptionMode.TwinField2DataListOptionMode.SHORT);
     }
@@ -217,17 +216,4 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
         return ids;
     }
 
-    private static List<UUID> optionIds(Collection<TwinGroup> groups, TwinGroupOptionSource source) {
-        List<UUID> ids = new ArrayList<>();
-        for (TwinGroup group : groups) {
-            // the keyType guard makes the source discriminator meaningless outside DATA_LIST_OPTION,
-            // so even an inconsistent group cannot load its dictionary under the wrong show-mode
-            if (group.getKeyType() == TwinGroupKeyType.DATA_LIST_OPTION
-                    && group.getDataListOptionSource() == source
-                    && group.getKey() instanceof UUID id) {
-                ids.add(id);
-            }
-        }
-        return ids;
-    }
 }

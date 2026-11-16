@@ -20,7 +20,6 @@ import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
 import org.twins.core.domain.twin.TwinGroupedSearch;
 import org.twins.core.domain.twin.TwinGroupedSearchResult;
-import org.twins.core.domain.twin.TwinGroupOptionSource;
 import org.twins.core.domain.twin.TwinMemberSort;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
@@ -294,15 +293,9 @@ public class TwinGroupedSearchService {
                 // non-link dynamic fields keep the count/v1 acceptance rule
                 twinSearchServiceV2.resolveGroupProvider(level.getFieldId());
                 level.setKeyType(dynamicKeyType(storage));
-                if (level.getKeyType() == TwinGroupKeyType.DATA_LIST_OPTION) {
-                    level.setDataListOptionSource(TwinGroupOptionSource.TWIN_FIELD);
-                }
             }
         } else {
             level.setKeyType(basicKeyType(basicField));
-            if (basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID) {
-                level.setDataListOptionSource(TwinGroupOptionSource.FLAVOR);
-            }
             // basic fields keep the count/v1 acceptance rule (groupable column whitelist)
             twinSearchServiceV2.resolveGroupProvider(level.getFieldId());
         }
@@ -355,7 +348,7 @@ public class TwinGroupedSearchService {
             case TWIN_STATUS_ID -> TwinGroupKeyType.STATUS;
             case TWIN_CLASS_ID -> TwinGroupKeyType.TWIN_CLASS;
             case HEAD_TWIN_ID -> TwinGroupKeyType.TWIN;
-            case FLAVOR_DATA_LIST_OPTION_ID -> TwinGroupKeyType.DATA_LIST_OPTION;
+            case FLAVOR_DATA_LIST_OPTION_ID -> TwinGroupKeyType.DATA_LIST_OPTION_FLAVOR;
             default -> throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                     "Field " + basicField.getId() + " is not groupable");
         };
@@ -363,7 +356,7 @@ public class TwinGroupedSearchService {
 
     private static TwinGroupKeyType dynamicKeyType(TwinFieldStorage storage) {
         if (storage instanceof TwinFieldStorageDatalist) {
-            return TwinGroupKeyType.DATA_LIST_OPTION;
+            return TwinGroupKeyType.DATA_LIST_OPTION_FIELD;
         }
         if (storage instanceof TwinFieldStorageDecimal) {
             return TwinGroupKeyType.DECIMAL;
