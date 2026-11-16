@@ -5,8 +5,6 @@ import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -176,12 +174,6 @@ public class TwinClassFieldSearchService extends EntitySearchService
             case viewPermissionId -> entity.setViewPermissionId((UUID) o);
             case editPermissionId -> entity.setEditPermissionId((UUID) o);
         }
-    }
-
-    public PaginationResult<TwinClassFieldEntity> findTwinClassField(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
-        if (search.isInactiveSearch())
-            return PaginationResult.EMPTY;
-        return search(search, pagination);
     }
 
     private Specification<TwinClassFieldEntity> checkProjections(TwinClassFieldSearch search) {

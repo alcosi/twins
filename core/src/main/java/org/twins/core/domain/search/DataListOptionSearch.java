@@ -44,6 +44,7 @@ public class DataListOptionSearch extends EntitySearch<DataListOptionEntity> imp
     private Ternary custom;
 
     private DataListOptionSearchEntity configuredSearch;
+    private boolean emptySearch = false;
 
     public DataListOptionSearch addDataListId(UUID datalistId, boolean exclude) {
         return SetUtils.safeAdd(this, datalistId, exclude,

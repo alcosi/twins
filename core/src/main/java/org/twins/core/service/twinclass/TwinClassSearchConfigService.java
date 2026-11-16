@@ -6,24 +6,24 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.Ternary;
 import org.cambium.common.util.TernaryUtils;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.classfinder.ClassFinder;
 import org.twins.core.featurer.classfinder.sorter.ClassSorter;
 import org.twins.core.featurer.search.SearchFinder;
+import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -66,8 +66,8 @@ public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinCl
     }
 
     @Override
-    protected TwinClassSearch emptySearch() {
-        return new TwinClassSearch();
+    protected TwinClassSearch newSearch() {
+        return twinClassSearchService.emptySearch();
     }
 
     @Override
@@ -81,27 +81,23 @@ public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinCl
     }
 
     @Override
-    protected PaginationResult<TwinClassEntity> runFreeSearch(TwinClassSearch search, SimplePagination pagination) throws ServiceException {
-        return twinClassSearchService.search(search, pagination);
+    protected Class<? extends SearchSorter<TwinClassEntity>> sorterClass() {
+        return ClassSorter.class;
     }
 
     @Override
-    protected PaginationResult<TwinClassEntity> runConfiguredSearch(TwinClassSearch mainSearch, SimplePagination pagination) throws ServiceException {
-        TwinClassSearchEntity searchEntity = mainSearch.getConfiguredSearch();
-        // Apply ClassSorter for configured search; fall back to the free pipeline when no sorter applies
-        if (searchEntity.getForceSorting() || pagination.getSort() == null) {
-            ClassSorter classSorter = featurerService.getFeaturer(searchEntity.getClassSorterFeaturerId(), ClassSorter.class);
-            var sortFunction = classSorter.createSort(searchEntity.getClassSorterParams());
-            if (sortFunction != null) {
-                ApiUser apiUser = authService.getApiUser();
-                Specification<TwinClassEntity> spec = twinClassSearchService.createFilterSpecification(mainSearch, apiUser.getDomainId(), apiUser.getLocale());
-                spec = sortFunction.apply(spec);
-                pagination.setSort(null);
-                Page<TwinClassEntity> page = twinClassRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-                return PaginationUtils.convertInPaginationResult(page, pagination);
-            }
-        }
-        return twinClassSearchService.search(mainSearch, pagination);
+    protected Specification<TwinClassEntity> createFilterSpecification(TwinClassSearch search, UUID domainId, Locale locale) throws ServiceException {
+        return twinClassSearchService.createFilterSpecification(search, domainId, locale);
+    }
+
+    @Override
+    protected JpaSpecificationExecutor<TwinClassEntity> searchExecutor() {
+        return twinClassRepository;
+    }
+
+    @Override
+    protected PaginationResult<TwinClassEntity> runFreeSearch(TwinClassSearch search, SimplePagination pagination) throws ServiceException {
+        return twinClassSearchService.search(search, pagination);
     }
 
     @Override

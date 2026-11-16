@@ -5,22 +5,22 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.PaginationUtils;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.comment.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.comment.finder.CommentFinder;
 import org.twins.core.featurer.comment.sorter.CommentSorter;
 import org.twins.core.featurer.search.SearchFinder;
+import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -48,7 +48,7 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
 
     @Override
     public boolean isEntityReadDenied(TwinCommentSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getDomainId(), entity.logNormal(), readPermissionCheckMode);
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
     @Override
@@ -62,8 +62,8 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
     }
 
     @Override
-    protected CommentSearch emptySearch() {
-        return new CommentSearch();
+    protected CommentSearch newSearch() {
+        return commentSearchService.emptySearch();
     }
 
     @Override
@@ -77,17 +77,23 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
     }
 
     @Override
-    protected PaginationResult<TwinCommentEntity> runFreeSearch(CommentSearch search, SimplePagination pagination) throws ServiceException {
-        return commentSearchService.search(search, pagination);
+    protected Class<? extends SearchSorter<TwinCommentEntity>> sorterClass() {
+        return CommentSorter.class;
     }
 
     @Override
-    protected PaginationResult<TwinCommentEntity> runConfiguredSearch(CommentSearch mainSearch, SimplePagination pagination) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        Specification<TwinCommentEntity> spec = commentSearchService.createFilterSpecification(mainSearch, apiUser.getDomainId(), apiUser.getLocale());
-        spec = addConfiguredSorting(mainSearch, pagination, spec, CommentSorter.class);
-        Page<TwinCommentEntity> page = twinCommentRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(page, pagination);
+    protected Specification<TwinCommentEntity> createFilterSpecification(CommentSearch search, UUID domainId, Locale locale) throws ServiceException {
+        return commentSearchService.createFilterSpecification(search, domainId, locale);
+    }
+
+    @Override
+    protected JpaSpecificationExecutor<TwinCommentEntity> searchExecutor() {
+        return twinCommentRepository;
+    }
+
+    @Override
+    protected PaginationResult<TwinCommentEntity> runFreeSearch(CommentSearch search, SimplePagination pagination) throws ServiceException {
+        return commentSearchService.search(search, pagination);
     }
 
     @Override

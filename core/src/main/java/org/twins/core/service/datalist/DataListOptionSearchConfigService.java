@@ -5,24 +5,24 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.Ternary;
 import org.cambium.common.util.TernaryUtils;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.datalist.finder.DataListOptionFinder;
 import org.twins.core.featurer.datalist.sorter.DataListOptionSorter;
 import org.twins.core.featurer.search.SearchFinder;
+import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -64,8 +64,8 @@ public class DataListOptionSearchConfigService extends ConfiguredSearchService<D
     }
 
     @Override
-    protected DataListOptionSearch emptySearch() {
-        return new DataListOptionSearch();
+    protected DataListOptionSearch newSearch() {
+        return dataListOptionSearchService.emptySearch();
     }
 
     @Override
@@ -79,17 +79,23 @@ public class DataListOptionSearchConfigService extends ConfiguredSearchService<D
     }
 
     @Override
-    protected PaginationResult<DataListOptionEntity> runFreeSearch(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
-        return dataListOptionSearchService.search(search, pagination);
+    protected Class<? extends SearchSorter<DataListOptionEntity>> sorterClass() {
+        return DataListOptionSorter.class;
     }
 
     @Override
-    protected PaginationResult<DataListOptionEntity> runConfiguredSearch(DataListOptionSearch mainSearch, SimplePagination pagination) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        Specification<DataListOptionEntity> spec = dataListOptionSearchService.createFilterSpecification(mainSearch, apiUser.getDomainId(), apiUser.getLocale());
-        spec = addConfiguredSorting(mainSearch, pagination, spec, DataListOptionSorter.class);
-        Page<DataListOptionEntity> page = dataListOptionRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(page, pagination);
+    protected Specification<DataListOptionEntity> createFilterSpecification(DataListOptionSearch search, UUID domainId, Locale locale) throws ServiceException {
+        return dataListOptionSearchService.createFilterSpecification(search, domainId, locale);
+    }
+
+    @Override
+    protected JpaSpecificationExecutor<DataListOptionEntity> searchExecutor() {
+        return dataListOptionRepository;
+    }
+
+    @Override
+    protected PaginationResult<DataListOptionEntity> runFreeSearch(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
+        return dataListOptionSearchService.search(search, pagination);
     }
 
     @Override

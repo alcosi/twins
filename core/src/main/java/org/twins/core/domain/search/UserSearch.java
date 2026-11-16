@@ -35,6 +35,7 @@ public class UserSearch implements ConfiguredSearchHolder<UserSearchEntity> {
     private List<SpaceSearch> spaceExcludeList;
     private BasicSearchList childTwinSearches;
     private UserSearchEntity configuredSearch;
+    private boolean emptySearch = false;
 
     public UserSearch addSpace(final SpaceSearch spaceSearch, boolean exclude) {
         if (exclude)

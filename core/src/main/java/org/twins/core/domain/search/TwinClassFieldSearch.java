@@ -51,7 +51,7 @@ public class TwinClassFieldSearch extends EntitySearch<TwinClassFieldEntity> imp
     private Ternary dependentField;
     private Ternary hasDependentFields;
     private boolean excludeSystemFields = true;
-    private boolean inactiveSearch = false;
+    private boolean emptySearch = false;
     private TwinClassFieldSearchEntity configuredSearch;
     private FieldProjectionSearch fieldProjectionSearch;
     private Ternary projectionField;

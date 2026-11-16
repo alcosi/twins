@@ -7,6 +7,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.service.EntitySmartService;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.user.*;
@@ -14,10 +16,13 @@ import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.search.SearchFinder;
+import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.featurer.user.finder.UserFinder;
+import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -32,6 +37,7 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
     private final UserSearchRepository userSearchRepository;
     private final UserSearchPredicateRepository userSearchPredicateRepository;
     private final UserSearchService userSearchService;
+    private final UserRepository userRepository;
 
     @Override
     public CrudRepository<UserSearchEntity, UUID> entityRepository() {
@@ -59,7 +65,7 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
     }
 
     @Override
-    protected UserSearch emptySearch() {
+    protected UserSearch newSearch() {
         return new UserSearch();
     }
 
@@ -74,10 +80,29 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
     }
 
     @Override
+    protected Class<? extends SearchSorter<UserEntity>> sorterClass() {
+        return UserSorter.class;
+    }
+
+    @Override
+    protected Specification<UserEntity> createFilterSpecification(UserSearch search, UUID domainId, Locale locale) throws ServiceException {
+        return userSearchService.createUserSpecification(search);
+    }
+
+    @Override
+    protected JpaSpecificationExecutor<UserEntity> searchExecutor() {
+        return userRepository;
+    }
+
+    @Override
     protected PaginationResult<UserEntity> runFreeSearch(UserSearch search, SimplePagination pagination) throws ServiceException {
         return userSearchService.findUsers(search, pagination);
     }
 
+    /**
+     * Users keep a custom configured path: findUsers additionally weaves childTwinSearches
+     * subquery specs (and historically skips the sorter when they are present).
+     */
     @Override
     protected PaginationResult<UserEntity> runConfiguredSearch(UserSearch mainSearch, SimplePagination pagination) throws ServiceException {
         return userSearchService.findUsers(mainSearch, pagination);

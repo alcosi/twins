@@ -68,6 +68,7 @@ public class TwinClassSearch extends EntitySearch<TwinClassEntity> implements Co
     private Set<UUID> pageFaceIdList;
     private Set<UUID> pageFaceIdExcludeList;
     private TwinClassSearchEntity configuredSearch;
+    private boolean emptySearch = false;
 
     public TwinClassSearch addOwnerTypeExclude() {
         ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, OwnerType.SYSTEM);

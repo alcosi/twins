@@ -30,6 +30,7 @@ public class CommentSearch extends EntitySearch<TwinCommentEntity> implements Co
     private DataTimeRange updatedAt;
 
     private TwinCommentSearchEntity configuredSearch;
+    private boolean emptySearch = false;
 
     public static final ImmutableList<Pair<Function<CommentSearch, Set>, BiConsumer<CommentSearch, Set>>> SET_FIELDS = ImmutableList.of(
             Pair.of(CommentSearch::getIdList, CommentSearch::setIdList),
