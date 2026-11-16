@@ -3,7 +3,7 @@ package org.twins.core.domain.twin;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.enums.twin.TwinGroupValueType;
+import org.twins.core.enums.twin.TwinGroupKeyType;
 
 import java.util.List;
 
@@ -14,6 +14,6 @@ public class TwinGroup {
     private List<TwinEntity> twins;
     private List<TwinGroup> groups;
     private int count;
-    private TwinGroupValueType valueType;
+    private TwinGroupKeyType keyType;
     private TwinGroupOptionSource optionSource;
 }

@@ -14,7 +14,7 @@ import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupOptionSource;
 import org.twins.core.dto.rest.twin.TwinGroupKeyDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchGroupDTOv1;
-import org.twins.core.enums.twin.TwinGroupValueType;
+import org.twins.core.enums.twin.TwinGroupKeyType;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -109,10 +109,10 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
             twinRestDTOMapperV2.beforeCollectionConversion(unique, mapperContext);
             twinRestDTOMapperV2.postpone(unique, mapperContext);
         }
-        loadUsers(ids(nodes, TwinGroupValueType.USER), mapperContext);
-        loadStatuses(ids(nodes, TwinGroupValueType.STATUS), mapperContext);
-        loadClasses(ids(nodes, TwinGroupValueType.TWIN_CLASS), mapperContext);
-        loadTwins(ids(nodes, TwinGroupValueType.TWIN), mapperContext);
+        loadUsers(ids(nodes, TwinGroupKeyType.USER), mapperContext);
+        loadStatuses(ids(nodes, TwinGroupKeyType.STATUS), mapperContext);
+        loadClasses(ids(nodes, TwinGroupKeyType.TWIN_CLASS), mapperContext);
+        loadTwins(ids(nodes, TwinGroupKeyType.TWIN), mapperContext);
         loadOptions(optionIds(nodes, TwinGroupOptionSource.FLAVOR), mapperContext,
                 DataListOptionMode.TwinFlavor2DataListOptionMode.HIDE,
                 DataListOptionMode.TwinFlavor2DataListOptionMode.SHORT);
@@ -202,15 +202,15 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
 
     private static TwinGroupKeyDTOv1 key(TwinGroup group) {
         TwinGroupKeyDTOv1 key = new TwinGroupKeyDTOv1()
-                .setType(group.getValueType())
+                .setType(group.getKeyType())
                 .setValue(group.getKey());
         return key;
     }
 
-    private static List<UUID> ids(Collection<TwinGroup> groups, TwinGroupValueType type) {
+    private static List<UUID> ids(Collection<TwinGroup> groups, TwinGroupKeyType type) {
         List<UUID> ids = new ArrayList<>();
         for (TwinGroup group : groups) {
-            if (group.getValueType() == type && group.getKey() instanceof UUID id) {
+            if (group.getKeyType() == type && group.getKey() instanceof UUID id) {
                 ids.add(id);
             }
         }

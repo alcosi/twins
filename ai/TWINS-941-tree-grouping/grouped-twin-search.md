@@ -132,7 +132,7 @@
 
 На последнем уровне лежит `twinIdList` — id листьев в порядке `memberSorts`. На верхних — `groups`. При одном уровне корни сразу содержат `twinIdList`. Полные `TwinDTOv2` попадают в `relatedObjects.twinMap` и только если в запросе задан `showTwinMode`; одна задача, попавшая в несколько узлов, сериализуется один раз.
 
-Ключ узла — вложенный объект `{ "type": ..., "value": ... }`. `type` — `TwinGroupValueType` — выбирает карту related objects:
+Ключ узла — вложенный объект `{ "type": ..., "value": ... }`. `type` — `TwinGroupKeyType` — выбирает карту related objects:
 
 | `type` | Откуда значение | Словарь related objects |
 | --- | --- | --- |
@@ -249,7 +249,7 @@
 ## Задачи реализации
 
 1. DTO запроса: `search` (`TwinSearchDTOv1`, `@NotNull @Valid`), `levels` (`@Size(min = 1, max = 3)`), `memberSorts` (`@Size(max = 2)`). Элемент уровня: `fieldId`, `sort`.
-2. DTO узла: `key` (`{type: TwinGroupValueType, value}`, `value` не вырезается при null), `count`, `groups`, `twinIdList`. `twinIdList` заполняется только на последнем уровне. Ответ расширяет `ResponseRelatedObjectsDTOv1`. Блока `pagination` нет.
+2. DTO узла: `key` (`{type: TwinGroupKeyType, value}`, `value` не вырезается при null), `count`, `groups`, `twinIdList`. `twinIdList` заполняется только на последнем уровне. Ответ расширяет `ResponseRelatedObjectsDTOv1`. Блока `pagination` нет.
 3. Доменные объекты. DTO в сервис не протекают, сущности в JSON не сериализуются.
 4. Валидация до выборки: один класс, длина уровней, уникальность `fieldId`, принадлежность полю класса (`isValidForClass`), резолвция link-поля (прямое направление), запрет `NAME_*` для ключей с i18n-именем, `memberSorts` по белому списку базовых полей.
 5. `TwinGroupedSearchService.search`, read-only. `COUNT` до `findAll`, потолок 5000. Полная выборка класса без `Pageable`. Поля пакетом через storage; связи одним целевым запросом по `linkId` полей-ссылок. Дерево в памяти, ключи с листа. `count` — размер множества id.

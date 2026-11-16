@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.enums.twin.TwinGroupValueType;
+import org.twins.core.enums.twin.TwinGroupKeyType;
 import org.twins.core.enums.twin.TwinGroupSort;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
@@ -17,7 +17,7 @@ public class TwinGroupLevel {
     private TwinGroupSort sort;
     private UUID resolvedLinkId;
     private boolean forwardLink;
-    private TwinGroupValueType valueType;
+    private TwinGroupKeyType keyType;
     private TwinEntity.BasicField basicField;
     private TwinClassFieldEntity dynamicField;
     private TwinFieldStorage storage;

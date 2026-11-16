@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dto.rest.twin.TwinGroupKeyDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchGroupDTOv1;
-import org.twins.core.enums.twin.TwinGroupValueType;
+import org.twins.core.enums.twin.TwinGroupKeyType;
 
 import java.util.List;
 
@@ -19,7 +19,7 @@ class TwinGroupedSearchGroupJsonTest {
     @Test
     void emptyUserKeyKeepsTypeAndNullValue() throws Exception {
         TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
-                .setKey(new TwinGroupKeyDTOv1().setType(TwinGroupValueType.USER).setValue(null))
+                .setKey(new TwinGroupKeyDTOv1().setType(TwinGroupKeyType.USER).setValue(null))
                 .setCount(3L)
                 .setTwinIdList(List.of());
         String json = mapper.writeValueAsString(dto);
@@ -31,7 +31,7 @@ class TwinGroupedSearchGroupJsonTest {
     @Test
     void emptyTwinKeyKeepsTypeAndNullValue() throws Exception {
         TwinGroupedSearchGroupDTOv1 dto = new TwinGroupedSearchGroupDTOv1()
-                .setKey(new TwinGroupKeyDTOv1().setType(TwinGroupValueType.TWIN).setValue(null))
+                .setKey(new TwinGroupKeyDTOv1().setType(TwinGroupKeyType.TWIN).setValue(null))
                 .setCount(1L)
                 .setTwinIdList(List.of());
         String json = mapper.writeValueAsString(dto);

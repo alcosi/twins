@@ -70,7 +70,7 @@ public final class TwinTreeAssembler {
             TwinGroup group = new TwinGroup()
                     .setKey(bucket.key)
                     .setCount(bucket.leafIds.size())
-                    .setValueType(level.getValueType())
+                    .setKeyType(level.getKeyType())
                     .setOptionSource(level.getOptionSource());
             if (last) {
                 group.setTwins(bucket.twins);

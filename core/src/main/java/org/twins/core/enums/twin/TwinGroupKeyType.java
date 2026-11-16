@@ -1,6 +1,6 @@
 package org.twins.core.enums.twin;
 
-public enum TwinGroupValueType {
+public enum TwinGroupKeyType {
     USER,
     STATUS,
     TWIN_CLASS,

@@ -151,7 +151,7 @@ class TwinTreeAssemblerTest {
         return List.of(
                 new TwinGroupLevel().setFieldId(STATUS).setSort(TwinGroupSort.KEY_ASC),
                 new TwinGroupLevel().setFieldId(ANN).setSort(TwinGroupSort.NAME_ASC),
-                new TwinGroupLevel().setFieldId(LINK).setValueType(org.twins.core.enums.twin.TwinGroupValueType.TWIN).setSort(TwinGroupSort.NAME_ASC)
+                new TwinGroupLevel().setFieldId(LINK).setKeyType(org.twins.core.enums.twin.TwinGroupKeyType.TWIN).setSort(TwinGroupSort.NAME_ASC)
         );
     }
 
