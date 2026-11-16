@@ -36,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -388,11 +389,25 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         loadStorage(Collections.singletonList(resource));
     }
 
+    /**
+     * Loads storages for resources without the read-permission check. The storageId is resolved from the
+     * resource row itself (never from user input), and access is already decided at the resource level:
+     * domain check on private APIs (findEntitySafe), resource.public flag on the public download path
+     * ({@link #findPublicResource(UUID)}). A public/anonymous request has no domain at all (browser
+     * {@code <img>} tags cannot send the DomainId header), so the storage domain check would deny every
+     * public download — see DomainService.loadStorages for the same pattern.
+     */
     public void loadStorage(Collection<ResourceEntity> resources) throws ServiceException {
-        storageService.load(resources,
-                ResourceEntity::getStorageId,
-                ResourceEntity::getStorage,
-                ResourceEntity::setStorage);
+        Collection<UUID> storageIds = resources.stream()
+                .map(ResourceEntity::getStorageId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<UUID, StorageEntity> storages = storageService
+                .findEntities(storageIds, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none)
+                .getCollection()
+                .stream()
+                .collect(Collectors.toMap(StorageEntity::getId, storage -> storage));
+        resources.forEach(resource -> resource.setStorage(storages.get(resource.getStorageId())));
     }
 
 }
