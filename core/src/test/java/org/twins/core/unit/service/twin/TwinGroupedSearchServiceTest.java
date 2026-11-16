@@ -22,6 +22,7 @@ import org.twins.core.domain.twin.TwinGroupCriterion;
 import org.twins.core.domain.twin.TwinGroupedSearch;
 import org.twins.core.domain.twin.TwinMemberSort;
 import org.twins.core.domain.twin.TwinGroupedSearchResult;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.twin.TwinGroupSort;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -35,6 +36,7 @@ import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinlink.TwinLinkService;
 import org.twins.core.service.user.UserService;
 import org.cambium.featurer.FeaturerService;
 
@@ -71,6 +73,8 @@ class TwinGroupedSearchServiceTest {
     @Mock
     private TwinService twinService;
     @Mock
+    private TwinLinkService twinLinkService;
+    @Mock
     private LinkService linkService;
     @Mock
     private AuthService authService;
@@ -84,7 +88,7 @@ class TwinGroupedSearchServiceTest {
     @BeforeEach
     void setUp() {
         service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, twinClassService, featurerService,
-                userService, twinService, linkService, authService);
+                userService, twinService, twinLinkService, linkService, authService);
     }
 
     @Test
@@ -188,7 +192,6 @@ class TwinGroupedSearchServiceTest {
         TwinClassEntity twinClass = new TwinClassEntity().setId(classId);
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
         when(twinClassService.findEntitySafe(classId)).thenReturn(twinClass);
-        when(twinSearchServiceV2.resolveGroupProvider(fieldId)).thenReturn(GroupExpressionProvider.ofField("value"));
         when(twinClassFieldService.findEntitySafe(fieldId)).thenReturn(field);
         when(twinClassFieldService.isValidForClass(twinClass, field)).thenReturn(false);
 
@@ -210,7 +213,6 @@ class TwinGroupedSearchServiceTest {
         LinkEntity link = new LinkEntity().setId(linkId);
         FieldTyperLink typer = mock(FieldTyperLink.class);
         when(twinClassService.findEntitySafe(classId)).thenReturn(twinClass);
-        when(twinSearchServiceV2.resolveGroupProvider(fieldId)).thenReturn(GroupExpressionProvider.ofField("value"));
         when(twinClassFieldService.findEntitySafe(fieldId)).thenReturn(field);
         when(twinClassFieldService.isValidForClass(twinClass, field)).thenReturn(true);
         when(featurerService.getFeaturer(1310, FieldTyper.class)).thenReturn(typer);
@@ -224,6 +226,62 @@ class TwinGroupedSearchServiceTest {
                 .setLevels(List.of(new TwinGroupCriterion().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC)))));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
         verify(twinSearchServiceV2, never()).count(any(Specification.class));
+    }
+
+    @Test
+    void unsupportedBasicMemberSortIsRejectedBeforeTheCount() throws Exception {
+        UUID classId = UUID.randomUUID();
+        UUID assigneeId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
+        when(twinClassService.findEntitySafe(classId)).thenReturn(new TwinClassEntity().setId(classId));
+        when(twinSearchServiceV2.resolveGroupProvider(assigneeId)).thenReturn(GroupExpressionProvider.ofField("assignerUserId"));
+        when(authService.getApiUser()).thenReturn(apiUser);
+        when(apiUser.getLocale()).thenReturn(Locale.ENGLISH);
+
+        ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
+                .setSearch(classes(classId))
+                .setLevels(List.of(assignee(TwinGroupSort.KEY_ASC)))
+                .setMemberSorts(List.of(new TwinMemberSort()
+                        .setFieldId(SystemIds.TwinClassField.Base.HEAD_ID)
+                        .setDirection(SortDirection.DESC)))));
+        assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
+        verify(twinSearchServiceV2, never()).count(any(Specification.class));
+    }
+
+    @Test
+    void linkCriterionLoadsOnlyTheResolvedLinkIdsInOneQuery() throws Exception {
+        UUID classId = UUID.randomUUID();
+        UUID fieldId = UUID.randomUUID();
+        UUID linkId = UUID.randomUUID();
+        TwinClassEntity twinClass = new TwinClassEntity().setId(classId);
+        HashMap<String, String> params = new HashMap<>();
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId).setFieldTyperFeaturerId(1310).setFieldTyperParams(params);
+        LinkEntity link = new LinkEntity().setId(linkId);
+        TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
+        FieldTyperLink typer = mock(FieldTyperLink.class);
+        when(twinClassService.findEntitySafe(classId)).thenReturn(twinClass);
+        when(twinClassFieldService.findEntitySafe(fieldId)).thenReturn(field);
+        when(twinClassFieldService.isValidForClass(twinClass, field)).thenReturn(true);
+        when(featurerService.getFeaturer(1310, FieldTyper.class)).thenReturn(typer);
+        when(typer.getStorage(field)).thenReturn(mock(TwinFieldStorageLink.class));
+        when(typer.getLinkId(params)).thenReturn(linkId);
+        when(linkService.findEntitySafe(linkId)).thenReturn(link);
+        when(linkService.detectLinkDirection(eq(link), isNull())).thenReturn(LinkService.LinkDirection.forward);
+        when(authService.getApiUser()).thenReturn(apiUser);
+        when(apiUser.getDomainId()).thenReturn(UUID.randomUUID());
+        when(apiUser.getLocale()).thenReturn(Locale.ENGLISH);
+        when(twinSearchServiceV2.createFilterSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
+        when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
+        when(twinSearchServiceV2.count(any(Specification.class))).thenReturn(1L);
+        when(twinSearchServiceV2.jpaSpecificationExecutor()).thenReturn(executor);
+        when(executor.findAll(any(Specification.class))).thenReturn(List.of(twin));
+
+        TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
+                .setSearch(classes(classId))
+                .setLevels(List.of(new TwinGroupCriterion().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC))));
+
+        assertEquals(1, result.getGroups().size());
+        assertNull(result.getGroups().get(0).getKey());
+        verify(twinLinkService).loadTwinForwardLinksByLinkIds(List.of(twin), Set.of(linkId));
     }
 
     private static BasicSearch classes(UUID... classIds) {

@@ -16,9 +16,4 @@ public class TwinGroupKeyDTOv1 {
     @JsonInclude(JsonInclude.Include.ALWAYS)
     @Schema(description = "Group key. Null is the empty group. For TWIN, USER, STATUS, TWIN_CLASS and DATA_LIST_OPTION this is the id in the matching relatedObjects map")
     public Object value;
-
-    @JsonInclude(JsonInclude.Include.ALWAYS)
-    public Object getValue() {
-        return value;
-    }
 }

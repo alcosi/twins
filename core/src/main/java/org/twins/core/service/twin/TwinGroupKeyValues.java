@@ -21,6 +21,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -55,7 +56,11 @@ public final class TwinGroupKeyValues {
             return single(twin.getTwinFieldBooleanKit(), fieldId, TwinFieldBooleanEntity::getValue);
         }
         if (storage instanceof TwinFieldStorageTimestamp) {
-            return single(twin.getTwinFieldTimestampKit(), fieldId, TwinFieldTimestampEntity::getValue);
+            return single(twin.getTwinFieldTimestampKit(), fieldId, row -> {
+                Timestamp value = row.getValue();
+                // LocalDateTime serializes without the JVM TZ shift a raw java.sql.Timestamp would add
+                return value == null ? null : value.toLocalDateTime();
+            });
         }
         throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                 "Field " + fieldId + " is not countable");

@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
@@ -31,14 +30,11 @@ import java.util.*;
 public class TwinFieldStorageLink extends TwinFieldStorage {
     private final TwinLinkService twinLinkService;
     @Lazy
-    @Autowired
-    private FeaturerService featurerService;
+    private final FeaturerService featurerService;
     @Lazy
-    @Autowired
-    private LinkService linkService;
+    private final LinkService linkService;
     @Lazy
-    @Autowired
-    private TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public void load(Kit<TwinEntity, UUID> twinsKit) throws ServiceException {

@@ -6,7 +6,6 @@ import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupCriterion;
 import org.twins.core.domain.twin.TwinGroupKeyKind;
 import org.twins.core.enums.twin.TwinGroupSort;
-import org.twins.core.service.twin.TwinGroupAssembler;
 import org.twins.core.service.twin.TwinTreeAssembler;
 
 import java.util.Arrays;
@@ -35,7 +34,7 @@ class TwinTreeAssemblerTest {
                 leaf(other, List.of(OTHER_STATUS), List.of(BOB), List.of())
         ), criteria());
 
-        roots.sort(TwinGroupAssembler.keys(true));
+        roots.sort(TwinTreeAssembler.keys(true));
         assertEquals(List.of(STATUS, OTHER_STATUS), keys(roots));
         assertEquals(1, roots.get(0).getCount());
         assertEquals(2, roots.get(0).getGroups().stream().flatMap(group -> group.getGroups().stream()).mapToInt(TwinGroup::getCount).sum());
@@ -56,7 +55,7 @@ class TwinTreeAssemblerTest {
                 leaf(ann, List.of(ANN)),
                 leaf(unassigned, List.of())
         ), List.of(assignee));
-        roots.sort(TwinGroupAssembler.names(Map.of(ANN, "Ann"), true));
+        roots.sort(TwinTreeAssembler.names(Map.of(ANN, "Ann"), true));
         assertEquals(Arrays.asList(ANN, null), keys(roots));
         assertEquals(List.of(ann.getId()), roots.get(0).getTwins().stream().map(TwinEntity::getId).toList());
         assertNull(roots.get(0).getGroups());
@@ -77,6 +76,76 @@ class TwinTreeAssemblerTest {
         assertEquals(1, roots.get(0).getCount());
         assertEquals(1, roots.get(1).getCount());
         assertEquals(2, roots.stream().mapToInt(TwinGroup::getCount).sum());
+    }
+
+    @Test
+    void duplicateLeavesAreKeptOnceAndPreserveMemberOrder() {
+        TwinEntity first = task(1, STATUS, BOB);
+        TwinEntity second = task(2, STATUS, ANN);
+        TwinEntity third = task(3, STATUS, BOB);
+        List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
+                leaf(first, List.of(BOB)),
+                leaf(second, List.of(ANN)),
+                leaf(first, List.of(BOB)),
+                leaf(third, List.of(BOB))
+        ), List.of(new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER)));
+
+        assertEquals(2, roots.size());
+        assertEquals(BOB, roots.get(0).getKey());
+        assertEquals(List.of(first.getId(), third.getId()),
+                roots.get(0).getTwins().stream().map(TwinEntity::getId).toList());
+        assertEquals(2, roots.get(0).getCount());
+        assertEquals(List.of(second.getId()),
+                roots.get(1).getTwins().stream().map(TwinEntity::getId).toList());
+    }
+
+    @Test
+    void nullKeyIsLastForKeyAndNameSortInBothDirections() {
+        TwinEntity unassigned = task(1, STATUS, null);
+        TwinEntity ann = task(2, STATUS, ANN);
+        TwinEntity bob = task(3, STATUS, BOB);
+        List<TwinGroup> groups = TwinTreeAssembler.assemble(List.of(
+                leaf(unassigned, List.of()),
+                leaf(ann, List.of(ANN)),
+                leaf(bob, List.of(BOB))
+        ), List.of(new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER)));
+
+        groups.sort(TwinTreeAssembler.keys(true));
+        assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
+        groups.sort(TwinTreeAssembler.keys(false));
+        assertEquals(Arrays.asList(BOB, ANN, null), keys(groups));
+
+        Map<UUID, String> names = Map.of(ANN, "Ann", BOB, "Bob");
+        groups.sort(TwinTreeAssembler.names(names, true));
+        assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
+        groups.sort(TwinTreeAssembler.names(names, false));
+        assertEquals(Arrays.asList(BOB, ANN, null), keys(groups));
+
+        groups.sort(TwinTreeAssembler.names(Map.of(ANN, "Ann", BOB, "Ann"), false));
+        assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
+    }
+
+    @Test
+    void countSortUsesSizeThenKeyAndKeepsALargerEmptyGroupFirst() {
+        TwinGroupCriterion assignee = new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER);
+        TwinEntity unassigned1 = task(1, STATUS, null);
+        TwinEntity unassigned2 = task(4, STATUS, null);
+        TwinEntity ann = task(2, STATUS, ANN);
+        List<TwinGroup> groups = TwinTreeAssembler.assemble(List.of(
+                leaf(unassigned1, List.of()),
+                leaf(ann, List.of(ANN)),
+                leaf(unassigned2, List.of())
+        ), List.of(assignee));
+        groups.sort(TwinTreeAssembler.counts(false));
+        assertEquals(Arrays.asList(null, ANN), keys(groups));
+
+        TwinEntity bob = task(3, STATUS, BOB);
+        groups = TwinTreeAssembler.assemble(List.of(
+                leaf(ann, List.of(ANN)),
+                leaf(bob, List.of(BOB))
+        ), List.of(assignee));
+        groups.sort(TwinTreeAssembler.counts(false));
+        assertEquals(List.of(ANN, BOB), keys(groups));
     }
 
     private static List<TwinGroupCriterion> criteria() {

@@ -39,12 +39,14 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.twinlink.TwinLinkService;
 import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,6 +66,7 @@ public class TwinGroupedSearchService {
     private final FeaturerService featurerService;
     private final UserService userService;
     private final TwinService twinService;
+    private final TwinLinkService twinLinkService;
     private final LinkService linkService;
     private final AuthService authService;
 
@@ -117,10 +120,22 @@ public class TwinGroupedSearchService {
         if (twins.isEmpty()) {
             return;
         }
+        // link criteria are loaded together with one targeted query filtered by the resolved link ids,
+        // instead of TwinFieldStorageLink.load which fetches every forward link of every twin
+        Set<UUID> linkIds = new LinkedHashSet<>();
         Set<TwinFieldStorage> considered = new HashSet<>();
         for (TwinGroupCriterion criterion : criteria) {
             TwinFieldStorage storage = criterion.getStorage();
-            if (storage == null || !considered.add(storage)) {
+            if (storage == null) {
+                continue;
+            }
+            if (storage instanceof TwinFieldStorageLink) {
+                if (criterion.getResolvedLinkId() != null) {
+                    linkIds.add(criterion.getResolvedLinkId());
+                }
+                continue;
+            }
+            if (!considered.add(storage)) {
                 continue;
             }
             List<TwinEntity> needLoad = new ArrayList<>();
@@ -132,6 +147,9 @@ public class TwinGroupedSearchService {
             if (!needLoad.isEmpty()) {
                 storage.load(new Kit<>(needLoad, TwinEntity::getId));
             }
+        }
+        if (!linkIds.isEmpty()) {
+            twinLinkService.loadTwinForwardLinksByLinkIds(twins, linkIds);
         }
     }
 
@@ -172,12 +190,12 @@ public class TwinGroupedSearchService {
 
     private Comparator<TwinGroup> order(TwinGroupCriterion criterion, List<TwinGroup> groups) throws ServiceException {
         return switch (criterion.getSort()) {
-            case NAME_ASC -> TwinGroupAssembler.names(loadNames(criterion, groups), true);
-            case NAME_DESC -> TwinGroupAssembler.names(loadNames(criterion, groups), false);
-            case COUNT_ASC -> TwinGroupAssembler.counts(true);
-            case COUNT_DESC -> TwinGroupAssembler.counts(false);
-            case KEY_ASC -> TwinGroupAssembler.keys(true);
-            case KEY_DESC -> TwinGroupAssembler.keys(false);
+            case NAME_ASC -> TwinTreeAssembler.names(loadNames(criterion, groups), true);
+            case NAME_DESC -> TwinTreeAssembler.names(loadNames(criterion, groups), false);
+            case COUNT_ASC -> TwinTreeAssembler.counts(true);
+            case COUNT_DESC -> TwinTreeAssembler.counts(false);
+            case KEY_ASC -> TwinTreeAssembler.keys(true);
+            case KEY_DESC -> TwinTreeAssembler.keys(false);
         };
     }
 
@@ -250,11 +268,12 @@ public class TwinGroupedSearchService {
         if (!seen.add("FIELD:" + criterion.getFieldId())) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "duplicate group criterion " + criterion.getFieldId());
         }
-        twinSearchServiceV2.resolveGroupProvider(criterion.getFieldId());
         TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(criterion.getFieldId());
         TwinGroupKeyKind kind = keyKind(basicField);
         criterion.setBasicField(basicField).setKeyKind(kind);
         if (basicField == null) {
+            // the class check goes first: a foreign-class field must fail with its own message,
+            // before any typer/link resolution round-trips
             TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(criterion.getFieldId());
             if (!twinClassFieldService.isValidForClass(twinClass, field)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
@@ -267,11 +286,21 @@ public class TwinGroupedSearchService {
                     .setStorage(storage)
                     .setDataListOption(dataList);
             if (storage instanceof TwinFieldStorageLink) {
-                resolveLinkField(criterion, field, (FieldTyperLink) fieldTyper);
+                // the link is resolved exactly once here; a successful resolveLinkField is the countability
+                // check for this storage, TwinFieldStorageLink.countGroup is never null
+                if (!(fieldTyper instanceof FieldTyperLink linkTyper)) {
+                    throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                            "Field " + field.getId() + " has link storage but its typer is not FieldTyperLink");
+                }
+                resolveLinkField(criterion, field, linkTyper);
             } else {
+                // non-link dynamic fields keep the count/v1 acceptance rule
+                twinSearchServiceV2.resolveGroupProvider(criterion.getFieldId());
                 criterion.setValueType(dynamicValueType(storage, dataList));
             }
         } else {
+            // basic fields keep the count/v1 acceptance rule (groupable column whitelist)
+            twinSearchServiceV2.resolveGroupProvider(criterion.getFieldId());
             if (basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID) {
                 criterion.setDataListOption(true);
             }
@@ -311,9 +340,9 @@ public class TwinGroupedSearchService {
             if (sort == null || sort.getFieldId() == null) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "memberSorts field is required");
             }
-            if (TwinEntity.BasicField.convertOrNull(sort.getFieldId()) == null) {
+            if (!TwinSearchServiceV2.isBasicSortFieldSupported(sort.getFieldId())) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
-                        "member sort field " + sort.getFieldId() + " is not a basic field");
+                        "member sort field " + sort.getFieldId() + " is not sortable");
             }
             spec = spec.and(twinSearchServiceV2.createSortSpecification(sort.getFieldId(), sort.getDirection(), locale));
         }

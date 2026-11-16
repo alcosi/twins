@@ -6,14 +6,18 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
+import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
 import org.twins.core.service.twin.TwinGroupKeyValues;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -52,6 +56,19 @@ class TwinGroupKeyValuesTest {
                 List.of(new TwinFieldDecimalEntity().setId(UUID.randomUUID()).setTwinClassFieldId(fieldId).setValue(new BigDecimal("0.00"))),
                 TwinFieldDecimalEntity::getTwinClassFieldId));
         assertEquals(List.of(BigDecimal.ZERO), TwinGroupKeyValues.dynamic(twin, field, mock(TwinFieldStorageDecimal.class)));
+    }
+
+    @Test
+    void timestampKeyIsLocalDateTimeWithoutTzShift() throws Exception {
+        UUID fieldId = UUID.randomUUID();
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
+        TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
+        twin.setTwinFieldTimestampKit(new Kit<>(
+                List.of(new TwinFieldTimestampEntity().setId(UUID.randomUUID()).setTwinClassFieldId(fieldId)
+                        .setValue(Timestamp.valueOf("2026-01-01 00:00:00"))),
+                TwinFieldTimestampEntity::getTwinClassFieldId));
+        assertEquals(List.of(LocalDateTime.of(2026, 1, 1, 0, 0)),
+                TwinGroupKeyValues.dynamic(twin, field, mock(TwinFieldStorageTimestamp.class)));
     }
 
     @Test

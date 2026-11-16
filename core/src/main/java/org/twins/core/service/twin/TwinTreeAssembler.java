@@ -6,9 +6,11 @@ import org.twins.core.domain.twin.TwinGroupCriterion;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public final class TwinTreeAssembler {
@@ -90,6 +92,73 @@ public final class TwinTreeAssembler {
             this.twin = twin;
             this.levelKeys = levelKeys;
         }
+    }
+
+    public static Comparator<TwinGroup> keys(boolean ascending) {
+        return (left, right) -> compareRaw(left.getKey(), right.getKey(), ascending);
+    }
+
+    public static Comparator<TwinGroup> counts(boolean ascending) {
+        return (left, right) -> {
+            int byCount = Integer.compare(left.getCount(), right.getCount());
+            if (!ascending) {
+                byCount = -byCount;
+            }
+            if (byCount != 0) {
+                return byCount;
+            }
+            return compareRaw(left.getKey(), right.getKey(), true);
+        };
+    }
+
+    public static Comparator<TwinGroup> names(Map<UUID, String> names, boolean ascending) {
+        return (left, right) -> {
+            if (left.getKey() == null || right.getKey() == null) {
+                return nullsLast(left.getKey(), right.getKey());
+            }
+            String leftName = names.get(left.getKey());
+            String rightName = names.get(right.getKey());
+            int byName = compareText(leftName, rightName, ascending);
+            if (byName != 0) {
+                return byName;
+            }
+            return ((UUID) left.getKey()).compareTo((UUID) right.getKey());
+        };
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static int compareRaw(Object left, Object right, boolean ascending) {
+        if (left == null || right == null) {
+            return nullsLast(left, right);
+        }
+        int compared;
+        if (left instanceof Comparable comparable && left.getClass().isInstance(right)) {
+            compared = comparable.compareTo(right);
+        } else {
+            compared = String.valueOf(left).compareTo(String.valueOf(right));
+        }
+        return ascending ? compared : -compared;
+    }
+
+    private static int nullsLast(Object left, Object right) {
+        if (left == right) {
+            return 0;
+        }
+        if (left == null) {
+            return 1;
+        }
+        if (right == null) {
+            return -1;
+        }
+        return 0;
+    }
+
+    private static int compareText(String left, String right, boolean ascending) {
+        if (left == null || right == null) {
+            return nullsLast(left, right);
+        }
+        int compared = left.compareTo(right);
+        return ascending ? compared : -compared;
     }
 
     private static final class Bucket {
