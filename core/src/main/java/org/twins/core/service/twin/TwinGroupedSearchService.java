@@ -295,13 +295,13 @@ public class TwinGroupedSearchService {
                 twinSearchServiceV2.resolveGroupProvider(level.getFieldId());
                 level.setKeyType(dynamicKeyType(storage));
                 if (level.getKeyType() == TwinGroupKeyType.DATA_LIST_OPTION) {
-                    level.setOptionSource(TwinGroupOptionSource.TWIN_FIELD);
+                    level.setDataListOptionSource(TwinGroupOptionSource.TWIN_FIELD);
                 }
             }
         } else {
             level.setKeyType(basicKeyType(basicField));
             if (basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID) {
-                level.setOptionSource(TwinGroupOptionSource.FLAVOR);
+                level.setDataListOptionSource(TwinGroupOptionSource.FLAVOR);
             }
             // basic fields keep the count/v1 acceptance rule (groupable column whitelist)
             twinSearchServiceV2.resolveGroupProvider(level.getFieldId());

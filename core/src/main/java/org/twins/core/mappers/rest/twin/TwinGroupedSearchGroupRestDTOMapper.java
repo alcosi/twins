@@ -220,7 +220,11 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
     private static List<UUID> optionIds(Collection<TwinGroup> groups, TwinGroupOptionSource source) {
         List<UUID> ids = new ArrayList<>();
         for (TwinGroup group : groups) {
-            if (group.getOptionSource() == source && group.getKey() instanceof UUID id) {
+            // the keyType guard makes the source discriminator meaningless outside DATA_LIST_OPTION,
+            // so even an inconsistent group cannot load its dictionary under the wrong show-mode
+            if (group.getKeyType() == TwinGroupKeyType.DATA_LIST_OPTION
+                    && group.getDataListOptionSource() == source
+                    && group.getKey() instanceof UUID id) {
                 ids.add(id);
             }
         }

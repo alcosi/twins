@@ -15,5 +15,5 @@ public class TwinGroup {
     private List<TwinGroup> groups;
     private int count;
     private TwinGroupKeyType keyType;
-    private TwinGroupOptionSource optionSource;
+    private TwinGroupOptionSource dataListOptionSource;
 }

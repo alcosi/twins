@@ -21,5 +21,5 @@ public class TwinGroupLevel {
     private TwinEntity.BasicField basicField;
     private TwinClassFieldEntity dynamicField;
     private TwinFieldStorage storage;
-    private TwinGroupOptionSource optionSource;
+    private TwinGroupOptionSource dataListOptionSource;
 }

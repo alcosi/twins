@@ -71,7 +71,7 @@ public final class TwinTreeAssembler {
                     .setKey(bucket.key)
                     .setCount(bucket.leafIds.size())
                     .setKeyType(level.getKeyType())
-                    .setOptionSource(level.getOptionSource());
+                    .setDataListOptionSource(level.getDataListOptionSource());
             if (last) {
                 group.setTwins(bucket.twins);
             } else {
