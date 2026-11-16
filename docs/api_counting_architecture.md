@@ -419,6 +419,8 @@ Fields not included in `groupFields` are `null`. `count` is the number of record
 3. **NULL grouping** — PostgreSQL `GROUP BY` automatically groups `NULL` into a separate group. This is correct behavior.
 4. **SearchDTO without sort** — count API does not support sorting, only filtering criteria.
 5. **Type safety** — enum whitelist, invalid `groupField` → 400 from Jackson.
+6. **No primary key** — do not put `id` in a group enum. Grouping by the primary key yields one group per row.
+7. **No request-fixed field** — do not group by a column the search already pins from the token (the caller's domain id). Every row shares that value.
 
 ---
 
@@ -454,6 +456,27 @@ Fields not included in `groupFields` are `null`. `count` is the number of record
 ```
 
 → response: `{ "counts": [{ "count": 1234 }] }`
+
+---
+
+## Example: Resource
+
+`POST /private/resource/count/v1`. Reuses `ResourceSearchDTOv1`. Guarded by `RESOURCE_MANAGE` or `RESOURCE_VIEW`. Show modes `showResource2UserMode` and `showResource2StorageMode` load the grouped reference into `relatedObjects` only when that field is in `groupFields`.
+
+| Enum value | Entity field | Type | Field in CountDTOv1 |
+| --- | --- | --- | --- |
+| `uploadedByUserId` | `uploadedByUserId` | UUID | `uploadedByUserId` |
+| `storageId` | `storageId` | UUID | `storageId` |
+
+`createdAt`, `originalFileName`, `storageFileKey` and `sizeInBytes` stay out of the enum: high cardinality. Indexes for the two group columns already exist: `idx_resource_uploaded_by_user_id`, `idx_resource_storage_id` (plus `idx_resource_domain_id` for the domain filter).
+
+```json
+{ "groupFields": ["uploadedByUserId", "storageId"] }
+```
+
+```json
+{ "groupFields": [] }
+```
 
 ---
 
