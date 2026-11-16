@@ -3,7 +3,7 @@ package org.twins.core.unit.service.twin;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twin.TwinGroup;
-import org.twins.core.domain.twin.TwinGroupCriterion;
+import org.twins.core.domain.twin.TwinGroupLevel;
 import org.twins.core.domain.twin.TwinGroupKeyKind;
 import org.twins.core.enums.twin.TwinGroupSort;
 import org.twins.core.service.twin.TwinTreeAssembler;
@@ -32,7 +32,7 @@ class TwinTreeAssemblerTest {
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(task, List.of(STATUS), List.of(ANN), List.of(DST_1, DST_2)),
                 leaf(other, List.of(OTHER_STATUS), List.of(BOB), List.of())
-        ), criteria());
+        ), levels());
 
         roots.sort(TwinTreeAssembler.keys(true));
         assertEquals(List.of(STATUS, OTHER_STATUS), keys(roots));
@@ -47,9 +47,9 @@ class TwinTreeAssemblerTest {
     void oneCriterionPutsTwinsOnTheRoot() {
         TwinEntity ann = task(1, STATUS, ANN);
         TwinEntity unassigned = task(2, STATUS, null);
-        TwinGroupCriterion assignee = new TwinGroupCriterion()
+        TwinGroupLevel assignee = new TwinGroupLevel()
                 .setFieldId(ANN)
-                .setKeyKind(TwinGroupKeyKind.ASSIGNER_USER)
+                .setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER)
                 .setSort(TwinGroupSort.NAME_ASC);
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(ann, List.of(ANN)),
@@ -65,7 +65,7 @@ class TwinTreeAssemblerTest {
     @Test
     void rootLinkCountsTheSameLeafInEachRoot() {
         TwinEntity task = task(1, STATUS, ANN);
-        TwinGroupCriterion link = new TwinGroupCriterion()
+        TwinGroupLevel link = new TwinGroupLevel()
                 .setFieldId(LINK)
                 .setKeyKind(TwinGroupKeyKind.DYNAMIC)
                 .setSort(TwinGroupSort.KEY_ASC);
@@ -88,7 +88,7 @@ class TwinTreeAssemblerTest {
                 leaf(second, List.of(ANN)),
                 leaf(first, List.of(BOB)),
                 leaf(third, List.of(BOB))
-        ), List.of(new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER)));
+        ), List.of(new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER)));
 
         assertEquals(2, roots.size());
         assertEquals(BOB, roots.get(0).getKey());
@@ -108,7 +108,7 @@ class TwinTreeAssemblerTest {
                 leaf(unassigned, List.of()),
                 leaf(ann, List.of(ANN)),
                 leaf(bob, List.of(BOB))
-        ), List.of(new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER)));
+        ), List.of(new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER)));
 
         groups.sort(TwinTreeAssembler.keys(true));
         assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
@@ -127,7 +127,7 @@ class TwinTreeAssemblerTest {
 
     @Test
     void countSortUsesSizeThenKeyAndKeepsALargerEmptyGroupFirst() {
-        TwinGroupCriterion assignee = new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER);
+        TwinGroupLevel assignee = new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER);
         TwinEntity unassigned1 = task(1, STATUS, null);
         TwinEntity unassigned2 = task(4, STATUS, null);
         TwinEntity ann = task(2, STATUS, ANN);
@@ -148,11 +148,11 @@ class TwinTreeAssemblerTest {
         assertEquals(List.of(ANN, BOB), keys(groups));
     }
 
-    private static List<TwinGroupCriterion> criteria() {
+    private static List<TwinGroupLevel> levels() {
         return List.of(
-                new TwinGroupCriterion().setFieldId(STATUS).setKeyKind(TwinGroupKeyKind.STATUS).setSort(TwinGroupSort.KEY_ASC),
-                new TwinGroupCriterion().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNER_USER).setSort(TwinGroupSort.NAME_ASC),
-                new TwinGroupCriterion().setFieldId(LINK).setKeyKind(TwinGroupKeyKind.DYNAMIC).setValueType(org.twins.core.enums.twin.TwinGroupValueType.TWIN).setSort(TwinGroupSort.NAME_ASC)
+                new TwinGroupLevel().setFieldId(STATUS).setKeyKind(TwinGroupKeyKind.STATUS).setSort(TwinGroupSort.KEY_ASC),
+                new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER).setSort(TwinGroupSort.NAME_ASC),
+                new TwinGroupLevel().setFieldId(LINK).setKeyKind(TwinGroupKeyKind.DYNAMIC).setValueType(org.twins.core.enums.twin.TwinGroupValueType.TWIN).setSort(TwinGroupSort.NAME_ASC)
         );
     }
 

@@ -18,7 +18,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twin.TwinGroup;
-import org.twins.core.domain.twin.TwinGroupCriterion;
+import org.twins.core.domain.twin.TwinGroupLevel;
 import org.twins.core.domain.twin.TwinGroupedSearch;
 import org.twins.core.domain.twin.TwinMemberSort;
 import org.twins.core.domain.twin.TwinGroupedSearchResult;
@@ -113,7 +113,7 @@ class TwinGroupedSearchServiceTest {
         when(twinSearchServiceV2.resolveGroupProvider(statusId)).thenReturn(GroupExpressionProvider.ofField("twinStatusId"));
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID()))
-                .setLevels(List.of(new TwinGroupCriterion()
+                .setLevels(List.of(new TwinGroupLevel()
                         .setFieldId(statusId)
                         .setSort(TwinGroupSort.NAME_ASC)))));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
@@ -197,7 +197,7 @@ class TwinGroupedSearchServiceTest {
 
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
                 .setSearch(classes(classId))
-                .setLevels(List.of(new TwinGroupCriterion().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC)))));
+                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC)))));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
         verify(twinSearchServiceV2, never()).count(any(Specification.class));
     }
@@ -223,7 +223,7 @@ class TwinGroupedSearchServiceTest {
 
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
                 .setSearch(classes(classId))
-                .setLevels(List.of(new TwinGroupCriterion().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC)))));
+                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC)))));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
         verify(twinSearchServiceV2, never()).count(any(Specification.class));
     }
@@ -277,7 +277,7 @@ class TwinGroupedSearchServiceTest {
 
         TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
                 .setSearch(classes(classId))
-                .setLevels(List.of(new TwinGroupCriterion().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC))));
+                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC))));
 
         assertEquals(1, result.getGroups().size());
         assertNull(result.getGroups().get(0).getKey());
@@ -290,8 +290,8 @@ class TwinGroupedSearchServiceTest {
         return search;
     }
 
-    private static TwinGroupCriterion assignee(TwinGroupSort sort) {
-        return new TwinGroupCriterion()
+    private static TwinGroupLevel assignee(TwinGroupSort sort) {
+        return new TwinGroupLevel()
                 .setFieldId(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)
                 .setSort(sort);
     }

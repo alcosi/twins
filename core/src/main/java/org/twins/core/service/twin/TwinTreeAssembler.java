@@ -2,7 +2,7 @@ package org.twins.core.service.twin;
 
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twin.TwinGroup;
-import org.twins.core.domain.twin.TwinGroupCriterion;
+import org.twins.core.domain.twin.TwinGroupLevel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +17,7 @@ public final class TwinTreeAssembler {
     private TwinTreeAssembler() {
     }
 
-    public static List<TwinGroup> assemble(List<Leaf> leaves, List<TwinGroupCriterion> criteria) {
+    public static List<TwinGroup> assemble(List<Leaf> leaves, List<TwinGroupLevel> levels) {
         Bucket root = new Bucket(null);
         LinkedHashSet<UUID> seen = new LinkedHashSet<>();
         if (leaves != null) {
@@ -25,10 +25,10 @@ public final class TwinTreeAssembler {
                 if (leaf == null || leaf.twin == null || leaf.twin.getId() == null || !seen.add(leaf.twin.getId())) {
                     continue;
                 }
-                expand(leaf, criteria.size(), new ArrayList<>(), root);
+                expand(leaf, levels.size(), new ArrayList<>(), root);
             }
         }
-        return toGroups(root.children.values(), 0, criteria);
+        return toGroups(root.children.values(), 0, levels);
     }
 
     private static void expand(Leaf leaf, int depth, List<Object> path, Bucket root) {
@@ -49,35 +49,34 @@ public final class TwinTreeAssembler {
         }
     }
 
-    private static void insert(Bucket node, List<Object> path, int level, TwinEntity twin) {
-        if (level == path.size()) {
+    private static void insert(Bucket node, List<Object> path, int levelIndex, TwinEntity twin) {
+        if (levelIndex == path.size()) {
             if (node.leafIds.add(twin.getId())) {
                 node.twins.add(twin);
             }
             return;
         }
         node.leafIds.add(twin.getId());
-        Object key = path.get(level);
+        Object key = path.get(levelIndex);
         Bucket child = node.children.computeIfAbsent(key, Bucket::new);
-        insert(child, path, level + 1, twin);
+        insert(child, path, levelIndex + 1, twin);
     }
 
-    private static List<TwinGroup> toGroups(Iterable<Bucket> buckets, int level, List<TwinGroupCriterion> criteria) {
-        TwinGroupCriterion criterion = criteria.get(level);
-        boolean last = level == criteria.size() - 1;
+    private static List<TwinGroup> toGroups(Iterable<Bucket> buckets, int levelIndex, List<TwinGroupLevel> levels) {
+        TwinGroupLevel level = levels.get(levelIndex);
+        boolean last = levelIndex == levels.size() - 1;
         List<TwinGroup> groups = new ArrayList<>();
         for (Bucket bucket : buckets) {
             TwinGroup group = new TwinGroup()
                     .setKey(bucket.key)
                     .setCount(bucket.leafIds.size())
-                    .setKeyKind(criterion.getKeyKind())
-                    .setValueType(criterion.getValueType())
-                    .setGroupFieldId(criterion.getFieldId())
-                    .setDataListOption(criterion.isDataListOption());
+                    .setKeyKind(level.getKeyKind())
+                    .setValueType(level.getValueType())
+                    .setDataListOption(level.isDataListOption());
             if (last) {
                 group.setTwins(bucket.twins);
             } else {
-                group.setGroups(toGroups(bucket.children.values(), level + 1, criteria));
+                group.setGroups(toGroups(bucket.children.values(), levelIndex + 1, levels));
             }
             groups.add(group);
         }

@@ -17,7 +17,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twin.TwinGroup;
-import org.twins.core.domain.twin.TwinGroupCriterion;
+import org.twins.core.domain.twin.TwinGroupLevel;
 import org.twins.core.domain.twin.TwinGroupKeyKind;
 import org.twins.core.domain.twin.TwinGroupedSearch;
 import org.twins.core.domain.twin.TwinGroupedSearchResult;
@@ -75,7 +75,7 @@ public class TwinGroupedSearchService {
         BasicSearch search = requireSingleClass(request == null ? null : request.getSearch());
         UUID classId = search.getTwinClassIdList().iterator().next();
         TwinClassEntity twinClass = twinClassService.findEntitySafe(classId);
-        List<TwinGroupCriterion> levels = resolveCriteria(request.getLevels(), twinClass);
+        List<TwinGroupLevel> levels = resolveLevels(request.getLevels(), twinClass);
 
         ApiUser apiUser = authService.getApiUser();
         Specification<TwinEntity> leavesOrder = memberOrder(request.getMemberSorts(), apiUser.getLocale());
@@ -102,36 +102,36 @@ public class TwinGroupedSearchService {
         return new TwinGroupedSearchResult().setGroups(groups);
     }
 
-    private List<List<Object>> levelKeys(TwinEntity twin, List<TwinGroupCriterion> criteria) throws ServiceException {
-        List<List<Object>> levels = new ArrayList<>(criteria.size());
-        for (TwinGroupCriterion criterion : criteria) {
-            if (criterion.getBasicField() != null) {
-                levels.add(TwinGroupKeyValues.basic(twin, criterion.getBasicField()));
-            } else if (criterion.getStorage() instanceof TwinFieldStorageLink) {
-                levels.add(TwinGroupKeyValues.linkEnds(twin.getTwinLinks(), criterion.getResolvedLinkId(), criterion.isForwardLink()));
+    private List<List<Object>> levelKeys(TwinEntity twin, List<TwinGroupLevel> levels) throws ServiceException {
+        List<List<Object>> keys = new ArrayList<>(levels.size());
+        for (TwinGroupLevel level : levels) {
+            if (level.getBasicField() != null) {
+                keys.add(TwinGroupKeyValues.basic(twin, level.getBasicField()));
+            } else if (level.getStorage() instanceof TwinFieldStorageLink) {
+                keys.add(TwinGroupKeyValues.linkEnds(twin.getTwinLinks(), level.getResolvedLinkId(), level.isForwardLink()));
             } else {
-                levels.add(TwinGroupKeyValues.dynamic(twin, criterion.getDynamicField(), criterion.getStorage()));
+                keys.add(TwinGroupKeyValues.dynamic(twin, level.getDynamicField(), level.getStorage()));
             }
         }
-        return levels;
+        return keys;
     }
 
-    private void loadDynamicFields(List<TwinEntity> twins, List<TwinGroupCriterion> criteria) throws ServiceException {
+    private void loadDynamicFields(List<TwinEntity> twins, List<TwinGroupLevel> levels) throws ServiceException {
         if (twins.isEmpty()) {
             return;
         }
-        // link criteria are loaded together with one targeted query filtered by the resolved link ids,
+        // link levels are loaded together with one targeted query filtered by the resolved link ids,
         // instead of TwinFieldStorageLink.load which fetches every forward link of every twin
         Set<UUID> linkIds = new LinkedHashSet<>();
         Set<TwinFieldStorage> considered = new HashSet<>();
-        for (TwinGroupCriterion criterion : criteria) {
-            TwinFieldStorage storage = criterion.getStorage();
+        for (TwinGroupLevel level : levels) {
+            TwinFieldStorage storage = level.getStorage();
             if (storage == null) {
                 continue;
             }
             if (storage instanceof TwinFieldStorageLink) {
-                if (criterion.getResolvedLinkId() != null) {
-                    linkIds.add(criterion.getResolvedLinkId());
+                if (level.getResolvedLinkId() != null) {
+                    linkIds.add(level.getResolvedLinkId());
                 }
                 continue;
             }
@@ -153,12 +153,12 @@ public class TwinGroupedSearchService {
         }
     }
 
-    private void sortTree(List<TwinGroup> roots, List<TwinGroupCriterion> criteria) throws ServiceException {
-        sortLevel(List.of(roots), 0, criteria);
+    private void sortTree(List<TwinGroup> roots, List<TwinGroupLevel> levels) throws ServiceException {
+        sortLevel(List.of(roots), 0, levels);
     }
 
-    private void sortLevel(List<List<TwinGroup>> siblingLists, int level, List<TwinGroupCriterion> criteria) throws ServiceException {
-        if (level >= criteria.size()) {
+    private void sortLevel(List<List<TwinGroup>> siblingLists, int levelIndex, List<TwinGroupLevel> levels) throws ServiceException {
+        if (levelIndex >= levels.size()) {
             return;
         }
         List<TwinGroup> atLevel = new ArrayList<>();
@@ -170,13 +170,13 @@ public class TwinGroupedSearchService {
         if (atLevel.isEmpty()) {
             return;
         }
-        Comparator<TwinGroup> comparator = order(criteria.get(level), atLevel);
+        Comparator<TwinGroup> comparator = groupOrder(levels.get(levelIndex), atLevel);
         for (List<TwinGroup> siblings : siblingLists) {
             if (siblings != null && siblings.size() > 1) {
                 siblings.sort(comparator);
             }
         }
-        if (level == criteria.size() - 1) {
+        if (levelIndex == levels.size() - 1) {
             return;
         }
         List<List<TwinGroup>> children = new ArrayList<>();
@@ -185,13 +185,13 @@ public class TwinGroupedSearchService {
                 children.add(group.getGroups());
             }
         }
-        sortLevel(children, level + 1, criteria);
+        sortLevel(children, levelIndex + 1, levels);
     }
 
-    private Comparator<TwinGroup> order(TwinGroupCriterion criterion, List<TwinGroup> groups) throws ServiceException {
-        return switch (criterion.getSort()) {
-            case NAME_ASC -> TwinTreeAssembler.names(loadNames(criterion, groups), true);
-            case NAME_DESC -> TwinTreeAssembler.names(loadNames(criterion, groups), false);
+    private Comparator<TwinGroup> groupOrder(TwinGroupLevel level, List<TwinGroup> groups) throws ServiceException {
+        return switch (level.getSort()) {
+            case NAME_ASC -> TwinTreeAssembler.names(loadNames(level, groups), true);
+            case NAME_DESC -> TwinTreeAssembler.names(loadNames(level, groups), false);
             case COUNT_ASC -> TwinTreeAssembler.counts(true);
             case COUNT_DESC -> TwinTreeAssembler.counts(false);
             case KEY_ASC -> TwinTreeAssembler.keys(true);
@@ -199,8 +199,8 @@ public class TwinGroupedSearchService {
         };
     }
 
-    private Map<UUID, String> loadNames(TwinGroupCriterion criterion, List<TwinGroup> groups) throws ServiceException {
-        if (!isNameSort(criterion.getSort())) {
+    private Map<UUID, String> loadNames(TwinGroupLevel level, List<TwinGroup> groups) throws ServiceException {
+        if (!isNameSort(level.getSort())) {
             return Map.of();
         }
         List<UUID> ids = new ArrayList<>();
@@ -213,7 +213,7 @@ public class TwinGroupedSearchService {
         if (ids.isEmpty()) {
             return names;
         }
-        if (criterion.getValueType() == TwinGroupValueType.TWIN) {
+        if (level.getValueType() == TwinGroupValueType.TWIN) {
             Kit<TwinEntity, UUID> nodes = twinService.findEntities(ids,
                     EntitySmartService.ListFindMode.ifMissedIgnore,
                     EntitySmartService.ReadPermissionCheckMode.ifDeniedLog,
@@ -240,41 +240,41 @@ public class TwinGroupedSearchService {
         return search;
     }
 
-    private List<TwinGroupCriterion> resolveCriteria(List<TwinGroupCriterion> criteria, TwinClassEntity twinClass) throws ServiceException {
-        if (criteria == null || criteria.isEmpty() || criteria.size() > 3) {
+    private List<TwinGroupLevel> resolveLevels(List<TwinGroupLevel> levels, TwinClassEntity twinClass) throws ServiceException {
+        if (levels == null || levels.isEmpty() || levels.size() > 3) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "levels accepts from 1 to 3 items");
         }
         Set<String> seen = new HashSet<>();
-        for (TwinGroupCriterion criterion : criteria) {
-            if (criterion == null) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "criterion is required");
+        for (TwinGroupLevel level : levels) {
+            if (level == null) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "level is required");
             }
-            resolveField(criterion, seen, twinClass);
-            if (criterion.getSort() == null) {
-                criterion.setSort(defaultSort(criterion));
+            resolveField(level, seen, twinClass);
+            if (level.getSort() == null) {
+                level.setSort(defaultSort(level));
             }
-            if (isNameSort(criterion.getSort()) && !nameSortable(criterion)) {
+            if (isNameSort(level.getSort()) && !nameSortable(level)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
-                        "NAME sort is not supported for criterion " + criterion.getFieldId());
+                        "NAME sort is not supported for level " + level.getFieldId());
             }
         }
-        return criteria;
+        return levels;
     }
 
-    private void resolveField(TwinGroupCriterion criterion, Set<String> seen, TwinClassEntity twinClass) throws ServiceException {
-        if (criterion.getFieldId() == null) {
+    private void resolveField(TwinGroupLevel level, Set<String> seen, TwinClassEntity twinClass) throws ServiceException {
+        if (level.getFieldId() == null) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "fieldId is required");
         }
-        if (!seen.add("FIELD:" + criterion.getFieldId())) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "duplicate group criterion " + criterion.getFieldId());
+        if (!seen.add("FIELD:" + level.getFieldId())) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "duplicate group level " + level.getFieldId());
         }
-        TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(criterion.getFieldId());
+        TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(level.getFieldId());
         TwinGroupKeyKind kind = keyKind(basicField);
-        criterion.setBasicField(basicField).setKeyKind(kind);
+        level.setBasicField(basicField).setKeyKind(kind);
         if (basicField == null) {
             // the class check goes first: a foreign-class field must fail with its own message,
             // before any typer/link resolution round-trips
-            TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(criterion.getFieldId());
+            TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(level.getFieldId());
             if (!twinClassFieldService.isValidForClass(twinClass, field)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                         "Field " + field.getId() + " does not belong to the searched class");
@@ -282,7 +282,7 @@ public class TwinGroupedSearchService {
             FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
             TwinFieldStorage storage = fieldTyper.getStorage(field);
             boolean dataList = TwinGroupKeyValues.isDataList(storage);
-            criterion.setDynamicField(field)
+            level.setDynamicField(field)
                     .setStorage(storage)
                     .setDataListOption(dataList);
             if (storage instanceof TwinFieldStorageLink) {
@@ -292,23 +292,23 @@ public class TwinGroupedSearchService {
                     throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                             "Field " + field.getId() + " has link storage but its typer is not FieldTyperLink");
                 }
-                resolveLinkField(criterion, field, linkTyper);
+                resolveLinkField(level, field, linkTyper);
             } else {
                 // non-link dynamic fields keep the count/v1 acceptance rule
-                twinSearchServiceV2.resolveGroupProvider(criterion.getFieldId());
-                criterion.setValueType(dynamicValueType(storage, dataList));
+                twinSearchServiceV2.resolveGroupProvider(level.getFieldId());
+                level.setValueType(dynamicValueType(storage, dataList));
             }
         } else {
             // basic fields keep the count/v1 acceptance rule (groupable column whitelist)
-            twinSearchServiceV2.resolveGroupProvider(criterion.getFieldId());
+            twinSearchServiceV2.resolveGroupProvider(level.getFieldId());
             if (basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID) {
-                criterion.setDataListOption(true);
+                level.setDataListOption(true);
             }
-            criterion.setValueType(valueType(kind));
+            level.setValueType(valueType(kind));
         }
     }
 
-    private void resolveLinkField(TwinGroupCriterion criterion, TwinClassFieldEntity field, FieldTyperLink typer) throws ServiceException {
+    private void resolveLinkField(TwinGroupLevel level, TwinClassFieldEntity field, FieldTyperLink typer) throws ServiceException {
         UUID linkId = typer.getLinkId(field.getFieldTyperParams());
         twinClassFieldService.loadTwinClass(field);
         LinkEntity link = linkService.findEntitySafe(linkId);
@@ -321,7 +321,7 @@ public class TwinGroupedSearchService {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                     "Field " + field.getId() + " is a backward link and cannot be used for grouped search");
         }
-        criterion.setResolvedLinkId(linkId)
+        level.setResolvedLinkId(linkId)
                 .setForwardLink(direction == LinkService.LinkDirection.forward)
                 .setValueType(TwinGroupValueType.TWIN);
     }
@@ -351,7 +351,7 @@ public class TwinGroupedSearchService {
 
     private static TwinGroupValueType valueType(TwinGroupKeyKind kind) {
         return switch (kind) {
-            case ASSIGNER_USER, OWNER_USER, CREATOR_USER -> TwinGroupValueType.USER;
+            case ASSIGNEE_USER, OWNER_USER, CREATOR_USER -> TwinGroupValueType.USER;
             case STATUS -> TwinGroupValueType.STATUS;
             case TWIN_CLASS -> TwinGroupValueType.TWIN_CLASS;
             case HEAD -> TwinGroupValueType.TWIN;
@@ -381,7 +381,7 @@ public class TwinGroupedSearchService {
             return TwinGroupKeyKind.DYNAMIC;
         }
         return switch (basicField) {
-            case ASSIGNEE_USER_ID -> TwinGroupKeyKind.ASSIGNER_USER;
+            case ASSIGNEE_USER_ID -> TwinGroupKeyKind.ASSIGNEE_USER;
             case OWNER_USER_ID -> TwinGroupKeyKind.OWNER_USER;
             case CREATOR_USER_ID -> TwinGroupKeyKind.CREATOR_USER;
             case TWIN_STATUS_ID -> TwinGroupKeyKind.STATUS;
@@ -393,13 +393,13 @@ public class TwinGroupedSearchService {
         };
     }
 
-    private static TwinGroupSort defaultSort(TwinGroupCriterion criterion) {
-        return nameSortable(criterion) ? TwinGroupSort.NAME_ASC : TwinGroupSort.KEY_ASC;
+    private static TwinGroupSort defaultSort(TwinGroupLevel level) {
+        return nameSortable(level) ? TwinGroupSort.NAME_ASC : TwinGroupSort.KEY_ASC;
     }
 
-    private static boolean nameSortable(TwinGroupCriterion criterion) {
-        return criterion.getValueType() == TwinGroupValueType.USER
-                || criterion.getValueType() == TwinGroupValueType.TWIN;
+    private static boolean nameSortable(TwinGroupLevel level) {
+        return level.getValueType() == TwinGroupValueType.USER
+                || level.getValueType() == TwinGroupValueType.TWIN;
     }
 
     private static boolean isNameSort(TwinGroupSort groupSort) {

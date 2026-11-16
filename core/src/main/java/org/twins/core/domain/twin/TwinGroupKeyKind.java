@@ -1,7 +1,7 @@
 package org.twins.core.domain.twin;
 
 public enum TwinGroupKeyKind {
-    ASSIGNER_USER,
+    ASSIGNEE_USER,
     OWNER_USER,
     CREATOR_USER,
     STATUS,

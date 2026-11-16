@@ -22,11 +22,11 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.domain.twin.TwinGroupCriterion;
+import org.twins.core.domain.twin.TwinGroupLevel;
 import org.twins.core.domain.twin.TwinGroupedSearch;
 import org.twins.core.domain.twin.TwinGroupedSearchResult;
 import org.twins.core.domain.twin.TwinMemberSort;
-import org.twins.core.dto.rest.twin.TwinGroupCriterionDTOv1;
+import org.twins.core.dto.rest.twin.TwinGroupLevelDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSortDTOv1;
@@ -82,19 +82,19 @@ public class TwinGroupedSearchController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    private static List<TwinGroupCriterion> levels(List<TwinGroupCriterionDTOv1> levels) {
+    private static List<TwinGroupLevel> levels(List<TwinGroupLevelDTOv1> levels) {
         if (levels == null) {
             return null;
         }
-        List<TwinGroupCriterion> result = new ArrayList<>(levels.size());
-        for (TwinGroupCriterionDTOv1 criterion : levels) {
-            if (criterion == null) {
+        List<TwinGroupLevel> result = new ArrayList<>(levels.size());
+        for (TwinGroupLevelDTOv1 level : levels) {
+            if (level == null) {
                 result.add(null);
                 continue;
             }
-            result.add(new TwinGroupCriterion()
-                    .setFieldId(criterion.getFieldId())
-                    .setSort(criterion.getSort()));
+            result.add(new TwinGroupLevel()
+                    .setFieldId(level.getFieldId())
+                    .setSort(level.getSort()));
         }
         return result;
     }

@@ -10,8 +10,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinGroupCriterionV1")
-public class TwinGroupCriterionDTOv1 {
+@Schema(name = "TwinGroupLevelV1")
+public class TwinGroupLevelDTOv1 {
     @NotNull
     @Schema(description = "Twin class field id. A column, a countable dynamic field, or a link-typed field")
     public UUID fieldId;

@@ -108,7 +108,7 @@ public class TwinGroupedSearchGroupRestDTOMapper extends RestSimpleDTOMapper<Twi
             twinRestDTOMapperV2.beforeCollectionConversion(unique, mapperContext);
             twinRestDTOMapperV2.postpone(unique, mapperContext);
         }
-        loadUsers(ids(nodes, TwinGroupKeyKind.ASSIGNER_USER, TwinGroupKeyKind.OWNER_USER, TwinGroupKeyKind.CREATOR_USER), mapperContext);
+        loadUsers(ids(nodes, TwinGroupKeyKind.ASSIGNEE_USER, TwinGroupKeyKind.OWNER_USER, TwinGroupKeyKind.CREATOR_USER), mapperContext);
         loadStatuses(ids(nodes, TwinGroupKeyKind.STATUS), mapperContext);
         loadClasses(ids(nodes, TwinGroupKeyKind.TWIN_CLASS), mapperContext);
         loadHeadAndLinkTwins(ids(nodes, TwinGroupKeyKind.HEAD), linkFieldTwinIds(nodes), mapperContext);

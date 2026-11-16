@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class TwinGroupCriterion {
+public class TwinGroupLevel {
     private UUID fieldId;
     private TwinGroupSort sort;
     private UUID resolvedLinkId;

@@ -6,7 +6,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.enums.twin.TwinGroupValueType;
 
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -17,6 +16,5 @@ public class TwinGroup {
     private int count;
     private TwinGroupKeyKind keyKind;
     private TwinGroupValueType valueType;
-    private UUID groupFieldId;
     private boolean dataListOption;
 }
