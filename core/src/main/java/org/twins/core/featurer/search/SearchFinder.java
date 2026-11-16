@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * Base class for preset-search finder featurers. Each implementation accumulates
+ * Base class for configured-search finder featurers. Each implementation accumulates
  * criteria into the given domain search object. Runtime context is passed via
  * {@code namedParamsMap} (e.g. current twin class id, current twin id).
  */

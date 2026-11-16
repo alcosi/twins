@@ -166,6 +166,10 @@ public final class SystemIds {
         public static final UUID UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000005");
     }
 
+    public static final class TwinCommentSearch {
+        public static final UUID UNLIMITED = UUID.fromString("00000000-0000-0000-0014-000000000006");
+    }
+
     public static final class PermissionScheme {
         public static final UUID DEFAULT = UUID.fromString("00000000-0000-0000-0016-000000000001");
     }

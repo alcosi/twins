@@ -10,8 +10,8 @@ import java.util.Properties;
 import java.util.function.Function;
 
 /**
- * Base class for preset-search sorter featurers. Returns a function wrapping the
- * filter specification with preset ordering, or {@code null} to keep the default sort.
+ * Base class for configured-search sorter featurers. Returns a function wrapping the
+ * filter specification with configured ordering, or {@code null} to keep the default sort.
  */
 @Slf4j
 public abstract class SearchSorter<E> extends FeaturerTwins {
