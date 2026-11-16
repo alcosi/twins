@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
-import org.twins.core.domain.twin.TwinGroupKeyKind;
 import org.twins.core.enums.twin.TwinGroupSort;
 import org.twins.core.service.twin.TwinTreeAssembler;
 
@@ -49,7 +48,7 @@ class TwinTreeAssemblerTest {
         TwinEntity unassigned = task(2, STATUS, null);
         TwinGroupLevel assignee = new TwinGroupLevel()
                 .setFieldId(ANN)
-                .setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER)
+                
                 .setSort(TwinGroupSort.NAME_ASC);
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(ann, List.of(ANN)),
@@ -67,7 +66,7 @@ class TwinTreeAssemblerTest {
         TwinEntity task = task(1, STATUS, ANN);
         TwinGroupLevel link = new TwinGroupLevel()
                 .setFieldId(LINK)
-                .setKeyKind(TwinGroupKeyKind.DYNAMIC)
+                
                 .setSort(TwinGroupSort.KEY_ASC);
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(task, List.of(DST_1, DST_2))
@@ -88,7 +87,7 @@ class TwinTreeAssemblerTest {
                 leaf(second, List.of(ANN)),
                 leaf(first, List.of(BOB)),
                 leaf(third, List.of(BOB))
-        ), List.of(new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER)));
+        ), List.of(new TwinGroupLevel().setFieldId(ANN)));
 
         assertEquals(2, roots.size());
         assertEquals(BOB, roots.get(0).getKey());
@@ -108,7 +107,7 @@ class TwinTreeAssemblerTest {
                 leaf(unassigned, List.of()),
                 leaf(ann, List.of(ANN)),
                 leaf(bob, List.of(BOB))
-        ), List.of(new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER)));
+        ), List.of(new TwinGroupLevel().setFieldId(ANN)));
 
         groups.sort(TwinTreeAssembler.keys(true));
         assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
@@ -127,7 +126,7 @@ class TwinTreeAssemblerTest {
 
     @Test
     void countSortUsesSizeThenKeyAndKeepsALargerEmptyGroupFirst() {
-        TwinGroupLevel assignee = new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER);
+        TwinGroupLevel assignee = new TwinGroupLevel().setFieldId(ANN);
         TwinEntity unassigned1 = task(1, STATUS, null);
         TwinEntity unassigned2 = task(4, STATUS, null);
         TwinEntity ann = task(2, STATUS, ANN);
@@ -150,9 +149,9 @@ class TwinTreeAssemblerTest {
 
     private static List<TwinGroupLevel> levels() {
         return List.of(
-                new TwinGroupLevel().setFieldId(STATUS).setKeyKind(TwinGroupKeyKind.STATUS).setSort(TwinGroupSort.KEY_ASC),
-                new TwinGroupLevel().setFieldId(ANN).setKeyKind(TwinGroupKeyKind.ASSIGNEE_USER).setSort(TwinGroupSort.NAME_ASC),
-                new TwinGroupLevel().setFieldId(LINK).setKeyKind(TwinGroupKeyKind.DYNAMIC).setValueType(org.twins.core.enums.twin.TwinGroupValueType.TWIN).setSort(TwinGroupSort.NAME_ASC)
+                new TwinGroupLevel().setFieldId(STATUS).setSort(TwinGroupSort.KEY_ASC),
+                new TwinGroupLevel().setFieldId(ANN).setSort(TwinGroupSort.NAME_ASC),
+                new TwinGroupLevel().setFieldId(LINK).setValueType(org.twins.core.enums.twin.TwinGroupValueType.TWIN).setSort(TwinGroupSort.NAME_ASC)
         );
     }
 

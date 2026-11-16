@@ -89,10 +89,6 @@ public final class TwinGroupKeyValues {
         return new ArrayList<>(ids);
     }
 
-    public static boolean isDataList(TwinFieldStorage storage) {
-        return storage instanceof TwinFieldStorageDatalist;
-    }
-
     private static List<Object> dataList(KitGrouped<TwinFieldDataListEntity, UUID, UUID> kit, UUID fieldId) {
         if (kit == null || !kit.containsGroupedKey(fieldId)) {
             return Collections.singletonList(null);

@@ -21,25 +21,16 @@ import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.ProtectedBy;
-import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.domain.twin.TwinGroupLevel;
-import org.twins.core.domain.twin.TwinGroupedSearch;
 import org.twins.core.domain.twin.TwinGroupedSearchResult;
-import org.twins.core.domain.twin.TwinMemberSort;
-import org.twins.core.dto.rest.twin.TwinGroupLevelDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinGroupedSearchRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinSortDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twin.TwinGroupedSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinGroupedSearchGroupRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinGroupedSearchService;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Tag(description = "", name = ApiTag.TWIN)
 @RestController
@@ -48,7 +39,7 @@ import java.util.List;
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
 public class TwinGroupedSearchController extends ApiController {
     private final TwinGroupedSearchService twinGroupedSearchService;
-    private final TwinSearchDTOReverseMapper twinSearchDTOReverseMapper;
+    private final TwinGroupedSearchDTOReverseMapper twinGroupedSearchDTOReverseMapper;
     private final TwinGroupedSearchGroupRestDTOMapper twinGroupedSearchGroupRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
@@ -66,11 +57,7 @@ public class TwinGroupedSearchController extends ApiController {
             @RequestBody @Valid TwinGroupedSearchRqDTOv1 request) {
         TwinGroupedSearchRsDTOv1 rs = new TwinGroupedSearchRsDTOv1();
         try {
-            BasicSearch search = request.getSearch() == null ? null : twinSearchDTOReverseMapper.convert(request.getSearch());
-            TwinGroupedSearchResult result = twinGroupedSearchService.search(new TwinGroupedSearch()
-                    .setSearch(search)
-                    .setLevels(levels(request.getLevels()))
-                    .setMemberSorts(memberSorts(request.getMemberSorts())));
+            TwinGroupedSearchResult result = twinGroupedSearchService.search(twinGroupedSearchDTOReverseMapper.convert(request));
             rs
                     .setGroups(twinGroupedSearchGroupRestDTOMapper.convertCollection(result.getGroups(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
@@ -80,39 +67,5 @@ public class TwinGroupedSearchController extends ApiController {
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    private static List<TwinGroupLevel> levels(List<TwinGroupLevelDTOv1> levels) {
-        if (levels == null) {
-            return null;
-        }
-        List<TwinGroupLevel> result = new ArrayList<>(levels.size());
-        for (TwinGroupLevelDTOv1 level : levels) {
-            if (level == null) {
-                result.add(null);
-                continue;
-            }
-            result.add(new TwinGroupLevel()
-                    .setFieldId(level.getFieldId())
-                    .setSort(level.getSort()));
-        }
-        return result;
-    }
-
-    private static List<TwinMemberSort> memberSorts(List<TwinSortDTOv1> sorts) {
-        if (sorts == null) {
-            return null;
-        }
-        List<TwinMemberSort> memberSorts = new ArrayList<>(sorts.size());
-        for (TwinSortDTOv1 sort : sorts) {
-            if (sort == null) {
-                memberSorts.add(null);
-                continue;
-            }
-            memberSorts.add(new TwinMemberSort()
-                    .setFieldId(sort.getTwinClassFieldId())
-                    .setDirection(sort.getDirection()));
-        }
-        return memberSorts;
     }
 }

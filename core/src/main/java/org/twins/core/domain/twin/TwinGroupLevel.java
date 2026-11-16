@@ -17,10 +17,9 @@ public class TwinGroupLevel {
     private TwinGroupSort sort;
     private UUID resolvedLinkId;
     private boolean forwardLink;
-    private TwinGroupKeyKind keyKind;
     private TwinGroupValueType valueType;
     private TwinEntity.BasicField basicField;
     private TwinClassFieldEntity dynamicField;
     private TwinFieldStorage storage;
-    private boolean dataListOption;
+    private TwinGroupOptionSource optionSource;
 }

@@ -14,7 +14,6 @@ public class TwinGroup {
     private List<TwinEntity> twins;
     private List<TwinGroup> groups;
     private int count;
-    private TwinGroupKeyKind keyKind;
     private TwinGroupValueType valueType;
-    private boolean dataListOption;
+    private TwinGroupOptionSource optionSource;
 }
