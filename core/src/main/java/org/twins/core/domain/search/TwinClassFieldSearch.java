@@ -1,11 +1,9 @@
 package org.twins.core.domain.search;
 
-import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.math.LongRange;
 import org.cambium.common.util.SetUtils;
 import org.cambium.common.util.Ternary;
@@ -13,8 +11,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 
 @Data
@@ -22,40 +18,98 @@ import java.util.function.Function;
 @FieldNameConstants
 @EqualsAndHashCode(callSuper = false)
 public class TwinClassFieldSearch extends EntitySearch<TwinClassFieldEntity> implements ConfiguredSearchHolder<TwinClassFieldSearchEntity> {
+    @SearchFilter
     private Set<UUID> idList;
+
+    @SearchFilter
     private Set<UUID> idExcludeList;
+
+    @SearchFilter
     private Map<UUID, Boolean> twinClassIdMap;
+
+    @SearchFilter
     private Map<UUID, Boolean> twinClassIdExcludeMap;
+
+    @SearchFilter
     private Set<String> keyLikeList;
+
+    @SearchFilter
     private Set<String> keyNotLikeList;
+
+    @SearchFilter
     private Set<String> nameI18nLikeList;
+
+    @SearchFilter
     private Set<String> nameI18nNotLikeList;
+
+    @SearchFilter
     private Set<String> descriptionI18nLikeList;
+
+    @SearchFilter
     private Set<String> descriptionI18nNotLikeList;
+
+    @SearchFilter
     private Set<String> externalIdLikeList;
+
+    @SearchFilter
     private Set<String> externalIdNotLikeList;
+
+    @SearchFilter
     private Set<Integer> fieldTyperIdList;
+
+    @SearchFilter
     private Set<Integer> fieldTyperIdExcludeList;
+
+    @SearchFilter
     private Set<Integer> fieldInitiatorIdList;
+
+    @SearchFilter
     private Set<Integer> fieldInitiatorIdExcludeList;
+
+    @SearchFilter
     private Set<Integer> twinSorterIdList;
+
+    @SearchFilter
     private Set<Integer> twinSorterIdExcludeList;
-    private LongRange orderRange;
+
+    @SearchFilter
     private Set<UUID> viewPermissionIdList;
+
+    @SearchFilter
     private Set<UUID> viewPermissionIdExcludeList;
+
+    @SearchFilter
     private Set<UUID> editPermissionIdList;
+
+    @SearchFilter
     private Set<UUID> editPermissionIdExcludeList;
+
+    @SearchFilter
     private Ternary required;
+
+    @SearchFilter
     private Ternary system;
+
+    @SearchFilter
     private Ternary inheritable;
+
+    @SearchFilter
     private Ternary dependentField;
+
+    @SearchFilter
     private Ternary hasDependentFields;
+
+    @SearchFilter
+    private Ternary projectionField;
+
+    @SearchFilter
+    private Ternary hasProjectionFields;
+
+    private LongRange orderRange;
     private boolean excludeSystemFields = true;
     private boolean emptySearch = false;
     private TwinClassFieldSearchEntity configuredSearch;
     private FieldProjectionSearch fieldProjectionSearch;
-    private Ternary projectionField;
-    private Ternary hasProjectionFields;
 
     public TwinClassFieldSearch addTwinClassId(final UUID id, final boolean searchExtends, boolean exclude) {
         if (exclude) {
@@ -102,35 +156,4 @@ public class TwinClassFieldSearch extends EntitySearch<TwinClassFieldEntity> imp
                 this::getIdList, this::setIdList,
                 this::getIdExcludeList, this::setIdExcludeList);
     }
-
-    public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>>> SET_FIELDS = ImmutableList.of(
-            Pair.of(TwinClassFieldSearch::getIdList, TwinClassFieldSearch::setIdList),
-            Pair.of(TwinClassFieldSearch::getKeyLikeList, TwinClassFieldSearch::setKeyLikeList),
-            Pair.of(TwinClassFieldSearch::getKeyNotLikeList, TwinClassFieldSearch::setKeyNotLikeList),
-            Pair.of(TwinClassFieldSearch::getNameI18nLikeList, TwinClassFieldSearch::setNameI18nLikeList),
-            Pair.of(TwinClassFieldSearch::getNameI18nNotLikeList, TwinClassFieldSearch::setNameI18nNotLikeList),
-            Pair.of(TwinClassFieldSearch::getDescriptionI18nLikeList, TwinClassFieldSearch::setDescriptionI18nLikeList),
-            Pair.of(TwinClassFieldSearch::getDescriptionI18nNotLikeList, TwinClassFieldSearch::setDescriptionI18nNotLikeList),
-            Pair.of(TwinClassFieldSearch::getExternalIdLikeList, TwinClassFieldSearch::setExternalIdLikeList),
-            Pair.of(TwinClassFieldSearch::getExternalIdNotLikeList, TwinClassFieldSearch::setExternalIdNotLikeList),
-            Pair.of(TwinClassFieldSearch::getFieldTyperIdList, TwinClassFieldSearch::setFieldTyperIdList),
-            Pair.of(TwinClassFieldSearch::getFieldTyperIdExcludeList, TwinClassFieldSearch::setFieldTyperIdExcludeList),
-            Pair.of(TwinClassFieldSearch::getFieldInitiatorIdList, TwinClassFieldSearch::setFieldInitiatorIdList),
-            Pair.of(TwinClassFieldSearch::getFieldInitiatorIdExcludeList, TwinClassFieldSearch::setFieldInitiatorIdExcludeList),
-            Pair.of(TwinClassFieldSearch::getTwinSorterIdList, TwinClassFieldSearch::setTwinSorterIdList),
-            Pair.of(TwinClassFieldSearch::getTwinSorterIdExcludeList, TwinClassFieldSearch::setTwinSorterIdExcludeList),
-            Pair.of(TwinClassFieldSearch::getViewPermissionIdList, TwinClassFieldSearch::setViewPermissionIdList),
-            Pair.of(TwinClassFieldSearch::getViewPermissionIdExcludeList, TwinClassFieldSearch::setViewPermissionIdExcludeList),
-            Pair.of(TwinClassFieldSearch::getEditPermissionIdList, TwinClassFieldSearch::setEditPermissionIdList),
-            Pair.of(TwinClassFieldSearch::getEditPermissionIdExcludeList, TwinClassFieldSearch::setEditPermissionIdExcludeList)
-    );
-
-    public static final ImmutableList<Pair<Function<TwinClassFieldSearch, Ternary>, BiConsumer<TwinClassFieldSearch, Ternary>>> TERNARY_FIELD = ImmutableList.of(
-            Pair.of(TwinClassFieldSearch::getRequired, TwinClassFieldSearch::setRequired),
-            Pair.of(TwinClassFieldSearch::getSystem, TwinClassFieldSearch::setSystem),
-            Pair.of(TwinClassFieldSearch::getProjectionField, TwinClassFieldSearch::setProjectionField),
-            Pair.of(TwinClassFieldSearch::getHasProjectionFields, TwinClassFieldSearch::setHasProjectionFields),
-            Pair.of(TwinClassFieldSearch::getHasDependentFields, TwinClassFieldSearch::setHasDependentFields),
-            Pair.of(TwinClassFieldSearch::getDependentField, TwinClassFieldSearch::setDependentField)
-    );
 }

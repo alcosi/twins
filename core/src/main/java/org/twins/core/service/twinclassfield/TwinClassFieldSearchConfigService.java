@@ -2,13 +2,9 @@ package org.twins.core.service.twinclassfield;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.Ternary;
-import org.cambium.common.util.TernaryUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -25,12 +21,8 @@ import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
-
-import static org.cambium.common.util.SetUtils.narrowSet;
 
 @Slf4j
 @Service
@@ -99,25 +91,5 @@ public class TwinClassFieldSearchConfigService extends ConfiguredSearchService<T
     @Override
     protected PaginationResult<TwinClassFieldEntity> runFreeSearch(TwinClassFieldSearch search, SimplePagination pagination) throws ServiceException {
         return twinClassFieldSearchService.search(search, pagination);
-    }
-
-    @Override
-    protected void narrowSearch(TwinClassFieldSearch mainSearch, TwinClassFieldSearch narrowSearch) {
-        if (narrowSearch == null)
-            return;
-
-        for (Pair<Function<TwinClassFieldSearch, Set>, BiConsumer<TwinClassFieldSearch, Set>> functionPair : TwinClassFieldSearch.SET_FIELDS) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
-        }
-        for (Pair<Function<TwinClassFieldSearch, Ternary>, BiConsumer<TwinClassFieldSearch, Ternary>> functionPair : TwinClassFieldSearch.TERNARY_FIELD) {
-            Ternary mainSet = functionPair.getKey().apply(mainSearch);
-            Ternary narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainSet, narrowSet));
-        }
-
-        mainSearch.setTwinClassIdMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdMap(), narrowSearch.getTwinClassIdMap(), Boolean.TRUE));
-        mainSearch.setTwinClassIdExcludeMap(MapUtils.narrowMapOfBooleans(mainSearch.getTwinClassIdExcludeMap(), narrowSearch.getTwinClassIdExcludeMap(), Boolean.TRUE));
     }
 }

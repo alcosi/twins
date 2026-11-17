@@ -6,7 +6,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
-import org.twins.core.domain.search.ConfiguredSearchPredicate;
+import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
 
 import java.util.HashMap;
 import java.util.UUID;

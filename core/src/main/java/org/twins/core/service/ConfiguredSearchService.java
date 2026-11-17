@@ -3,25 +3,31 @@ package org.twins.core.service;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.util.Ternary;
+import org.cambium.common.util.TernaryUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.twins.core.dao.annotation.ConfiguredSearch;
+import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.search.ConfiguredSearch;
 import org.twins.core.domain.search.ConfiguredSearchHolder;
-import org.twins.core.domain.search.ConfiguredSearchPredicate;
+import org.twins.core.domain.search.SearchFilter;
 import org.twins.core.featurer.search.SearchFinder;
 import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.cambium.common.util.SetUtils.narrowSet;
 
 /**
  * Base class for {@code <X>SearchConfigService} — owns the configured-search execution flow
@@ -37,6 +43,7 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
 
     @Autowired
     protected AuthService authService;
+
     @Autowired
     protected FeaturerService featurerService;
 
@@ -87,6 +94,25 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
         return spec;
     }
 
+    /**
+     * Intersects the client filter with the configured search (restriction only, never extension):
+     * narrows all {@link SearchFilter}-annotated fields generically (scanned once per class,
+     * then cached), then calls {@link #narrowSearchSpecific} for cases the scan cannot express.
+     */
+    protected void narrowSearch(R mainSearch, R narrowSearch) {
+        if (narrowSearch == null) {
+            return;
+        }
+        for (FieldNarrowing fieldNarrowing : NARROWING_CACHE.computeIfAbsent(mainSearch.getClass(), ConfiguredSearchService::scanNarrowableFields)) {
+            fieldNarrowing.narrow(mainSearch, narrowSearch);
+        }
+        narrowSearchSpecific(mainSearch, narrowSearch);
+    }
+
+    /** Hook for narrowing that the generic {@link SearchFilter} scan cannot express. */
+    protected void narrowSearchSpecific(R mainSearch, R narrowSearch) {
+    }
+
     /** The system "no configured search" row id — short-circuits to free search. */
     protected abstract UUID unlimitedSearchId();
 
@@ -99,13 +125,65 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
 
     protected abstract Class<? extends SearchSorter<E>> sorterClass();
 
-    /** Intersects the client filter with the configured search (restriction only). */
-    protected abstract void narrowSearch(R mainSearch, R narrowSearch);
-
     protected abstract Specification<E> createFilterSpecification(R search, UUID domainId, Locale locale) throws ServiceException;
 
     protected abstract JpaSpecificationExecutor<E> searchExecutor();
 
     /** UNLIMITED path: plain free search over the narrow filter. */
     protected abstract PaginationResult<E> runFreeSearch(R search, SimplePagination pagination) throws ServiceException;
+
+    // Generic narrowing over @SearchFilter fields. Narrowed types: Set, Ternary, Map<UUID,Boolean>
+    // (map entries carry a Boolean flag, narrowed with Boolean.TRUE semantics). Fields of any other
+    // type (ranges, hierarchy objects) are skipped — the annotation marks them as filter fields,
+    // but narrowing for them is not implemented yet.
+
+    private static final Map<Class<?>, List<FieldNarrowing>> NARROWING_CACHE = new ConcurrentHashMap<>();
+
+    private static List<FieldNarrowing> scanNarrowableFields(Class<?> searchClass) {
+        List<FieldNarrowing> result = new ArrayList<>();
+        for (Class<?> clazz = searchClass; clazz != null && clazz != Object.class; clazz = clazz.getSuperclass()) {
+            for (Field field : clazz.getDeclaredFields()) {
+                if (field.isSynthetic() || Modifier.isStatic(field.getModifiers()) || !field.isAnnotationPresent(SearchFilter.class))
+                    continue;
+                FieldNarrowing fieldNarrowing = fieldNarrowingFor(field);
+                if (fieldNarrowing != null) {
+                    field.setAccessible(true);
+                    result.add(fieldNarrowing);
+                }
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static FieldNarrowing fieldNarrowingFor(Field field) {
+        Class<?> type = field.getType();
+        if (Set.class.isAssignableFrom(type))
+            return (main, narrow) -> writeField(field, main, narrowSet((Set) readField(field, main), (Set) readField(field, narrow)));
+        if (Ternary.class.isAssignableFrom(type))
+            return (main, narrow) -> writeField(field, main, TernaryUtils.narrow((Ternary) readField(field, main), (Ternary) readField(field, narrow)));
+        if (Map.class.isAssignableFrom(type))
+            return (main, narrow) -> writeField(field, main, MapUtils.narrowMapOfBooleans((Map<UUID, Boolean>) readField(field, main), (Map<UUID, Boolean>) readField(field, narrow), Boolean.TRUE));
+        return null;
+    }
+
+    private static Object readField(Field field, Object search) {
+        try {
+            return field.get(search);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static void writeField(Field field, Object search, Object value) {
+        try {
+            field.set(search, value);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private interface FieldNarrowing {
+        void narrow(Object mainSearch, Object narrowSearch);
+    }
 }

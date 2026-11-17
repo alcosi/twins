@@ -1,10 +1,8 @@
 package org.twins.core.domain.search;
 
-import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.SetUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -13,34 +11,75 @@ import org.twins.core.enums.datalist.DataListStatus;
 
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
 public class DataListOptionSearch extends EntitySearch<DataListOptionEntity> implements ConfiguredSearchHolder<DataListOptionSearchEntity> {
+    @SearchFilter
     private Set<UUID> idList;
+
+    @SearchFilter
     private Set<UUID> idExcludeList;
+
+    @SearchFilter
     private Set<UUID> dataListIdList;
+
+    @SearchFilter
     private Set<UUID> dataListIdExcludeList;
+
+    @SearchFilter
     private Set<String> dataListKeyList;
+
+    @SearchFilter
     private Set<String> dataListKeyExcludeList;
+
+    @SearchFilter
     private Set<String> optionLikeList;
+
+    @SearchFilter
     private Set<String> optionNotLikeList;
+
+    @SearchFilter
     private Set<String> optionI18nLikeList;
+
+    @SearchFilter
     private Set<String> optionI18nNotLikeList;
+
+    @SearchFilter
     private Set<String> externalIdList;
+
+    @SearchFilter
     private Set<String> externalIdExcludeList;
+
+    @SearchFilter
     private Set<UUID> businessAccountIdList;
+
+    @SearchFilter
     private Set<UUID> businessAccountIdExcludeList;
+
+    @SearchFilter
     private Set<UUID> dataListSubsetIdList;
+
+    @SearchFilter
     private Set<UUID> dataListSubsetIdExcludeList;
+
+    @SearchFilter
     private Set<String> dataListSubsetKeyList;
+
+    @SearchFilter
     private Set<String> dataListSubsetKeyExcludeList;
+
+    @SearchFilter
     private Set<DataListStatus> statusIdList;
+
+    @SearchFilter
     private Set<DataListStatus> statusIdExcludeList;
+
+    @SearchFilter
     private Set<UUID> validForTwinClassFieldIdList;
+
+    @SearchFilter
     private Ternary custom;
 
     private DataListOptionSearchEntity configuredSearch;
@@ -69,32 +108,4 @@ public class DataListOptionSearch extends EntitySearch<DataListOptionEntity> imp
                 this::getOptionLikeList, this::setOptionLikeList,
                 this::getOptionNotLikeList, this::setOptionNotLikeList);
     }
-
-    public static final ImmutableList<Pair<Function<DataListOptionSearch, Set>, BiConsumer<DataListOptionSearch, Set>>> SET_FIELDS = ImmutableList.of(
-            Pair.of(DataListOptionSearch::getIdList, DataListOptionSearch::setIdList),
-            Pair.of(DataListOptionSearch::getIdExcludeList, DataListOptionSearch::setIdExcludeList),
-            Pair.of(DataListOptionSearch::getDataListIdList, DataListOptionSearch::setDataListIdList),
-            Pair.of(DataListOptionSearch::getDataListIdExcludeList, DataListOptionSearch::setDataListIdExcludeList),
-            Pair.of(DataListOptionSearch::getDataListKeyList, DataListOptionSearch::setDataListKeyList),
-            Pair.of(DataListOptionSearch::getDataListKeyExcludeList, DataListOptionSearch::setDataListKeyExcludeList),
-            Pair.of(DataListOptionSearch::getOptionLikeList, DataListOptionSearch::setOptionLikeList),
-            Pair.of(DataListOptionSearch::getOptionNotLikeList, DataListOptionSearch::setOptionNotLikeList),
-            Pair.of(DataListOptionSearch::getOptionI18nLikeList, DataListOptionSearch::setOptionI18nLikeList),
-            Pair.of(DataListOptionSearch::getOptionI18nNotLikeList, DataListOptionSearch::setOptionI18nNotLikeList),
-            Pair.of(DataListOptionSearch::getExternalIdList, DataListOptionSearch::setExternalIdList),
-            Pair.of(DataListOptionSearch::getExternalIdExcludeList, DataListOptionSearch::setExternalIdExcludeList),
-            Pair.of(DataListOptionSearch::getBusinessAccountIdList, DataListOptionSearch::setBusinessAccountIdList),
-            Pair.of(DataListOptionSearch::getBusinessAccountIdExcludeList, DataListOptionSearch::setBusinessAccountIdExcludeList),
-            Pair.of(DataListOptionSearch::getDataListSubsetIdList, DataListOptionSearch::setDataListSubsetIdList),
-            Pair.of(DataListOptionSearch::getDataListSubsetIdExcludeList, DataListOptionSearch::setDataListSubsetIdExcludeList),
-            Pair.of(DataListOptionSearch::getDataListSubsetKeyList, DataListOptionSearch::setDataListSubsetKeyList),
-            Pair.of(DataListOptionSearch::getDataListSubsetKeyExcludeList, DataListOptionSearch::setDataListSubsetKeyExcludeList),
-            Pair.of(DataListOptionSearch::getStatusIdList, DataListOptionSearch::setStatusIdList),
-            Pair.of(DataListOptionSearch::getStatusIdExcludeList, DataListOptionSearch::setStatusIdExcludeList),
-            Pair.of(DataListOptionSearch::getValidForTwinClassFieldIdList, DataListOptionSearch::setValidForTwinClassFieldIdList)
-    );
-
-    public static final ImmutableList<Pair<Function<DataListOptionSearch, Ternary>, BiConsumer<DataListOptionSearch, Ternary>>> TERNARY_FIELD = ImmutableList.of(
-            Pair.of(DataListOptionSearch::getCustom, DataListOptionSearch::setCustom)
-    );
 }

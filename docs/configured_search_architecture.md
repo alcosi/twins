@@ -100,7 +100,7 @@ The flow is owned by the **config service** (`<X>SearchConfigService`), so the p
 2. **Load header** via `findEntitySafe(searchId)` on the config service itself — a plain `EntitySecureFindServiceImpl` doing the domain check (`checkDomainAccessDenied(entity.getDomainId(), ...)`; `domain_id = null` passes for everyone).
 3. **Load predicates** in one query (`findBy<Search>Id`).
 4. **Accumulate**: `mainSearch = newSearch()`; for each predicate resolve the finder featurer and call `concatSearch(params, mainSearch, namedParamsMap)`.
-5. **Narrow**: `narrowSearch(mainSearch, narrowSearch)` — intersect the client filter with the configured search (see below).
+5. **Narrow**: `narrowSearch(mainSearch, narrowSearch)` in the base — intersects the configured search with the client filter (see below).
 6. **Remember the header**: `mainSearch.setConfiguredSearch(searchEntity)` — the header travels inside the domain search so the sort step can reach it later.
 7. **Empty-search short-circuit**: if a finder marked `mainSearch.setEmptySearch(true)` (it detected an impossible condition, e.g. `FieldFinderStub`), return an empty page without hitting the DB.
 8. **Sort**: if `forceSorting` or client sort is absent → run the sorter featurer (for twin: `twin_search_sort` rows or TwinSearchExecutor).
@@ -110,14 +110,15 @@ Twin adds one level of indirection: the header selects a `TwinSearchExecutor` fe
 
 ## Narrow semantics
 
-Narrowing is a **restriction, never an extension** — the client can only shrink the configured search's result set:
+Narrowing is a **restriction, never an extension** — the client can only shrink the configured search's result set. The base `ConfiguredSearchService.narrowSearch(mainSearch, narrowSearch)` (null-safe) narrows every field annotated with **`@SearchFilter`** — fields are scanned once per search class (walk the class hierarchy) and cached in a static map inside the base service:
 
-- `Set` fields: `SetUtils.narrowSet(main, narrow)` — intersect (empty main = take narrow, i.e. main was "no restriction").
+- `Set` fields: `SetUtils.narrowSet` — intersect (empty main = take narrow, i.e. main was "no restriction").
 - `Ternary` fields: `TernaryUtils.narrow`.
-- `Map<UUID,Boolean>` fields: `MapUtils.narrowMapOfBooleans`.
+- `Map<UUID,Boolean>` fields: `MapUtils.narrowMapOfBooleans(..., Boolean.TRUE)`.
+- Anything the scan cannot express: override `narrowSearchSpecific(mainSearch, narrowSearch)` in the config service (e.g. `UserSearchConfigService` narrows `childTwinSearches` there).
 - twin also narrows `Map<UUID,Set<UUID>>` link filters and can override sorts.
 
-Search DTOs enumerate narrowable fields via static `Pair<Function<...,Set>, BiConsumer<...,Set>>` lists (`SET_FIELDS` / `TERNARY_FIELD`), so `narrowSearch()` stays declarative.
+Fields of unsupported types (`IntegerRange`, `LongRange`, `DataTimeRange`, hierarchy objects) are silently skipped by the scan — the annotation still marks them as filter fields, but narrowing is not implemented for them yet (e.g. `TwinClassSearch.twinCounterRange`). Since every filter field is annotated, "forgot to list the field" bugs (e.g. a `freezeIdList` that silently was not narrowed) are impossible by construction.
 
 ## REST API pattern
 
@@ -176,8 +177,8 @@ Checklist per entity `<X>` (existing free-search service `<X>SearchService exten
    - insert the UNLIMITED row (`domain_id = null`), register its UUID in `SystemIds`.
 2. **DAO**: `<X>SearchEntity` (implements `ConfiguredSearch` — two delegate getters for the sorter columns), `<X>SearchPredicateEntity` (implements `ConfiguredSearchPredicate`; SpecOnly back-reference, `@FieldNameConstants`), two `CrudRepository` interfaces with `findBy<X>SearchId`.
 3. **Featurers**: thin subclasses `<X>Finder extends SearchFinder<<X>Search>` and `<X>Sorter extends SearchSorter<<X>Entity>` with the `@FeaturerType` annotation, plus at least one stub implementation each.
-4. **Domain search**: add `<X>SearchEntity configuredSearch` and `boolean emptySearch` fields to `<X>Search` and `implements ConfiguredSearchHolder<<X>SearchEntity>`; make sure `SET_FIELDS`/`TERNARY_FIELD` lists cover narrowable fields.
-5. **Config service**: `<X>SearchConfigService extends ConfiguredSearchService<<X>SearchEntity, <X>SearchPredicateEntity, <X>Search, <X>Entity>>` — the whole flow comes from the base (`findConfigured` + default `runConfiguredSearch`); implement the hooks: the 4 `EntitySecureFindServiceImpl` overrides (`isEntityReadDenied` = domain check), `unlimitedSearchId()`, `newSearch()` (delegate to `<X>SearchService.emptySearch()`), `loadPredicates()`, `finderClass()`, `sorterClass()`, `createFilterSpecification()` (delegate to `<X>SearchService`), `searchExecutor()` (the entity repository), `narrowSearch()`, `runFreeSearch()` (delegate to `<X>SearchService.search`). Override `runConfiguredSearch()` only for a non-standard execution shape (see `UserSearchConfigService`). `authService`/`featurerService` are inherited from the base.
+4. **Domain search**: add `<X>SearchEntity configuredSearch` and `boolean emptySearch` fields to `<X>Search`, `implements ConfiguredSearchHolder<<X>SearchEntity>`, and annotate every narrowable filter field with `@SearchFilter`.
+5. **Config service**: `<X>SearchConfigService extends ConfiguredSearchService<<X>SearchEntity, <X>SearchPredicateEntity, <X>Search, <X>Entity>>` — the whole flow comes from the base (`findConfigured` + default `runConfiguredSearch`); implement the hooks: the 4 `EntitySecureFindServiceImpl` overrides (`isEntityReadDenied` = domain check), `unlimitedSearchId()`, `newSearch()` (delegate to `<X>SearchService.emptySearch()`), `loadPredicates()`, `finderClass()`, `sorterClass()`, `createFilterSpecification()` (delegate to `<X>SearchService`), `searchExecutor()` (the entity repository), `runFreeSearch()` (delegate to `<X>SearchService.search`). Override `narrowSearchSpecific()` only for narrowing the generic `@SearchFilter` scan cannot express (see `UserSearchConfigService`), and `runConfiguredSearch()` only for a non-standard execution shape. `authService`/`featurerService` are inherited from the base.
 6. **Search service**: untouched — no configured-search code there.
 7. **DTO + mapper**: `<X>SearchConfiguredRqDTOv1 { params, narrow }`; reuse the existing free-search DTO for `narrow` and its reverse mapper.
 8. **Controller**: `POST /private/<x>/search/{searchId}/v1` in the existing search controller, calling `<x>SearchConfigService.findConfigured(searchId, request.getParams(), narrow, pagination)`, mirroring the free-search endpoint's mapper context and response DTO.

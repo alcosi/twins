@@ -1,4 +1,4 @@
-package org.twins.core.domain.search;
+package org.twins.core.dao.annotation;
 
 import java.util.HashMap;
 import java.util.UUID;

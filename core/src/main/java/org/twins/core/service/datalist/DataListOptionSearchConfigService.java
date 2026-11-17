@@ -1,12 +1,9 @@
 package org.twins.core.service.datalist;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.Ternary;
-import org.cambium.common.util.TernaryUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -23,12 +20,8 @@ import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
-
-import static org.cambium.common.util.SetUtils.narrowSet;
 
 @RequiredArgsConstructor
 @Service
@@ -96,22 +89,5 @@ public class DataListOptionSearchConfigService extends ConfiguredSearchService<D
     @Override
     protected PaginationResult<DataListOptionEntity> runFreeSearch(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
         return dataListOptionSearchService.search(search, pagination);
-    }
-
-    @Override
-    protected void narrowSearch(DataListOptionSearch mainSearch, DataListOptionSearch narrowSearch) {
-        if (narrowSearch == null) {
-            return;
-        }
-        for (Pair<Function<DataListOptionSearch, Set>, BiConsumer<DataListOptionSearch, Set>> functionPair : DataListOptionSearch.SET_FIELDS) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
-        }
-        for (Pair<Function<DataListOptionSearch, Ternary>, BiConsumer<DataListOptionSearch, Ternary>> functionPair : DataListOptionSearch.TERNARY_FIELD) {
-            Ternary mainTernary = functionPair.getKey().apply(mainSearch);
-            Ternary narrowTernary = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainTernary, narrowTernary));
-        }
     }
 }

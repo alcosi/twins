@@ -1,7 +1,6 @@
 package org.twins.core.service.comment;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -21,12 +20,8 @@ import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
-
-import static org.cambium.common.util.SetUtils.narrowSet;
 
 @RequiredArgsConstructor
 @Service
@@ -94,17 +89,5 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
     @Override
     protected PaginationResult<TwinCommentEntity> runFreeSearch(CommentSearch search, SimplePagination pagination) throws ServiceException {
         return commentSearchService.search(search, pagination);
-    }
-
-    @Override
-    protected void narrowSearch(CommentSearch mainSearch, CommentSearch narrowSearch) {
-        if (narrowSearch == null) {
-            return;
-        }
-        for (Pair<Function<CommentSearch, Set>, BiConsumer<CommentSearch, Set>> functionPair : CommentSearch.SET_FIELDS) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
-        }
     }
 }

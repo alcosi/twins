@@ -2,7 +2,6 @@ package org.twins.core.service.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -23,12 +22,8 @@ import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
-
-import static org.cambium.common.util.SetUtils.narrowSet;
 
 @Slf4j
 @Service
@@ -99,6 +94,26 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
         return userSearchService.findUsers(search, pagination);
     }
 
+    /** childTwinSearches narrowing cannot be expressed by the generic @SearchFilter scan. */
+    @Override
+    protected void narrowSearchSpecific(UserSearch mainSearch, UserSearch narrowSearch) {
+        if (narrowSearch.getChildTwinSearches() == null) {
+            return;
+        }
+        if (mainSearch.getChildTwinSearches() == null) {
+            mainSearch.setChildTwinSearches(narrowSearch.getChildTwinSearches());
+        } else {
+            BasicSearchList mainChild = mainSearch.getChildTwinSearches();
+            BasicSearchList narrowChild = narrowSearch.getChildTwinSearches();
+
+            if (mainChild.getSearches() != null && narrowChild.getSearches() != null) {
+                mainChild.getSearches().retainAll(narrowChild.getSearches());
+            }
+
+            mainChild.setMatchAll(mainChild.isMatchAll() || narrowChild.isMatchAll());
+        }
+    }
+
     /**
      * Users keep a custom configured path: findUsers additionally weaves childTwinSearches
      * subquery specs (and historically skips the sorter when they are present).
@@ -106,33 +121,5 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
     @Override
     protected PaginationResult<UserEntity> runConfiguredSearch(UserSearch mainSearch, SimplePagination pagination) throws ServiceException {
         return userSearchService.findUsers(mainSearch, pagination);
-    }
-
-    @Override
-    protected void narrowSearch(UserSearch mainSearch, UserSearch narrowSearch) {
-        if (narrowSearch == null)
-            return;
-
-        for (Pair<Function<UserSearch, Set>, BiConsumer<UserSearch, Set>> functionPair : UserSearch.FUNCTIONS) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
-        }
-
-        if (narrowSearch.getChildTwinSearches() != null) {
-            if (mainSearch.getChildTwinSearches() == null) {
-                mainSearch.setChildTwinSearches(narrowSearch.getChildTwinSearches());
-            } else {
-                BasicSearchList mainChild = mainSearch.getChildTwinSearches();
-                BasicSearchList narrowChild = narrowSearch.getChildTwinSearches();
-
-                if (mainChild.getSearches() != null && narrowChild.getSearches() != null) {
-                    mainChild.getSearches().retainAll(narrowChild.getSearches());
-                }
-
-                mainChild.setMatchAll(mainChild.isMatchAll() || narrowChild.isMatchAll());
-            }
-        }
-
     }
 }

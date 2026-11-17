@@ -2,12 +2,9 @@ package org.twins.core.service.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.Ternary;
-import org.cambium.common.util.TernaryUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -24,12 +21,8 @@ import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
-
-import static org.cambium.common.util.SetUtils.narrowSet;
 
 @Slf4j
 @Service
@@ -98,21 +91,5 @@ public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinCl
     @Override
     protected PaginationResult<TwinClassEntity> runFreeSearch(TwinClassSearch search, SimplePagination pagination) throws ServiceException {
         return twinClassSearchService.search(search, pagination);
-    }
-
-    @Override
-    protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {
-        if (narrowSearch == null)
-            return;
-        for (Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>> functionPair : TwinClassSearch.SET_FIELD) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
-        }
-        for (Pair<Function<TwinClassSearch, Ternary>, BiConsumer<TwinClassSearch, Ternary>> functionPair : TwinClassSearch.TERNARY_FIELD) {
-            Ternary mainSet = functionPair.getKey().apply(mainSearch);
-            Ternary narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainSet, narrowSet));
-        }
     }
 }
