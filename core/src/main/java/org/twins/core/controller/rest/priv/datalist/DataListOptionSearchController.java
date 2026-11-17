@@ -32,6 +32,7 @@ import org.twins.core.mappers.rest.datalist.DataListOptionSearchDTOReverseMapper
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.service.datalist.DataListOptionSearchConfigService;
 import org.twins.core.service.datalist.DataListOptionSearchService;
 import org.twins.core.service.permission.Permissions;
 
@@ -48,6 +49,7 @@ public class DataListOptionSearchController extends ApiController {
 
     private final DataListOptionSearchDTOReverseMapper dataListOptionSearchDTOReverseMapper;
     private final DataListOptionSearchService dataListOptionSearchService;
+    private final DataListOptionSearchConfigService dataListOptionSearchConfigService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Deprecated
@@ -122,8 +124,8 @@ public class DataListOptionSearchController extends ApiController {
             @RequestBody @Valid DataListOptionSearchConfiguredRqDTOv1 request) {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
-            PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
-                    .findDataListOptions(searchId, request.getParams(), dataListOptionSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
+            PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchConfigService
+                    .findConfigured(searchId, request.getParams(), dataListOptionSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
             rs
                     .setPagination(paginationMapper.convert(dataListOptionList))
                     .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))

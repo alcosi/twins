@@ -37,7 +37,7 @@ public class TwinValidatorSearchService extends EntitySearchService
     }
 
     @Override
-    public TwinValidatorSearch emptySearch() {
+    public TwinValidatorSearch newSearch() {
         return new TwinValidatorSearch();
     }
 

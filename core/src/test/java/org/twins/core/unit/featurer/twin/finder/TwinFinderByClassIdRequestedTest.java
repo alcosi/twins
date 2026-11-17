@@ -29,7 +29,7 @@ class TwinFinderByClassIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinClassId", classId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getTwinClassIdList());
             assertTrue(twinSearch.getTwinClassIdList().contains(classId));
@@ -46,7 +46,7 @@ class TwinFinderByClassIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinClassId", classId1 + "," + classId2);
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getTwinClassIdList());
             assertEquals(2, twinSearch.getTwinClassIdList().size());
@@ -62,7 +62,7 @@ class TwinFinderByClassIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinClassId", classId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getTwinClassIdExcludeList());
             assertTrue(twinSearch.getTwinClassIdExcludeList().contains(classId));
@@ -77,7 +77,7 @@ class TwinFinderByClassIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinClassId", "");
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNull(twinSearch.getTwinClassIdList());
             assertNull(twinSearch.getTwinClassIdExcludeList());
@@ -91,7 +91,7 @@ class TwinFinderByClassIdRequestedTest extends BaseUnitTest {
             properties.setProperty("required", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, Map.of());
+            finder.concatSearch(properties, twinSearch, Map.of());
 
             assertNull(twinSearch.getTwinClassIdList());
             assertNull(twinSearch.getTwinClassIdExcludeList());

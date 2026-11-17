@@ -40,7 +40,7 @@ public class PermissionSearchService extends EntitySearchService
     }
 
     @Override
-    public PermissionSearch emptySearch() {
+    public PermissionSearch newSearch() {
         return new PermissionSearch();
     }
 

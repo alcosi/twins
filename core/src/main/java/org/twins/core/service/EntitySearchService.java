@@ -28,7 +28,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     public abstract JpaSpecificationExecutor<E> jpaSpecificationExecutor();
 
-    public abstract S emptySearch();
+    public abstract S newSearch();
 
     protected abstract Class<E> entityClass();
 
@@ -62,7 +62,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     public PaginationResult<E> search(S search, SimplePagination pagination, Map<SF, SortDirection> sortFields) throws ServiceException {
         if (search == null)
-            search = emptySearch();
+            search = newSearch();
         Locale locale = authService.getApiUser().getLocale();
         Specification<E> spec;
         if (MapUtils.isNotEmpty(sortFields)) {
@@ -84,7 +84,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     public Map<GF, Long> countByGroupFields(S search, GF groupField) throws ServiceException {
         if (search == null)
-            search = emptySearch();
+            search = newSearch();
         Specification<E> filterSpec = createFilterSpecification(search);
         var entityGroupFields = List.of(convertToEntityField(groupField));
         List<Object[]> rows = countQueryExecutor.executeGroupedCount(entityClass(), filterSpec, entityGroupFields);
@@ -95,7 +95,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     public List<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields) throws ServiceException {
         if (search == null)
-            search = emptySearch();
+            search = newSearch();
         Specification<E> filterSpec = createFilterSpecification(search);
 
         if (groupFields == null || groupFields.isEmpty()) {
@@ -150,7 +150,7 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
 
     public PaginationResult<CountResult<E, GF>> countByGroupFields(S search, Set<GF> groupFields, SimplePagination pagination) throws ServiceException {
         if (search == null)
-            search = emptySearch();
+            search = newSearch();
         Specification<E> filterSpec = createFilterSpecification(search);
 
         if (groupFields == null || groupFields.isEmpty()) {

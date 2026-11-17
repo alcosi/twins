@@ -29,7 +29,7 @@ public class TwinFinderByDirectChildrenCountGiven extends TwinFinder {
     public static final FeaturerParamInt countTo = new FeaturerParamInt("to");
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         Integer from = countFrom.extract(properties);
         Integer to = countTo.extract(properties);
         if (from == null && to == null)

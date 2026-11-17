@@ -8,7 +8,7 @@ import org.twins.core.domain.search.TwinClassFieldSearch;
 
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FieldFinderStubTest extends BaseUnitTest {
 
@@ -18,12 +18,12 @@ class FieldFinderStubTest extends BaseUnitTest {
     class ConcatSearch {
 
         @Test
-        void concatSearch_setsInactiveSearchTrue() throws ServiceException {
+        void concatSearch_setsEmptySearchTrue() throws ServiceException {
             var search = new TwinClassFieldSearch();
 
             finder.concatSearch(new Properties(), search, java.util.Map.of());
 
-            assertTrue(search.isInactiveSearch());
+            assertTrue(search.isEmptySearch());
         }
     }
 }

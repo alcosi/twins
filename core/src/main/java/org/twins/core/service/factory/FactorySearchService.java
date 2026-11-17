@@ -37,7 +37,7 @@ public class FactorySearchService extends EntitySearchService
     }
 
     @Override
-    public FactorySearch emptySearch() {
+    public FactorySearch newSearch() {
         return new FactorySearch();
     }
 

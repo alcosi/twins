@@ -18,7 +18,7 @@ class TwinFinderRequestedTest extends BaseUnitTest {
 
     private final TwinFinderRequested finder = new TwinFinderRequested() {
         @Override
-        public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) {
+        public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) {
         }
     };
 

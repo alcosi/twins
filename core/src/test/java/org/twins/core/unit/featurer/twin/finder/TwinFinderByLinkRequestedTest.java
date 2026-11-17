@@ -31,7 +31,7 @@ class TwinFinderByLinkRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("linkId", linkId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getDstLinksAllOfList());
             assertTrue(twinSearch.getDstLinksAllOfList().containsKey(linkId));
@@ -48,7 +48,7 @@ class TwinFinderByLinkRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("linkId", linkId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getDstLinksAnyOfList());
             assertTrue(twinSearch.getDstLinksAnyOfList().containsKey(linkId));
@@ -63,7 +63,7 @@ class TwinFinderByLinkRequestedTest extends BaseUnitTest {
             properties.setProperty("required", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, Map.of());
+            finder.concatSearch(properties, twinSearch, Map.of());
 
             assertNull(twinSearch.getDstLinksAllOfList());
             assertNull(twinSearch.getDstLinksAnyOfList());
@@ -80,7 +80,7 @@ class TwinFinderByLinkRequestedTest extends BaseUnitTest {
 
             var ex = assertThrows(
                     org.cambium.common.exception.ServiceException.class,
-                    () -> finder.concat(twinSearch, properties, Map.of())
+                    () -> finder.concatSearch(properties, twinSearch, Map.of())
             );
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED.getCode(), ex.getErrorCode());
         }
@@ -96,7 +96,7 @@ class TwinFinderByLinkRequestedTest extends BaseUnitTest {
 
             var ex = assertThrows(
                     org.cambium.common.exception.ServiceException.class,
-                    () -> finder.concat(twinSearch, properties, namedParams)
+                    () -> finder.concatSearch(properties, twinSearch, namedParams)
             );
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), ex.getErrorCode());
         }
@@ -112,7 +112,7 @@ class TwinFinderByLinkRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("linkId", linkId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getDstLinksNoAllOfList());
             assertTrue(twinSearch.getDstLinksNoAllOfList().containsKey(linkId));

@@ -8,84 +8,106 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
-import org.cambium.service.EntitySmartService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.user.*;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserRepository;
+import org.twins.core.dao.user.UserSearchEntity;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
-import org.twins.core.enums.consts.SystemIds;
-import org.twins.core.featurer.user.finder.UserFinder;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.UserGroupField;
+import org.twins.core.enums.sort.UserSortField;
+import org.twins.core.enums.user.UserStatus;
 import org.twins.core.featurer.user.sorter.UserSorter;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.UUID;
 
-import static org.cambium.common.util.SetUtils.narrowSet;
+import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
 import static org.twins.core.dao.user.UserSpecification.*;
 
+/**
+ * Users join the common {@link EntitySearchService} contract so configured-search flow can treat
+ * them uniformly. Enum-driven sorting (name/email/status) and group counting (by status) are
+ * supported on top of the featurer-driven {@link UserSorter}; the execution path stays custom
+ * ({@link #findUsers} weaves childTwinSearches subqueries).
+ */
 @Slf4j
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEntity> {
-    private final AuthService authService;
+public class UserSearchService extends EntitySearchService<UserSearch, UserEntity, UserSortField, UserGroupField> {
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;
-    private final UserSearchPredicateRepository userSearchPredicateRepository;
     private final FeaturerService featurerService;
-    private final UserSearchRepository userSearchRepository;
-    private final UserGroupRepository userGroupRepository;
 
     @Override
-    public CrudRepository<UserSearchEntity, UUID> entityRepository() {
-        return userSearchRepository;
+    public JpaSpecificationExecutor<UserEntity> jpaSpecificationExecutor() {
+        return userRepository;
     }
 
     @Override
-    public Function<UserSearchEntity, UUID> entityGetIdFunction() {
-        return UserSearchEntity::getId;
+    public UserSearch newSearch() {
+        return new UserSearch();
     }
 
     @Override
-    public boolean isEntityReadDenied(UserSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
+    protected Class<UserEntity> entityClass() {
+        return UserEntity.class;
+    }
+
+    /** {@code domainId}/{@code locale} are pulled from the API user inside (businessAccountId is needed too). */
+    @Override
+    public Specification<UserEntity> createFilterSpecification(UserSearch search, UUID domainId, Locale locale) throws ServiceException {
+        return createUserSpecification(search);
     }
 
     @Override
-    public boolean validateEntity(UserSearchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
+    public Specification<UserEntity> createSortSpecification(UserSortField sortField, SortDirection sortDirection, Locale locale) {
+        boolean ascending = sortDirection != SortDirection.DESC;
+        return switch (sortField) {
+            case name -> toSortSpecification(ascending, UserEntity.Fields.name);
+            case email -> toSortSpecification(ascending, UserEntity.Fields.email);
+            case status -> toSortSpecification(ascending, UserEntity.Fields.userStatusId);
+        };
     }
 
-    public PaginationResult<UserEntity> findUsers(UUID searchId, UserSearch narrowSearch, Map<String, String> namedParamsMap, SimplePagination pagination) throws ServiceException {
-        if (SystemIds.UserSearch.UNLIMITED.equals(searchId)) {
-            return findUsers(narrowSearch, pagination);
+    @Override
+    protected UserSortField defaultSortField() {
+        return UserSortField.name;
+    }
+
+    @Override
+    public String convertToEntityField(UserGroupField groupField) {
+        return switch (groupField) {
+            case status -> UserEntity.Fields.userStatusId;
+        };
+    }
+
+    @Override
+    public void mapGroupedField(UserEntity entity, UserGroupField field, Object o) {
+        switch (field) {
+            // user_status_id is @Enumerated(STRING): grouped count rows carry the raw String
+            case status -> entity.setUserStatusId(o == null ? null : UserStatus.valueOf(o.toString()));
         }
-        UserSearchEntity searchEntity = findEntitySafe(searchId);
-        UserSearch mainSearch = new UserSearch();
-        List<UserSearchPredicateEntity> searchPredicates = userSearchPredicateRepository.findByUserSearchId(searchEntity.getId());
-        for (UserSearchPredicateEntity predicate : searchPredicates) {
-            UserFinder userFinder = featurerService.getFeaturer(predicate.getUserFinderFeaturerId(), UserFinder.class);
-            userFinder.concatSearch(predicate.getUserFinderParams(), mainSearch, namedParamsMap);
-        }
-        narrowSearch(mainSearch, narrowSearch);
-        mainSearch.setConfiguredSearch(searchEntity);
-        return findUsers(mainSearch, pagination);
+    }
+
+    @Override
+    protected UserEntity newEntity() {
+        return new UserEntity();
     }
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
@@ -166,37 +188,10 @@ public class UserSearchService extends EntitySecureFindServiceImpl<UserSearchEnt
         );
     }
 
-    protected void narrowSearch(UserSearch mainSearch, UserSearch narrowSearch) {
-        if (narrowSearch == null)
-            return;
-
-        for (Pair<Function<UserSearch, Set>, BiConsumer<UserSearch, Set>> functionPair : UserSearch.FUNCTIONS) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
-        }
-
-        if (narrowSearch.getChildTwinSearches() != null) {
-            if (mainSearch.getChildTwinSearches() == null) {
-                mainSearch.setChildTwinSearches(narrowSearch.getChildTwinSearches());
-            } else {
-                BasicSearchList mainChild = mainSearch.getChildTwinSearches();
-                BasicSearchList narrowChild = narrowSearch.getChildTwinSearches();
-
-                if (mainChild.getSearches() != null && narrowChild.getSearches() != null) {
-                    mainChild.getSearches().retainAll(narrowChild.getSearches());
-                }
-
-                mainChild.setMatchAll(mainChild.isMatchAll() || narrowChild.isMatchAll());
-            }
-        }
-
-    }
-
     private Specification<UserEntity> addSorting(UserSearch search, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
         UserSearchEntity searchEntity = search.getConfiguredSearch();
         if (searchEntity != null &&
-                (searchEntity.isForceSorting() || pagination == null || pagination.getSort() == null)) {
+                (searchEntity.getForceSorting() || pagination == null || pagination.getSort() == null)) {
             UserSorter userSorter = featurerService.getFeaturer(searchEntity.getUserSorterFeaturerId(), UserSorter.class);
             var sortFunction = userSorter.createSort(searchEntity.getUserSorterParams());
             if (sortFunction != null) {

@@ -17,7 +17,7 @@ import org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemTwinFie
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchConfigService;
 import org.twins.core.service.twinfield.TwinFieldRuleExecutionService;
 
 import java.util.*;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 class ConditionerFactoryItemTwinFieldsFilledBySearchIdTest extends BaseUnitTest {
 
     @Mock
-    private TwinClassFieldSearchService twinClassFieldSearchService;
+    private TwinClassFieldSearchConfigService twinClassFieldSearchConfigService;
 
     @Mock
     private TwinService twinService;
@@ -44,9 +44,9 @@ class ConditionerFactoryItemTwinFieldsFilledBySearchIdTest extends BaseUnitTest 
 
     @BeforeEach
     void setUp() {
-        // @RequiredArgsConstructor: (twinClassFieldSearchService, twinService, twinFieldRuleExecutionService)
+        // @RequiredArgsConstructor: (twinClassFieldSearchConfigService, twinService, twinFieldRuleExecutionService)
         conditioner = new ConditionerFactoryItemTwinFieldsFilledBySearchId(
-                twinClassFieldSearchService, twinService, twinFieldRuleExecutionService);
+                twinClassFieldSearchConfigService, twinService, twinFieldRuleExecutionService);
     }
 
     private Properties props(UUID searchId) {
@@ -66,7 +66,7 @@ class ConditionerFactoryItemTwinFieldsFilledBySearchIdTest extends BaseUnitTest 
     }
 
     private void stubSearchReturns(List<TwinClassFieldEntity> fields) throws ServiceException {
-        when(twinClassFieldSearchService.findTwinClassField(
+        when(twinClassFieldSearchConfigService.findConfigured(
                 any(UUID.class), any(Map.class), eq(null), eq(SimplePagination.ALL)))
                 .thenReturn(new PaginationResult<TwinClassFieldEntity>().setList(fields).setTotal(fields.size()));
     }

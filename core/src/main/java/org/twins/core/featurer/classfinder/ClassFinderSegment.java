@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.featurer.FeaturerTwins;
 
+import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
@@ -23,7 +24,7 @@ public class ClassFinderSegment extends ClassFinder {
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Override
-    protected void concatSearch(Properties properties, TwinClassSearch classSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassSearch classSearch, Map<String, String> namedParamsMap) throws ServiceException {
         Ternary ternaryValue = exclude.extract(properties) ? Ternary.ONLY_NOT : Ternary.ONLY;
         classSearch.setSegment(ternaryValue);
     }

@@ -65,7 +65,7 @@ public class TwinFinderByLinkFromSubquery extends TwinFinderSubquery {
     public static final FeaturerParamInt subqueryTwinsLimit = new FeaturerParamInt("subqueryTwinsLimit");
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         UUID link = linkId.extract(properties);
         boolean sourceSide = Boolean.TRUE.equals(sourceIsSrc.extract(properties));
         int limit = subqueryTwinsLimit.extract(properties);

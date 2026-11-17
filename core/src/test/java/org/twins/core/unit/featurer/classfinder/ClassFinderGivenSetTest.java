@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.domain.search.TwinClassSearch;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -28,7 +29,7 @@ class ClassFinderGivenSetTest extends BaseUnitTest {
             properties.setProperty("excludeGivenIds", "false");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNotNull(classSearch.getTwinClassIdList());
             assertEquals(2, classSearch.getTwinClassIdList().size());
@@ -45,7 +46,7 @@ class ClassFinderGivenSetTest extends BaseUnitTest {
             properties.setProperty("excludeGivenIds", "true");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNotNull(classSearch.getTwinClassIdExcludeList());
             assertEquals(1, classSearch.getTwinClassIdExcludeList().size());
@@ -60,7 +61,7 @@ class ClassFinderGivenSetTest extends BaseUnitTest {
             properties.setProperty("excludeGivenIds", "false");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNull(classSearch.getTwinClassIdList());
             assertNull(classSearch.getTwinClassIdExcludeList());
@@ -74,7 +75,7 @@ class ClassFinderGivenSetTest extends BaseUnitTest {
             properties.setProperty("excludeGivenIds", "false");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNotNull(classSearch.getTwinClassIdList());
             assertEquals(1, classSearch.getTwinClassIdList().size());
