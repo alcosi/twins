@@ -2,10 +2,7 @@ package org.twins.core.service.datalist;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -19,7 +16,6 @@ import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -72,18 +68,8 @@ public class DataListOptionSearchConfigService extends ConfiguredSearchService<D
     }
 
     @Override
-    protected Specification<DataListOptionEntity> createFilterSpecification(DataListOptionSearch search, UUID domainId, Locale locale) throws ServiceException {
-        return dataListOptionSearchService.createFilterSpecification(search, domainId, locale);
-    }
-
-    @Override
     protected JpaSpecificationExecutor<DataListOptionEntity> searchExecutor() {
         return dataListOptionRepository;
-    }
-
-    @Override
-    protected PaginationResult<DataListOptionEntity> runFreeSearch(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
-        return dataListOptionSearchService.search(search, pagination);
     }
 
     @Override

@@ -2,10 +2,7 @@ package org.twins.core.service.comment;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -19,7 +16,6 @@ import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -72,18 +68,8 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
     }
 
     @Override
-    protected Specification<TwinCommentEntity> createFilterSpecification(CommentSearch search, UUID domainId, Locale locale) throws ServiceException {
-        return commentSearchService.createFilterSpecification(search, domainId, locale);
-    }
-
-    @Override
     protected JpaSpecificationExecutor<TwinCommentEntity> searchExecutor() {
         return twinCommentRepository;
-    }
-
-    @Override
-    protected PaginationResult<TwinCommentEntity> runFreeSearch(CommentSearch search, SimplePagination pagination) throws ServiceException {
-        return commentSearchService.search(search, pagination);
     }
 
     @Override

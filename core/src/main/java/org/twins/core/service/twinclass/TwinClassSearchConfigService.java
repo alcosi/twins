@@ -3,10 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -20,7 +17,6 @@ import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -74,18 +70,8 @@ public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinCl
     }
 
     @Override
-    protected Specification<TwinClassEntity> createFilterSpecification(TwinClassSearch search, UUID domainId, Locale locale) throws ServiceException {
-        return twinClassSearchService.createFilterSpecification(search, domainId, locale);
-    }
-
-    @Override
     protected JpaSpecificationExecutor<TwinClassEntity> searchExecutor() {
         return twinClassRepository;
-    }
-
-    @Override
-    protected PaginationResult<TwinClassEntity> runFreeSearch(TwinClassSearch search, SimplePagination pagination) throws ServiceException {
-        return twinClassSearchService.search(search, pagination);
     }
 
     @Override

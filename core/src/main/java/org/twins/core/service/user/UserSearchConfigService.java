@@ -6,7 +6,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -80,15 +78,11 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
     }
 
     @Override
-    protected Specification<UserEntity> createFilterSpecification(UserSearch search, UUID domainId, Locale locale) throws ServiceException {
-        return userSearchService.createUserSpecification(search);
-    }
-
-    @Override
     protected JpaSpecificationExecutor<UserEntity> searchExecutor() {
         return userRepository;
     }
 
+    /** Free search must weave childTwinSearches subqueries — the plain EntitySearchService.search cannot. */
     @Override
     protected PaginationResult<UserEntity> runFreeSearch(UserSearch search, SimplePagination pagination) throws ServiceException {
         return userSearchService.findUsers(search, pagination);

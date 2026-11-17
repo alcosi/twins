@@ -74,7 +74,7 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
      */
     protected PaginationResult<E> runConfiguredSearch(R mainSearch, SimplePagination pagination) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        Specification<E> spec = createFilterSpecification(mainSearch, apiUser.getDomainId(), apiUser.getLocale());
+        Specification<E> spec = entitySearchService().createFilterSpecification(mainSearch, apiUser.getDomainId(), apiUser.getLocale());
         spec = addConfiguredSorting(mainSearch, pagination, spec);
         Page<E> page = searchExecutor().findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(page, pagination);
@@ -157,12 +157,15 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
 
     protected abstract Class<? extends SearchSorter<E>> sorterClass();
 
-    protected abstract Specification<E> createFilterSpecification(R search, UUID domainId, Locale locale) throws ServiceException;
-
     protected abstract JpaSpecificationExecutor<E> searchExecutor();
 
-    /** UNLIMITED path: plain free search over the narrow filter. */
-    protected abstract PaginationResult<E> runFreeSearch(R search, SimplePagination pagination) throws ServiceException;
+    /**
+     * UNLIMITED path: plain free search over the narrow filter.
+     * Override only when free search has a custom execution shape (see UserSearchConfigService).
+     */
+    protected PaginationResult<E> runFreeSearch(R search, SimplePagination pagination) throws ServiceException {
+        return entitySearchService().search(search, pagination);
+    }
 
     // Generic narrowing over @SearchFilter fields. Narrowed types: Set, Ternary, Map<UUID,Boolean>
     // (map entries carry a Boolean flag, narrowed with Boolean.TRUE semantics). Fields of any other
