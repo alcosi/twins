@@ -37,7 +37,7 @@ public class FactoryMultiplierFilterSearchService extends EntitySearchService
     }
 
     @Override
-    public FactoryMultiplierFilterSearch emptySearch() {
+    public FactoryMultiplierFilterSearch newSearch() {
         return new FactoryMultiplierFilterSearch();
     }
 

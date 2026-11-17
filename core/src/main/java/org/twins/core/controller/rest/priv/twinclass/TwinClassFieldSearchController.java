@@ -33,6 +33,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchRqDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchConfigService;
 import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
 
 import java.util.UUID;
@@ -48,6 +49,7 @@ public class TwinClassFieldSearchController extends ApiController {
     private final TwinClassFieldSearchDTOReverseMapper twinClassFieldSearchDTOReverseMapper;
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final TwinClassFieldSearchConfigService twinClassFieldSearchConfigService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @Deprecated
@@ -123,8 +125,8 @@ public class TwinClassFieldSearchController extends ApiController {
             @RequestBody TwinClassFieldSearchConfiguredRqDTOv1 request) {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
-            PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
-                    .findTwinClassField(searchId, request.getParams(), twinClassFieldSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
+            PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchConfigService
+                    .findConfigured(searchId, request.getParams(), twinClassFieldSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
             rs
                     .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))

@@ -34,7 +34,7 @@ public class ProjectionTypeGroupSearchService extends EntitySearchService
     }
 
     @Override
-    public ProjectionTypeGroupSearch emptySearch() {
+    public ProjectionTypeGroupSearch newSearch() {
         return new ProjectionTypeGroupSearch();
     }
 

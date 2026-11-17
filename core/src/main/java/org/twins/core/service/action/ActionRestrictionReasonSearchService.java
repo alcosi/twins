@@ -37,7 +37,7 @@ public class ActionRestrictionReasonSearchService extends EntitySearchService
     }
 
     @Override
-    public ActionRestrictionReasonSearch emptySearch() {
+    public ActionRestrictionReasonSearch newSearch() {
         return new ActionRestrictionReasonSearch();
     }
 

@@ -46,7 +46,7 @@ public class AttachmentSearchService extends EntitySearchService
     }
 
     @Override
-    public AttachmentSearch emptySearch() {
+    public AttachmentSearch newSearch() {
         return new AttachmentSearch();
     }
 

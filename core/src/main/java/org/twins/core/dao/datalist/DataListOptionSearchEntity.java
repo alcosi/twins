@@ -10,6 +10,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.datascope.DataScopeType;
+import org.twins.core.dao.annotation.ConfiguredSearch;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Table(name = "data_list_option_search")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
-public class DataListOptionSearchEntity implements EasyLoggable {
+public class DataListOptionSearchEntity implements EasyLoggable, ConfiguredSearch {
     @Id
     private UUID id;
 
@@ -44,6 +45,16 @@ public class DataListOptionSearchEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "data_list_option_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> optionSorterParams;
+
+    @Override
+    public Integer getSorterFeaturerId() {
+        return optionSorterFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getSorterParams() {
+        return optionSorterParams;
+    }
 
     @Override
     public String easyLog(Level level) {

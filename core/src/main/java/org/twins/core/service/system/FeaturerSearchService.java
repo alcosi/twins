@@ -37,7 +37,7 @@ public class FeaturerSearchService extends EntitySearchService
     }
 
     @Override
-    public FeaturerSearch emptySearch() {
+    public FeaturerSearch newSearch() {
         return new FeaturerSearch();
     }
 

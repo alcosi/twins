@@ -7,8 +7,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.ConfiguredSearch;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.datascope.DataScopeType;
 
@@ -19,8 +21,9 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user_search")
+@FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
-public class UserSearchEntity implements EasyLoggable {
+public class UserSearchEntity implements EasyLoggable, ConfiguredSearch {
     @Id
     private UUID id;
 
@@ -31,7 +34,7 @@ public class UserSearchEntity implements EasyLoggable {
     private String name;
 
     @Column(name = "force_sorting")
-    private boolean forceSorting;
+    private Boolean forceSorting;
 
     @Column(name = "user_sorter_featurer_id")
     private Integer userSorterFeaturerId;
@@ -39,6 +42,16 @@ public class UserSearchEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> userSorterParams;
+
+    @Override
+    public Integer getSorterFeaturerId() {
+        return userSorterFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getSorterParams() {
+        return userSorterParams;
+    }
 
     @Override
     public String easyLog(Level level) {

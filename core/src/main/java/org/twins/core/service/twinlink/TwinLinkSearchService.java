@@ -43,7 +43,7 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
     }
 
     @Override
-    public TwinLinkSearch emptySearch() {
+    public TwinLinkSearch newSearch() {
         return new TwinLinkSearch();
     }
 

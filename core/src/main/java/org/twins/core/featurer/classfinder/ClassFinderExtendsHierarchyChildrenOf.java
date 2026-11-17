@@ -13,6 +13,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ public class ClassFinderExtendsHierarchyChildrenOf extends ClassFinder {
 
 
     @Override
-    protected void concatSearch(Properties properties, TwinClassSearch classSearch) throws ServiceException {
+    protected void concatSearch(Properties properties, TwinClassSearch classSearch, Map<String, String> namedParamsMap) throws ServiceException {
         HashSet<UUID> twinClassIdSet = new HashSet<>();
         twinClassIdSet.add(twinClassId.extract(properties));
         HierarchySearch extendsSearch = new HierarchySearch()

@@ -28,7 +28,7 @@ class TwinFinderByCreatedByUserIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getCreatedByUserIdList());
             assertTrue(twinSearch.getCreatedByUserIdList().contains(userId1));
@@ -44,7 +44,7 @@ class TwinFinderByCreatedByUserIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "true");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getCreatedByUserIdExcludeList());
             assertTrue(twinSearch.getCreatedByUserIdExcludeList().contains(userId));
@@ -59,7 +59,7 @@ class TwinFinderByCreatedByUserIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getCreatedByUserIdList());
             assertEquals(1, twinSearch.getCreatedByUserIdList().size());

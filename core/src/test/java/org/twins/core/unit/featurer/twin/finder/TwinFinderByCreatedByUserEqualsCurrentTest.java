@@ -14,8 +14,9 @@ import java.lang.reflect.Field;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
 class TwinFinderByCreatedByUserEqualsCurrentTest extends BaseUnitTest {
 
@@ -63,7 +64,7 @@ class TwinFinderByCreatedByUserEqualsCurrentTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getCreatedByUserIdList());
             assertTrue(twinSearch.getCreatedByUserIdList().contains(userId));
@@ -79,7 +80,7 @@ class TwinFinderByCreatedByUserEqualsCurrentTest extends BaseUnitTest {
             properties.setProperty("exclude", "true");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getCreatedByUserIdExcludeList());
             assertTrue(twinSearch.getCreatedByUserIdExcludeList().contains(userId));

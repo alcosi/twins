@@ -28,7 +28,7 @@ class TwinFinderByStatusIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getStatusIdList());
             assertTrue(twinSearch.getStatusIdList().contains(statusId1));
@@ -44,7 +44,7 @@ class TwinFinderByStatusIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "true");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getStatusIdExcludeList());
             assertTrue(twinSearch.getStatusIdExcludeList().contains(statusId));
@@ -60,7 +60,7 @@ class TwinFinderByStatusIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getStatusIdList());
             assertEquals(1, twinSearch.getStatusIdList().size());

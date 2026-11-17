@@ -12,6 +12,7 @@ import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.datascope.DataScopeType;
+import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @Table(name = "data_list_option_search_predicate")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
-public class DataListOptionSearchPredicateEntity implements EasyLoggable {
+public class DataListOptionSearchPredicateEntity implements EasyLoggable, ConfiguredSearchPredicate {
     @Id
     private UUID id;
 
@@ -40,6 +41,16 @@ public class DataListOptionSearchPredicateEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "data_list_option_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> optionFinderParams;
+
+    @Override
+    public Integer getFinderFeaturerId() {
+        return optionFinderFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getFinderParams() {
+        return optionFinderParams;
+    }
 
     @ManyToOne
     @EqualsAndHashCode.Exclude

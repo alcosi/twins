@@ -17,7 +17,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldSearchId;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchConfigService;
 import org.twins.core.service.twinfield.TwinFieldRuleExecutionService;
 
 import java.util.*;
@@ -35,7 +35,7 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
     @FeaturerParam(name = "Search id")
     public static final FeaturerParamUUID searchId = new FeaturerParamUUIDTwinsTwinClassFieldSearchId("searchId");
 
-    private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final TwinClassFieldSearchConfigService twinClassFieldSearchConfigService;
     private final TwinService twinService;
     private final TwinFieldRuleExecutionService twinFieldRuleExecutionService;
 
@@ -46,7 +46,7 @@ public class ConditionerFactoryItemTwinFieldsFilledBySearchId extends Conditione
         Map<String, String> params = new HashMap<>();
         params.put(PARAM_CURRENT_TWIN_CLASS_ID, twin.getTwinClassId().toString());
 
-        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchService.findTwinClassField(searchId.extract(properties), params, null, SimplePagination.ALL).getList();
+        List<TwinClassFieldEntity> requiredFields = twinClassFieldSearchConfigService.findConfigured(searchId.extract(properties), params, null, SimplePagination.ALL).getList();
 
         if (CollectionUtils.isEmpty(requiredFields)) {
             return true;

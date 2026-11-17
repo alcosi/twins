@@ -41,7 +41,7 @@ public class SpaceRoleSearchService extends EntitySearchService
     }
 
     @Override
-    public SpaceRoleSearch emptySearch() {
+    public SpaceRoleSearch newSearch() {
         return new SpaceRoleSearch();
     }
 

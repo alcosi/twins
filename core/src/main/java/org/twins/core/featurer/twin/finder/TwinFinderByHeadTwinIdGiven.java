@@ -25,7 +25,7 @@ public class TwinFinderByHeadTwinIdGiven extends TwinFinder {
     public static final FeaturerParamUUIDSet headTwinIds = new FeaturerParamUUIDSetTwinsTwinId("twinIds");
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         twinSearch.addHeadTwinId(headTwinIds.extract(properties));
     }
 }

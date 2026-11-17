@@ -40,7 +40,7 @@ public class DataListOptionProjectionSearchService extends EntitySearchService
     }
 
     @Override
-    public DataListOptionProjectionSearch emptySearch() {
+    public DataListOptionProjectionSearch newSearch() {
         return new DataListOptionProjectionSearch();
     }
 

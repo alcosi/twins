@@ -46,7 +46,7 @@ public class DataListSearchService extends EntitySearchService
     }
 
     @Override
-    public DataListSearch emptySearch() {
+    public DataListSearch newSearch() {
         return new DataListSearch();
     }
 

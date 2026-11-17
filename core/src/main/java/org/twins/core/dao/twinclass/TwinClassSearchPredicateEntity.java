@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.datascope.DataScopeType;
+import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_search_predicate")
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
-public class TwinClassSearchPredicateEntity implements EasyLoggable {
+public class TwinClassSearchPredicateEntity implements EasyLoggable, ConfiguredSearchPredicate {
     @Id
     private UUID id;
 
@@ -30,6 +31,16 @@ public class TwinClassSearchPredicateEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "class_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> classFinderParams;
+
+    @Override
+    public Integer getFinderFeaturerId() {
+        return classFinderFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getFinderParams() {
+        return classFinderParams;
+    }
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)

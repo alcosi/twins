@@ -18,6 +18,6 @@ import java.util.Properties;
 public class FieldFinderStub extends FieldFinder {
     @Override
     protected void concatSearch(Properties properties, TwinClassFieldSearch fieldSearch, Map<String, String> namedParamsMap) throws ServiceException {
-        fieldSearch.setInactiveSearch(true);
+        fieldSearch.setEmptySearch(true);
     }
 }

@@ -42,7 +42,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             properties.setProperty("extendsHierarchyCheck", "false");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNull(classSearch.getTwinClassIdList());
             assertNull(classSearch.getTwinClassIdExcludeList());
@@ -62,7 +62,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClass)))
                     .thenReturn(Collections.emptyMap());
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNotNull(classSearch.getTwinClassIdList());
             assertEquals(2, classSearch.getTwinClassIdList().size());
@@ -93,7 +93,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClass)))
                     .thenReturn(countMap);
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNull(classSearch.getTwinClassIdList());
             assertNotNull(classSearch.getTwinClassIdExcludeList());
@@ -120,7 +120,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClass)))
                     .thenReturn(countMap);
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNotNull(classSearch.getTwinClassIdExcludeList());
             assertTrue(classSearch.getTwinClassIdExcludeList().contains(classIdWithTwins));
@@ -142,7 +142,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClass)))
                     .thenReturn(countMap);
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNotNull(classSearch.getTwinClassIdList());
             assertTrue(classSearch.getTwinClassIdList().contains(classId1));
@@ -167,7 +167,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClass)))
                     .thenReturn(countMap);
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             HierarchySearch hierarchySearch = classSearch.getExtendsHierarchyChildsForTwinClassSearch();
             assertNotNull(hierarchySearch);
@@ -189,7 +189,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
                     .thenReturn(Collections.emptyMap());
 
             var exception = assertThrows(ServiceException.class, () ->
-                    classFinder.concatSearch(properties, classSearch)
+                    classFinder.concatSearch(properties, classSearch, Map.of())
             );
 
             assertEquals(ErrorCodeTwins.CONFIGURATION_IS_INVALID.getCode(), exception.getErrorCode());
@@ -207,7 +207,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClass)))
                     .thenReturn(Collections.emptyMap());
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             HierarchySearch hierarchySearch = classSearch.getExtendsHierarchyChildsForTwinClassSearch();
             assertNotNull(hierarchySearch);
@@ -234,7 +234,7 @@ class ClassFinderExcludeIfHasAnyTwinTest extends BaseUnitTest {
             when(twinSearchService.countGroupBy(any(BasicSearch.class), eq(TwinEntity.Fields.twinClass)))
                     .thenReturn(countMap);
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertNotNull(classSearch.getTwinClassIdExcludeList());
             assertEquals(2, classSearch.getTwinClassIdExcludeList().size());

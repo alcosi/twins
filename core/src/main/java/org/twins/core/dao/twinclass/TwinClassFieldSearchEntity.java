@@ -12,6 +12,7 @@ import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.datascope.DataScopeType;
+import org.twins.core.dao.annotation.ConfiguredSearch;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @Table(name = "twin_class_field_search")
 @FieldNameConstants
 @DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
-public class TwinClassFieldSearchEntity implements EasyLoggable {
+public class TwinClassFieldSearchEntity implements EasyLoggable, ConfiguredSearch {
     @Id
     private UUID id;
 
@@ -33,7 +34,7 @@ public class TwinClassFieldSearchEntity implements EasyLoggable {
     private String name;
 
     @Column(name = "force_sorting")
-    private boolean forceSorting;
+    private Boolean forceSorting;
 
     @Column(name = "field_sorter_featurer_id")
     private Integer fieldSorterFeaturerId;
@@ -41,6 +42,16 @@ public class TwinClassFieldSearchEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_sorter_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldSorterParams;
+
+    @Override
+    public Integer getSorterFeaturerId() {
+        return fieldSorterFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getSorterParams() {
+        return fieldSorterParams;
+    }
 
     @Override
     public String easyLog(Level level) {

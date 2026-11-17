@@ -38,7 +38,7 @@ public class TwinStatusTriggerSearchService extends EntitySearchService
     }
 
     @Override
-    public TwinStatusTriggerSearch emptySearch() {
+    public TwinStatusTriggerSearch newSearch() {
         return new TwinStatusTriggerSearch();
     }
 
