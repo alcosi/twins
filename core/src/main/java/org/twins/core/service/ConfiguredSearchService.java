@@ -40,7 +40,7 @@ import static org.cambium.common.util.SetUtils.narrowSet;
  * @param <R> domain search object
  * @param <E> result entity
  */
-public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P extends ConfiguredSearchPredicate, R extends ConfiguredSearchHolder<S>, E>
+public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P extends ConfiguredSearchPredicate, R extends EntitySearch<E> & ConfiguredSearchHolder<S>, E>
         extends EntitySecureFindServiceImpl<S> {
 
     @Autowired
@@ -54,7 +54,7 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
             return runFreeSearch(narrowSearch, pagination);
         }
         S searchEntity = findEntitySafe(searchId);
-        R mainSearch = newSearch();
+        R mainSearch = entitySearchService().newSearch();
         for (P predicate : loadPredicates(searchEntity)) {
             SearchFinder<R> finder = featurerService.getFeaturer(predicate.getFinderFeaturerId(), finderClass());
             finder.concatSearch(predicate.getFinderParams(), mainSearch, namedParamsMap);
@@ -106,26 +106,27 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
     }
 
     /**
-     * Free-search service for the entity — currently used only for the entity default sort fallback.
-     * Default {@code null} disables the fallback (no ORDER BY).
+     * Free-search service for the entity — the source of fresh search instances and the entity
+     * default sort fallback (when its {@code defaultSortField()} is non-null).
      */
-    protected EntitySearchService<? extends EntitySearch<E>, E, ?, ?> entitySearchService() {
-        return null;
-    }
+    protected abstract EntitySearchService<R, E, ?, ?> entitySearchService();
 
     /**
      * Entity default sort for the configured pipeline, used when no configured sorter produced a sort
      * and the client did not request one. Delegates to the free-search service's {@code defaultSortField()}
-     * (ASC) when {@link #entitySearchService()} is overridden; otherwise no ORDER BY is added.
+     * (ASC); a null default sort field keeps legacy behavior — no ORDER BY.
      */
     protected Specification<E> createDefaultSortSpecification(Locale locale) throws ServiceException {
-        EntitySearchService<? extends EntitySearch<E>, E, ?, ?> service = entitySearchService();
-        return service == null ? null : createDefaultSortSpecification(service, locale);
+        return createDefaultSortSpecification(entitySearchService(), locale);
     }
 
     // Capture helper binding the wildcard sort-field type so defaultSortField() feeds createSortSpecification.
-    private <SF, GF> Specification<E> createDefaultSortSpecification(EntitySearchService<? extends EntitySearch<E>, E, SF, GF> service, Locale locale) throws ServiceException {
-        return service.createSortSpecification(service.defaultSortField(), SortDirection.ASC, locale);
+    private <SF, GF> Specification<E> createDefaultSortSpecification(EntitySearchService<R, E, SF, GF> service, Locale locale) throws ServiceException {
+        SF defaultSortField = service.defaultSortField();
+        if (defaultSortField == null) {
+            return null;
+        }
+        return service.createSortSpecification(defaultSortField, SortDirection.ASC, locale);
     }
 
     /**
@@ -149,9 +150,6 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
 
     /** The system "no configured search" row id — short-circuits to free search. */
     protected abstract UUID unlimitedSearchId();
-
-    /** A fresh search instance to accumulate predicates into (may carry non-default flags). */
-    protected abstract R newSearch();
 
     protected abstract List<P> loadPredicates(S searchEntity);
 

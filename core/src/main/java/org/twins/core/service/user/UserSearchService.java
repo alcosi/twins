@@ -16,33 +16,99 @@ import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserGroupRepository;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.dao.user.UserSearchEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.UserSearch;
+import org.twins.core.enums.SortDirection;
+import org.twins.core.enums.sort.UserGroupField;
+import org.twins.core.enums.sort.UserSortField;
+import org.twins.core.enums.user.UserStatus;
 import org.twins.core.featurer.user.sorter.UserSorter;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
 import static org.twins.core.dao.user.UserSpecification.*;
 
+/**
+ * Users join the common {@link EntitySearchService} contract so configured-search flow can treat
+ * them uniformly. Enum-driven sorting (name/email/status) and group counting (by status) are
+ * supported on top of the featurer-driven {@link UserSorter}; the execution path stays custom
+ * ({@link #findUsers} weaves childTwinSearches subqueries).
+ */
 @Slf4j
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class UserSearchService {
-    private final AuthService authService;
+public class UserSearchService extends EntitySearchService<UserSearch, UserEntity, UserSortField, UserGroupField> {
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;
     private final FeaturerService featurerService;
-    private final UserGroupRepository userGroupRepository;
+
+    @Override
+    public JpaSpecificationExecutor<UserEntity> jpaSpecificationExecutor() {
+        return userRepository;
+    }
+
+    @Override
+    public UserSearch newSearch() {
+        return new UserSearch();
+    }
+
+    @Override
+    protected Class<UserEntity> entityClass() {
+        return UserEntity.class;
+    }
+
+    /** {@code domainId}/{@code locale} are pulled from the API user inside (businessAccountId is needed too). */
+    @Override
+    public Specification<UserEntity> createFilterSpecification(UserSearch search, UUID domainId, Locale locale) throws ServiceException {
+        return createUserSpecification(search);
+    }
+
+    @Override
+    public Specification<UserEntity> createSortSpecification(UserSortField sortField, SortDirection sortDirection, Locale locale) {
+        boolean ascending = sortDirection != SortDirection.DESC;
+        return switch (sortField) {
+            case name -> toSortSpecification(ascending, UserEntity.Fields.name);
+            case email -> toSortSpecification(ascending, UserEntity.Fields.email);
+            case status -> toSortSpecification(ascending, UserEntity.Fields.userStatusId);
+        };
+    }
+
+    @Override
+    protected UserSortField defaultSortField() {
+        return UserSortField.name;
+    }
+
+    @Override
+    public String convertToEntityField(UserGroupField groupField) {
+        return switch (groupField) {
+            case status -> UserEntity.Fields.userStatusId;
+        };
+    }
+
+    @Override
+    public void mapGroupedField(UserEntity entity, UserGroupField field, Object o) {
+        switch (field) {
+            // user_status_id is @Enumerated(STRING): grouped count rows carry the raw String
+            case status -> entity.setUserStatusId(o == null ? null : UserStatus.valueOf(o.toString()));
+        }
+    }
+
+    @Override
+    protected UserEntity newEntity() {
+        return new UserEntity();
+    }
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
         Specification<UserEntity> userSpec = createUserSpecification(search);

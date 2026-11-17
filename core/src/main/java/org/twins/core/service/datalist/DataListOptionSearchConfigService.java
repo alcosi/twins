@@ -57,11 +57,6 @@ public class DataListOptionSearchConfigService extends ConfiguredSearchService<D
     }
 
     @Override
-    protected DataListOptionSearch newSearch() {
-        return dataListOptionSearchService.newSearch();
-    }
-
-    @Override
     protected List<DataListOptionSearchPredicateEntity> loadPredicates(DataListOptionSearchEntity searchEntity) {
         return dataListOptionSearchPredicateRepository.findByDataListOptionSearchId(searchEntity.getId());
     }

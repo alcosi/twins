@@ -59,11 +59,6 @@ public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinCl
     }
 
     @Override
-    protected TwinClassSearch newSearch() {
-        return twinClassSearchService.newSearch();
-    }
-
-    @Override
     protected List<TwinClassSearchPredicateEntity> loadPredicates(TwinClassSearchEntity searchEntity) {
         return classSearchPredicateRepository.findByTwinClassSearchId(searchEntity.getId());
     }

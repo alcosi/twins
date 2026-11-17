@@ -60,8 +60,8 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
     }
 
     @Override
-    protected UserSearch newSearch() {
-        return new UserSearch();
+    protected UserSearchService entitySearchService() {
+        return userSearchService;
     }
 
     @Override

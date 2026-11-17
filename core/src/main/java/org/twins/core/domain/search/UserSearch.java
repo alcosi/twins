@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserSearchEntity;
 import org.twins.core.enums.user.UserStatus;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class UserSearch implements ConfiguredSearchHolder<UserSearchEntity> {
+public class UserSearch extends EntitySearch<UserEntity> implements ConfiguredSearchHolder<UserSearchEntity> {
     @SearchFilter
     private Set<UUID> userIdList;
 

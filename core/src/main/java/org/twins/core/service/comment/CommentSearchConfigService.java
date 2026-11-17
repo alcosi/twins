@@ -57,11 +57,6 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
     }
 
     @Override
-    protected CommentSearch newSearch() {
-        return commentSearchService.newSearch();
-    }
-
-    @Override
     protected List<TwinCommentSearchPredicateEntity> loadPredicates(TwinCommentSearchEntity searchEntity) {
         return twinCommentSearchPredicateRepository.findByTwinCommentSearchId(searchEntity.getId());
     }
