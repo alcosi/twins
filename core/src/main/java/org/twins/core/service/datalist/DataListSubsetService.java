@@ -11,9 +11,7 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KeyUtils;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.*;
@@ -22,7 +20,7 @@ import org.twins.core.domain.datalist.DataListSubsetCreate;
 import org.twins.core.domain.datalist.DataListSubsetUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
 
@@ -38,16 +36,15 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataListSubsetService extends EntitySecureFindServiceImpl<DataListSubsetEntity> {
+public class DataListSubsetService extends DomainConfigAccessService<DataListSubsetEntity> {
     private final DataListSubsetRepository dataListSubsetRepository;
     private final DataListSubsetOptionRepository dataListSubsetOptionRepository;
     private final DataListService dataListService;
     private final I18nService i18nService;
-    private final AuthService authService;
     private final UserService userService;
 
     @Override
-    public CrudRepository<DataListSubsetEntity, UUID> entityRepository() {
+    public DataListSubsetRepository entityRepository() {
         return dataListSubsetRepository;
     }
 

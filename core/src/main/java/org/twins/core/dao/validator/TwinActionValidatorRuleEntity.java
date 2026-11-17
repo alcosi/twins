@@ -9,8 +9,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -18,6 +20,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin_action_validator_rule")
 @Accessors(chain = true)
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinActionValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     private UUID id;

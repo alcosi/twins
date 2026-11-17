@@ -6,11 +6,13 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.comment.TwinCommentAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.Set;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @Table(name = "twin_comment")
 @Accessors(chain = true)
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinCommentEntity implements Identifiable<UUID> {
     @Id
     private UUID id;

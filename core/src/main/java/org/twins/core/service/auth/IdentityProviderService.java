@@ -38,7 +38,7 @@ import org.twins.core.featurer.identityprovider.M2MAuthData;
 import org.twins.core.featurer.identityprovider.TokenMetaData;
 import org.twins.core.featurer.identityprovider.connector.IdentityProviderConnector;
 import org.twins.core.featurer.identityprovider.trustor.Trustor;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.domain.DomainUserService;
 import org.twins.core.service.event.Event;
 import org.twins.core.service.event.Events;
@@ -57,7 +57,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class IdentityProviderService extends TwinsEntitySecureFindService<IdentityProviderEntity> {
+public class IdentityProviderService extends TwinsEntityAccessService<IdentityProviderEntity> {
     private final AuthService authService;
     private final FeaturerService featurerService;
     private final IdentityProviderRepository identityProviderRepository;

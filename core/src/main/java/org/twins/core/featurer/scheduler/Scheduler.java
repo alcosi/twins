@@ -34,7 +34,7 @@ public abstract class Scheduler extends FeaturerTwins {
     public Runnable getRunnableForScheduling(Properties properties, SchedulerEntity schedulerEntity) {
         return () -> {
             // Schedulers run on virtual threads (virtualThreadTaskScheduler) with no web-request scope, so
-            // EntitySecureFindServiceImpl's REQUEST cache falls back to a thread-local holder. Clear it in
+            // EntityAccessServiceImpl's REQUEST cache falls back to a thread-local holder. Clear it in
             // finally so the next scheduled tick (and any reused thread) never sees stale cached entities.
             try {
                 LoggerUtils.logSession();

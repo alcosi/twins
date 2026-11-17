@@ -5,6 +5,8 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.history.HistoryType;
 
 import java.util.UUID;
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "history_type_domain_template")
+@DataScope(DataScopeType.DOMAIN)
 public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Id
     private UUID id;
@@ -26,7 +29,7 @@ public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Convert(converter = HistoryTypeConverter.class)
     private HistoryType historyType;
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "snapshot_message_template")

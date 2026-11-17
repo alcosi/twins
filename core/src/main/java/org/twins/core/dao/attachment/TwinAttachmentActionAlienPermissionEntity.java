@@ -3,13 +3,16 @@ package org.twins.core.dao.attachment;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
 @Data
 @Entity
 @Table(name = "twin_attachment_action_alien_permission")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinAttachmentActionAlienPermissionEntity {
     @Id
     private UUID id;

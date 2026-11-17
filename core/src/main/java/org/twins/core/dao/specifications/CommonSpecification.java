@@ -176,7 +176,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             From fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
             Join twinClass = getOrCreateJoin(fromTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
-            Predicate domain = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId);
+            Predicate domain = cb.equal(twinClass.get(TwinClassEntity.DOMAIN_ID), finalDomainId);
             List<Predicate> predicates = List.of(cb.conjunction());
             if (!CollectionUtils.isEmpty(twinClassUuids))
                 predicates = twinClassUuids.stream().map(twinClassId -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), twinClassId)).toList();
@@ -198,7 +198,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             Predicate systemLevelPredicate = cb.isFalse(cb.literal(true));
             switch (dbuMembershipCheck) {
                 case DBU_FOR_USER:
-                    domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
+                    domain = cb.isNull(twinClass.get(TwinClassEntity.DOMAIN_ID));
                     Join domainUser = fromTwin.join(TwinEntity.Fields.domainUsersSpecOnly, JoinType.INNER);
                     Join businessAccountUser = fromTwin.join(TwinEntity.Fields.businessAccountUsersUserTwinsSpecOnly, JoinType.INNER);
                     Subquery<DomainBusinessAccountEntity> subqueryUsers = cb.createQuery().subquery(DomainBusinessAccountEntity.class);
@@ -220,8 +220,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     break;
                 case DBU_FOR_BUSINESS_ACCOUNT:
                     domain = cb.or(
-                            cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId),
-                            cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId))
+                            cb.equal(twinClass.get(TwinClassEntity.DOMAIN_ID), finalDomainId),
+                            cb.isNull(twinClass.get(TwinClassEntity.DOMAIN_ID))
                     );
                     Join businessAccountUser2 = fromTwin.join(TwinEntity.Fields.businessAccountUsersBusinessAccountTwinsSpecOnly, JoinType.INNER);
                     Join domainBusinessAccount = fromTwin.join(TwinEntity.Fields.domainBusinessAccountsSpecOnly, JoinType.INNER);
@@ -270,7 +270,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                     // System-global metadata (glossary etc.) — no domain, no DBU membership.
                     // Visible to any authenticated user, provided the TwinClass is SYSTEM-owned
                     // and has no domain (defensive: matches what bootstrap persists).
-                    domain = cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId));
+                    domain = cb.isNull(twinClass.get(TwinClassEntity.DOMAIN_ID));
                     systemLevelPredicate = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
                     break;
             }
@@ -579,7 +579,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         return (root, query, cb) -> {
             From<?, ?> fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
             Join<?, ?> twinClass = getOrCreateJoin(fromTwin, TwinEntity.Fields.twinClass, JoinType.INNER);
-            Expression<UUID> twinClassDomainId = twinClass.get(TwinClassEntity.Fields.domainId);
+            Expression<UUID> twinClassDomainId = twinClass.get(TwinClassEntity.DOMAIN_ID);
             Predicate classPredicate = CollectionUtils.isEmpty(twinClassUuids)
                     ? cb.conjunction()
                     : getPredicate(cb,

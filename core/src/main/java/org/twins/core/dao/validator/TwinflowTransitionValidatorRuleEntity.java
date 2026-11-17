@@ -9,7 +9,9 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -18,6 +20,7 @@ import java.util.UUID;
 @Table(name = "twinflow_transition_validator_rule")
 @FieldNameConstants
 @Accessors(chain = true)
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValidatorSet {
     @Id
     private UUID id;

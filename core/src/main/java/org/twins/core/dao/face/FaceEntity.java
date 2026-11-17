@@ -5,8 +5,10 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "face")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class FaceEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

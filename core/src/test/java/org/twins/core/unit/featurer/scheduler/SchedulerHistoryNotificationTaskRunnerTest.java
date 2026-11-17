@@ -80,7 +80,9 @@ class SchedulerHistoryNotificationTaskRunnerTest extends BaseUnitTest {
 
     /** Task entity whose history chain resolves to the given domain (history → twin → twinClass → domainId). */
     private HistoryNotificationTaskEntity buildEntity(UUID domainId) {
-        TwinClassEntity twinClass = new TwinClassEntity().setDomainId(domainId);
+        // separate statement: the inherited chain setter returns DomainConfigEntity, not TwinClassEntity
+        TwinClassEntity twinClass = new TwinClassEntity();
+        twinClass.setDomainId(domainId);
         TwinEntity twin = new TwinEntity().setTwinClass(twinClass);
         HistoryEntity history = new HistoryEntity().setTwin(twin);
         return new HistoryNotificationTaskEntity().setHistory(history);

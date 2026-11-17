@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.usergroup.UserGroupService;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class SpaceRoleUserGroupService extends TwinsEntitySecureFindService<SpaceRoleUserGroupEntity> {
+public class SpaceRoleUserGroupService extends TwinsEntityAccessService<SpaceRoleUserGroupEntity> {
     @Getter
     private final SpaceRoleUserGroupRepository repository;
     @Lazy

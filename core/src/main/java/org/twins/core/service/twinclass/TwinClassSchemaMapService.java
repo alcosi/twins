@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassSchemaMapEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaMapRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinClassSchemaMapService extends TwinsEntitySecureFindService<TwinClassSchemaMapEntity> {
+public class TwinClassSchemaMapService extends TwinsEntityAccessService<TwinClassSchemaMapEntity> {
     @Getter
     private final TwinClassSchemaMapRepository repository;
     @Lazy

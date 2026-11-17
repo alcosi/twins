@@ -7,19 +7,24 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.PersistableEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
-public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable, Identifiable<UUID> {
+@DataScope(DataScopeType.DOMAIN_MEMBER)
+public class TwinLinkEntity extends PersistableEntity implements PublicCloneable<TwinLinkEntity>, EasyLoggable {
     @Id
     private UUID id;
 
@@ -116,13 +121,9 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, EasyLogg
     @ToString.Exclude
     private TwinEntity relationTwin;
 
-    // Same semantic as TwinEntity.createElseUpdate: true = create operation (set in prepareTwinLinks for
-    // fresh links), false = update of an existing twin_link (relink flips it in processAlreadyExisted).
-    // Drives the relation-twin REUSE decision in TwinLinkService.createRelationTwins.
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private boolean createElseUpdate = false;
+    // insert/update discrimination comes from PersistableEntity.isNew(): true for fresh links,
+    // flipped to false by the relink branch of TwinLinkService.processAlreadyExisted. Drives the
+    // relation-twin REUSE decision in TwinLinkService.createRelationTwins.
 
     public String easyLog(Level level) {
         return switch (level) {

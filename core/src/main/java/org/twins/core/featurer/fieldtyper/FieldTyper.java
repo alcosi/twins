@@ -119,7 +119,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         }
         // The same clients resend every field, changed or not; a value equal to storage is not an edit.
         // Validation, permission and serialization then see only real edits.
-        if (!twin.isCreateElseUpdate() && !isChanged(twin, value)) {
+        if (!twin.isNew() && !isChanged(twin, value)) {
             log.debug("{} is unchanged, serialization will be skipped", value.getTwinClassField().logNormal());
             return;
         }
@@ -261,7 +261,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     /**
      * True when the incoming newValue really changes the field, i.e. it differs from the stored oldValue.
      * Field permission and validation apply only to real edits; a full form resends unchanged fields too.
-     * Create has nothing stored yet, so the caller checks twin.isCreateElseUpdate() first.
+     * Create has nothing stored yet, so the caller checks twin.isNew() first.
      * The stored value comes batch-preloaded (TwinService.loadFieldsValues + getTwinFieldValue).
      * A null oldValue or an incomparable pair reads as changed, so an unknown typer stays permission-gated.
      */

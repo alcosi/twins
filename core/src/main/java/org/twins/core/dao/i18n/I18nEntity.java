@@ -9,8 +9,10 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.i18n.I18nType;
 
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "i18n")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class I18nEntity implements Identifiable<UUID> {
     @Id
     @Column(name = "id")

@@ -3,6 +3,8 @@ package org.twins.core.dao.i18n;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.io.Serializable;
 import java.util.Base64;
@@ -13,6 +15,7 @@ import java.util.UUID;
 @Data
 @Table(name = "i18n_translation_bin")
 @IdClass(I18nTranslationBinEntity.PK.class)
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class I18nTranslationBinEntity {
     @Id
     @Column(name = "i18n_id")

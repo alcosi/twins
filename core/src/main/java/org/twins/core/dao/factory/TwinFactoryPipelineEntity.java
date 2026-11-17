@@ -9,10 +9,12 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_factory_pipeline")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinFactoryPipelineEntity implements EasyLoggable, Identifiable<UUID>, ContainsFactoryConditionSet {
     @Id
     private UUID id;

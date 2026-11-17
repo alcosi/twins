@@ -6,6 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Immutable;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.io.Serializable;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Immutable
 @IdClass(PermissionMaterUserGroupEntity.Pk.class)
 @Table(name = "permission_mater_user_group")
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class PermissionMaterUserGroupEntity implements EasyLoggable {
     @Id
     @Column(name = "permission_id")

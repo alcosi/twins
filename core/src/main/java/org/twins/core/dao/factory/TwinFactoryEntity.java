@@ -13,11 +13,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.domain.usage.Usage;
 import org.twins.core.domain.usage.UsageHolder;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Entity
 @Table(name = "twin_factory")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinFactoryEntity implements EasyLoggable, Identifiable<UUID>, UsageHolder {
     @Id
     private UUID id;

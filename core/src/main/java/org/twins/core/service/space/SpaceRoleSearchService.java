@@ -58,7 +58,7 @@ public class SpaceRoleSearchService extends EntitySearchService
     @Override
     public Specification<SpaceRoleEntity> createFilterSpecification(SpaceRoleSearch search, UUID domainId, Locale locale) throws ServiceException {
         return Specification.allOf(
-                checkUuidIn(Set.of(domainId), false, false, SpaceRoleEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkUuidIn(Set.of(domainId), false, false, SpaceRoleEntity.Fields.twinClass, TwinClassEntity.DOMAIN_ID),
                 checkUuidIn(search.getIdList(), false, true, SpaceRoleEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, SpaceRoleEntity.Fields.id),
                 checkUuidIn(search.getTwinClassIdList(), false, true, SpaceRoleEntity.Fields.twinClassId),

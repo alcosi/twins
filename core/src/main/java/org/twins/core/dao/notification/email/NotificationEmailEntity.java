@@ -7,10 +7,12 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.email.EmailSenderEntity;
 import org.twins.core.dao.event.EventEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.template.generator.TemplateGeneratorEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
 public class NotificationEmailEntity implements EasyLoggable {
     @Id
     private UUID id;

@@ -9,8 +9,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_recompute_on_field")
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN)
 public class TwinRecomputeOnFieldEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id

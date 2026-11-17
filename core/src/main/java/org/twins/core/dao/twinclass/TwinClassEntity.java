@@ -12,8 +12,10 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.LTreeUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.DomainConfigEntity;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
 import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
@@ -33,10 +35,10 @@ import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinAction;
 import org.twins.core.enums.attachment.TwinAttachmentAction;
 import org.twins.core.enums.comment.TwinCommentAction;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
@@ -46,22 +48,22 @@ import java.util.stream.Collectors;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "twin_class")
 @FieldNameConstants
-public class TwinClassEntity implements EasyLoggable, Identifiable<UUID> {
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
+public class TwinClassEntity extends DomainConfigEntity implements EasyLoggable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((key + domainId).getBytes());
+            this.id = UUID.nameUUIDFromBytes((key + getDomainId()).getBytes());
         }
     }
-
-    @Column(name = "domain_id")
-    private UUID domainId;
 
     @Column(name = "key")
     private String key;

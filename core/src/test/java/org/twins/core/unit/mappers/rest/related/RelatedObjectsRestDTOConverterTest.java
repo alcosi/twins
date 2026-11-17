@@ -1,7 +1,7 @@
 package org.twins.core.unit.mappers.rest.related;
 
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -56,7 +56,7 @@ public class RelatedObjectsRestDTOConverterTest {
     @BeforeEach
     @SuppressWarnings("unchecked")
     public void setUp() throws Exception {
-        EntitySecureFindServiceImpl<Object> secureFindService = mock(EntitySecureFindServiceImpl.class);
+        EntityAccessServiceImpl<Object> secureFindService = mock(EntityAccessServiceImpl.class);
         when(secureFindService.entityGetIdFunction())
                 .thenReturn(e -> (UUID) ((org.twins.core.domain.Identifiable<?>) e).getId());
         doReturn(secureFindService).when(entityServiceRegistry).getService(any(Class.class));

@@ -481,7 +481,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         void createClearedImmutable_isNotRestricted() throws ServiceException {
             // Intended: null on create is not an edit — skip permission even if the field is immutable.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(true);
+            var twin = new TwinEntity().setId(UUID.randomUUID());
             var value = new FieldValueText(classField);
             value.clear();
 
@@ -493,7 +493,7 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         void createPresentImmutable_isRestricted() throws ServiceException {
             // Intended: a real value on create of an immutable field is still blocked.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(true);
+            var twin = new TwinEntity().setId(UUID.randomUUID());
             var value = new FieldValueText(classField).setValue("10");
             value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
@@ -505,7 +505,8 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         void updateClearedImmutable_isNotRestricted() throws ServiceException {
             // Intended: null on update of an immutable field is ignored, not a 400.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = new TwinEntity().setId(UUID.randomUUID()).setCreateElseUpdate(false);
+            var twin = new TwinEntity().setId(UUID.randomUUID());
+            twin.setNewRow(false);
             var value = new FieldValueText(classField);
             value.clear();
 
@@ -517,7 +518,8 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         void updatePresentImmutable_isRestricted() throws ServiceException {
             // Intended: a real value on update of an immutable field is still blocked when nothing is stored yet.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = twinWithoutDecimalField(classField).setCreateElseUpdate(false);
+            var twin = twinWithoutDecimalField(classField);
+            twin.setNewRow(false);
             var value = new FieldValueText(classField).setValue("10");
             value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
@@ -530,7 +532,8 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             // Intended: updateRestricted is a pure permission gate; echo filtering (a resent value
             // equal to storage) is TwinService.dropUnchangedFields' job, done before validation.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = twinWithDecimalField(classField, new BigDecimal("10.00")).setCreateElseUpdate(false);
+            var twin = twinWithDecimalField(classField, new BigDecimal("10.00"));
+            twin.setNewRow(false);
             var value = new FieldValueText(classField).setValue("10.00");
             value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
@@ -543,7 +546,8 @@ class FieldTyperDecimalTest extends BaseUnitTest {
         void updateDifferentStoredValue_isRestricted() throws ServiceException {
             // Intended: a value that differs from storage is still blocked when the field cannot be edited.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = twinWithDecimalField(classField, new BigDecimal("10.00")).setCreateElseUpdate(false);
+            var twin = twinWithDecimalField(classField, new BigDecimal("10.00"));
+            twin.setNewRow(false);
             var value = new FieldValueText(classField).setValue("11.00");
             value.setUserProvided(true);
             when(twinService.isFieldImmutable(twin, classField)).thenReturn(true);
@@ -558,7 +562,8 @@ class FieldTyperDecimalTest extends BaseUnitTest {
             // the operation itself was already permission-checked. This is the subTaskStartProgress
             // fix: the factory fills actualStart for a performer without ACTUAL_START edit permission.
             var classField = new TwinClassFieldEntity().setId(UUID.randomUUID());
-            var twin = twinWithoutDecimalField(classField).setCreateElseUpdate(false);
+            var twin = twinWithoutDecimalField(classField);
+            twin.setNewRow(false);
             var value = new FieldValueText(classField).setValue("10"); // userProvided defaults to false
             lenient().when(twinService.isFieldImmutable(twin, classField)).thenReturn(true); // never invoked - gate returns before the permission check
 

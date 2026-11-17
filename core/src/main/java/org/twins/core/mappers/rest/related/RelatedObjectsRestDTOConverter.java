@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerTypeEntity;
-import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntityAccessServiceImpl;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.action.ActionRestrictionReasonEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRestrictionEntity;
@@ -14,6 +14,7 @@ import org.twins.core.dao.context.ContextEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListSubsetEntity;
+import org.twins.core.dao.domain.DomainVersionEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.factory.*;
@@ -115,7 +116,7 @@ public class RelatedObjectsRestDTOConverter {
                 descriptor(RelatedObjectsDTOv1::setFeaturerMap,
                         source(FeaturerEntity.class, entityRestMapperRegistry.getFeaturerRestDTOMapper(), FeaturerEntity::getId),
                         source(FeaturerParams.class, entityRestMapperRegistry.getFeaturerParametrizedRestDTOMapper(), FeaturerParams::getFeaturerId)),
-                // Integer id: no EntitySecureFindServiceImpl service to derive the id getter from
+                // Integer id: no EntityAccessServiceImpl service to derive the id getter from
                 descriptor(RelatedObjectsDTOv1::setFeaturerTypeMap, source(FeaturerTypeEntity.class, entityRestMapperRegistry.getFeaturerTypeRestDTOMapper(), FeaturerTypeEntity::getId)),
                 descriptor(RelatedObjectsDTOv1::setTwinClassFieldMap, source(TwinClassFieldEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setTwinClassSchemaMap, source(TwinClassSchemaEntity.class)),
@@ -137,6 +138,8 @@ public class RelatedObjectsRestDTOConverter {
                 descriptor(RelatedObjectsDTOv1::setHistoryTypeMap, source(HistoryTypeEntity.class, entityRestMapperRegistry.getHistoryTypeRestDTOMapper(), HistoryTypeEntity::getId)),
                 descriptor(RelatedObjectsDTOv1::setActionRestrictionReasonMap, source(ActionRestrictionReasonEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setTwinPointerMap, source(TwinPointerEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setDataListSubsetMap, source(DataListSubsetEntity.class)),
+                descriptor(RelatedObjectsDTOv1::setDomainVersionMap, source(DomainVersionEntity.class))
                 descriptor(RelatedObjectsDTOv1::setDataListSubsetMap, source(DataListSubsetEntity.class)),
                 descriptor(RelatedObjectsDTOv1::setStorageMap, source(StorageEntity.class))
         );
@@ -215,7 +218,7 @@ public class RelatedObjectsRestDTOConverter {
         if (mapper == null)
             throw new IllegalStateException("RelatedObjectsRestDTOConverter: entity class[" + entityClass.getName()
                     + "] has no mapper registered in EntityRestMapperRegistry");
-        EntitySecureFindServiceImpl<E> service = (EntitySecureFindServiceImpl<E>) entityServiceRegistry.getService(entityClass);
+        EntityAccessServiceImpl<E> service = (EntityAccessServiceImpl<E>) entityServiceRegistry.getService(entityClass);
         if (service == null)
             throw new IllegalStateException("RelatedObjectsRestDTOConverter: entity class[" + entityClass.getName()
                     + "] has no service registered in EntityServiceRegistry");

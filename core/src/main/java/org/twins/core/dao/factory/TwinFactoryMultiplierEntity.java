@@ -12,8 +12,10 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.Type;
 import org.hibernate.generator.EventType;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -23,6 +25,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_factory_multiplier")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinFactoryMultiplierEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

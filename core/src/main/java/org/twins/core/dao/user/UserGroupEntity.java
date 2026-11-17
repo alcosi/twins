@@ -6,12 +6,14 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.usergroup.UserGroupMapEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.user.UserGroupType;
 
 import java.util.List;
@@ -23,6 +25,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "user_group")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN, DataScopeType.BUSINESS_ACCOUNT})
 public class UserGroupEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

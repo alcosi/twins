@@ -7,9 +7,11 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.action.TwinAction;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -22,6 +24,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_recompute_on_action")
 @FieldNameConstants
+@DataScope(DataScopeType.DOMAIN)
 public class TwinRecomputeOnActionEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
