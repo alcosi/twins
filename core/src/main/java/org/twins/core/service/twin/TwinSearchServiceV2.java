@@ -36,13 +36,7 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.usergroup.UserGroupService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkClassWithDomain;
 import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
@@ -69,7 +63,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
     }
 
     @Override
-    public BasicSearch emptySearch() {
+    public BasicSearch newSearch() {
         return new BasicSearch();
     }
 

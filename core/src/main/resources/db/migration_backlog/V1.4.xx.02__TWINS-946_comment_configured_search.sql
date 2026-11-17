@@ -22,7 +22,7 @@ on conflict (id) do update set name=excluded.name,
 
 CREATE TABLE IF NOT EXISTS twin_comment_search (
     id         UUID PRIMARY KEY,
-    domain_id  UUID NOT NULL REFERENCES domain (id) ON DELETE CASCADE,  -- null = system-wide
+    domain_id  UUID REFERENCES domain (id) ON DELETE CASCADE,  -- null = system-wide
     name       VARCHAR NOT NULL,
     -- sorter block:
     force_sorting              BOOLEAN NOT NULL DEFAULT FALSE,

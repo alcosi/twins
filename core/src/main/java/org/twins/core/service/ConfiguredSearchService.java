@@ -17,7 +17,9 @@ import org.twins.core.dao.annotation.ConfiguredSearch;
 import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.ConfiguredSearchHolder;
+import org.twins.core.domain.search.EntitySearch;
 import org.twins.core.domain.search.SearchFilter;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.featurer.search.SearchFinder;
 import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.service.auth.AuthService;
@@ -89,9 +91,41 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
                 if (pagination != null) {
                     pagination.setSort(null);
                 }
+                return spec;
+            }
+        }
+        // No configured sort applied and the client did not request one: fall back to the entity
+        // default sort to keep offset pagination deterministic (client sort > configured sorter > entity default).
+        if (pagination == null || pagination.getSort() == null) {
+            Specification<E> defaultSort = createDefaultSortSpecification(authService.getApiUser().getLocale());
+            if (defaultSort != null) {
+                spec = spec.and(defaultSort);
             }
         }
         return spec;
+    }
+
+    /**
+     * Free-search service for the entity — currently used only for the entity default sort fallback.
+     * Default {@code null} disables the fallback (no ORDER BY).
+     */
+    protected EntitySearchService<? extends EntitySearch<E>, E, ?, ?> entitySearchService() {
+        return null;
+    }
+
+    /**
+     * Entity default sort for the configured pipeline, used when no configured sorter produced a sort
+     * and the client did not request one. Delegates to the free-search service's {@code defaultSortField()}
+     * (ASC) when {@link #entitySearchService()} is overridden; otherwise no ORDER BY is added.
+     */
+    protected Specification<E> createDefaultSortSpecification(Locale locale) throws ServiceException {
+        EntitySearchService<? extends EntitySearch<E>, E, ?, ?> service = entitySearchService();
+        return service == null ? null : createDefaultSortSpecification(service, locale);
+    }
+
+    // Capture helper binding the wildcard sort-field type so defaultSortField() feeds createSortSpecification.
+    private <SF, GF> Specification<E> createDefaultSortSpecification(EntitySearchService<? extends EntitySearch<E>, E, SF, GF> service, Locale locale) throws ServiceException {
+        return service.createSortSpecification(service.defaultSortField(), SortDirection.ASC, locale);
     }
 
     /**

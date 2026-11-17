@@ -48,7 +48,7 @@ public class TwinClassFieldSearchService extends EntitySearchService
     }
 
     @Override
-    public TwinClassFieldSearch emptySearch() {
+    public TwinClassFieldSearch newSearch() {
         return new TwinClassFieldSearch().setExcludeSystemFields(false);
     }
 

@@ -53,7 +53,7 @@ class TwinFinderByLinkFromSubqueryTest {
                 .thenReturn(Set.of(sourceA, sourceB));
 
         TwinSearch twinSearch = new TwinSearch();
-        finder.concat(twinSearch, properties(searchId, link, true), Map.of());
+        finder.concatSearch(properties(searchId, link, true), twinSearch, Map.of());
 
         assertEquals(Set.of(sourceA, sourceB), twinSearch.getSrcLinksAnyOfList().get(link));
         assertNull(twinSearch.getDstLinksAnyOfList());
@@ -69,7 +69,7 @@ class TwinFinderByLinkFromSubqueryTest {
                 .thenReturn(Set.of(source));
 
         TwinSearch twinSearch = new TwinSearch();
-        finder.concat(twinSearch, properties(searchId, link, false), Map.of());
+        finder.concatSearch(properties(searchId, link, false), twinSearch, Map.of());
 
         assertEquals(Set.of(source), twinSearch.getDstLinksAnyOfList().get(link));
         assertNull(twinSearch.getSrcLinksAnyOfList());
@@ -83,7 +83,7 @@ class TwinFinderByLinkFromSubqueryTest {
                 .thenReturn(Set.of());
 
         TwinSearch twinSearch = new TwinSearch();
-        finder.concat(twinSearch, properties(searchId, link, true), Map.of());
+        finder.concatSearch(properties(searchId, link, true), twinSearch, Map.of());
 
         assertTrue(twinSearch.getTwinIdList().contains(UuidUtils.NULLIFY_MARKER));
         assertNull(twinSearch.getSrcLinksAnyOfList());
@@ -111,8 +111,8 @@ class TwinFinderByLinkFromSubqueryTest {
 
         TwinSearch firstSearch = new TwinSearch();
         TwinSearch secondSearch = new TwinSearch();
-        finder.concat(firstSearch, properties(searchId, firstLink, true), Map.of());
-        second.concat(secondSearch, properties(searchId, secondLink, true), Map.of());
+        finder.concatSearch(properties(searchId, firstLink, true), firstSearch, Map.of());
+        second.concatSearch(properties(searchId, secondLink, true), secondSearch, Map.of());
 
         assertEquals(Set.of(portionA, portionB), firstSearch.getSrcLinksAnyOfList().get(firstLink));
         assertEquals(Set.of(portionA, portionB), secondSearch.getSrcLinksAnyOfList().get(secondLink));
@@ -132,12 +132,12 @@ class TwinFinderByLinkFromSubqueryTest {
         // the subquery re-enters the same finder with the same search id while it is being resolved
         when(twinSearchService.findTwinIds(eq(searchId), any(), anyInt()))
                 .thenAnswer(invocation -> {
-                    finder.concat(new TwinSearch(), properties(searchId, link, true), Map.of());
+                    finder.concatSearch(properties(searchId, link, true), new TwinSearch(), Map.of());
                     return Set.of();
                 });
 
         ServiceException e = assertThrows(ServiceException.class,
-                () -> finder.concat(new TwinSearch(), properties(searchId, link, true), Map.of()));
+                () -> finder.concatSearch(properties(searchId, link, true), new TwinSearch(), Map.of()));
 
         // the shared saved-search recursion guard names the cycle
         assertTrue(e.getMessage().contains("circular saved search"), "message was: " + e.getMessage());

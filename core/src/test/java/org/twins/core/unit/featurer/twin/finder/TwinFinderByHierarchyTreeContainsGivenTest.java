@@ -26,7 +26,7 @@ class TwinFinderByHierarchyTreeContainsGivenTest extends BaseUnitTest {
             properties.setProperty("twinIds", twinId.toString());
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getHierarchyTreeContainsIdList());
             assertTrue(twinSearch.getHierarchyTreeContainsIdList().contains(twinId));
@@ -42,7 +42,7 @@ class TwinFinderByHierarchyTreeContainsGivenTest extends BaseUnitTest {
 
             assertTrue(twinSearch.isEmpty());
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertFalse(twinSearch.isEmpty());
         }

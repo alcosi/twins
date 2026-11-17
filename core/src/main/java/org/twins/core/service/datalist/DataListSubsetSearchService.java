@@ -38,7 +38,7 @@ public class DataListSubsetSearchService extends EntitySearchService
     }
 
     @Override
-    public DataListSubsetSearch emptySearch() {
+    public DataListSubsetSearch newSearch() {
         return new DataListSubsetSearch();
     }
 

@@ -58,7 +58,7 @@ public class DataListOptionSearchConfigService extends ConfiguredSearchService<D
 
     @Override
     protected DataListOptionSearch newSearch() {
-        return dataListOptionSearchService.emptySearch();
+        return dataListOptionSearchService.newSearch();
     }
 
     @Override
@@ -89,5 +89,10 @@ public class DataListOptionSearchConfigService extends ConfiguredSearchService<D
     @Override
     protected PaginationResult<DataListOptionEntity> runFreeSearch(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
         return dataListOptionSearchService.search(search, pagination);
+    }
+
+    @Override
+    protected DataListOptionSearchService entitySearchService() {
+        return dataListOptionSearchService;
     }
 }

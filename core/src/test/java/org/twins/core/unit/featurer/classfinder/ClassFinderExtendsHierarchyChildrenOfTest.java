@@ -7,6 +7,7 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinClassSearch;
 
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -28,7 +29,7 @@ class ClassFinderExtendsHierarchyChildrenOfTest extends BaseUnitTest {
             properties.setProperty("extendsDepth", "3");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             HierarchySearch extendsSearch = classSearch.getExtendsHierarchyChildsForTwinClassSearch();
             assertNotNull(extendsSearch);
@@ -44,7 +45,7 @@ class ClassFinderExtendsHierarchyChildrenOfTest extends BaseUnitTest {
             properties.setProperty("extendsDepth", "0");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             HierarchySearch extendsSearch = classSearch.getExtendsHierarchyChildsForTwinClassSearch();
             assertNotNull(extendsSearch);

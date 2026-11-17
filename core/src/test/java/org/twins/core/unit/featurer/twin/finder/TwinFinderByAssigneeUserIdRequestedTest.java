@@ -29,7 +29,7 @@ class TwinFinderByAssigneeUserIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("userId", userId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getAssigneeUserIdList());
             assertTrue(twinSearch.getAssigneeUserIdList().contains(userId));
@@ -46,7 +46,7 @@ class TwinFinderByAssigneeUserIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("userId", userId1 + "," + userId2);
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getAssigneeUserIdList());
             assertEquals(2, twinSearch.getAssigneeUserIdList().size());
@@ -64,7 +64,7 @@ class TwinFinderByAssigneeUserIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("userId", userId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getAssigneeUserIdExcludeList());
             assertTrue(twinSearch.getAssigneeUserIdExcludeList().contains(userId));
@@ -78,7 +78,7 @@ class TwinFinderByAssigneeUserIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("userId", "");
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNull(twinSearch.getAssigneeUserIdList());
             assertNull(twinSearch.getAssigneeUserIdExcludeList());
@@ -92,7 +92,7 @@ class TwinFinderByAssigneeUserIdRequestedTest extends BaseUnitTest {
             properties.setProperty("required", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, Map.of());
+            finder.concatSearch(properties, twinSearch, Map.of());
 
             assertNull(twinSearch.getAssigneeUserIdList());
             assertNull(twinSearch.getAssigneeUserIdExcludeList());

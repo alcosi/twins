@@ -37,7 +37,7 @@ public class FactoryConditionSetSearchService extends EntitySearchService
     }
 
     @Override
-    public FactoryConditionSetSearch emptySearch() {
+    public FactoryConditionSetSearch newSearch() {
         return new FactoryConditionSetSearch();
     }
 

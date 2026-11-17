@@ -34,7 +34,7 @@ public class AttachmentRestrictionSearchService extends EntitySearchService
     }
 
     @Override
-    public AttachmentRestrictionSearch emptySearch() {
+    public AttachmentRestrictionSearch newSearch() {
         return new AttachmentRestrictionSearch();
     }
 

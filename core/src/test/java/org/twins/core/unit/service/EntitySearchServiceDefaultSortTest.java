@@ -63,7 +63,7 @@ class EntitySearchServiceDefaultSortTest extends BaseUnitTest {
         }
 
         @Override
-        public TestSearch emptySearch() {
+        public TestSearch newSearch() {
             return new TestSearch();
         }
 

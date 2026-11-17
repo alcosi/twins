@@ -58,7 +58,7 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
 
     @Override
     protected CommentSearch newSearch() {
-        return commentSearchService.emptySearch();
+        return commentSearchService.newSearch();
     }
 
     @Override
@@ -89,5 +89,10 @@ public class CommentSearchConfigService extends ConfiguredSearchService<TwinComm
     @Override
     protected PaginationResult<TwinCommentEntity> runFreeSearch(CommentSearch search, SimplePagination pagination) throws ServiceException {
         return commentSearchService.search(search, pagination);
+    }
+
+    @Override
+    protected CommentSearchService entitySearchService() {
+        return commentSearchService;
     }
 }

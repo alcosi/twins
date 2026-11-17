@@ -28,7 +28,7 @@ class TwinFinderByTagDataListOptionIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getTagDataListOptionIdList());
             assertTrue(twinSearch.getTagDataListOptionIdList().contains(tagId1));
@@ -44,7 +44,7 @@ class TwinFinderByTagDataListOptionIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "true");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getTagDataListOptionIdExcludeList());
             assertTrue(twinSearch.getTagDataListOptionIdExcludeList().contains(tagId));
@@ -60,7 +60,7 @@ class TwinFinderByTagDataListOptionIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getTagDataListOptionIdList());
             assertEquals(1, twinSearch.getTagDataListOptionIdList().size());

@@ -53,7 +53,7 @@ public class LinkSearchService extends EntitySearchService<LinkSearch, LinkEntit
     }
 
     @Override
-    public LinkSearch emptySearch() {
+    public LinkSearch newSearch() {
         return new LinkSearch();
     }
 

@@ -60,7 +60,7 @@ public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinCl
 
     @Override
     protected TwinClassSearch newSearch() {
-        return twinClassSearchService.emptySearch();
+        return twinClassSearchService.newSearch();
     }
 
     @Override
@@ -91,5 +91,10 @@ public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinCl
     @Override
     protected PaginationResult<TwinClassEntity> runFreeSearch(TwinClassSearch search, SimplePagination pagination) throws ServiceException {
         return twinClassSearchService.search(search, pagination);
+    }
+
+    @Override
+    protected TwinClassSearchService entitySearchService() {
+        return twinClassSearchService;
     }
 }

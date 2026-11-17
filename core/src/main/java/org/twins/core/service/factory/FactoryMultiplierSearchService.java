@@ -39,7 +39,7 @@ public class FactoryMultiplierSearchService extends EntitySearchService
     }
 
     @Override
-    public FactoryMultiplierSearch emptySearch() {
+    public FactoryMultiplierSearch newSearch() {
         return new FactoryMultiplierSearch();
     }
 

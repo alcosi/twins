@@ -43,7 +43,7 @@ public class TwinTriggerTaskSearchService extends EntitySearchService
     }
 
     @Override
-    public TwinTriggerTaskSearch emptySearch() {
+    public TwinTriggerTaskSearch newSearch() {
         return new TwinTriggerTaskSearch();
     }
 
