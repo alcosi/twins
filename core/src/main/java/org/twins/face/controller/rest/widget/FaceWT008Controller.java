@@ -45,10 +45,10 @@ public class FaceWT008Controller extends ApiController {
     public ResponseEntity<?> faceWT008ViewV1(
             @MapperContextBinding(roots = FaceWT008RestDTOMapper.class, response = FaceWT008ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
-            @RequestParam(required = false) UUID twinId) {
+            @RequestParam UUID twinId) {
         FaceWT008ViewRsDTOv1 rs = new FaceWT008ViewRsDTOv1();
         try {
-            var faceWT008 = faceWT008Service.findSingleVariant(faceId, twinId);
+            var faceWT008 = faceWT008Service.findPointedFace(faceId, twinId);
             rs
                     .setWidget(faceWT008RestDTOMapper.convert(faceWT008, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

@@ -21,7 +21,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.face.dao.bc.FaceBC001Entity;
 import org.twins.face.dto.rest.bc.FaceBC001ViewRsDTOv1;
-import org.twins.face.dto.rest.twidget.tw001.FaceTW001ViewRsDTOv1;
 import org.twins.face.mappers.rest.bc.FaceBC001RestDTOMapper;
 import org.twins.face.service.bc.FaceBC001Service;
 

@@ -68,7 +68,7 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
         loadTwin(Collections.singletonList(src));
     }
 
-    public void loadTwin(Collection<PointedFace<? extends FacePointedEntity>> srcCollection) throws ServiceException {
+    public void loadTwin(Collection<? extends PointedFace<? extends FacePointedEntity>> srcCollection) throws ServiceException {
         Set<UUID> needLoad = new HashSet<>();
         for (var config : srcCollection) {
             if (config.getTargetTwin() == null || !config.getTargetTwinId().equals(config.getTargetTwin().getId())) {

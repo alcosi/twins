@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.face.FaceVariantEntity;
+import org.twins.core.dao.face.FacePointedEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "face_wt008")
-public class FaceWT008Entity implements EasyLoggable, FaceVariantEntity {
+public class FaceWT008Entity implements EasyLoggable, FacePointedEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -25,14 +25,17 @@ public class FaceWT008Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "twin_pointer_validator_rule_id")
     private UUID twinPointerValidatorRuleId;
 
+    @Column(name = "target_twin_pointer_id")
+    private UUID targetTwinPointerId;
+
     @Column(name = "key")
     private String key;
 
     @Column(name = "label_i18n_id")
     private UUID labelI18nId;
 
-    @Column(name = "show_chart", nullable = false)
-    private Boolean showChart = true;
+    @Column(name = "twin_comment_search_id")
+    private UUID twinCommentSearchId;
 
     @Column(name = "style_classes")
     private String styleClasses;

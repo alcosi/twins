@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -26,7 +27,7 @@ import org.twins.face.service.widget.FaceWT003Service;
 
 import java.util.UUID;
 
-@Tag(description = "Get WT0003 config by id", name = ApiTag.FACE)
+@Tag(description = "Get WT003 config by id", name = ApiTag.FACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -46,12 +47,12 @@ public class FaceWT003Controller extends ApiController {
     public ResponseEntity<?> faceWT003ViewV1(
             @MapperContextBinding(roots = FaceWT003RestDTOMapper.class, response = FaceWT003ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
-            @RequestParam(required = false) UUID twinId) {
+            @RequestParam UUID twinId) {
         FaceWT003ViewRsDTOv1 rs = new FaceWT003ViewRsDTOv1();
         try {
-            FaceWT003Entity faceWT003Entity = faceWT003Service.findSingleVariant(faceId, twinId);
+            PointedFace<FaceWT003Entity> pointedFace = faceWT003Service.findPointedFace(faceId, twinId);
             rs
-                    .setWidget(faceWT003RestDTOMapper.convert(faceWT003Entity, mapperContext))
+                    .setWidget(faceWT003RestDTOMapper.convert(pointedFace, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
