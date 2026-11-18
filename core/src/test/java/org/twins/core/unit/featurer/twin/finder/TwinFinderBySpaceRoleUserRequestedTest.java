@@ -33,6 +33,15 @@ class TwinFinderBySpaceRoleUserRequestedTest extends BaseUnitTest {
         return finder;
     }
 
+    private Properties properties(String... extraKeyValues) {
+        var properties = new Properties();
+        properties.setProperty("paramKey", "twinId");
+        properties.setProperty("spaceUsersLimit", "1000"); // production fills the annotation default via FeaturerService.extractProperties
+        for (int i = 0; i < extraKeyValues.length; i += 2)
+            properties.setProperty(extraKeyValues[i], extraKeyValues[i + 1]);
+        return properties;
+    }
+
     @Nested
     class Concat {
 
@@ -41,15 +50,14 @@ class TwinFinderBySpaceRoleUserRequestedTest extends BaseUnitTest {
             var spaceTwinId = UUID.randomUUID();
             var userId1 = UUID.randomUUID();
             var userId2 = UUID.randomUUID();
-            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId))
+            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId, 1001))
                     .thenReturn(Set.of(userId1, userId2));
 
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
+            var properties = properties();
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", spaceTwinId.toString());
 
-            finderWithRepository().concat(twinSearch, properties, namedParams);
+            finderWithRepository().concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getTwinIdList());
             assertEquals(2, twinSearch.getTwinIdList().size());
@@ -60,15 +68,14 @@ class TwinFinderBySpaceRoleUserRequestedTest extends BaseUnitTest {
         @Test
         void concat_emptyTeam_addsNullifyMarkerInsteadOfAllTwins() throws ServiceException {
             var spaceTwinId = UUID.randomUUID();
-            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId))
+            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId, 1001))
                     .thenReturn(Set.of());
 
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
+            var properties = properties();
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", spaceTwinId.toString());
 
-            finderWithRepository().concat(twinSearch, properties, namedParams);
+            finderWithRepository().concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getTwinIdList());
             assertTrue(twinSearch.getTwinIdList().contains(UuidUtils.NULLIFY_MARKER));
@@ -78,16 +85,14 @@ class TwinFinderBySpaceRoleUserRequestedTest extends BaseUnitTest {
         void concat_twinClassIdsConfigured_addsClassToSearch() throws ServiceException {
             var spaceTwinId = UUID.randomUUID();
             var memberId = UUID.randomUUID();
-            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId))
+            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId, 1001))
                     .thenReturn(Set.of(memberId));
 
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
-            properties.setProperty("twinClassIds", USER_CLASS_ID.toString());
+            var properties = properties("twinClassIds", USER_CLASS_ID.toString());
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", spaceTwinId.toString());
 
-            finderWithRepository().concat(twinSearch, properties, namedParams);
+            finderWithRepository().concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getTwinClassIdList());
             assertTrue(twinSearch.getTwinClassIdList().contains(USER_CLASS_ID));
@@ -100,18 +105,16 @@ class TwinFinderBySpaceRoleUserRequestedTest extends BaseUnitTest {
             var domainUserClassId = UUID.randomUUID();
             var memberId = UUID.randomUUID();
             var memberTwinId = UUID.randomUUID();
-            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId))
+            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId, 1001))
                     .thenReturn(Set.of(memberId));
             Mockito.when(twinRepository.findIdsByOwnerIdInAndTwinClassIdIn(Set.of(memberId), Set.of(domainUserClassId)))
                     .thenReturn(Set.of(memberTwinId));
 
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
-            properties.setProperty("twinClassIds", domainUserClassId.toString());
+            var properties = properties("twinClassIds", domainUserClassId.toString());
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", spaceTwinId.toString());
 
-            finderWithRepository().concat(twinSearch, properties, namedParams);
+            finderWithRepository().concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getTwinClassIdList());
             assertTrue(twinSearch.getTwinClassIdList().contains(domainUserClassId));
@@ -124,55 +127,73 @@ class TwinFinderBySpaceRoleUserRequestedTest extends BaseUnitTest {
             var spaceTwinId = UUID.randomUUID();
             var domainUserClassId = UUID.randomUUID();
             var memberId = UUID.randomUUID();
-            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId))
+            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId, 1001))
                     .thenReturn(Set.of(memberId));
             Mockito.when(twinRepository.findIdsByOwnerIdInAndTwinClassIdIn(Set.of(memberId), Set.of(domainUserClassId)))
                     .thenReturn(Set.of());
 
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
-            properties.setProperty("twinClassIds", domainUserClassId.toString());
+            var properties = properties("twinClassIds", domainUserClassId.toString());
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", spaceTwinId.toString());
 
-            finderWithRepository().concat(twinSearch, properties, namedParams);
+            finderWithRepository().concatSearch(properties, twinSearch, namedParams);
 
             assertTrue(twinSearch.getTwinIdList().contains(UuidUtils.NULLIFY_MARKER));
         }
 
         @Test
         void concat_paramMissedAndNotRequired_doesNotModifySearch() throws ServiceException {
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
-            properties.setProperty("required", "false");
+            var properties = properties("required", "false");
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties, Map.of());
+            finderWithRepository().concatSearch(properties, twinSearch, Map.of());
 
             assertNull(twinSearch.getTwinIdList());
         }
 
         @Test
         void concat_paramMissedAndRequired_throwsException() {
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
-            properties.setProperty("required", "true");
+            var properties = properties("required", "true");
             var twinSearch = new TwinSearch();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> finderWithRepository().concat(twinSearch, properties, Map.of()));
+                    () -> finderWithRepository().concatSearch(properties, twinSearch, Map.of()));
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED.getCode(), ex.getErrorCode());
         }
 
         @Test
         void concat_invalidUuid_throwsException() {
-            var properties = new Properties();
-            properties.setProperty("paramKey", "twinId");
+            var properties = properties();
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", "not-a-uuid");
 
             var ex = assertThrows(ServiceException.class,
-                    () -> finderWithRepository().concat(twinSearch, properties, namedParams));
+                    () -> finderWithRepository().concatSearch(properties, twinSearch, namedParams));
+            assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), ex.getErrorCode());
+        }
+
+        @Test
+        void concat_overLimit_truncatesWithoutNullifyMarker() throws ServiceException {
+            var spaceTwinId = UUID.randomUUID();
+            var members = Set.of(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+            Mockito.when(spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId, 3)) // limit 2 + 1 overflow probe
+                    .thenReturn(members);
+
+            var twinSearch = new TwinSearch();
+
+            finderWithRepository().concatSearch(properties("spaceUsersLimit", "2"), twinSearch, Map.of("twinId", spaceTwinId.toString()));
+
+            assertNotNull(twinSearch.getTwinIdList());
+            assertEquals(2, twinSearch.getTwinIdList().size());
+            assertTrue(members.containsAll(twinSearch.getTwinIdList())); // the cap keeps a subset, never the nullify marker
+        }
+
+        @Test
+        void concat_nonPositiveLimit_throwsException() {
+            var twinSearch = new TwinSearch();
+
+            var ex = assertThrows(ServiceException.class,
+                    () -> finderWithRepository().concatSearch(properties("spaceUsersLimit", "0"), twinSearch, Map.of("twinId", UUID.randomUUID().toString())));
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), ex.getErrorCode());
         }
     }

@@ -27,7 +27,7 @@ import org.twins.face.service.widget.FaceWT002Service;
 
 import java.util.UUID;
 
-@Tag(description = "Get WT0002 config by id", name = ApiTag.FACE)
+@Tag(description = "Get WT002 config by id", name = ApiTag.FACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

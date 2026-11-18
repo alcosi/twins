@@ -12,6 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
+@Schema(name = "FaceWT008v1")
 public class FaceWT008DTOv1 extends FaceWidgetDTOv1 {
     @Schema(description = "widget key")
     public String key;

@@ -16,9 +16,11 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.face.dao.widget.wt008.FaceWT008Entity;
 import org.twins.face.dto.rest.widget.wt008.FaceWT008ViewRsDTOv1;
 import org.twins.face.mappers.rest.widget.wt008.FaceWT008RestDTOMapper;
 import org.twins.face.service.widget.FaceWT008Service;
@@ -35,7 +37,7 @@ public class FaceWT008Controller extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "faceWT008ViewV1", summary = "Returns WT008 widget")
+    @Operation(operationId = "faceWT008ViewV1", summary = "Returns WT008 widget config: twins comments widget")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "WT008 face config", content = {
                     @Content(mediaType = "application/json", schema =
@@ -48,9 +50,9 @@ public class FaceWT008Controller extends ApiController {
             @RequestParam UUID twinId) {
         FaceWT008ViewRsDTOv1 rs = new FaceWT008ViewRsDTOv1();
         try {
-            var faceWT008 = faceWT008Service.findPointedFace(faceId, twinId);
+            PointedFace<FaceWT008Entity> pointedFace = faceWT008Service.findPointedFace(faceId, twinId);
             rs
-                    .setWidget(faceWT008RestDTOMapper.convert(faceWT008, mapperContext))
+                    .setWidget(faceWT008RestDTOMapper.convert(pointedFace, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

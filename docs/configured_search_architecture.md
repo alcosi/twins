@@ -142,13 +142,13 @@ Response is identical to free search (paged entity list + relatedObjects). Contr
 
 ## Consumers
 
-- **Faces** store a FK to a configured search: `face_tc001_option.twin_class_field_search_id`, `face_tc001_option.twin_class_search_id`, `face_tw004.twin_class_field_search_id`, `face_tw007.twin_class_search_id`, `face_wt001.twin_search_id`. Face services call `findConfigured(searchId, contextParams, null, FRIENDLY)` directly (e.g. `FaceTW004Service`).
+- **Faces** store a FK to a configured search: `face_tc001_option.twin_class_field_search_id`, `face_tc001_option.twin_class_search_id`, `face_wt006.twin_class_field_search_id`, `face_wt010.twin_class_search_id`, `face_wt001.twin_search_id`. Face services call `findConfigured(searchId, contextParams, null, FRIENDLY)` directly (e.g. `FaceWT006Service`).
 - **twin_search aliases** (`twin_search_alias` + SearchDetector featurer) let a client reference a configured search by a stable alias and resolve 1..N searches at runtime.
 - Permission system: `twin_search.permission_id` gates a configured search itself.
 
 ## Lifecycle / CRUD
 
-There is **no CRUD API** for configured searches (planned separately). They are created and maintained by Flyway migrations (including data-migrations that convert legacy per-row finder configs into configured searches, e.g. `V1.3.364.01` for face_tw004). `*SearchConfigService` classes never write to the config tables — they only resolve the header (`findEntitySafe`) and execute the configured search.
+There is **no CRUD API** for configured searches (planned separately). They are created and maintained by Flyway migrations (including data-migrations that convert legacy per-row finder configs into configured searches, e.g. `V1.3.364.01` for face_wt006, ex face_tw004). `*SearchConfigService` classes never write to the config tables — they only resolve the header (`findEntitySafe`) and execute the configured search.
 
 ## Accepted differences (twin is the heavyweight variant)
 

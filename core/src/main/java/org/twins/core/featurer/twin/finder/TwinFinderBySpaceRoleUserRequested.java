@@ -6,22 +6,25 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.search.TwinSearch;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinId;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
 import org.twins.core.service.SystemIdLookup;
 
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Keeps twins of users joined to the requested twin's space (space_role_user),
@@ -41,7 +44,10 @@ public class TwinFinderBySpaceRoleUserRequested extends TwinFinderRequested {
     public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
 
     @FeaturerParam(name = "Twin class ids", description = "Scoped classes (e.g. USER or a domain user class): required for the system-class DBU search check, otherwise system twins are excluded from the result", order = 2, optional = true)
-    public static final FeaturerParamUUIDSet twinClassIds = new FeaturerParamUUIDSetTwinsTwinId("twinClassIds");
+    public static final FeaturerParamUUIDSet twinClassIds = new FeaturerParamUUIDSetTwinsClassId("twinClassIds");
+
+    @FeaturerParam(name = "Space users limit", description = "Max space members to resolve; overflow is warned and truncated", order = 3, optional = true, defaultValue = "1000")
+    public static final FeaturerParamInt spaceUsersLimit = new FeaturerParamInt("spaceUsersLimit");
 
     @Autowired
     private SpaceRoleUserRepository spaceRoleUserRepository;
@@ -50,7 +56,8 @@ public class TwinFinderBySpaceRoleUserRequested extends TwinFinderRequested {
     private TwinRepository twinRepository;
 
 
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    @Override
+    protected void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         UUID spaceTwinId = getRequestedId(paramKey, properties, namedParamsMap);
         if (spaceTwinId == null)
             return;
@@ -59,10 +66,17 @@ public class TwinFinderBySpaceRoleUserRequested extends TwinFinderRequested {
                 || classIds.stream().anyMatch(SystemIdLookup::isTwinClassForUser);
         if (CollectionUtils.isNotEmpty(classIds)) // must be present before the system-class search check runs
             twinSearch.addTwinClassId(classIds, false);
-        Set<UUID> userIds = spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId);
+        int limit = spaceUsersLimit.extract(properties);
+        if (limit < 1)
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "spaceUsersLimit must be positive");
+        Set<UUID> userIds = spaceRoleUserRepository.findUserIdsByTwinId(spaceTwinId, limit + 1); // one extra row detects overflow
         if (CollectionUtils.isEmpty(userIds)) { // empty team must show no twins, not the whole class
             twinSearch.addTwinId(UuidUtils.NULLIFY_MARKER, false);
             return;
+        }
+        if (userIds.size() > limit) {
+            log.warn("Space members of twin[{}] exceeded limit[{}], capped - users beyond the cap are missed", spaceTwinId, limit);
+            userIds = userIds.stream().limit(limit).collect(Collectors.toSet());
         }
         if (userMirror) { // system USER twins share their id with the user row
             twinSearch.addTwinId(userIds, false);
@@ -74,10 +88,5 @@ public class TwinFinderBySpaceRoleUserRequested extends TwinFinderRequested {
             return;
         }
         twinSearch.addTwinId(ownerTwinIds, false);
-    }
-
-    @Override
-    protected void concatSearch(Properties properties, TwinSearch search, Map<String, String> namedParamsMap) throws ServiceException {
-
     }
 }

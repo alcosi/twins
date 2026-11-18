@@ -34,8 +34,12 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
     @Query("select distinct sru.userId from SpaceRoleUserEntity sru where sru.twinId = :twinId and sru.spaceRoleId in :spaceRoleIds")
     Set<UUID> findUserIdsByTwinIdAndSpaceRoleIds(UUID twinId, Collection<UUID> spaceRoleIds);
 
-    @Query("select distinct sru.userId from SpaceRoleUserEntity sru where sru.twinId = :twinId")
-    Set<UUID> findUserIdsByTwinId(UUID twinId);
+    /**
+     * Users joined to the given twin's space, capped to {@code limit} rows
+     * (safety valve for large spaces; pass limit+1 to detect overflow).
+     */
+    @Query(value = "select distinct user_id from space_role_user where twin_id = :twinId limit :limit", nativeQuery = true)
+    Set<UUID> findUserIdsByTwinId(@Param("twinId") UUID twinId, @Param("limit") int limit);
 
     /**
      * Bulk variant of {@link #findUserIdsByTwinIdAndSpaceRoleIds}: resolves users across many twins (spaces)

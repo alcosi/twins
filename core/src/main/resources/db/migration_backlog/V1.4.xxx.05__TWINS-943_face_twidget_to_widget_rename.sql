@@ -10,6 +10,14 @@ declare
     m record;
     r record;
 begin
+    -- 0. pre-check: the target WT ids must be free. A dump/import could already occupy them
+    -- (WT008 comments is intentionally not a target - it already exists since .04).
+    -- Fail fast with a clear message instead of a PK violation halfway through step 5.
+    if exists (select from face_component where id in ('WT004', 'WT005', 'WT006', 'WT007', 'WT009', 'WT010')) then
+        raise exception 'TWINS-943: face_component ids are already occupied: %. Resolve the conflict manually, then rerun the migration',
+            (select string_agg(id, ', ' order by id) from face_component where id in ('WT004', 'WT005', 'WT006', 'WT007', 'WT009', 'WT010'));
+    end if;
+
     -- 1. tables
     for m in select * from (values
         ('face_tw001', 'face_wt004'),
@@ -59,6 +67,24 @@ begin
                  where n.nspname = current_schema() and starts_with(c.conname, m.old_name) loop
             execute format('alter table %I rename constraint %I to %I', r.tablename, r.conname, replace(r.conname, m.old_name, m.new_name));
         end loop;
+    end loop;
+
+    -- 3b. indexes the prefix loop above cannot fully handle: idx_-prefixed FK indexes
+    -- (V1.4.97.01) do not start with the table name, and the TW006 action index carries
+    -- a legacy underscore glitch (face_tw_006_id) that prefix replace leaves inside the name.
+    for m in select * from (values
+        ('idx_face_tw001_target_twin_pointer_id', 'idx_face_wt004_target_twin_pointer_id'),
+        ('idx_face_tw002_target_twin_pointer_id', 'idx_face_wt005_target_twin_pointer_id'),
+        ('idx_face_tw004_target_twin_pointer_id', 'idx_face_wt006_target_twin_pointer_id'),
+        ('idx_face_tw005_target_twin_pointer_id', 'idx_face_wt007_target_twin_pointer_id'),
+        ('idx_face_tw005_twin_pointer_validator_rule_id', 'idx_face_wt007_twin_pointer_validator_rule_id'),
+        ('idx_face_tw007_face_id', 'idx_face_wt010_face_id'),
+        ('face_tw006_action_face_tw_006_id_idx', 'face_wt009_action_face_wt009_id_idx'),
+        ('face_wt009_action_face_tw_006_id_idx', 'face_wt009_action_face_wt009_id_idx')
+    ) as t(old_name, new_name) loop
+        if exists (select from pg_indexes where schemaname = current_schema() and indexname = m.old_name) then
+            execute format('alter index %I rename to %I', m.old_name, m.new_name);
+        end if;
     end loop;
 end $$;
 

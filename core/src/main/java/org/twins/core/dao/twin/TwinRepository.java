@@ -104,11 +104,13 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     /**
      * Twins linked to the given twin in either direction (twin_link), the twin itself excluded.
+     * Capped to {@code limit} rows (safety valve for hub twins; pass limit+1 to detect overflow).
      */
     @Query(value = "select tl.dst_twin_id from twin_link tl where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId "
             + "union "
-            + "select tl.src_twin_id from twin_link tl where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId", nativeQuery = true)
-    Set<UUID> findLinkedTwinIdsByTwinId(@Param("twinId") UUID twinId);
+            + "select tl.src_twin_id from twin_link tl where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinId(@Param("twinId") UUID twinId, @Param("limit") int limit);
 
     /**
      * Same as {@link #findLinkedTwinIdsByTwinId}, restricted to links whose opposite twin is of the given classes.
@@ -117,8 +119,9 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             + "where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId and l.dst_twin_class_id in (:twinClassIds) "
             + "union "
             + "select tl.src_twin_id from twin_link tl join link l on l.id = tl.link_id "
-            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and l.src_twin_class_id in (:twinClassIds)", nativeQuery = true)
-    Set<UUID> findLinkedTwinIdsByTwinIdAndTwinClassIds(@Param("twinId") UUID twinId, @Param("twinClassIds") Collection<UUID> twinClassIds);
+            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and l.src_twin_class_id in (:twinClassIds) "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinIdAndTwinClassIds(@Param("twinId") UUID twinId, @Param("twinClassIds") Collection<UUID> twinClassIds, @Param("limit") int limit);
 
     /**
      * Same as {@link #findLinkedTwinIdsByTwinId}, restricted to the given link types.
@@ -127,8 +130,9 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             + "where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId and tl.link_id in (:linkIds) "
             + "union "
             + "select tl.src_twin_id from twin_link tl "
-            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and tl.link_id in (:linkIds)", nativeQuery = true)
-    Set<UUID> findLinkedTwinIdsByTwinIdAndLinkIds(@Param("twinId") UUID twinId, @Param("linkIds") Collection<UUID> linkIds);
+            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and tl.link_id in (:linkIds) "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinIdAndLinkIds(@Param("twinId") UUID twinId, @Param("linkIds") Collection<UUID> linkIds, @Param("limit") int limit);
 
     /**
      * Same as {@link #findLinkedTwinIdsByTwinId}, restricted to the given link types whose opposite twin is of the given classes.
@@ -137,8 +141,9 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             + "where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId and l.dst_twin_class_id in (:twinClassIds) and tl.link_id in (:linkIds) "
             + "union "
             + "select tl.src_twin_id from twin_link tl join link l on l.id = tl.link_id "
-            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and l.src_twin_class_id in (:twinClassIds) and tl.link_id in (:linkIds)", nativeQuery = true)
-    Set<UUID> findLinkedTwinIdsByTwinIdAndTwinClassIdsAndLinkIds(@Param("twinId") UUID twinId, @Param("twinClassIds") Collection<UUID> twinClassIds, @Param("linkIds") Collection<UUID> linkIds);
+            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and l.src_twin_class_id in (:twinClassIds) and tl.link_id in (:linkIds) "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinIdAndTwinClassIdsAndLinkIds(@Param("twinId") UUID twinId, @Param("twinClassIds") Collection<UUID> twinClassIds, @Param("linkIds") Collection<UUID> linkIds, @Param("limit") int limit);
 
     @Transactional
     @Modifying

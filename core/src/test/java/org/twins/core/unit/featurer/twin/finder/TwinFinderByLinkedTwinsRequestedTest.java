@@ -33,6 +33,7 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
     private Properties properties(String... extraKeyValues) {
         var properties = new Properties();
         properties.setProperty("paramKey", "twinId");
+        properties.setProperty("linkedTwinsLimit", "1000"); // production fills the annotation default via FeaturerService.extractProperties
         for (int i = 0; i < extraKeyValues.length; i += 2)
             properties.setProperty(extraKeyValues[i], extraKeyValues[i + 1]);
         return properties;
@@ -46,12 +47,12 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
             var taskTwinId = UUID.randomUUID();
             var linked1 = UUID.randomUUID();
             var linked2 = UUID.randomUUID();
-            Mockito.when(twinRepository.findLinkedTwinIdsByTwinId(taskTwinId))
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinId(taskTwinId, 1001))
                     .thenReturn(Set.of(linked1, linked2));
 
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties(), Map.of("twinId", taskTwinId.toString()));
+            finderWithRepository().concatSearch(properties(), twinSearch, Map.of("twinId", taskTwinId.toString()));
 
             assertNotNull(twinSearch.getTwinIdList());
             assertEquals(2, twinSearch.getTwinIdList().size());
@@ -63,27 +64,27 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
         void concat_twinClassIdsConfigured_resolvesByClass() throws ServiceException {
             var taskTwinId = UUID.randomUUID();
             var linkedTask = UUID.randomUUID();
-            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndTwinClassIds(taskTwinId, Set.of(TASK_CLASS_ID)))
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndTwinClassIds(taskTwinId, Set.of(TASK_CLASS_ID), 1001))
                     .thenReturn(Set.of(linkedTask));
 
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties("twinClassIds", TASK_CLASS_ID.toString()), Map.of("twinId", taskTwinId.toString()));
+            finderWithRepository().concatSearch(properties("twinClassIds", TASK_CLASS_ID.toString()), twinSearch, Map.of("twinId", taskTwinId.toString()));
 
-            Mockito.verify(twinRepository).findLinkedTwinIdsByTwinIdAndTwinClassIds(taskTwinId, Set.of(TASK_CLASS_ID));
-            Mockito.verify(twinRepository, Mockito.never()).findLinkedTwinIdsByTwinId(Mockito.any());
+            Mockito.verify(twinRepository).findLinkedTwinIdsByTwinIdAndTwinClassIds(taskTwinId, Set.of(TASK_CLASS_ID), 1001);
+            Mockito.verify(twinRepository, Mockito.never()).findLinkedTwinIdsByTwinId(Mockito.any(), Mockito.anyInt());
             assertTrue(twinSearch.getTwinIdList().contains(linkedTask));
         }
 
         @Test
         void concat_noLinkedTwins_addsNullifyMarkerInsteadOfAllTwins() throws ServiceException {
             var taskTwinId = UUID.randomUUID();
-            Mockito.when(twinRepository.findLinkedTwinIdsByTwinId(taskTwinId))
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinId(taskTwinId, 1001))
                     .thenReturn(Set.of());
 
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties(), Map.of("twinId", taskTwinId.toString()));
+            finderWithRepository().concatSearch(properties(), twinSearch, Map.of("twinId", taskTwinId.toString()));
 
             assertNotNull(twinSearch.getTwinIdList());
             assertTrue(twinSearch.getTwinIdList().contains(UuidUtils.NULLIFY_MARKER));
@@ -92,12 +93,12 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
         @Test
         void concat_noLinkedTwinsOfClass_addsNullifyMarker() throws ServiceException {
             var taskTwinId = UUID.randomUUID();
-            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndTwinClassIds(taskTwinId, Set.of(TASK_CLASS_ID)))
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndTwinClassIds(taskTwinId, Set.of(TASK_CLASS_ID), 1001))
                     .thenReturn(Set.of());
 
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties("twinClassIds", TASK_CLASS_ID.toString()), Map.of("twinId", taskTwinId.toString()));
+            finderWithRepository().concatSearch(properties("twinClassIds", TASK_CLASS_ID.toString()), twinSearch, Map.of("twinId", taskTwinId.toString()));
 
             assertTrue(twinSearch.getTwinIdList().contains(UuidUtils.NULLIFY_MARKER));
         }
@@ -116,16 +117,17 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
             var taskTwinId = UUID.randomUUID();
             var linkId = UUID.randomUUID();
             var linkedTask = UUID.randomUUID();
-            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndTwinClassIdsAndLinkIds(taskTwinId, Set.of(TASK_CLASS_ID), Set.of(linkId)))
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndTwinClassIdsAndLinkIds(taskTwinId, Set.of(TASK_CLASS_ID), Set.of(linkId), 1001))
                     .thenReturn(Set.of(linkedTask));
 
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch,
+            finderWithRepository().concatSearch(
                     properties("twinClassIds", TASK_CLASS_ID.toString(), "linkIds", linkId.toString()),
+                    twinSearch,
                     Map.of("twinId", taskTwinId.toString()));
 
-            Mockito.verify(twinRepository).findLinkedTwinIdsByTwinIdAndTwinClassIdsAndLinkIds(taskTwinId, Set.of(TASK_CLASS_ID), Set.of(linkId));
+            Mockito.verify(twinRepository).findLinkedTwinIdsByTwinIdAndTwinClassIdsAndLinkIds(taskTwinId, Set.of(TASK_CLASS_ID), Set.of(linkId), 1001);
             assertTrue(twinSearch.getTwinIdList().contains(linkedTask));
         }
 
@@ -134,14 +136,14 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
             var taskTwinId = UUID.randomUUID();
             var linkId = UUID.randomUUID();
             var linkedTwin = UUID.randomUUID();
-            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndLinkIds(taskTwinId, Set.of(linkId)))
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndLinkIds(taskTwinId, Set.of(linkId), 1001))
                     .thenReturn(Set.of(linkedTwin));
 
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties("linkIds", linkId.toString()), Map.of("twinId", taskTwinId.toString()));
+            finderWithRepository().concatSearch(properties("linkIds", linkId.toString()), twinSearch, Map.of("twinId", taskTwinId.toString()));
 
-            Mockito.verify(twinRepository).findLinkedTwinIdsByTwinIdAndLinkIds(taskTwinId, Set.of(linkId));
+            Mockito.verify(twinRepository).findLinkedTwinIdsByTwinIdAndLinkIds(taskTwinId, Set.of(linkId), 1001);
             assertTrue(twinSearch.getTwinIdList().contains(linkedTwin));
         }
 
@@ -149,12 +151,12 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
         void concat_linkIdsNoMatches_addsNullifyMarker() throws ServiceException {
             var taskTwinId = UUID.randomUUID();
             var linkId = UUID.randomUUID();
-            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndLinkIds(taskTwinId, Set.of(linkId)))
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinIdAndLinkIds(taskTwinId, Set.of(linkId), 1001))
                     .thenReturn(Set.of());
 
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties("linkIds", linkId.toString()), Map.of("twinId", taskTwinId.toString()));
+            finderWithRepository().concatSearch(properties("linkIds", linkId.toString()), twinSearch, Map.of("twinId", taskTwinId.toString()));
 
             assertTrue(twinSearch.getTwinIdList().contains(UuidUtils.NULLIFY_MARKER));
         }
@@ -163,7 +165,7 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
         void concat_paramMissedAndNotRequired_doesNotModifySearch() throws ServiceException {
             var twinSearch = new TwinSearch();
 
-            finderWithRepository().concat(twinSearch, properties("required", "false"), Map.of());
+            finderWithRepository().concatSearch(properties("required", "false"), twinSearch, Map.of());
 
             assertNull(twinSearch.getTwinIdList());
         }
@@ -173,7 +175,7 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> finderWithRepository().concat(twinSearch, properties("required", "true"), Map.of()));
+                    () -> finderWithRepository().concatSearch(properties("required", "true"), twinSearch, Map.of()));
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED.getCode(), ex.getErrorCode());
         }
 
@@ -182,7 +184,32 @@ class TwinFinderByLinkedTwinsRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
 
             var ex = assertThrows(ServiceException.class,
-                    () -> finderWithRepository().concat(twinSearch, properties(), Map.of("twinId", "not-a-uuid")));
+                    () -> finderWithRepository().concatSearch(properties(), twinSearch, Map.of("twinId", "not-a-uuid")));
+            assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), ex.getErrorCode());
+        }
+
+        @Test
+        void concat_overLimit_truncatesWithoutNullifyMarker() throws ServiceException {
+            var taskTwinId = UUID.randomUUID();
+            var linked = Set.of(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+            Mockito.when(twinRepository.findLinkedTwinIdsByTwinId(taskTwinId, 3)) // limit 2 + 1 overflow probe
+                    .thenReturn(linked);
+
+            var twinSearch = new TwinSearch();
+
+            finderWithRepository().concatSearch(properties("linkedTwinsLimit", "2"), twinSearch, Map.of("twinId", taskTwinId.toString()));
+
+            assertNotNull(twinSearch.getTwinIdList());
+            assertEquals(2, twinSearch.getTwinIdList().size());
+            assertTrue(linked.containsAll(twinSearch.getTwinIdList())); // the cap keeps a subset, never the nullify marker
+        }
+
+        @Test
+        void concat_nonPositiveLimit_throwsException() {
+            var twinSearch = new TwinSearch();
+
+            var ex = assertThrows(ServiceException.class,
+                    () -> finderWithRepository().concatSearch(properties("linkedTwinsLimit", "0"), twinSearch, Map.of("twinId", UUID.randomUUID().toString())));
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), ex.getErrorCode());
         }
     }
