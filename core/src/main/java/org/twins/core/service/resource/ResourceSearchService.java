@@ -36,6 +36,11 @@ public class ResourceSearchService extends EntitySearchService
     }
 
     @Override
+    public ResourceSearch newSearch() {
+        return null;
+    }
+
+
     public ResourceSearch emptySearch() {
         return new ResourceSearch();
     }

@@ -48,7 +48,6 @@ public class TwinFinderByLinkedTwinsRequested extends TwinFinderRequested {
     @Autowired
     private TwinRepository twinRepository;
 
-    @Override
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         UUID twinId = getRequestedId(paramKey, properties, namedParamsMap);
         if (twinId == null)
@@ -71,5 +70,10 @@ public class TwinFinderByLinkedTwinsRequested extends TwinFinderRequested {
             return;
         }
         twinSearch.addTwinId(linkedTwinIds, false);
+    }
+
+    @Override
+    protected void concatSearch(Properties properties, TwinSearch search, Map<String, String> namedParamsMap) throws ServiceException {
+
     }
 }

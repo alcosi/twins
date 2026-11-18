@@ -43,7 +43,7 @@ public class TwinFinderByHeadOfSubquery extends TwinFinderSubquery {
     @Autowired
     TwinRepository twinRepository;
 
-    @Override
+
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         int limit = subqueryTwinsLimit.extract(properties);
         if (limit < 1)
@@ -59,5 +59,10 @@ public class TwinFinderByHeadOfSubquery extends TwinFinderSubquery {
             return;
         }
         twinSearch.addTwinId(headTwinIds, false);
+    }
+
+    @Override
+    protected void concatSearch(Properties properties, TwinSearch search, Map<String, String> namedParamsMap) throws ServiceException {
+
     }
 }

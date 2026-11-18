@@ -49,7 +49,7 @@ public class TwinFinderBySpaceRoleUserRequested extends TwinFinderRequested {
     @Autowired
     private TwinRepository twinRepository;
 
-    @Override
+
     public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         UUID spaceTwinId = getRequestedId(paramKey, properties, namedParamsMap);
         if (spaceTwinId == null)
@@ -74,5 +74,10 @@ public class TwinFinderBySpaceRoleUserRequested extends TwinFinderRequested {
             return;
         }
         twinSearch.addTwinId(ownerTwinIds, false);
+    }
+
+    @Override
+    protected void concatSearch(Properties properties, TwinSearch search, Map<String, String> namedParamsMap) throws ServiceException {
+
     }
 }
