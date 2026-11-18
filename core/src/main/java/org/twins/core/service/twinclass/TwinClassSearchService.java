@@ -4,13 +4,7 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.Ternary;
-import org.cambium.common.util.TernaryUtils;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,24 +14,19 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.specifications.I18nSpecification;
 import org.twins.core.dao.permission.PermissionEntity;
-import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.enums.SortDirection;
-import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.sort.TwinClassGroupField;
 import org.twins.core.enums.sort.TwinClassSortField;
-import org.twins.core.featurer.classfinder.ClassFinder;
 import org.twins.core.service.EntitySearchService;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
-import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.twins.core.dao.i18n.specifications.I18nSpecification.joinAndSearchByI18NFieldDirect;
 import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
 import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
@@ -50,9 +39,6 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification
 public class TwinClassSearchService extends EntitySearchService
         <TwinClassSearch, TwinClassEntity, TwinClassSortField, TwinClassGroupField> {
     private final TwinClassRepository twinClassRepository;
-    private final TwinClassSearchPredicateRepository classSearchPredicateRepository;
-    private final TwinClassSearchConfigService twinClassSearchConfigService;
-    private final FeaturerService featurerService;
 
     @Override
     public JpaSpecificationExecutor<TwinClassEntity> jpaSpecificationExecutor() {
@@ -60,7 +46,7 @@ public class TwinClassSearchService extends EntitySearchService
     }
 
     @Override
-    public TwinClassSearch emptySearch() {
+    public TwinClassSearch newSearch() {
         return new TwinClassSearch();
     }
 
@@ -230,40 +216,10 @@ public class TwinClassSearchService extends EntitySearchService
         }
     }
 
-    public PaginationResult<TwinClassEntity> findTwinClasses(UUID searchId, TwinClassSearch narrowSearch, SimplePagination pagination) throws ServiceException {
-        if (SystemIds.TwinClassSearch.UNLIMITED.equals(searchId)) {
-            return search(narrowSearch, pagination);
-        }
-        TwinClassSearchEntity searchEntity = twinClassSearchConfigService.findEntitySafe(searchId);
-        List<TwinClassSearchPredicateEntity> searchPredicates = classSearchPredicateRepository.findByTwinClassSearchId(searchEntity.getId());
-        TwinClassSearch mainSearch = new TwinClassSearch();
-        for (TwinClassSearchPredicateEntity predicate : searchPredicates) {
-            ClassFinder classFinder = featurerService.getFeaturer(predicate.getClassFinderFeaturerId(), ClassFinder.class);
-            classFinder.concatSearch(predicate.getClassFinderParams(), mainSearch);
-        }
-        narrowSearch(mainSearch, narrowSearch);
-        return search(mainSearch, pagination);
-    }
-
     public List<TwinClassEntity> searchTwinClasses(TwinClassSearch twinClassSearch) throws ServiceException {
         if (twinClassSearch == null)
             twinClassSearch = new TwinClassSearch();
         var filter = createFilterSpecification(twinClassSearch, authService.getApiUser().getDomainId(),authService.getApiUser().getLocale());
         return twinClassRepository.findAll(filter);
-    }
-
-    protected void narrowSearch(TwinClassSearch mainSearch, TwinClassSearch narrowSearch) {
-        if (narrowSearch == null)
-            return;
-        for (Pair<Function<TwinClassSearch, Set>, BiConsumer<TwinClassSearch, Set>> functionPair : TwinClassSearch.SET_FIELD) {
-            Set mainSet = functionPair.getKey().apply(mainSearch);
-            Set narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
-        }
-        for (Pair<Function<TwinClassSearch, Ternary>, BiConsumer<TwinClassSearch, Ternary>> functionPair : TwinClassSearch.TERNARY_FIELD) {
-            Ternary mainSet = functionPair.getKey().apply(mainSearch);
-            Ternary narrowSet = functionPair.getKey().apply(narrowSearch);
-            functionPair.getValue().accept(mainSearch, TernaryUtils.narrow(mainSet, narrowSet));
-        }
     }
 }

@@ -40,7 +40,7 @@ public class FactoryPipelineSearchService extends EntitySearchService
     }
 
     @Override
-    public FactoryPipelineSearch emptySearch() {
+    public FactoryPipelineSearch newSearch() {
         return new FactoryPipelineSearch();
     }
 

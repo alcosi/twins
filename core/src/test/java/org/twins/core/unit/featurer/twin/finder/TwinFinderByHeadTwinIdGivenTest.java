@@ -26,7 +26,7 @@ class TwinFinderByHeadTwinIdGivenTest extends BaseUnitTest {
             properties.setProperty("twinIds", headTwinId.toString());
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getHeadTwinIdList());
             assertTrue(twinSearch.getHeadTwinIdList().contains(headTwinId));
@@ -41,7 +41,7 @@ class TwinFinderByHeadTwinIdGivenTest extends BaseUnitTest {
             properties.setProperty("twinIds", headTwinId1 + "," + headTwinId2);
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getHeadTwinIdList());
             assertEquals(2, twinSearch.getHeadTwinIdList().size());

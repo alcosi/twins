@@ -44,7 +44,7 @@ public class DomainBusinessAccountSearchService extends EntitySearchService
     }
 
     @Override
-    public DomainBusinessAccountSearch emptySearch() {
+    public DomainBusinessAccountSearch newSearch() {
         return new DomainBusinessAccountSearch();
     }
 

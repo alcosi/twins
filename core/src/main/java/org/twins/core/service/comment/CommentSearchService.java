@@ -39,7 +39,7 @@ public class CommentSearchService extends EntitySearchService<CommentSearch, Twi
     }
 
     @Override
-    public CommentSearch emptySearch() {
+    public CommentSearch newSearch() {
         return new CommentSearch();
     }
 

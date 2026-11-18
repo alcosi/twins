@@ -36,7 +36,7 @@ public class FactoryPipelineStepSearchService extends EntitySearchService
     }
 
     @Override
-    public FactoryPipelineStepSearch emptySearch() {
+    public FactoryPipelineStepSearch newSearch() {
         return new FactoryPipelineStepSearch();
     }
 

@@ -16,7 +16,7 @@ import org.twins.core.featurer.classfield.filter.FieldFilter;
 import org.twins.core.featurer.classfield.finder.FieldFinder;
 import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
+import org.twins.core.service.twinclassfield.TwinClassFieldSearchConfigService;
 import org.twins.face.dao.twidget.tw004.FaceTW004Entity;
 import org.twins.face.dao.twidget.tw004.FaceTW004Repository;
 import org.twins.face.domain.twidget.tw004.FaceTW004TwinClassField;
@@ -31,7 +31,7 @@ import java.util.function.Function;
 public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
     private final FaceTW004Repository faceTW004Repository;
     private final FeaturerService featurerService;
-    private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final TwinClassFieldSearchConfigService twinClassFieldSearchConfigService;
     private final FaceService faceService;
 
     @Override
@@ -63,7 +63,7 @@ public class FaceTW004Service extends FacePointedService<FaceTW004Entity> {
         Map<String, String> params = new HashMap<>();
         params.put(FieldFinder.PARAM_CURRENT_TWIN_ID, pointedFace.getTargetTwin().getId().toString());
         params.put(FieldFinder.PARAM_CURRENT_TWIN_CLASS_ID, pointedFace.getTargetTwin().getTwinClassId().toString());
-        List<TwinClassFieldEntity> fields = twinClassFieldSearchService.findTwinClassField(pointedFace.getConfig().getTwinClassFieldSearchId(), params, null, SimplePagination.FRIENDLY).getList();
+        List<TwinClassFieldEntity> fields = twinClassFieldSearchConfigService.findConfigured(pointedFace.getConfig().getTwinClassFieldSearchId(), params, null, SimplePagination.FRIENDLY).getList();
 
         Set<UUID> editableFieldIds = null;
 

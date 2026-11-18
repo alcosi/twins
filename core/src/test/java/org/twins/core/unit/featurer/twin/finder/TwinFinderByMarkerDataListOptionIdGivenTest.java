@@ -28,7 +28,7 @@ class TwinFinderByMarkerDataListOptionIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getMarkerDataListOptionIdList());
             assertTrue(twinSearch.getMarkerDataListOptionIdList().contains(optionId1));
@@ -44,7 +44,7 @@ class TwinFinderByMarkerDataListOptionIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "true");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getMarkerDataListOptionIdExcludeList());
             assertTrue(twinSearch.getMarkerDataListOptionIdExcludeList().contains(optionId));
@@ -60,7 +60,7 @@ class TwinFinderByMarkerDataListOptionIdGivenTest extends BaseUnitTest {
             properties.setProperty("exclude", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getMarkerDataListOptionIdList());
             assertEquals(1, twinSearch.getMarkerDataListOptionIdList().size());

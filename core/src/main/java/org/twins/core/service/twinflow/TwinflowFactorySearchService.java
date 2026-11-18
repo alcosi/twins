@@ -40,7 +40,7 @@ public class TwinflowFactorySearchService extends EntitySearchService
     }
 
     @Override
-    public TwinflowFactorySearch emptySearch() {
+    public TwinflowFactorySearch newSearch() {
         return new TwinflowFactorySearch();
     }
 

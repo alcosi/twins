@@ -9,7 +9,8 @@ import org.twins.core.domain.search.TwinSearch;
 import java.util.Properties;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TwinFinderByLinkDstTwinGivenTest extends BaseUnitTest {
 
@@ -31,7 +32,7 @@ class TwinFinderByLinkDstTwinGivenTest extends BaseUnitTest {
             properties.setProperty("anyOfList", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getDstLinksAllOfList());
             assertTrue(twinSearch.getDstLinksAllOfList().containsKey(linkId));
@@ -51,7 +52,7 @@ class TwinFinderByLinkDstTwinGivenTest extends BaseUnitTest {
             properties.setProperty("anyOfList", "true");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getDstLinksAnyOfList());
             assertTrue(twinSearch.getDstLinksAnyOfList().containsKey(linkId));
@@ -70,7 +71,7 @@ class TwinFinderByLinkDstTwinGivenTest extends BaseUnitTest {
             properties.setProperty("anyOfList", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getDstLinksNoAllOfList());
             assertTrue(twinSearch.getDstLinksNoAllOfList().containsKey(linkId));
@@ -88,7 +89,7 @@ class TwinFinderByLinkDstTwinGivenTest extends BaseUnitTest {
             properties.setProperty("anyOfList", "true");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, null);
+            finder.concatSearch(properties, twinSearch, null);
 
             assertNotNull(twinSearch.getDstLinksNoAnyOfList());
             assertTrue(twinSearch.getDstLinksNoAnyOfList().containsKey(linkId));

@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class_search_predicate")
-public class TwinClassSearchPredicateEntity implements EasyLoggable {
+public class TwinClassSearchPredicateEntity implements EasyLoggable, ConfiguredSearchPredicate {
     @Id
     private UUID id;
 
@@ -27,6 +28,16 @@ public class TwinClassSearchPredicateEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "class_finder_params", columnDefinition = "hstore")
     private HashMap<String, String> classFinderParams;
+
+    @Override
+    public Integer getFinderFeaturerId() {
+        return classFinderFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getFinderParams() {
+        return classFinderParams;
+    }
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)

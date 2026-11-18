@@ -35,6 +35,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSearchRqRestDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.twinclass.TwinClassSearchConfigService;
 import org.twins.core.service.twinclass.TwinClassSearchService;
 
 import java.util.UUID;
@@ -46,6 +47,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TWIN_CLASS_MANAGE, Permissions.TWIN_CLASS_VIEW})
 public class TwinClassSearchController extends ApiController {
     private final TwinClassSearchService twinClassSearchService;
+    private final TwinClassSearchConfigService twinClassSearchConfigService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final TwinClassSearchRqRestDTOReverseMapper twinClassSearchRqRestDTOReverseMapper;
@@ -125,8 +127,8 @@ public class TwinClassSearchController extends ApiController {
             @RequestBody TwinClassSearchConfiguredRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            PaginationResult<TwinClassEntity> twinClasses = twinClassSearchService
-                    .findTwinClasses(searchId, twinClassSearchRestDTOReverseMapper.convert(request.getNarrow()), pagination);
+            PaginationResult<TwinClassEntity> twinClasses = twinClassSearchConfigService
+                    .findConfigured(searchId, request.getParams(), twinClassSearchRestDTOReverseMapper.convert(request.getNarrow()), pagination);
             rs
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))

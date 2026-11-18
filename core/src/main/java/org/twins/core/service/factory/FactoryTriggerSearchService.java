@@ -40,7 +40,7 @@ public class FactoryTriggerSearchService extends EntitySearchService
     }
 
     @Override
-    public TwinFactoryTriggerSearch emptySearch() {
+    public TwinFactoryTriggerSearch newSearch() {
         return new TwinFactoryTriggerSearch();
     }
 

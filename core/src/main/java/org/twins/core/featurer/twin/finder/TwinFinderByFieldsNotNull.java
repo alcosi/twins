@@ -40,7 +40,7 @@ public class TwinFinderByFieldsNotNull extends TwinFinder {
     private final TwinClassFieldService twinClassFieldService;
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         TwinFieldClause clause = new TwinFieldClause();
         for (UUID fieldId : twinClassFieldIds.extract(properties)) {
             TwinClassFieldEntity field = twinClassFieldService.findEntitySafe(fieldId);

@@ -123,6 +123,13 @@ public enum Permissions {
     ATTACHMENT_RESTRICTION_UPDATE(SystemIds.Permission.AttachmentRestriction.UPDATE),
     ATTACHMENT_RESTRICTION_DELETE(SystemIds.Permission.AttachmentRestriction.DELETE),
 
+    // RESOURCE permissions (standalone file upload/search)
+    RESOURCE_MANAGE(SystemIds.Permission.Resource.MANAGE),
+    RESOURCE_CREATE(SystemIds.Permission.Resource.CREATE),
+    RESOURCE_VIEW(SystemIds.Permission.Resource.VIEW),
+    RESOURCE_UPDATE(SystemIds.Permission.Resource.UPDATE),
+    RESOURCE_DELETE(SystemIds.Permission.Resource.DELETE),
+
     // USER permissions
     USER_MANAGE(SystemIds.Permission.User.MANAGE),
     USER_CREATE(SystemIds.Permission.User.CREATE),

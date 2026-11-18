@@ -6,6 +6,7 @@ import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -60,6 +61,12 @@ public class ValidationExceptionHandlingAdvice {
     public ResponseEntity<Response> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
         String details = ex.getMessage() != null ? ex.getMessage() : "request body is not readable";
         return createErrorRs(ErrorCodeTwins.MALFORMED_REQUEST_BODY, details, ex);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Response> handleMaxUploadSize(MaxUploadSizeExceededException ex) {
+        String details = ex.getMessage() != null ? ex.getMessage() : "uploaded data exceeds the configured limit";
+        return createErrorRs(ErrorCodeTwins.VALIDATION_DTO_FAILED, details, ex);
     }
 
     private ResponseEntity<Response> createErrorRs(ErrorCode errorCode, String statusDetails, Exception ex) {

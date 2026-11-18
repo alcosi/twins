@@ -37,7 +37,7 @@ public class TwinFinderByLinkDstTwinGiven extends TwinFinder {
     public static final FeaturerParamBoolean anyOfList = new FeaturerParamBoolean("anyOfList");
 
     @Override
-    public void concat(TwinSearch twinSearch, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
+    public void concatSearch(Properties properties, TwinSearch twinSearch, Map<String, String> namedParamsMap) throws ServiceException {
         twinSearch.addLinkDstTwinsId(linkId.extract(properties), dstTwinId.extract(properties), exclude.extract(properties), anyOfList.extract(properties));
     }
 }

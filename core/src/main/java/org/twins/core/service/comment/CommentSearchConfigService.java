@@ -1,0 +1,79 @@
+package org.twins.core.service.comment;
+
+import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntitySmartService;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Service;
+import org.twins.core.dao.comment.*;
+import org.twins.core.domain.search.CommentSearch;
+import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.featurer.comment.finder.CommentFinder;
+import org.twins.core.featurer.comment.sorter.CommentSorter;
+import org.twins.core.featurer.search.SearchFinder;
+import org.twins.core.featurer.search.SearchSorter;
+import org.twins.core.service.ConfiguredSearchService;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.function.Function;
+
+@RequiredArgsConstructor
+@Service
+public class CommentSearchConfigService extends ConfiguredSearchService<TwinCommentSearchEntity, TwinCommentSearchPredicateEntity, CommentSearch, TwinCommentEntity> {
+    private final TwinCommentSearchRepository twinCommentSearchRepository;
+    private final TwinCommentSearchPredicateRepository twinCommentSearchPredicateRepository;
+    private final TwinCommentRepository twinCommentRepository;
+    private final CommentSearchService commentSearchService;
+
+    @Override
+    public CrudRepository<TwinCommentSearchEntity, UUID> entityRepository() {
+        return twinCommentSearchRepository;
+    }
+
+    @Override
+    public Function<TwinCommentSearchEntity, UUID> entityGetIdFunction() {
+        return TwinCommentSearchEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinCommentSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
+    }
+
+    @Override
+    public boolean validateEntity(TwinCommentSearchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
+    @Override
+    protected UUID unlimitedSearchId() {
+        return SystemIds.TwinCommentSearch.UNLIMITED;
+    }
+
+    @Override
+    protected List<TwinCommentSearchPredicateEntity> loadPredicates(TwinCommentSearchEntity searchEntity) {
+        return twinCommentSearchPredicateRepository.findByTwinCommentSearchId(searchEntity.getId());
+    }
+
+    @Override
+    protected Class<? extends SearchFinder<CommentSearch>> finderClass() {
+        return CommentFinder.class;
+    }
+
+    @Override
+    protected Class<? extends SearchSorter<TwinCommentEntity>> sorterClass() {
+        return CommentSorter.class;
+    }
+
+    @Override
+    protected JpaSpecificationExecutor<TwinCommentEntity> searchExecutor() {
+        return twinCommentRepository;
+    }
+
+    @Override
+    protected CommentSearchService entitySearchService() {
+        return commentSearchService;
+    }
+}

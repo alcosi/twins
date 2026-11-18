@@ -36,7 +36,7 @@ public class TwinSearchEntity implements EasyLoggable {
     private UUID twinSearchAliasId;
 
     @Column(name = "force_sorting")
-    private boolean forceSorting;
+    private Boolean forceSorting;
 
     @Column(name = "created_at")
     private Timestamp createdAt;

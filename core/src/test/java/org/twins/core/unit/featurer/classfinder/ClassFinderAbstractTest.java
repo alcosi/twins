@@ -7,9 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.domain.search.TwinClassSearch;
 
+import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 class ClassFinderAbstractTest extends BaseUnitTest {
@@ -25,7 +26,7 @@ class ClassFinderAbstractTest extends BaseUnitTest {
             properties.setProperty("excludeAbstract", "true");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertEquals(Ternary.ONLY_NOT, classSearch.getAbstractt());
         }
@@ -36,7 +37,7 @@ class ClassFinderAbstractTest extends BaseUnitTest {
             properties.setProperty("excludeAbstract", "false");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertEquals(Ternary.ONLY, classSearch.getAbstractt());
         }
@@ -47,7 +48,7 @@ class ClassFinderAbstractTest extends BaseUnitTest {
             properties.setProperty("excludeAbstract", "true");
             var classSearch = new TwinClassSearch();
 
-            classFinder.concatSearch(properties, classSearch);
+            classFinder.concatSearch(properties, classSearch, Map.of());
 
             assertEquals(Ternary.ONLY_NOT, classSearch.getAbstractt());
         }

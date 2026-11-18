@@ -40,7 +40,7 @@ public class FactoryEraserSearchService extends EntitySearchService
     }
 
     @Override
-    public FactoryEraserSearch emptySearch() {
+    public FactoryEraserSearch newSearch() {
         return new FactoryEraserSearch();
     }
 

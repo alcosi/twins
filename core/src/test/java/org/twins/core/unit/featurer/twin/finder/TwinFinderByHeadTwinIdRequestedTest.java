@@ -29,7 +29,7 @@ class TwinFinderByHeadTwinIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", headTwinId.toString());
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNotNull(twinSearch.getHeadTwinIdList());
             assertTrue(twinSearch.getHeadTwinIdList().contains(headTwinId));
@@ -42,7 +42,7 @@ class TwinFinderByHeadTwinIdRequestedTest extends BaseUnitTest {
             properties.setProperty("required", "false");
             var twinSearch = new TwinSearch();
 
-            finder.concat(twinSearch, properties, Map.of());
+            finder.concatSearch(properties, twinSearch, Map.of());
 
             assertNull(twinSearch.getHeadTwinIdList());
         }
@@ -55,7 +55,7 @@ class TwinFinderByHeadTwinIdRequestedTest extends BaseUnitTest {
             var twinSearch = new TwinSearch();
             var namedParams = Map.of("twinId", "");
 
-            finder.concat(twinSearch, properties, namedParams);
+            finder.concatSearch(properties, twinSearch, namedParams);
 
             assertNull(twinSearch.getHeadTwinIdList());
         }
@@ -69,7 +69,7 @@ class TwinFinderByHeadTwinIdRequestedTest extends BaseUnitTest {
 
             var ex = assertThrows(
                     org.cambium.common.exception.ServiceException.class,
-                    () -> finder.concat(twinSearch, properties, Map.of())
+                    () -> finder.concatSearch(properties, twinSearch, Map.of())
             );
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_PARAM_MISSED.getCode(), ex.getErrorCode());
         }
@@ -83,7 +83,7 @@ class TwinFinderByHeadTwinIdRequestedTest extends BaseUnitTest {
 
             var ex = assertThrows(
                     org.cambium.common.exception.ServiceException.class,
-                    () -> finder.concat(twinSearch, properties, namedParams)
+                    () -> finder.concatSearch(properties, twinSearch, namedParams)
             );
             assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), ex.getErrorCode());
         }

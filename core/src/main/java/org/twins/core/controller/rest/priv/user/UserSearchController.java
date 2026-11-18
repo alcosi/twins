@@ -33,6 +33,7 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserSearchConfiguredDTOReverseMapper;
 import org.twins.core.mappers.rest.user.UserSearchDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.user.UserSearchConfigService;
 import org.twins.core.service.user.UserSearchService;
 
 import java.util.UUID;
@@ -44,6 +45,7 @@ import java.util.UUID;
 @ProtectedBy({Permissions.USER_MANAGE, Permissions.USER_VIEW})
 public class UserSearchController extends ApiController {
     private final UserSearchService userSearchService;
+    private final UserSearchConfigService userSearchConfigService;
     private final UserRestDTOMapper userRestDTOMapper;
     private final UserSearchDTOReverseMapper userSearchDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -95,10 +97,10 @@ public class UserSearchController extends ApiController {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
         try {
             UserSearchConfiguredDTOv1 search = request.getSearch();
-            PaginationResult<UserEntity> users = userSearchService.findUsers(
+            PaginationResult<UserEntity> users = userSearchConfigService.findConfigured(
                     searchId,
-                    userSearchConfiguredDTOReverseMapper.convert(search),
                     search != null ? search.getParams() : null,
+                    userSearchConfiguredDTOReverseMapper.convert(search),
                     pagination
             );
             rs
