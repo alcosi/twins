@@ -10,10 +10,13 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.navbar.nb001.FaceNB001Entity;
+import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
 import org.twins.face.dto.rest.navbar.nb001.FaceNB001DTOv1;
+import org.twins.face.service.navbar.FaceNB001MenuItemService;
 import org.twins.face.service.navbar.FaceNB001Service;
 
 import java.util.Collection;
+import java.util.List;
 
 
 @Component
@@ -23,6 +26,7 @@ public class FaceNB001RestDTOMapper extends RestSimpleDTOMapper<FaceNB001Entity,
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FaceNB001MenuItemRestDTOMapper faceNB001MenuItemRestDTOMapper;
     protected final FaceNB001Service faceNB001Service;
+    protected final FaceNB001MenuItemService faceNB001MenuItemService;
     private final ResourceService resourceService;
 
     @Override
@@ -37,7 +41,7 @@ public class FaceNB001RestDTOMapper extends RestSimpleDTOMapper<FaceNB001Entity,
         }
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
             faceNB001Service.loadMenuItems(src);
-            dst.setUserAreaMenuItems(faceNB001MenuItemRestDTOMapper.convertCollection(src.getMenuItems(), mapperContext));
+            dst.setUserAreaMenuItems(faceNB001MenuItemRestDTOMapper.convertCollection(sortedMenuItems(src.getMenuItems()), mapperContext));
         }
     }
 
@@ -47,5 +51,11 @@ public class FaceNB001RestDTOMapper extends RestSimpleDTOMapper<FaceNB001Entity,
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
             faceNB001Service.loadMenuItems(srcCollection);
         }
+    }
+
+    private List<FaceNB001MenuItemEntity> sortedMenuItems(Iterable<FaceNB001MenuItemEntity> items) {
+        if (items == null)
+            return null;
+        return faceNB001MenuItemService.sorted(items);
     }
 }

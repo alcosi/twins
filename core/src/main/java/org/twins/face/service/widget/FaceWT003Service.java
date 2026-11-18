@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceTwinPointerService;
-import org.twins.core.service.face.FaceVariantsService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.face.dao.widget.wt003.FaceWT003Entity;
 import org.twins.face.dao.widget.wt003.FaceWT003Repository;
@@ -23,7 +23,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceWT003Service extends FaceVariantsService<FaceWT003Entity> {
+public class FaceWT003Service extends FacePointedService<FaceWT003Entity> {
 
     private static final String FIELD_VAR = "field.value";
     private final FaceWT003Repository faceWT003Repository;

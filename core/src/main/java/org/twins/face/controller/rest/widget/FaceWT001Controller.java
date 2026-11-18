@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -46,12 +47,12 @@ public class FaceWT001Controller extends ApiController {
     public ResponseEntity<?> faceWT001ViewV1(
             @MapperContextBinding(roots = FaceWT001RestDTOMapper.class, response = FaceWT001ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
-            @RequestParam(required = false) UUID twinId) {
+            @RequestParam UUID twinId) {
         FaceWT001ViewRsDTOv1 rs = new FaceWT001ViewRsDTOv1();
         try {
-            FaceWT001Entity faceWT001Entity = faceWT001Service.findSingleVariant(faceId, twinId);
+            PointedFace<FaceWT001Entity> pointedFace = faceWT001Service.findPointedFace(faceId, twinId);
             rs
-                    .setWidget(faceWT001RestDTOMapper.convert(faceWT001Entity, mapperContext))
+                    .setWidget(faceWT001RestDTOMapper.convert(pointedFace, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -46,7 +46,7 @@ public class FacePG001Controller extends ApiController {
     public ResponseEntity<?> facePG001ViewV1(
             @MapperContextBinding(roots = FacePG001RestDTOMapper.class, response = FacePG001ViewRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACE_ID) @PathVariable UUID faceId,
-            @RequestParam(required = false) UUID twinId) {
+            @RequestParam UUID twinId) {
         FacePG001ViewRsDTOv1 rs = new FacePG001ViewRsDTOv1();
         try {
             FacePG001Entity facePG001Entity = facePG001Service.findSingleVariant(faceId, twinId);

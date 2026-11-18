@@ -89,10 +89,12 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
             dst
                     .assignerUserId(src.getAssignerUserId())
-                    .authorUserId(src.getCreatedByUserId());
+                    .authorUserId(src.getCreatedByUserId())
+                    .ownerUserId(src.getOwnerUserId());
             twinService.loadUser(src);
             userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
             userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
+            userDTOMapper.convertOrPostpone(src.getOwnerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT)));
 
         }
         if (mapperContext.hasModeButNot(TwinClassMode.Twin2TwinClassMode.HIDE)) {

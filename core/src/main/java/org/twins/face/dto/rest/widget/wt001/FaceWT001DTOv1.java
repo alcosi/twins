@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.face.FaceDTOv1;
+import org.twins.face.dto.rest.widget.FaceWidgetDTOv1;
 
 import java.util.List;
 import java.util.Map;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "FaceWT001v1")
-public class FaceWT001DTOv1 extends FaceDTOv1 {
+public class FaceWT001DTOv1 extends FaceWidgetDTOv1 {
     @Schema(description = "uniq key")
     public String key;
 

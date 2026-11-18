@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.face.FaceVariantEntity;
+import org.twins.core.dao.face.FacePointedEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "face_wt003")
-public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
+public class FaceWT003Entity implements EasyLoggable, FacePointedEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -27,6 +27,9 @@ public class FaceWT003Entity implements EasyLoggable, FaceVariantEntity {
 
     @Column(name = "twin_pointer_validator_rule_id")
     private UUID twinPointerValidatorRuleId;
+
+    @Column(name = "target_twin_pointer_id")
+    private UUID targetTwinPointerId;
 
     @Column(name = "level")
     @Enumerated(EnumType.STRING)

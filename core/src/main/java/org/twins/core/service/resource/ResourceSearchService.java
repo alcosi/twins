@@ -36,7 +36,7 @@ public class ResourceSearchService extends EntitySearchService <ResourceSearch, 
 
     @Override
     public ResourceSearch newSearch() {
-        return null;
+        return new ResourceSearch();
     }
 
     @Override

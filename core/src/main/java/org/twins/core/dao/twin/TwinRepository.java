@@ -92,6 +92,59 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
     @Query(value = "select distinct t.headTwinId from TwinEntity t where t.twinClassId = :twinClassId and t.headTwinId is not null")
     Set<UUID> findDistinctHeadTwinIdByTwinClassId(UUID twinClassId);
 
+    @Query("select distinct t.headTwinId from TwinEntity t where t.id in :twinIds and t.headTwinId is not null")
+    Set<UUID> findDistinctHeadTwinIdByIdIn(@Param("twinIds") Collection<UUID> twinIds);
+
+    /**
+     * Twins of the given classes owned by the given users - maps user ids to their user twins
+     * (e.g. domain user twins keyed by owner_user_id, used by space-members search).
+     */
+    @Query("select t.id from TwinEntity t where t.ownerUserId in :userIds and t.twinClassId in :twinClassIds")
+    Set<UUID> findIdsByOwnerIdInAndTwinClassIdIn(@Param("userIds") Collection<UUID> userIds, @Param("twinClassIds") Collection<UUID> twinClassIds);
+
+    /**
+     * Twins linked to the given twin in either direction (twin_link), the twin itself excluded.
+     * Capped to {@code limit} rows (safety valve for hub twins; pass limit+1 to detect overflow).
+     */
+    @Query(value = "select tl.dst_twin_id from twin_link tl where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId "
+            + "union "
+            + "select tl.src_twin_id from twin_link tl where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinId(@Param("twinId") UUID twinId, @Param("limit") int limit);
+
+    /**
+     * Same as {@link #findLinkedTwinIdsByTwinId}, restricted to links whose opposite twin is of the given classes.
+     */
+    @Query(value = "select tl.dst_twin_id from twin_link tl join link l on l.id = tl.link_id "
+            + "where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId and l.dst_twin_class_id in (:twinClassIds) "
+            + "union "
+            + "select tl.src_twin_id from twin_link tl join link l on l.id = tl.link_id "
+            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and l.src_twin_class_id in (:twinClassIds) "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinIdAndTwinClassIds(@Param("twinId") UUID twinId, @Param("twinClassIds") Collection<UUID> twinClassIds, @Param("limit") int limit);
+
+    /**
+     * Same as {@link #findLinkedTwinIdsByTwinId}, restricted to the given link types.
+     */
+    @Query(value = "select tl.dst_twin_id from twin_link tl "
+            + "where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId and tl.link_id in (:linkIds) "
+            + "union "
+            + "select tl.src_twin_id from twin_link tl "
+            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and tl.link_id in (:linkIds) "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinIdAndLinkIds(@Param("twinId") UUID twinId, @Param("linkIds") Collection<UUID> linkIds, @Param("limit") int limit);
+
+    /**
+     * Same as {@link #findLinkedTwinIdsByTwinId}, restricted to the given link types whose opposite twin is of the given classes.
+     */
+    @Query(value = "select tl.dst_twin_id from twin_link tl join link l on l.id = tl.link_id "
+            + "where tl.src_twin_id = :twinId and tl.dst_twin_id <> :twinId and l.dst_twin_class_id in (:twinClassIds) and tl.link_id in (:linkIds) "
+            + "union "
+            + "select tl.src_twin_id from twin_link tl join link l on l.id = tl.link_id "
+            + "where tl.dst_twin_id = :twinId and tl.src_twin_id <> :twinId and l.src_twin_class_id in (:twinClassIds) and tl.link_id in (:linkIds) "
+            + "limit :limit", nativeQuery = true)
+    Set<UUID> findLinkedTwinIdsByTwinIdAndTwinClassIdsAndLinkIds(@Param("twinId") UUID twinId, @Param("twinClassIds") Collection<UUID> twinClassIds, @Param("linkIds") Collection<UUID> linkIds, @Param("limit") int limit);
+
     @Transactional
     @Modifying
     @Query(value = "update TwinEntity set headTwinId = :newVal where headTwinId = :oldVal and twinClassId = :twinClassId")

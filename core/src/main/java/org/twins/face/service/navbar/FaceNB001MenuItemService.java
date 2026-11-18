@@ -15,8 +15,11 @@ import org.twins.core.service.permission.PermissionService;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemRepository;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -53,8 +56,6 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
         if (entity.getLabelI18nId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty labelI18nId");
-        if (entity.getTargetPageFaceId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty targetPageFaceId");
 
         switch (entityValidateMode) {
             case beforeSave:
@@ -64,7 +65,7 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
                     entity.setLabelI18n(i18nService.findEntitySafe(entity.getLabelI18nId()));
                 if (entity.getDescriptionI18nId() != null && (entity.getDescriptionI18n() == null || !entity.getDescriptionI18n().getId().equals(entity.getDescriptionI18nId())))
                     entity.setDescriptionI18n(i18nService.findEntitySafe(entity.getDescriptionI18nId()));
-                if (entity.getTargetPageFace() == null || !entity.getTargetPageFace().getId().equals(entity.getTargetPageFaceId()))
+                if (entity.getTargetPageFaceId() != null && (entity.getTargetPageFace() == null || !entity.getTargetPageFace().getId().equals(entity.getTargetPageFaceId())))
                     entity.setTargetPageFace(faceService.findEntitySafe(entity.getTargetPageFaceId()));
                 if (entity.getPermissionId() != null && (entity.getPermission() == null || !entity.getPermission().getId().equals(entity.getPermissionId())))
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
@@ -76,12 +77,21 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
         loadChilds(Collections.singletonList(src));
     }
 
+    public List<FaceNB001MenuItemEntity> sorted(Iterable<FaceNB001MenuItemEntity> items) {
+        List<FaceNB001MenuItemEntity> list = new ArrayList<>();
+        items.forEach(list::add);
+        list.sort(Comparator
+                .comparing(FaceNB001MenuItemEntity::getOrder, Comparator.nullsLast(Integer::compareTo))
+                .thenComparing(FaceNB001MenuItemEntity::getKey, Comparator.nullsLast(String::compareTo)));
+        return list;
+    }
+
     public void loadChilds(Collection<FaceNB001MenuItemEntity> srcList) {
         loadKit(srcList,
                 FaceNB001MenuItemEntity::getId,
                 FaceNB001MenuItemEntity::getChilds,
                 FaceNB001MenuItemEntity::setChilds,
-                repository::findByParentFaceMenuItemIdIn,
+                repository::findByParentFaceMenuItemIdInOrderByOrderAscKeyAsc,
                 FaceNB001MenuItemEntity::getId,
                 FaceNB001MenuItemEntity::getParentFaceMenuItemId,
                 FaceNB001MenuItemEntity::setParentFaceMenuItem);

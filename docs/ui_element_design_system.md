@@ -39,7 +39,7 @@ new element, pick **exactly one** as the parent.
 | face navbar | `TWINFACES-515` | |
 | face breadcrumbs | `TWINFACES-616` | |
 | face widget | `TWINFACES-523` | |
-| face twiget | `TWINFACES-501` | |
+| face twidget | `TWINFACES-501` | merged into face widget (TWINS-943) |
 
 ### Screens & containers
 

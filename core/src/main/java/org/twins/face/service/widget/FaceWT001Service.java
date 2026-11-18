@@ -11,8 +11,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.service.context.ContextService;
+import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
-import org.twins.core.service.face.FaceVariantsService;
 import org.twins.face.dao.widget.wt001.FaceWT001ColumnRepository;
 import org.twins.face.dao.widget.wt001.FaceWT001Entity;
 import org.twins.face.dao.widget.wt001.FaceWT001Repository;
@@ -24,7 +24,7 @@ import java.util.function.Function;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class FaceWT001Service extends FaceVariantsService<FaceWT001Entity> {
+public class FaceWT001Service extends FacePointedService<FaceWT001Entity> {
     /** Request cache prefix (FaceWT001Entity namespace) for search params collected from the widget's context (batch-loaded, no N+1). */
     private static final String SEARCH_PARAMS_CACHE_PREFIX = "searchParams:";
 

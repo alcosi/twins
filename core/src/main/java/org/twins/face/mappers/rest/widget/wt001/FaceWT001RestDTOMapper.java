@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
+import org.twins.core.domain.face.PointedFace;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
+import org.twins.core.mappers.rest.face.FaceWidgetRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.face.dao.widget.wt001.FaceWT001Entity;
@@ -15,13 +17,15 @@ import org.twins.face.service.widget.FaceWT001ColumnService;
 import org.twins.face.service.widget.FaceWT001Service;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {FaceMode.class})
-public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity, FaceWT001DTOv1> {
+public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceWT001Entity>, FaceWT001DTOv1> {
+    protected final FaceWidgetRestDTOMapper<FaceWT001Entity> faceWidgetRestDTOMapper;
     protected final FaceWT001Service faceWT001Service;
     protected final FaceWT001ColumnService faceWT001ColumnService;
 
@@ -32,21 +36,22 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
     protected final FaceRestDTOMapper faceRestDTOMapper;
 
     @Override
-    public void map(FaceWT001Entity src, FaceWT001DTOv1 dst, MapperContext mapperContext) throws Exception {
-        faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
+    public void map(PointedFace<FaceWT001Entity> src, FaceWT001DTOv1 dst, MapperContext mapperContext) throws Exception {
+        FaceWT001Entity config = src.getConfig();
+        faceWidgetRestDTOMapper.map(src, dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case SHORT -> dst
-                    .setKey(src.getKey());
+                    .setKey(config.getKey());
             case DETAILED -> {
-                faceWT001ColumnService.loadColumns(src);
+                faceWT001ColumnService.loadColumns(config);
                 dst
-                        .setKey(src.getKey())
-                        .setLabel(I18nCacheHolder.addId(src.getLabelI18nId()))
-                        .setTwinClassId(src.getTwinClassId())
-                        .setSearchId(src.getSearchId())
-                        .setShowCreateButton(src.isShowCreateButton())
-                        .setColumns(faceWT001ColumnRestDTOMapper.convertCollection(faceWT001ColumnService.filterVariants(src.getColumns()), mapperContext));
-                Map<String, String> searchParams = faceWT001Service.getSearchParams(src);
+                        .setKey(config.getKey())
+                        .setLabel(I18nCacheHolder.addId(config.getLabelI18nId()))
+                        .setTwinClassId(config.getTwinClassId())
+                        .setSearchId(config.getSearchId())
+                        .setShowCreateButton(config.isShowCreateButton())
+                        .setColumns(faceWT001ColumnRestDTOMapper.convertCollection(faceWT001ColumnService.filterVariants(config.getColumns()), mapperContext));
+                Map<String, String> searchParams = faceWT001Service.getSearchParams(config);
                 if (searchParams != null && !searchParams.isEmpty()) {
                     dst.setSearchParams(searchParams);
                 }
@@ -54,17 +59,19 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<FaceWT001Entity,
         }
 
         if (mapperContext.hasModeButNot(FaceMode.ModalFace2FaceMode.HIDE)) {
-            faceRestDTOMapper.postpone(src.getModalFace(), mapperContext.forkOnPoint(FaceMode.ModalFace2FaceMode.SHORT));
-            dst.setModalFaceId(src.getModalFaceId());
+            faceRestDTOMapper.postpone(config.getModalFace(), mapperContext.forkOnPoint(FaceMode.ModalFace2FaceMode.SHORT));
+            dst.setModalFaceId(config.getModalFaceId());
         }
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<FaceWT001Entity> srcCollection, MapperContext mapperContext) throws Exception {
+    public void beforeCollectionConversion(Collection<PointedFace<FaceWT001Entity>> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceWT001ColumnService.loadColumns(srcCollection);
+        faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        List<FaceWT001Entity> configs = srcCollection.stream().map(PointedFace::getConfig).toList();
+        faceWT001ColumnService.loadColumns(configs);
         if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
-            faceWT001Service.loadSearchParams(srcCollection);
+            faceWT001Service.loadSearchParams(configs);
         }
     }
 }
