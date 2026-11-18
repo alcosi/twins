@@ -26,8 +26,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ResourceSearchService extends EntitySearchService
-        <ResourceSearch, ResourceEntity, ResourceSortField, ResourceGroupField> {
+public class ResourceSearchService extends EntitySearchService <ResourceSearch, ResourceEntity, ResourceSortField, ResourceGroupField> {
     private final ResourceRepository resourceRepository;
 
     @Override
@@ -36,8 +35,8 @@ public class ResourceSearchService extends EntitySearchService
     }
 
     @Override
-    public ResourceSearch emptySearch() {
-        return new ResourceSearch();
+    public ResourceSearch newSearch() {
+        return null;
     }
 
     @Override
