@@ -15,6 +15,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldMathSumFromContextField;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -28,6 +29,9 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FillerFieldMathSumFromContextField filler;
 
     private static final UUID ADDEND_FIELD_ID = UUID.randomUUID(); // from context
@@ -36,7 +40,7 @@ class FillerFieldMathSumFromContextFieldTest extends BaseUnitTest {
     @BeforeEach
     void setUp() {
         // Math fillers use constructor injection (@RequiredArgsConstructor with final TwinService).
-        filler = new FillerFieldMathSumFromContextField(twinService);
+        filler = new FillerFieldMathSumFromContextField(twinService, twinClassFieldService);
     }
 
     private Properties props(boolean allowNegative) {

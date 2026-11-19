@@ -11,7 +11,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.TwinField;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
@@ -23,6 +22,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamStringTwinsFactoryFieldLookuper;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -50,6 +50,9 @@ public class FillerFieldMathDifferenceFromContextField extends FillerFieldLookup
      */
     @Lazy
     private final TwinService twinService;
+
+    @Lazy
+    private final TwinClassFieldService twinClassFieldService;
 
     @FeaturerParam(name = "Field lookuper", description = "Source of the field value", order = 99, optional = true, defaultValue = "fromContextFieldsAndContextTwinDbFields")
     public static final FeaturerParamStringTwinsFactoryFieldLookuper fieldLookuperParam = new FeaturerParamStringTwinsFactoryFieldLookuper("fieldLookuper");
@@ -86,11 +89,8 @@ public class FillerFieldMathDifferenceFromContextField extends FillerFieldLookup
         FieldValue minuendFieldValue = factoryItem.getOutput().getField(paramMinuendTwinClassFieldId);
         if (minuendFieldValue == null && factoryItem.getOutput() instanceof TwinCreate)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory item is under creation and has no created field[" + paramMinuendTwinClassFieldId + "]");
-        if (factoryItem.getOutput() instanceof TwinUpdate) { //perhaps we can get field value from database
-            TwinField twinField = twinService.wrapField(factoryItem.getOutput().getTwinEntity(), paramMinuendTwinClassFieldId);
-            if (twinField == null)
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] is not present in " + factoryItem.getOutput().getTwinEntity().getId());
-            minuendFieldValue = twinService.getTwinFieldValue(twinField);
+        if (factoryItem.getOutput() instanceof TwinUpdate) { //current value: operation fields first, persisted twin db fields fallback — never the REST-update stub (doc backlog/152 §4)
+            minuendFieldValue = lookuper(properties).lookupFieldValueOrNull(factoryItem, twinClassFieldService.findEntitySafe(paramMinuendTwinClassFieldId));
         }
         if (minuendFieldValue == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] can not be detected");
