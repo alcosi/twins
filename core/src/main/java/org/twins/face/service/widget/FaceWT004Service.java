@@ -87,8 +87,8 @@ public class FaceWT004Service extends FacePointedService<FaceWT004Entity> {
 
         Map<UUID, TwinAttachmentRestrictionEntity> restrictionMap = attachmentRestrictionService.getRestrictionsFromFieldTyper(faceWT004GroupedByImageFieldId.getGroupedKeySet());
 
-        for (var tw001 : faceWT004GroupedByImageFieldId) {
-            tw001.setTwinAttachmentRestriction(restrictionMap.get(tw001.getImagesTwinClassFieldId()));
+        for (var wt004 : faceWT004GroupedByImageFieldId) {
+            wt004.setTwinAttachmentRestriction(restrictionMap.get(wt004.getImagesTwinClassFieldId()));
         }
     }
 

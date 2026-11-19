@@ -33,15 +33,15 @@ public class FaceWT004RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
             case SHORT -> dst
                     .setKey(src.getConfig().getKey());
             case DETAILED -> {
-                FaceWT004Entity tw001 = src.getConfig();
+                FaceWT004Entity wt004 = src.getConfig();
                 faceWT004Service.loadRestriction(src);
 
                 dst
-                        .setKey(tw001.getKey())
-                        .setLabel(I18nCacheHolder.addId(tw001.getLabelI18nId()))
-                        .setImagesTwinClassFieldId(tw001.getImagesTwinClassFieldId())
-                        .setUploadable(tw001.isUploadable())
-                        .setRestrictionId(tw001.getTwinAttachmentRestriction() != null ? tw001.getTwinAttachmentRestriction().getId() : null);
+                        .setKey(wt004.getKey())
+                        .setLabel(I18nCacheHolder.addId(wt004.getLabelI18nId()))
+                        .setImagesTwinClassFieldId(wt004.getImagesTwinClassFieldId())
+                        .setUploadable(wt004.isUploadable())
+                        .setRestrictionId(wt004.getTwinAttachmentRestriction() != null ? wt004.getTwinAttachmentRestriction().getId() : null);
 
             }
         }
