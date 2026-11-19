@@ -1,7 +1,7 @@
 -- TWINS-943: face component WT008 "Twins comments widget" — comments of the requested twin.
 -- Config table face_wt008 mirrors face_wt003 (V1.3.297.02) / face_tw007 (V1.3.370.02) layout,
 -- extended with target_twin_pointer_id (WT008 is a pointed widget from birth, see
--- V1.4.xxx.03__TWINS-943_face_widget_target_twin_pointer.sql).
+-- V1.4.394.06__TWINS-943_face_widget_target_twin_pointer.sql).
 -- Comments are fetched via the configured comment search (TWINS-946): the widget config
 -- returns twin_comment_search_id and the client calls /private/comment/search/{searchId}/v1
 -- with narrow.twinIdList = [pointedTwinId]. Defaults to the UNLIMITED system row

@@ -72,7 +72,7 @@ Behavioral notes:
 
 ### 5.1 DB migration (in `db/migration_backlog/` per convention)
 
-Added nullable target pointer to former WT tables (`V1.4.xxx.03__TWINS-943_face_widget_target_twin_pointer.sql`):
+Added nullable target pointer to former WT tables (`V1.4.394.06__TWINS-943_face_widget_target_twin_pointer.sql`):
 
 ```sql
 alter table face_wt001 add column if not exists target_twin_pointer_id uuid
@@ -81,7 +81,7 @@ create index if not exists face_wt001_target_twin_pointer_id_idx on face_wt001 (
 -- same for face_wt002, face_wt003 (released tables)
 ```
 
-WT008 is still backlog-only, so it does **not** get an ALTER — its creation migration (`V1.4.xxx.04__TWINS-943_face_wt008_comments_widget.sql`) declares `target_twin_pointer_id` inline in `CREATE TABLE`.
+WT008 is still backlog-only, so it does **not** get an ALTER — its creation migration (`V1.4.394.07__TWINS-943_face_wt008_comments_widget.sql`) declares `target_twin_pointer_id` inline in `CREATE TABLE`.
 
 Nullable ⇒ zero data migration; existing rows mean "target = current twin".
 
@@ -147,7 +147,7 @@ Ex-TW widgets filled the free WT004–WT007 gap (numbers dropped back in TWINS-3
 
 (WT008 comments was also renumberable — it is still backlog-only — but was left as-is.)
 
-### 6.3 DB migration (`V1.4.xxx.05__TWINS-943_face_twidget_to_widget_rename.sql`, in backlog)
+### 6.3 DB migration (`V1.4.394.08__TWINS-943_face_twidget_to_widget_rename.sql`, in backlog)
 
 Data-preserving, idempotent (single `DO` block + updates):
 

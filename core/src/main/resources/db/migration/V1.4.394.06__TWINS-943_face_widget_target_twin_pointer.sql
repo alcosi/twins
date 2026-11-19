@@ -1,7 +1,7 @@
 -- TWINS-943 face widget/twidget unification (phase 2): former WT widgets become pointed widgets.
 -- Nullable target twin pointer; null means "target twin = current twin" (see FacePointedService.findPointedFace).
 -- Only the released tables need ALTER; face_wt008 is still backlog-only, so it is created
--- with the column inline (see V1.4.xxx.04__TWINS-943_face_wt008_comments_widget.sql).
+-- with the column inline (see V1.4.394.07__TWINS-943_face_wt008_comments_widget.sql).
 
 alter table face_wt001
     add column if not exists target_twin_pointer_id uuid
