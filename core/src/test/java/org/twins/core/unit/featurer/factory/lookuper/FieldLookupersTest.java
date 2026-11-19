@@ -25,6 +25,7 @@ class FieldLookupersTest extends BaseUnitTest {
         var fromItemOutputDbFields = new FieldLookuperFromItemOutputDbFields();
         var fromItemOutputUncommitedFields = new FieldLookuperFromItemOutputUncommitedFields();
         var fromItemOutputFields = new FieldLookuperFromItemOutputFields();
+        var fromItemOutputFieldsAndDbTwinFields = new FieldLookuperFromItemOutputFieldsAndDbTwinFields();
         var fromItemOutputHeadTwinFields = new FieldLookuperFromItemOutputHeadTwinFields();
         var fromItemOutputLinkedTwinFields = new FieldLookuperFromItemOutputLinkedTwinFields();
         var fromItemOutputHeadTwinLinkedTwinFields = new FieldLookuperFromItemOutputHeadTwinLinkedTwinFields();
@@ -43,6 +44,7 @@ class FieldLookupersTest extends BaseUnitTest {
                 fromItemOutputDbFields,
                 fromItemOutputUncommitedFields,
                 fromItemOutputFields,
+                fromItemOutputFieldsAndDbTwinFields,
                 fromItemOutputHeadTwinFields,
                 fromItemOutputLinkedTwinFields,
                 fromItemOutputHeadTwinLinkedTwinFields,
@@ -60,6 +62,7 @@ class FieldLookupersTest extends BaseUnitTest {
         assertSame(fromItemOutputDbFields, registry.getFromItemOutputDbFields());
         assertSame(fromItemOutputUncommitedFields, registry.getFromItemOutputUncommitedFields());
         assertSame(fromItemOutputFields, registry.getFromItemOutputFields());
+        assertSame(fromItemOutputFieldsAndDbTwinFields, registry.getFromItemOutputFieldsAndDbTwinFields());
         assertSame(fromItemOutputHeadTwinFields, registry.getFromItemOutputHeadTwinFields());
         assertSame(fromItemOutputLinkedTwinFields, registry.getFromItemOutputLinkedTwinFields());
         assertSame(fromItemOutputHeadTwinLinkedTwinFields, registry.getFromItemOutputHeadTwinLinkedTwinFields());

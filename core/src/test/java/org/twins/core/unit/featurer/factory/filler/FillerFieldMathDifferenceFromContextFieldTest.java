@@ -15,6 +15,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.filler.FillerFieldMathDifferenceFromContextField;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.math.BigDecimal;
 import java.util.Properties;
@@ -28,6 +29,9 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
     @Mock
     private TwinService twinService;
 
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
     private FillerFieldMathDifferenceFromContextField filler;
 
     private static final UUID MINUEND_FIELD_ID = UUID.randomUUID(); // on output
@@ -35,7 +39,7 @@ class FillerFieldMathDifferenceFromContextFieldTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        filler = new FillerFieldMathDifferenceFromContextField(twinService);
+        filler = new FillerFieldMathDifferenceFromContextField(twinService, twinClassFieldService);
     }
 
     private Properties props(boolean allowNegative) {

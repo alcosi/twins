@@ -14,7 +14,7 @@ import java.util.Properties;
         regexp = FeaturerParamStringTwinsFactoryFieldLookuper.TWIN_FACTORY_LOOKUPPER_REGEXP,
         example = "fromContextFields")
 public class FeaturerParamStringTwinsFactoryFieldLookuper extends FeaturerParam<FieldLookupers.Type> {
-    public static final String TWIN_FACTORY_LOOKUPPER_REGEXP = "fromContextFields|fromContextFieldsAndContextTwinDbFields|fromContextTwinFields|fromContextTwinDbFields|fromContextTwinLinkedByLinkTwinFields|fromContextTwinLinkedByFieldTwinFields|fromContextTwinHeadTwinDbFields|fromContextTwinUncommitedFields|fromItemOutputDbFields|fromItemOutputUncommitedFields|fromItemOutputFields|fromItemOutputHeadTwinFields|fromItemOutputLinkedTwinFields|fromItemOutputHeadTwinLinkedTwinFields|fromItemOutputLinkedTwinHeadTwinFields";
+    public static final String TWIN_FACTORY_LOOKUPPER_REGEXP = "fromContextFields|fromContextFieldsAndContextTwinDbFields|fromContextTwinFields|fromContextTwinDbFields|fromContextTwinLinkedByLinkTwinFields|fromContextTwinLinkedByFieldTwinFields|fromContextTwinHeadTwinDbFields|fromContextTwinUncommitedFields|fromItemOutputDbFields|fromItemOutputUncommitedFields|fromItemOutputFields|fromItemOutputFieldsAndDbTwinFields|fromItemOutputHeadTwinFields|fromItemOutputLinkedTwinFields|fromItemOutputHeadTwinLinkedTwinFields|fromItemOutputLinkedTwinHeadTwinFields";
 
     public FeaturerParamStringTwinsFactoryFieldLookuper(String key) {
         super(key);

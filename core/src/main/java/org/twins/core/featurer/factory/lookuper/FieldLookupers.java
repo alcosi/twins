@@ -22,6 +22,7 @@ public class FieldLookupers {
     private final FieldLookuperFromItemOutputDbFields fromItemOutputDbFields;
     private final FieldLookuperFromItemOutputUncommitedFields fromItemOutputUncommitedFields;
     private final FieldLookuperFromItemOutputFields fromItemOutputFields;
+    private final FieldLookuperFromItemOutputFieldsAndDbTwinFields fromItemOutputFieldsAndDbTwinFields;
     private final FieldLookuperFromItemOutputHeadTwinFields fromItemOutputHeadTwinFields;
     private final FieldLookuperFromItemOutputLinkedTwinFields fromItemOutputLinkedTwinFields;
     private final FieldLookuperFromItemOutputHeadTwinLinkedTwinFields fromItemOutputHeadTwinLinkedTwinFields;
@@ -40,6 +41,7 @@ public class FieldLookupers {
         fromItemOutputDbFields,
         fromItemOutputUncommitedFields,
         fromItemOutputFields,
+        fromItemOutputFieldsAndDbTwinFields,
         fromItemOutputHeadTwinFields,
         fromItemOutputLinkedTwinFields,
         fromItemOutputHeadTwinLinkedTwinFields,
@@ -60,6 +62,7 @@ public class FieldLookupers {
             case fromItemOutputDbFields -> this.fromItemOutputDbFields;
             case fromItemOutputUncommitedFields -> this.fromItemOutputUncommitedFields;
             case fromItemOutputFields -> this.fromItemOutputFields;
+            case fromItemOutputFieldsAndDbTwinFields -> this.fromItemOutputFieldsAndDbTwinFields;
             case fromItemOutputHeadTwinFields -> this.fromItemOutputHeadTwinFields;
             case fromItemOutputLinkedTwinFields -> this.fromItemOutputLinkedTwinFields;
             case fromItemOutputHeadTwinLinkedTwinFields -> this.fromItemOutputHeadTwinLinkedTwinFields;
