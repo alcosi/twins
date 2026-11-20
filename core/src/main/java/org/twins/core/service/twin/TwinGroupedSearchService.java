@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.twin.*;
 import org.twins.core.enums.SortDirection;
@@ -63,105 +62,10 @@ public class TwinGroupedSearchService {
 
         // canonical batch load: every field value (FieldValueLink included) lands in twin.fieldValuesKit
         twinService.loadFieldsValues(twins);
-        List<TwinTreeAssembler.Leaf> leaves = new ArrayList<>(twins.size());
-        for (TwinEntity twin : twins) {
-            leaves.add(new TwinTreeAssembler.Leaf(twin, levelKeys(twin, levels)));
-        }
-        TwinTreeAssembler.Assembly assembly = TwinTreeAssembler.assemble(leaves, levels);
+        TwinTreeAssembler.Assembly assembly = TwinTreeAssembler.assemble(twins, levels);
         loadKeyEntities(assembly.all());
-        sortTree(assembly.roots(), levels);
+        TwinTreeAssembler.sort(assembly.roots(), levels);
         return new TwinGroupedSearchResult().setGroups(assembly.roots());
-    }
-
-    private List<List<Object>> levelKeys(TwinEntity twin, List<TwinGroupLevel> levels) throws ServiceException {
-        List<List<Object>> keys = new ArrayList<>(levels.size());
-        for (TwinGroupLevel level : levels) {
-            if (level.getBasicField() != null) {
-                keys.add(TwinGroupKeyValues.basic(twin, level.getBasicField()));
-            } else if (level.getStorage() instanceof TwinFieldStorageLink) {
-                // link keys are the ids of the far twins carried by the FieldValueLink in the kit
-                // (a twin of a class without the field has no value and groups under the empty key)
-                keys.add(TwinGroupKeyValues.linkEnds(twin.getFieldValuesKit() == null ? null
-                        : twin.getFieldValuesKit().get(level.getDynamicField().getId())));
-            } else {
-                keys.add(TwinGroupKeyValues.dynamic(twin, level.getDynamicField(), level.getStorage()));
-            }
-        }
-        return keys;
-    }
-
-    private void sortTree(List<TwinGroup> roots, List<TwinGroupLevel> levels) {
-        sortLevel(List.of(roots), 0, levels);
-    }
-
-    private void sortLevel(List<List<TwinGroup>> siblingLists, int levelIndex, List<TwinGroupLevel> levels) {
-        if (levelIndex >= levels.size()) {
-            return;
-        }
-        List<TwinGroup> atLevel = new ArrayList<>();
-        for (List<TwinGroup> siblings : siblingLists) {
-            if (siblings != null) {
-                atLevel.addAll(siblings);
-            }
-        }
-        if (atLevel.isEmpty()) {
-            return;
-        }
-        Comparator<TwinGroup> comparator = groupOrder(levels.get(levelIndex));
-        for (List<TwinGroup> siblings : siblingLists) {
-            if (siblings != null && siblings.size() > 1) {
-                siblings.sort(comparator);
-            }
-        }
-        if (levelIndex == levels.size() - 1) {
-            return;
-        }
-        List<List<TwinGroup>> children = new ArrayList<>();
-        for (TwinGroup group : atLevel) {
-            if (group.getGroups() != null) {
-                children.add(group.getGroups());
-            }
-        }
-        sortLevel(children, levelIndex + 1, levels);
-    }
-
-    private Comparator<TwinGroup> groupOrder(TwinGroupLevel level) {
-        return switch (level.getSort()) {
-            case NAME_ASC -> nameOrder(true);
-            case NAME_DESC -> nameOrder(false);
-            case COUNT_ASC -> TwinTreeAssembler.counts(true);
-            case COUNT_DESC -> TwinTreeAssembler.counts(false);
-            case KEY_ASC -> TwinTreeAssembler.keys(true);
-            case KEY_DESC -> TwinTreeAssembler.keys(false);
-        };
-    }
-
-    /**
-     * NAME_* sorts read the name of the key entity attached by {@link #loadKeyEntities}: users, heads and
-     * link ends are the only name-sortable keys (see {@link #nameSortable}). A missing entity sorts by the
-     * raw key; the empty key is always last.
-     */
-    private static Comparator<TwinGroup> nameOrder(boolean ascending) {
-        return (left, right) -> {
-            if (left.getKey() == null || right.getKey() == null) {
-                return nullsLast(left.getKey(), right.getKey());
-            }
-            int byName = compareText(keyName(left), keyName(right), ascending);
-            if (byName != 0) {
-                return byName;
-            }
-            return ((UUID) left.getKey()).compareTo((UUID) right.getKey());
-        };
-    }
-
-    private static String keyName(TwinGroup group) {
-        if (group.getKeyEntity() instanceof UserEntity user) {
-            return user.getName();
-        }
-        if (group.getKeyEntity() instanceof TwinEntity twin) {
-            return twin.getName();
-        }
-        return null;
     }
 
     /**
@@ -202,27 +106,6 @@ public class TwinGroupedSearchService {
         for (TwinGroup group : groups) {
             group.setKeyEntity(kit.get((UUID) group.getKey()));
         }
-    }
-
-    private static int compareText(String left, String right, boolean ascending) {
-        if (left == null || right == null) {
-            return nullsLast(left, right);
-        }
-        int compared = left.compareTo(right);
-        return ascending ? compared : -compared;
-    }
-
-    private static int nullsLast(Object left, Object right) {
-        if (left == right) {
-            return 0;
-        }
-        if (left == null) {
-            return 1;
-        }
-        if (right == null) {
-            return -1;
-        }
-        return 0;
     }
 
     private List<TwinGroupLevel> resolveLevels(List<TwinGroupLevel> levels) throws ServiceException {
@@ -273,11 +156,9 @@ public class TwinGroupedSearchService {
 
     private void resolveDynamicField(TwinGroupLevel level, TwinClassFieldEntity field) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
-        TwinFieldStorage storage = fieldTyper.getStorage(field);
         level
                 .setDynamicField(field)
-                .setStorage(storage)
-                .setKeyType(dynamicKeyType(field, storage));
+                .setKeyType(dynamicKeyType(field, fieldTyper.getStorage(field)));
     }
 
     private Specification<TwinEntity> memberOrder(List<TwinMemberSort> memberSorts, Locale locale) throws ServiceException {

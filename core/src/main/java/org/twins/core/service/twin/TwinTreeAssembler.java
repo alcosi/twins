@@ -1,6 +1,8 @@
 package org.twins.core.service.twin;
 
+import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
 
@@ -10,51 +12,36 @@ public final class TwinTreeAssembler {
     private TwinTreeAssembler() {
     }
 
-    public static Assembly assemble(List<Leaf> leaves, List<TwinGroupLevel> levels) {
+    /**
+     * Walks every twin down the levels, finding or creating a node per key, and places the twin
+     * into the leaf node. A level with several keys (datalist, link) puts the twin into every
+     * matching branch.
+     */
+    public static Assembly assemble(List<TwinEntity> twins, List<TwinGroupLevel> levels) throws ServiceException {
         Bucket root = new Bucket(null);
-        LinkedHashSet<UUID> seen = new LinkedHashSet<>();
-        if (leaves != null) {
-            for (Leaf leaf : leaves) {
-                if (leaf == null || leaf.twin == null || leaf.twin.getId() == null || !seen.add(leaf.twin.getId())) {
-                    continue;
-                }
-                expand(leaf, levels.size(), new ArrayList<>(), root);
+        Set<UUID> seen = new HashSet<>();
+        for (TwinEntity twin : twins) {
+            if (twin == null || twin.getId() == null || !seen.add(twin.getId())) {
+                continue;
             }
+            place(root, twin, levels, 0);
         }
         List<TwinGroup> all = new ArrayList<>();
         List<TwinGroup> roots = toGroups(root.children.values(), 0, levels, all);
         return new Assembly(roots, all);
     }
 
-    private static void expand(Leaf leaf, int depth, List<Object> path, Bucket root) {
-        if (path.size() == depth) {
-            insert(root, path, 0, leaf.twin);
+    private static void place(Bucket node, TwinEntity twin, List<TwinGroupLevel> levels, int levelIndex) throws ServiceException {
+        // a twin visits each node at most once (the input is distinct, and the keys of a level are
+        // distinct), so the visit itself is the count increment
+        node.count++;
+        if (levelIndex == levels.size()) {
+            node.twins.add(twin);
             return;
         }
-        List<Object> keys = leaf.levelKeys == null || path.size() >= leaf.levelKeys.size()
-                ? Collections.singletonList(null)
-                : leaf.levelKeys.get(path.size());
-        if (keys == null || keys.isEmpty()) {
-            keys = Collections.singletonList(null);
+        for (Object key : levels.get(levelIndex).extractKeys(twin)) {
+            place(node.children.computeIfAbsent(key, Bucket::new), twin, levels, levelIndex + 1);
         }
-        for (Object key : keys) {
-            path.add(key);
-            expand(leaf, depth, path, root);
-            path.remove(path.size() - 1);
-        }
-    }
-
-    private static void insert(Bucket node, List<Object> path, int levelIndex, TwinEntity twin) {
-        if (levelIndex == path.size()) {
-            if (node.leafIds.add(twin.getId())) {
-                node.twins.add(twin);
-            }
-            return;
-        }
-        node.leafIds.add(twin.getId());
-        Object key = path.get(levelIndex);
-        Bucket child = node.children.computeIfAbsent(key, Bucket::new);
-        insert(child, path, levelIndex + 1, twin);
     }
 
     private static List<TwinGroup> toGroups(Iterable<Bucket> buckets, int levelIndex, List<TwinGroupLevel> levels, List<TwinGroup> all) {
@@ -64,7 +51,7 @@ public final class TwinTreeAssembler {
         for (Bucket bucket : buckets) {
             TwinGroup group = new TwinGroup()
                     .setKey(bucket.key)
-                    .setCount(bucket.leafIds.size())
+                    .setCount(bucket.count)
                     .setKeyType(level.getKeyType());
             all.add(group);
             if (last) {
@@ -78,20 +65,40 @@ public final class TwinTreeAssembler {
     }
 
     /**
+     * Sorts every sibling list by its level's sort. NAME sorts read the name of the key entity
+     * (users and twins are the only name-sortable keys), so they need the entities attached
+     * after assembly; the empty key is always last.
+     */
+    public static void sort(List<TwinGroup> roots, List<TwinGroupLevel> levels) {
+        sort(roots, levels, 0);
+    }
+
+    private static void sort(List<TwinGroup> groups, List<TwinGroupLevel> levels, int levelIndex) {
+        if (groups == null || groups.isEmpty() || levelIndex >= levels.size()) {
+            return;
+        }
+        groups.sort(order(levels.get(levelIndex)));
+        for (TwinGroup group : groups) {
+            sort(group.getGroups(), levels, levelIndex + 1);
+        }
+    }
+
+    private static Comparator<TwinGroup> order(TwinGroupLevel level) {
+        return switch (level.getSort()) {
+            case NAME_ASC -> names(true);
+            case NAME_DESC -> names(false);
+            case COUNT_ASC -> counts(true);
+            case COUNT_DESC -> counts(false);
+            case KEY_ASC -> keys(true);
+            case KEY_DESC -> keys(false);
+        };
+    }
+
+    /**
      * The roots in grouping order, plus every group of every level as a flat list (for batch key
      * entity loading without a second tree walk).
      */
     public record Assembly(List<TwinGroup> roots, List<TwinGroup> all) {
-    }
-
-    public static final class Leaf {
-        private final TwinEntity twin;
-        private final List<List<Object>> levelKeys;
-
-        public Leaf(TwinEntity twin, List<List<Object>> levelKeys) {
-            this.twin = twin;
-            this.levelKeys = levelKeys;
-        }
     }
 
     public static Comparator<TwinGroup> keys(boolean ascending) {
@@ -111,19 +118,27 @@ public final class TwinTreeAssembler {
         };
     }
 
-    public static Comparator<TwinGroup> names(Map<UUID, String> names, boolean ascending) {
+    public static Comparator<TwinGroup> names(boolean ascending) {
         return (left, right) -> {
             if (left.getKey() == null || right.getKey() == null) {
                 return nullsLast(left.getKey(), right.getKey());
             }
-            String leftName = names.get(left.getKey());
-            String rightName = names.get(right.getKey());
-            int byName = compareText(leftName, rightName, ascending);
+            int byName = compareText(keyName(left), keyName(right), ascending);
             if (byName != 0) {
                 return byName;
             }
             return ((UUID) left.getKey()).compareTo((UUID) right.getKey());
         };
+    }
+
+    private static String keyName(TwinGroup group) {
+        if (group.getKeyEntity() instanceof UserEntity user) {
+            return user.getName();
+        }
+        if (group.getKeyEntity() instanceof TwinEntity twin) {
+            return twin.getName();
+        }
+        return null;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -164,8 +179,8 @@ public final class TwinTreeAssembler {
     private static final class Bucket {
         private final Object key;
         private final LinkedHashMap<Object, Bucket> children = new LinkedHashMap<>();
-        private final LinkedHashSet<UUID> leafIds = new LinkedHashSet<>();
         private final List<TwinEntity> twins = new ArrayList<>();
+        private int count;
 
         private Bucket(Object key) {
             this.key = key;
