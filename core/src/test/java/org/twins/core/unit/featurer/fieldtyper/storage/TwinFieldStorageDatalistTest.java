@@ -36,6 +36,8 @@ class TwinFieldStorageDatalistTest extends BaseUnitTest {
 
     @Mock
     private TwinClassFieldService twinClassFieldService;
+    @Mock
+    private FeaturerService featurerService;
 
 
     private UUID fieldId;

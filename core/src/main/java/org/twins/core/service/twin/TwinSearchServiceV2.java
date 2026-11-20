@@ -163,6 +163,24 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
         return sortFn.apply((root, query, cb) -> cb.conjunction());
     }
 
+    /**
+     * Whether the given id is a basic field accepted by the basic-field branch of
+     * {@link #createSortSpecification(UUID, SortDirection, Locale)}. Dynamic fields are sorted by
+     * {@link TwinSorter} there, but callers may restrict member sorting to basic fields only.
+     * Keep this switch in sync with the one above.
+     */
+    public static boolean isBasicSortFieldSupported(UUID twinClassFieldId) {
+        TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);
+        if (basicField == null) {
+            return false;
+        }
+        return switch (basicField) {
+            case NAME, DESCRIPTION, CREATED_AT, EXTERNAL_ID, SORT_ORDER, FLAVOR_DATA_LIST_OPTION_ID,
+                    TWIN_CLASS_ID, TWIN_STATUS_ID, OWNER_USER_ID, ASSIGNEE_USER_ID, CREATOR_USER_ID -> true;
+            default -> false;
+        };
+    }
+
     @Override
     public String convertToEntityField(UUID twinClassFieldId) throws ServiceException {
         var basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);

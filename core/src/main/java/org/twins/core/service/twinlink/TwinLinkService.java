@@ -49,8 +49,8 @@ import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinSortOrderService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinSortOrderService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 

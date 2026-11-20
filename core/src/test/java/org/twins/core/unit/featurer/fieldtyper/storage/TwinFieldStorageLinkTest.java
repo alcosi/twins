@@ -2,6 +2,7 @@ package org.twins.core.unit.featurer.fieldtyper.storage;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -10,6 +11,8 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
+import org.twins.core.service.link.LinkService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.util.List;
@@ -25,6 +28,16 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
 
     @Mock
     private TwinLinkService twinLinkService;
+    @Mock
+    private FeaturerService featurerService;
+    @Mock
+    private LinkService linkService;
+    @Mock
+    private TwinClassFieldService twinClassFieldService;
+
+    private TwinFieldStorageLink storage() {
+        return new TwinFieldStorageLink(twinLinkService, featurerService, linkService, twinClassFieldService);
+    }
 
     private TwinEntity twin() {
         var t = new TwinEntity();
@@ -37,7 +50,7 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
 
         @Test
         void load_delegatesToTwinLinkServiceWithTwinCollection() throws ServiceException {
-            var storage = new TwinFieldStorageLink(twinLinkService);
+            var storage = storage();
             var t1 = twin();
             var t2 = twin();
             var kit = new Kit<>(java.util.Arrays.asList(t1, t2), TwinEntity::getId);
@@ -59,7 +72,7 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
 
         @Test
         void hasStrictValues_isAlwaysFalse() {
-            assertFalse(new TwinFieldStorageLink(twinLinkService).hasStrictValues(UUID.randomUUID()));
+            assertFalse(storage().hasStrictValues(UUID.randomUUID()));
         }
     }
 
@@ -68,7 +81,7 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
 
         @Test
         void isLoaded_nullTwinLinks_isFalse() {
-            var storage = new TwinFieldStorageLink(twinLinkService);
+            var storage = storage();
 
             assertFalse(storage.isLoaded(twin()));
         }
@@ -76,7 +89,7 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
         @Test
         void isLoaded_afterInitEmpty_isTrue() {
             // initEmpty sets the canonical EMPTY result singleton.
-            var storage = new TwinFieldStorageLink(twinLinkService);
+            var storage = storage();
             var t = twin();
 
             storage.initEmpty(t);
@@ -92,12 +105,12 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
         @Test
         void findUsedFields_returnsEmptyList() {
             assertEquals(List.of(),
-                    new TwinFieldStorageLink(twinLinkService).findUsedFields(UUID.randomUUID(), Set.of()));
+                    storage().findUsedFields(UUID.randomUUID(), Set.of()));
         }
 
         @Test
         void replaceTwinClassFieldForTwinsOfClass_isNoop_doesNotCallService() {
-            new TwinFieldStorageLink(twinLinkService)
+            storage()
                     .replaceTwinClassFieldForTwinsOfClass(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
 
             verifyNoInteractions(twinLinkService);
@@ -105,7 +118,7 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
 
         @Test
         void deleteTwinFieldsForTwins_isNoop_doesNotCallService() {
-            new TwinFieldStorageLink(twinLinkService)
+            storage()
                     .deleteTwinFieldsForTwins(Map.of(UUID.randomUUID(), Set.of()));
 
             verifyNoInteractions(twinLinkService);
@@ -118,13 +131,13 @@ class TwinFieldStorageLinkTest extends BaseUnitTest {
         @Test
         void equals_twoInstancesOfSameClass_isTrue() {
             assertEquals(
-                    new TwinFieldStorageLink(twinLinkService),
-                    new TwinFieldStorageLink(twinLinkService));
+                    storage(),
+                    storage());
         }
 
         @Test
         void equals_differentStorageClass_isFalse() {
-            assertNotEquals(new TwinFieldStorageLink(twinLinkService), new TwinFieldStorageSpirit());
+            assertNotEquals(storage(), new TwinFieldStorageSpirit());
         }
     }
 }

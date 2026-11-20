@@ -15,6 +15,7 @@ import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.domain.CountResult;
 import org.twins.core.domain.search.EntitySearch;
 import org.twins.core.enums.SortDirection;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -80,6 +81,26 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
         }
         Page<E> page = jpaSpecificationExecutor().findAll(spec, PaginationUtils.pageableOffset(pagination.setSort(null)));
         return PaginationUtils.convertInPaginationResult(page, pagination);
+    }
+
+    /**
+     * Unpaginated fetch for callers that need the whole selection in memory, without a count query:
+     * reads at most maxResult + 1 rows and rejects the overflow. The sort spec is applied to the
+     * fetch only.
+     */
+    public List<E> findAllUnpaged(S search, Specification<E> sort, long maxResult) throws ServiceException {
+        if (search == null) {
+            search = emptySearch();
+        }
+        Specification<E> filter = createFilterSpecification(search);
+        Specification<E> fetchSpec = sort == null ? filter : filter.and(sort);
+        // one row over the limit is the overflow marker, so no separate count query is needed
+        List<E> result = jpaSpecificationExecutor().findBy(fetchSpec, query -> query.limit(Math.toIntExact(maxResult + 1)).all());
+        if (result.size() > maxResult) {
+            throw new ServiceException(ErrorCodeTwins.SEARCH_RESULT_LIMIT_EXCEEDED,
+                    "search result exceeds limit " + maxResult);
+        }
+        return result;
     }
 
     public Map<GF, Long> countByGroupFields(S search, GF groupField) throws ServiceException {
