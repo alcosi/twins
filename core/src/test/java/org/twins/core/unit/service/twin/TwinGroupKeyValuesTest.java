@@ -1,19 +1,18 @@
 package org.twins.core.unit.service.twin;
 
+import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dao.twin.TwinEntity;
-import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinFieldTimestampEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.service.twin.TwinGroupKeyValues;
-import org.twins.core.service.twinlink.TwinLinkService;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -72,15 +71,15 @@ class TwinGroupKeyValuesTest {
     }
 
     @Test
-    void forwardLinkFieldUsesEachDstOnceAndAMissingLinkIsTheNullKey() {
-        UUID linkId = UUID.randomUUID();
+    void linkFieldValueUsesEachDstOnceAndAMissingValueIsTheNullKey() {
+        UUID fieldId = UUID.randomUUID();
         UUID dst = UUID.randomUUID();
-        TwinLinkService.FindTwinLinksResult links = new TwinLinkService.FindTwinLinksResult();
-        links.getForwardLinks().add(new TwinLinkEntity().setId(UUID.randomUUID()).setLinkId(linkId).setDstTwinId(dst));
-        links.getForwardLinks().add(new TwinLinkEntity().setId(UUID.randomUUID()).setLinkId(linkId).setDstTwinId(dst));
-        assertEquals(List.of(dst), TwinGroupKeyValues.linkEnds(links, linkId, true));
-        assertEquals(Collections.singletonList(null), TwinGroupKeyValues.linkEnds(links, UUID.randomUUID(), true));
-        assertEquals(Collections.singletonList(null), TwinGroupKeyValues.linkEnds(null, linkId, true));
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
+        FieldValueLink value = new FieldValueLink(field);
+        value.setItems(List.of(new TwinEntity().setId(dst), new TwinEntity().setId(dst)));
+        assertEquals(List.of(dst), TwinGroupKeyValues.linkEnds(value));
+        assertEquals(Collections.singletonList(null), TwinGroupKeyValues.linkEnds(new FieldValueLink(field).undefine()));
+        assertEquals(Collections.singletonList(null), TwinGroupKeyValues.linkEnds(null));
     }
 
     private static TwinFieldDataListEntity row(UUID fieldId, UUID optionId) {

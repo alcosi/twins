@@ -31,7 +31,7 @@ class TwinTreeAssemblerTest {
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(task, List.of(STATUS), List.of(ANN), List.of(DST_1, DST_2)),
                 leaf(other, List.of(OTHER_STATUS), List.of(BOB), List.of())
-        ), levels());
+        ), levels()).roots();
 
         roots.sort(TwinTreeAssembler.keys(true));
         assertEquals(List.of(STATUS, OTHER_STATUS), keys(roots));
@@ -53,7 +53,7 @@ class TwinTreeAssemblerTest {
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(ann, List.of(ANN)),
                 leaf(unassigned, List.of())
-        ), List.of(assignee));
+        ), List.of(assignee)).roots();
         roots.sort(TwinTreeAssembler.names(Map.of(ANN, "Ann"), true));
         assertEquals(Arrays.asList(ANN, null), keys(roots));
         assertEquals(List.of(ann.getId()), roots.get(0).getTwins().stream().map(TwinEntity::getId).toList());
@@ -70,7 +70,7 @@ class TwinTreeAssemblerTest {
                 .setSort(TwinGroupSort.KEY_ASC);
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(
                 leaf(task, List.of(DST_1, DST_2))
-        ), List.of(link));
+        ), List.of(link)).roots();
         assertEquals(2, roots.size());
         assertEquals(1, roots.get(0).getCount());
         assertEquals(1, roots.get(1).getCount());
@@ -87,7 +87,7 @@ class TwinTreeAssemblerTest {
                 leaf(second, List.of(ANN)),
                 leaf(first, List.of(BOB)),
                 leaf(third, List.of(BOB))
-        ), List.of(new TwinGroupLevel().setFieldId(ANN)));
+        ), List.of(new TwinGroupLevel().setFieldId(ANN))).roots();
 
         assertEquals(2, roots.size());
         assertEquals(BOB, roots.get(0).getKey());
@@ -107,7 +107,7 @@ class TwinTreeAssemblerTest {
                 leaf(unassigned, List.of()),
                 leaf(ann, List.of(ANN)),
                 leaf(bob, List.of(BOB))
-        ), List.of(new TwinGroupLevel().setFieldId(ANN)));
+        ), List.of(new TwinGroupLevel().setFieldId(ANN))).roots();
 
         groups.sort(TwinTreeAssembler.keys(true));
         assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
@@ -134,7 +134,7 @@ class TwinTreeAssemblerTest {
                 leaf(unassigned1, List.of()),
                 leaf(ann, List.of(ANN)),
                 leaf(unassigned2, List.of())
-        ), List.of(assignee));
+        ), List.of(assignee)).roots();
         groups.sort(TwinTreeAssembler.counts(false));
         assertEquals(Arrays.asList(null, ANN), keys(groups));
 
@@ -142,7 +142,7 @@ class TwinTreeAssemblerTest {
         groups = TwinTreeAssembler.assemble(List.of(
                 leaf(ann, List.of(ANN)),
                 leaf(bob, List.of(BOB))
-        ), List.of(assignee));
+        ), List.of(assignee)).roots();
         groups.sort(TwinTreeAssembler.counts(false));
         assertEquals(List.of(ANN, BOB), keys(groups));
     }

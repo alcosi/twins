@@ -36,13 +36,7 @@ import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.usergroup.UserGroupService;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkClassWithDomain;
 import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
@@ -254,18 +248,6 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
 
     public Map<UUID, Long> countByGroupFields(BasicSearch basicSearch, TwinEntity.BasicField basicField) throws ServiceException {
         return countByGroupFields(basicSearch, basicField.getId());
-    }
-
-    /**
-     * One grouping dimension, the same acceptance rule as {@code POST /private/twin/count/v1}:
-     * a basic column from {@link #convertToEntityField(UUID)}, or a dynamic field whose storage
-     * {@code countGroup} is non-null.
-     */
-    public GroupExpressionProvider<TwinEntity> resolveGroupProvider(UUID groupFieldId) throws ServiceException {
-        if (groupFieldId == null) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "groupFieldId is required");
-        }
-        return resolveGroupProviders(emptySearch(), Set.of(groupFieldId)).getFirst();
     }
 
     /**

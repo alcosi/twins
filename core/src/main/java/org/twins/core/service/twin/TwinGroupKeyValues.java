@@ -4,30 +4,18 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.service.twinlink.TwinLinkService;
 import org.twins.core.dao.twin.TwinFieldBooleanEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
-import org.twins.core.dao.twin.TwinFieldDecimalEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twin.TwinFieldTimestampEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageBoolean;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDatalist;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageDecimal;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTimestamp;
+import org.twins.core.featurer.fieldtyper.storage.*;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 public final class TwinGroupKeyValues {
@@ -66,21 +54,18 @@ public final class TwinGroupKeyValues {
                 "Field " + fieldId + " is not countable");
     }
 
-    public static List<Object> linkEnds(TwinLinkService.FindTwinLinksResult links, UUID linkId, boolean forward) {
-        if (links == null || linkId == null) {
-            return Collections.singletonList(null);
-        }
-        List<TwinLinkEntity> rows = forward
-                ? links.getForwardLinks().getGrouped(linkId)
-                : links.getBackwardLinks().getGrouped(linkId);
-        if (rows == null || rows.isEmpty()) {
+    /**
+     * Keys of a link field: the ids of the far twins carried by its FieldValueLink from
+     * twin.fieldValuesKit (filled by TwinService.loadFieldsValues).
+     */
+    public static List<Object> linkEnds(FieldValue fieldValue) {
+        if (!(fieldValue instanceof FieldValueLink link) || !link.isNotEmpty()) {
             return Collections.singletonList(null);
         }
         Set<Object> ids = new LinkedHashSet<>();
-        for (TwinLinkEntity row : rows) {
-            UUID end = forward ? row.getDstTwinId() : row.getSrcTwinId();
-            if (end != null) {
-                ids.add(end);
+        for (TwinEntity end : link.getItems()) {
+            if (end != null && end.getId() != null) {
+                ids.add(end.getId());
             }
         }
         if (ids.isEmpty()) {

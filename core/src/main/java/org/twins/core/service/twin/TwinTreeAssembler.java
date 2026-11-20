@@ -4,20 +4,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public final class TwinTreeAssembler {
     private TwinTreeAssembler() {
     }
 
-    public static List<TwinGroup> assemble(List<Leaf> leaves, List<TwinGroupLevel> levels) {
+    public static Assembly assemble(List<Leaf> leaves, List<TwinGroupLevel> levels) {
         Bucket root = new Bucket(null);
         LinkedHashSet<UUID> seen = new LinkedHashSet<>();
         if (leaves != null) {
@@ -28,7 +21,9 @@ public final class TwinTreeAssembler {
                 expand(leaf, levels.size(), new ArrayList<>(), root);
             }
         }
-        return toGroups(root.children.values(), 0, levels);
+        List<TwinGroup> all = new ArrayList<>();
+        List<TwinGroup> roots = toGroups(root.children.values(), 0, levels, all);
+        return new Assembly(roots, all);
     }
 
     private static void expand(Leaf leaf, int depth, List<Object> path, Bucket root) {
@@ -62,7 +57,7 @@ public final class TwinTreeAssembler {
         insert(child, path, levelIndex + 1, twin);
     }
 
-    private static List<TwinGroup> toGroups(Iterable<Bucket> buckets, int levelIndex, List<TwinGroupLevel> levels) {
+    private static List<TwinGroup> toGroups(Iterable<Bucket> buckets, int levelIndex, List<TwinGroupLevel> levels, List<TwinGroup> all) {
         TwinGroupLevel level = levels.get(levelIndex);
         boolean last = levelIndex == levels.size() - 1;
         List<TwinGroup> groups = new ArrayList<>();
@@ -71,14 +66,22 @@ public final class TwinTreeAssembler {
                     .setKey(bucket.key)
                     .setCount(bucket.leafIds.size())
                     .setKeyType(level.getKeyType());
+            all.add(group);
             if (last) {
                 group.setTwins(bucket.twins);
             } else {
-                group.setGroups(toGroups(bucket.children.values(), levelIndex + 1, levels));
+                group.setGroups(toGroups(bucket.children.values(), levelIndex + 1, levels, all));
             }
             groups.add(group);
         }
         return groups;
+    }
+
+    /**
+     * The roots in grouping order, plus every group of every level as a flat list (for batch key
+     * entity loading without a second tree walk).
+     */
+    public record Assembly(List<TwinGroup> roots, List<TwinGroup> all) {
     }
 
     public static final class Leaf {

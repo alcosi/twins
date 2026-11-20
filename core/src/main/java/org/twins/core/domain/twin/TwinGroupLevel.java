@@ -15,8 +15,6 @@ import java.util.UUID;
 public class TwinGroupLevel {
     private UUID fieldId;
     private TwinGroupSort sort;
-    private UUID resolvedLinkId;
-    private boolean forwardLink;
     private TwinGroupKeyType keyType;
     private TwinEntity.BasicField basicField;
     private TwinClassFieldEntity dynamicField;

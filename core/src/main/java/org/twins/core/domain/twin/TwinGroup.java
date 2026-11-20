@@ -19,19 +19,13 @@ public class TwinGroup {
     private TwinGroupKeyType keyType;
 
     /**
-     * Entity behind the group key (UserEntity, TwinStatusEntity, TwinClassEntity, TwinEntity or DataListOptionEntity).
-     * Batch-loaded in beforeCollectionConversion(), postponed to relatedObjects in map().
-     * map() also loads it for a single-object convert, which skips beforeCollectionConversion.
+     * Entity behind the group key (UserEntity, TwinStatusEntity, TwinClassEntity, TwinEntity or
+     * DataListOptionEntity) — an attached relation, same style as TwinEntity.assignerUser. Batch-loaded by
+     * TwinGroupedSearchService.loadKeyEntities; the mapper only postpones it into relatedObjects.
+     * Null when the key is null, the key type has no entity behind it (TEXT/DECIMAL/BOOLEAN/TIMESTAMP),
+     * or the entity is missing / not readable.
      */
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Object keyEntity;
-
-    /**
-     * True after a load attempt for this key, even when the entity was missing.
-     * Distinguishes "not loaded yet" from "loaded, absent" so map() does not re-query.
-     */
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private boolean keyEntityResolved;
 }

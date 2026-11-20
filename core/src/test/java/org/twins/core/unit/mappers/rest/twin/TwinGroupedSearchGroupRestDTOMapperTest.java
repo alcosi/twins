@@ -1,7 +1,5 @@
 package org.twins.core.unit.mappers.rest.twin;
 
-import org.cambium.common.kit.Kit;
-import org.cambium.service.EntitySmartService;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -11,47 +9,29 @@ import org.twins.core.dto.rest.twin.TwinGroupedSearchGroupDTOv1;
 import org.twins.core.enums.twin.TwinGroupKeyType;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinGroupedSearchGroupRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
-import org.twins.core.service.datalist.DataListOptionService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.twinstatus.TwinStatusService;
-import org.twins.core.service.user.UserService;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.ArgumentMatchers.same;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 /**
- * TwinGroupedSearchGroupRestDTOMapper: key entities are batch-loaded in beforeCollectionConversion,
- * but every postpone lives in map() — so a single-object convert() (which bypasses
- * beforeCollectionConversion) still resolves and postpones its key entity into relatedObjects.
+ * TwinGroupedSearchGroupRestDTOMapper never loads by id: key entities arrive attached to
+ * TwinGroup.keyEntity (by TwinGroupedSearchService), the mapper only postpones them into relatedObjects
+ * under their show-modes, plus bulk-preloads relations of leaf and key twins.
  */
 public class TwinGroupedSearchGroupRestDTOMapperTest {
 
@@ -61,11 +41,6 @@ public class TwinGroupedSearchGroupRestDTOMapperTest {
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper = mock(TwinBaseRestDTOMapper.class);
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper = mock(DataListOptionRestDTOMapper.class);
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2 = mock(TwinRestDTOMapperV2.class);
-    private final UserService userService = mock(UserService.class);
-    private final TwinStatusService twinStatusService = mock(TwinStatusService.class);
-    private final TwinClassService twinClassService = mock(TwinClassService.class);
-    private final TwinService twinService = mock(TwinService.class);
-    private final DataListOptionService dataListOptionService = mock(DataListOptionService.class);
 
     private final TwinGroupedSearchGroupRestDTOMapper mapper = new TwinGroupedSearchGroupRestDTOMapper(
             userDTOMapper,
@@ -73,26 +48,20 @@ public class TwinGroupedSearchGroupRestDTOMapperTest {
             twinStatusRestDTOMapper,
             twinBaseRestDTOMapper,
             dataListOptionRestDTOMapper,
-            twinRestDTOMapperV2,
-            userService,
-            twinStatusService,
-            twinClassService,
-            twinService,
-            dataListOptionService);
+            twinRestDTOMapperV2);
 
     private static MapperContext relatedContext(org.twins.core.mappers.rest.mappercontext.MapperMode... modes) {
         return new MapperContext().setLazyRelations(false).setModes(modes);
     }
 
     @Test
-    public void singleConvertLazilyLoadsKeyEntityAndPostponesIt() throws Exception {
+    public void attachedKeyEntityIsPostponedUnderItsShowMode() throws Exception {
         UUID userId = UUID.randomUUID();
         UserEntity user = new UserEntity().setId(userId);
-        when(userService.findEntities(any(), any(), any(), any()))
-                .thenReturn(new Kit<>(List.of(user), UserEntity::getId));
         TwinGroup group = new TwinGroup()
                 .setKeyType(TwinGroupKeyType.USER)
                 .setKey(userId)
+                .setKeyEntity(user)
                 .setCount(3);
 
         TwinGroupedSearchGroupDTOv1 dto = mapper.convert(group, relatedContext(UserMode.Twin2UserMode.SHORT));
@@ -100,117 +69,98 @@ public class TwinGroupedSearchGroupRestDTOMapperTest {
         assertEquals(TwinGroupKeyType.USER, dto.getKey().getType());
         assertEquals(userId, dto.getKey().getValue());
         assertEquals(3L, dto.getCount());
-        assertSame(user, group.getKeyEntity());
-        assertTrue(group.isKeyEntityResolved());
-        verify(userService, times(1)).findEntities(any(), any(), any(), any());
         verify(userDTOMapper).postpone(same(user), any(MapperContext.class));
-        verifyNoInteractions(twinStatusService, twinClassService, twinService, dataListOptionService);
+        verifyNoInteractions(twinStatusRestDTOMapper, twinClassRestDTOMapper, twinBaseRestDTOMapper, dataListOptionRestDTOMapper);
     }
 
     @Test
-    public void convertCollectionBatchLoadsKeyEntitiesOnceAndPostponesPerNode() throws Exception {
-        UUID userId1 = UUID.randomUUID();
-        UUID userId2 = UUID.randomUUID();
-        UserEntity user1 = new UserEntity().setId(userId1);
-        UserEntity user2 = new UserEntity().setId(userId2);
-        when(userService.findEntities(any(), any(), any(), any()))
-                .thenReturn(new Kit<>(List.of(user1, user2), UserEntity::getId));
-        TwinEntity leafTwin = new TwinEntity().setId(UUID.randomUUID());
-        TwinGroup group1 = new TwinGroup().setKeyType(TwinGroupKeyType.USER).setKey(userId1);
-        TwinGroup group2 = new TwinGroup()
+    public void keyWithoutEntityPostponesNothing() throws Exception {
+        TwinGroup group = new TwinGroup()
                 .setKeyType(TwinGroupKeyType.USER)
-                .setKey(userId2)
-                .setTwins(List.of(leafTwin));
+                .setKey(UUID.randomUUID())
+                .setCount(1);
 
-        List<TwinGroupedSearchGroupDTOv1> dtos = mapper.convertCollection(List.of(group1, group2),
-                relatedContext(UserMode.Twin2UserMode.SHORT, TwinMode.SHORT));
+        mapper.convert(group, relatedContext(UserMode.Twin2UserMode.SHORT));
 
-        verify(userService, times(1)).findEntities(any(), any(), any(), any());
-        verify(userDTOMapper).postpone(same(user1), any(MapperContext.class));
-        verify(userDTOMapper).postpone(same(user2), any(MapperContext.class));
-        assertSame(user1, group1.getKeyEntity());
-        assertSame(user2, group2.getKeyEntity());
-        verify(twinRestDTOMapperV2).postpone(
-                argThat((Collection<TwinEntity> c) -> c.size() == 1 && c.contains(leafTwin)),
-                any(MapperContext.class));
-        assertEquals(1, dtos.get(1).getTwinIdList().size());
-        assertEquals(leafTwin.getId(), dtos.get(1).getTwinIdList().get(0));
+        verifyNoInteractions(userDTOMapper);
     }
 
     @Test
-    public void convertCollectionLoadsNestedTreeKeysPerType() throws Exception {
+    public void scalarKeyHasNoEntityToPostpone() throws Exception {
+        TwinGroup group = new TwinGroup()
+                .setKeyType(TwinGroupKeyType.TEXT)
+                .setKey("some value")
+                .setTwins(List.of(new TwinEntity().setId(UUID.randomUUID())));
+
+        TwinGroupedSearchGroupDTOv1 dto = mapper.convert(group, relatedContext(TwinMode.SHORT));
+
+        assertEquals("some value", dto.getKey().getValue());
+        assertEquals(1, dto.getTwinIdList().size());
+        verifyNoInteractions(userDTOMapper, twinStatusRestDTOMapper, twinClassRestDTOMapper, twinBaseRestDTOMapper, dataListOptionRestDTOMapper);
+    }
+
+    @Test
+    public void convertCollectionPreloadsLeafTwinsAndKeyTwins() throws Exception {
+        TwinEntity keyTwin = new TwinEntity().setId(UUID.randomUUID());
+        TwinEntity leafTwin = new TwinEntity().setId(UUID.randomUUID());
+        TwinGroup leaf = new TwinGroup()
+                .setKeyType(TwinGroupKeyType.TWIN)
+                .setKey(keyTwin.getId())
+                .setKeyEntity(keyTwin)
+                .setTwins(List.of(leafTwin));
+        MapperContext mapperContext = relatedContext(TwinMode.SHORT);
+
+        List<TwinGroupedSearchGroupDTOv1> dtos = mapper.convertCollection(List.of(leaf), mapperContext);
+
+        verify(twinRestDTOMapperV2).beforeCollectionConversion(
+                argThat((Collection<TwinEntity> c) -> c.size() == 1 && c.contains(leafTwin)), any(MapperContext.class));
+        verify(twinBaseRestDTOMapper).beforeCollectionConversion(
+                argThat((Collection<TwinEntity> c) -> c.size() == 1 && c.contains(keyTwin)), any(MapperContext.class));
+        verify(twinBaseRestDTOMapper).postpone(same(keyTwin), same(mapperContext));
+        verify(twinRestDTOMapperV2).postpone(
+                argThat((Collection<TwinEntity> c) -> c.size() == 1 && c.contains(leafTwin)), any(MapperContext.class));
+        assertEquals(List.of(leafTwin.getId()), dtos.get(0).getTwinIdList());
+    }
+
+    @Test
+    public void nestedGroupsAreConvertedRecursivelyAndPostponePerType() throws Exception {
         UUID userId = UUID.randomUUID();
         UUID statusId = UUID.randomUUID();
         UserEntity user = new UserEntity().setId(userId);
         TwinStatusEntity status = new TwinStatusEntity().setId(statusId);
-        when(userService.findEntities(any(), any(), any(), any()))
-                .thenReturn(new Kit<>(List.of(user), UserEntity::getId));
-        when(twinStatusService.findEntities(any(), any(), any(), any()))
-                .thenReturn(new Kit<>(List.of(status), TwinStatusEntity::getId));
-        TwinGroup child = new TwinGroup().setKeyType(TwinGroupKeyType.STATUS).setKey(statusId);
+        TwinGroup child = new TwinGroup()
+                .setKeyType(TwinGroupKeyType.STATUS)
+                .setKey(statusId)
+                .setKeyEntity(status);
         TwinGroup parent = new TwinGroup()
                 .setKeyType(TwinGroupKeyType.USER)
                 .setKey(userId)
+                .setKeyEntity(user)
                 .setGroups(List.of(child));
 
-        mapper.convertCollection(List.of(parent),
+        List<TwinGroupedSearchGroupDTOv1> dtos = mapper.convertCollection(List.of(parent),
                 relatedContext(UserMode.Twin2UserMode.SHORT, StatusMode.Twin2StatusMode.SHORT));
 
-        verify(userService, times(1)).findEntities(any(), any(), any(), any());
-        verify(twinStatusService, times(1)).findEntities(any(), any(), any(), any());
         verify(userDTOMapper).postpone(same(user), any(MapperContext.class));
         verify(twinStatusRestDTOMapper).postpone(same(status), any(MapperContext.class));
+        assertEquals(1, dtos.get(0).getGroups().size());
+        assertEquals(statusId, dtos.get(0).getGroups().get(0).getKey().getValue());
+        assertNull(dtos.get(0).getTwinIdList());
     }
 
     @Test
-    public void twinKeyIsLoadedWithPermissionCheckAndPostponedWithSameContext() throws Exception {
-        UUID twinId = UUID.randomUUID();
-        TwinEntity keyTwin = new TwinEntity().setId(twinId);
-        when(twinService.findEntities(any(), any(), any(), any()))
-                .thenReturn(new Kit<>(List.of(keyTwin), TwinEntity::getId));
-        TwinGroup group = new TwinGroup().setKeyType(TwinGroupKeyType.TWIN).setKey(twinId);
-        MapperContext mapperContext = relatedContext(TwinMode.SHORT);
-
-        mapper.convert(group, mapperContext);
-
-        verify(twinService).findEntities(any(),
-                eq(EntitySmartService.ListFindMode.ifMissedIgnore),
-                eq(EntitySmartService.ReadPermissionCheckMode.ifDeniedLog),
-                eq(EntitySmartService.EntityValidateMode.none));
-        verify(twinBaseRestDTOMapper).beforeCollectionConversion(anyCollection(), same(mapperContext));
-        verify(twinBaseRestDTOMapper).postpone(same(keyTwin), same(mapperContext));
-    }
-
-    @Test
-    public void missingKeyEntityIsMarkedResolvedAndNotReloaded() throws Exception {
-        UUID userId = UUID.randomUUID();
-        when(userService.findEntities(any(), any(), any(), any()))
-                .thenReturn(new Kit<>(Collections.emptyList(), UserEntity::getId));
-        TwinGroup group = new TwinGroup().setKeyType(TwinGroupKeyType.USER).setKey(userId);
-        MapperContext mapperContext = relatedContext(UserMode.Twin2UserMode.SHORT);
-
-        mapper.convert(group, mapperContext);
-        mapper.convert(group, mapperContext);
-
-        assertTrue(group.isKeyEntityResolved());
-        assertNull(group.getKeyEntity());
-        verify(userService, times(1)).findEntities(any(), any(), any(), any());
-        verify(userDTOMapper, times(2)).postpone(isNull(UserEntity.class), any(MapperContext.class));
-    }
-
-    @Test
-    public void lazyRelationsSkipsKeyLoadingEntirely() throws Exception {
+    public void lazyRelationsSkipsAllPostponesAndPreloads() throws Exception {
         TwinGroup group = new TwinGroup()
                 .setKeyType(TwinGroupKeyType.USER)
                 .setKey(UUID.randomUUID())
+                .setKeyEntity(new UserEntity().setId(UUID.randomUUID()))
                 .setTwins(List.of(new TwinEntity().setId(UUID.randomUUID())));
 
-        mapper.convertCollection(List.of(group),
+        List<TwinGroupedSearchGroupDTOv1> dtos = mapper.convertCollection(List.of(group),
                 new MapperContext().setLazyRelations(true).setModes(UserMode.Twin2UserMode.SHORT, TwinMode.SHORT));
 
-        assertFalse(group.isKeyEntityResolved());
-        assertNull(group.getKeyEntity());
-        verifyNoInteractions(userService, twinStatusService, twinClassService, twinService, dataListOptionService,
-                twinRestDTOMapperV2, userDTOMapper);
+        assertEquals(1, dtos.get(0).getTwinIdList().size());
+        verifyNoInteractions(userDTOMapper, twinStatusRestDTOMapper, twinClassRestDTOMapper, twinBaseRestDTOMapper,
+                dataListOptionRestDTOMapper, twinRestDTOMapperV2);
     }
 }

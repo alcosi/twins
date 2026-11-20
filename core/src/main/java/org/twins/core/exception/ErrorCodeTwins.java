@@ -123,6 +123,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_STATUS_SKETCH_FORBIDDEN(11104, "sketch is not allowed for given twin class"),
     PAGINATION_ERROR(11201, "pagination offset must be a multiple of the size"),
     PAGINATION_LIMIT_ERROR(11202, "pagination value limit cannot be less than 1"),
+    SEARCH_RESULT_LIMIT_EXCEEDED(11203, "search result exceeds limit", HttpStatus.BAD_REQUEST),
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
     TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied", HttpStatus.FORBIDDEN),
     TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),

@@ -49,8 +49,8 @@ import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinSortOrderService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinSortOrderService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
@@ -458,34 +458,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public KitGrouped<TwinLinkEntity, UUID, UUID> findTwinForwardLinks(TwinEntity twinEntity) throws ServiceException {
         loadTwinLinks(twinEntity);
         return twinEntity.getTwinLinks().getForwardLinks();
-    }
-
-    /**
-     * Targeted counterpart of {@link #loadTwinLinks(Collection)}: fetches only the forward links of the
-     * given link ids in one query, instead of every forward link of every twin with dst twin and link
-     * entity hydration. Rows are NOT filtered by dst twin read permission: the dst twin id is only used
-     * as a grouping key here, the twin bodies go through their own permission-checked load when they are
-     * rendered into related objects, and {@code POST /private/twin/count/v1} counts the same groups in
-     * SQL without the permission filter either.
-     */
-    public void loadTwinForwardLinksByLinkIds(Collection<TwinEntity> twinEntityList, Collection<UUID> linkIdList) throws ServiceException {
-        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
-        for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getTwinLinks() == null) {
-                // same contract as loadTwinLinks: a non-null FindTwinLinksResult marks links as loaded
-                twinEntity.setTwinLinks(new FindTwinLinksResult());
-                needLoad.add(twinEntity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdInAndLinkIdIn(needLoad.getIdSet(), linkIdList);
-        if (CollectionUtils.isEmpty(twinLinkEntityList))
-            return;
-        for (TwinLinkEntity twinLinkEntity : twinLinkEntityList) {
-            TwinEntity twinEntity = needLoad.get(twinLinkEntity.getSrcTwinId());
-            if (twinEntity != null)
-                twinEntity.getTwinLinks().forwardLinks.add(twinLinkEntity);
-        }
     }
 
     public List<TwinLinkEntity> findTwinForwardLinks(TwinEntity twinEntity, Collection<UUID> linkIdCollection) throws ServiceException {

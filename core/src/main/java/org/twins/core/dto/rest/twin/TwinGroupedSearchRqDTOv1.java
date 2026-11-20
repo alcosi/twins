@@ -25,10 +25,10 @@ public class TwinGroupedSearchRqDTOv1 extends Request {
     @Valid
     @Size(min = 1, max = 3)
     @Schema(description = "Grouping levels, top to bottom. Each level reads its key from the leaf")
-    public List<TwinGroupLevelDTOv1> levels;
+    public List<@NotNull TwinGroupLevelDTOv1> levels;
 
     @Valid
     @Size(max = 2)
     @Schema(description = "Order of twins inside the last level. Empty means createdAt DESC, then id ASC. Basic fields only")
-    public List<TwinSortDTOv1> memberSorts;
+    public List<@NotNull TwinSortDTOv1> memberSorts;
 }
