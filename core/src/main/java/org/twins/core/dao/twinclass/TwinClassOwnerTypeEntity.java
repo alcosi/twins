@@ -1,9 +1,14 @@
 package org.twins.core.dao.twinclass;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -12,6 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_class_owner_type")
 @FieldNameConstants
+@DataScope(DataScopeType.SYSTEM)
 public class TwinClassOwnerTypeEntity {
     @Id
     private String id;

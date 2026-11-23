@@ -5,10 +5,12 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.DomainConfigEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
-import org.twins.core.domain.Identifiable;
 import org.twins.core.enums.datalist.DataListStatus;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -19,10 +21,13 @@ import java.util.function.Function;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "data_list_option")
-public class DataListOptionEntity implements EasyLoggable, Identifiable<UUID> {
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN, DataScopeType.BUSINESS_ACCOUNT})
+public class DataListOptionEntity extends DomainConfigEntity implements EasyLoggable {
     @Id
     private UUID id;
 

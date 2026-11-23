@@ -8,6 +8,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -17,6 +19,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_statistic")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
 public class TwinStatisticEntity implements EasyLoggable {
     @Id
     private UUID id;

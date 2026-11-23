@@ -11,7 +11,9 @@ import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.idp.IdentityProviderEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
 
 import java.util.HashMap;
@@ -21,6 +23,7 @@ import java.util.HashMap;
 @DynamicUpdate
 @Data
 @Accessors(chain = true)
+@DataScope(DataScopeType.SYSTEM)
 public class DomainTypeEntity implements EasyLoggable {
     @Id
     private String id;

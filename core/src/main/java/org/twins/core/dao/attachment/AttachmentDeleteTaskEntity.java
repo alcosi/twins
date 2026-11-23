@@ -8,8 +8,10 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.enums.attachment.AttachmentDeleteTaskStatus;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_attachment_delete_task")
 @FieldNameConstants
+@DataScope({DataScopeType.DOMAIN_MEMBER, DataScopeType.BUSINESS_ACCOUNT})
 public class AttachmentDeleteTaskEntity implements EasyLoggable {
 
     @Id
@@ -35,7 +38,7 @@ public class AttachmentDeleteTaskEntity implements EasyLoggable {
     @Column(name = "twin_id")
     private UUID twinId;
 
-    @Column(name = "domain_id")
+    @Column(name = "domain_id", nullable = false)
     private UUID domainId;
 
     @Column(name = "twin_owner_business_account_id")

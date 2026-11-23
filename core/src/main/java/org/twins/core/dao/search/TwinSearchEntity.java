@@ -9,6 +9,8 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_search")
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinSearchEntity implements EasyLoggable {
     @Id
     private UUID id;

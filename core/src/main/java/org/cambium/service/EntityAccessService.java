@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.UUID;
 
-public interface EntitySecureFindService<T> {
+public interface EntityAccessService<T> {
     UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException;
     T findEntity(UUID entityId,
                  EntitySmartService.FindMode findMode,

@@ -12,7 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinBusinessAccountAliasCounterEntity;
 import org.twins.core.dao.twin.TwinBusinessAccountAliasCounterRepository;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -25,7 +25,7 @@ import java.util.function.Function;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class TwinBusinessAccountAliasCounterService extends TwinsEntitySecureFindService<TwinBusinessAccountAliasCounterEntity> {
+public class TwinBusinessAccountAliasCounterService extends TwinsEntityAccessService<TwinBusinessAccountAliasCounterEntity> {
     @Getter
     private final TwinBusinessAccountAliasCounterRepository repository;
     @Lazy

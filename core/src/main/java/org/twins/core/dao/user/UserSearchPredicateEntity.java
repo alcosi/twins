@@ -10,6 +10,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "user_search_predicate")
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN_MEMBER})
 public class UserSearchPredicateEntity implements EasyLoggable, ConfiguredSearchPredicate {
     @Id
     private UUID id;

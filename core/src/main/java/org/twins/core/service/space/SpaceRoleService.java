@@ -22,7 +22,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.space.SpaceRoleCreate;
 import org.twins.core.domain.space.SpaceRoleUpdate;
 import org.twins.core.enums.i18n.I18nType;
-import org.twins.core.service.TwinsEntitySecureFindService;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainBusinessAccountService;
@@ -37,7 +37,7 @@ import java.util.stream.StreamSupport;
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
-public class SpaceRoleService extends TwinsEntitySecureFindService<SpaceRoleEntity> {
+public class SpaceRoleService extends TwinsEntityAccessService<SpaceRoleEntity> {
     @Getter
     private final SpaceRoleRepository repository;
 

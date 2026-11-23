@@ -25,7 +25,7 @@ Each settings entity exposes the following endpoints. All batch operations accep
 | Delete (batch) | `POST` | `/private/{entity}/delete/v1` | `{ENTITY}_DELETE` | Delete one or more entities by ID list |
 | View (single) | `GET` | `/private/{entity}/{entityId}/v1` | `{ENTITY}_MANAGE` or `{ENTITY}_VIEW` | Get entity by ID |
 | Search | `POST` | `/private/{entity}/search/v1` | `{ENTITY}_MANAGE` or `{ENTITY}_VIEW` | Search with pagination + sorting |
-| Count | `POST` | `/private/{entity}/search/count/v1` | `{ENTITY}_MANAGE` or `{ENTITY}_VIEW` | Count with grouping |
+| Count | `POST` | `/private/{entity}/count/v1` | `{ENTITY}_MANAGE` or `{ENTITY}_VIEW` | Count with grouping |
 | Export SQL | `POST` | `/private/{entity}/export/sql/v1` | `{ENTITY}_MANAGE` | Export entities as SQL INSERT file download |
 
 > **Batch-first**: create and update always accept `List<...DTO>` even for a single item. The client sends a list with one element.
@@ -285,7 +285,7 @@ public class {Entity}CountController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
-    @PostMapping(value = "/private/{entity}/search/count/v1")
+    @PostMapping(value = "/private/{entity}/count/v1")
     public ResponseEntity<?> {entity}CountV1(
             @MapperContextBinding(roots = {Entity}CountRestDTOMapper.class, response = {Entity}CountRsDTOv1.class)
             @SimplePaginationParams SimplePagination pagination,

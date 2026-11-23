@@ -4,16 +4,19 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "space")
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class SpaceEntity {
     @Id
     @Column(name = "twin_id")

@@ -20,6 +20,7 @@ public class ApiTag {
     public static final String DATA_LIST = "dataList";
     public static final String BUSINESS_ACCOUNT = "businessAccount";
     public static final String DOMAIN = "domain";
+    public static final String DOMAIN_VERSION = "domainVersion";
     public static final String LOCALE = "locale";
     public static final String SPACE = "space";
     public static final String SYSTEM = "system";

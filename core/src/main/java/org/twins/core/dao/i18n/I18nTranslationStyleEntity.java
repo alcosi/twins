@@ -3,6 +3,8 @@ package org.twins.core.dao.i18n;
 import jakarta.persistence.*;
 import lombok.*;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -10,6 +12,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "i18n_translation_style")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class I18nTranslationStyleEntity {
     @Id
     private UUID id;

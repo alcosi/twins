@@ -11,6 +11,8 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.io.Serializable;
 import java.util.*;
@@ -22,6 +24,7 @@ import java.util.*;
 @Table(name = "i18n_translation")
 @IdClass(I18nTranslationEntity.PK.class)
 @FieldNameConstants
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class I18nTranslationEntity implements EasyLoggable {
     @Id
     @Column(name = "i18n_id")

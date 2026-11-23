@@ -17,7 +17,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListRepository;
@@ -43,9 +42,8 @@ import org.twins.core.enums.twinclass.OwnerType;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.featurer.headhunter.HeadHunterImpl;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.SystemIdLookup;
-import org.twins.core.service.TwinsEntitySecureFindService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.face.FaceService;
@@ -75,7 +73,7 @@ import static org.cambium.common.util.CacheUtils.evictCache;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Lazy
 @RequiredArgsConstructor
-public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEntity> {
+public class TwinClassService extends DomainConfigAccessService<TwinClassEntity> {
     private final TwinRepository twinRepository;
     private final TwinClassRepository twinClassRepository;
     private final TwinClassSchemaRepository twinClassSchemaRepository;
@@ -98,8 +96,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     @Lazy
     private final DomainService domainService;
     @Lazy
-    private final AuthService authService;
-    @Lazy
     private final TwinMarkerService twinMarkerService;
     @Lazy
     private final TwinTagService twinTagService;
@@ -117,7 +113,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     private final TwinRecomputeOnActionRepository twinRecomputeOnActionRepository;
 
     @Override
-    public CrudRepository<TwinClassEntity, UUID> entityRepository() {
+    public TwinClassRepository entityRepository() {
         return twinClassRepository;
     }
 
@@ -346,10 +342,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             twinClass
                     .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, create.getNameI18n()).getId())
                     .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, create.getDescriptionI18n()).getId())
-                    .setDomainId(apiUser.getDomainId())
                     .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), create.getTwinClass().getOwnerType()))
                     .setCreatedAt(Timestamp.from(Instant.now()))
-                    .setCreatedByUserId(apiUser.getUserId());
+                    .setCreatedByUserId(apiUser.getUserId())
+                    // last link only: the inherited chain setter returns DomainConfigEntity — subclass setters after it would not compile
+                    .setDomainId(apiUser.getDomainId());
 
             if (twinClass.getAssigneeRequired() == null) {
                 twinClass.setAssigneeRequired(false);
@@ -375,7 +372,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             classesToSave.add(twinClass);
         }
 
-        Iterable<TwinClassEntity> savedIterable = entitySmartService.saveAllAndLog(classesToSave, twinClassRepository);
+        // saveSafe: fills the actor GUC + autofills domainId; entities are already validated in the loop above
+        // (validateEntities default in saveSafe(Collection) is a no-op — no double validation)
+        Iterable<TwinClassEntity> savedIterable = saveSafe(classesToSave);
         List<TwinClassEntity> savedClasses = StreamSupport.stream(savedIterable.spliterator(), false).toList();
 
         for (TwinClassEntity savedClass : savedClasses) {

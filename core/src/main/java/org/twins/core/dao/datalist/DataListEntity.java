@@ -6,9 +6,11 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.DomainConfigEntity;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.i18n.I18nTranslationEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -18,17 +20,20 @@ import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 @Accessors(chain = true)
 @Table(name = "data_list")
 @FieldNameConstants
-public class DataListEntity implements EasyLoggable, Identifiable<UUID> {
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
+public class DataListEntity extends DomainConfigEntity implements EasyLoggable {
     @Id
     private UUID id;
 
     @PrePersist
     protected void onCreate() {
         if (id == null) {
-            this.id = UUID.nameUUIDFromBytes((key + domainId).getBytes());
+            this.id = UUID.nameUUIDFromBytes((key + getDomainId()).getBytes());
         }
     }
 
@@ -40,9 +45,6 @@ public class DataListEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Column(name = "key")
     private String key;
-
-    @Column(name = "domain_id")
-    private UUID domainId;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;

@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.history.HistoryTypeConverter;
 import org.twins.core.dao.history.HistoryTypeEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -16,6 +17,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.history.HistoryType;
 
 import java.sql.Timestamp;
@@ -27,6 +29,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class HistoryNotificationEntity implements EasyLoggable, ContainsTwinValidatorSet {
     @Id
     private UUID id;

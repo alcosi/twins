@@ -9,6 +9,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.i18n.LocaleConverter;
 import org.twins.core.dao.idp.IdentityProviderEntity;
@@ -18,6 +19,7 @@ import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
+import org.twins.core.enums.datascope.DataScopeType;
 import org.twins.core.enums.domain.DomainStatus;
 import org.twins.core.enums.domain.DomainType;
 
@@ -33,6 +35,7 @@ import java.util.UUID;
 @Data
 @FieldNameConstants
 @Accessors(chain = true)
+@DataScope(DataScopeType.DOMAIN)
 public class DomainEntity implements EasyLoggable {
     @Id
     private UUID id;

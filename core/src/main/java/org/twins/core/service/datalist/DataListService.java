@@ -12,7 +12,6 @@ import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -27,8 +26,7 @@ import org.twins.core.domain.datalist.DataListSave;
 import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.enums.i18n.I18nType;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinsEntitySecureFindService;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.DomainConfigAccessService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.user.UserService;
 
@@ -45,20 +43,17 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataListService extends TwinsEntitySecureFindService<DataListEntity> {
+public class DataListService extends DomainConfigAccessService<DataListEntity> {
     final DataListRepository dataListRepository;
     final DataListOptionRepository dataListOptionRepository;
-    final EntitySmartService entitySmartService;
     final DataListOptionService dataListOptionService;
     @Lazy
     final UserService userService;
 
-    @Lazy
-    final AuthService authService;
     private final I18nService i18nService;
 
     @Override
-    public CrudRepository<DataListEntity, UUID> entityRepository() {
+    public DataListRepository entityRepository() {
         return dataListRepository;
     }
 
@@ -103,7 +98,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     public DataListEntity createDataList(DataListCreate dataListCreate) throws ServiceException {
         DataListEntity dataListEntity = new DataListEntity()
                 .setKey(KeyUtils.lowerCaseNullSafe(dataListCreate.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
-                .setDomainId(authService.getApiUser().getDomainId())
+                // no setDomainId: saveSafe below autofills it from the apiUser domain
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_NAME, dataListCreate.getNameI18n()).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_DESCRIPTION, dataListCreate.getDescriptionI18n()).getId())
                 .setExternalId(dataListCreate.getExternalId())

@@ -123,7 +123,6 @@ public class DataListSubsetMigrationAndCrudIntegrationTest extends BaseIntegrati
 
         TwinClassEntity twinClass = new TwinClassEntity()
                 .setId(UUID.randomUUID())
-                .setDomainId(null)
                 .setKey("TEST_SUBSET_CLASS")
                 .setOwnerType(OwnerType.SYSTEM)
                 .setCreatedByUserId(userId)

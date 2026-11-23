@@ -8,7 +8,9 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.common.util.UuidUtils;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.util.UUID;
 
@@ -20,6 +22,7 @@ import java.util.UUID;
         name = "UK_twin_attachment_modification",
         columnNames = {"twin_attachment_id", "modification_type"}
 ))
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinAttachmentModificationEntity implements PublicCloneable<TwinAttachmentModificationEntity>, EasyLoggable, Identifiable<UUID> {
     @Id
     private UUID id;

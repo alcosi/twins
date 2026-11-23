@@ -12,7 +12,6 @@ import org.cambium.common.util.ChangesHelperMulti;
 import org.cambium.common.util.StringUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -28,6 +27,7 @@ import org.twins.core.domain.resource.ResourceUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.storager.AddedFileKey;
 import org.twins.core.featurer.storager.Storager;
+import org.twins.core.service.TwinsEntityAccessService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.storage.StorageService;
 import org.twins.core.service.user.UserService;
@@ -42,8 +42,7 @@ import java.util.stream.Collectors;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @RequiredArgsConstructor
 @Slf4j
-public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
-
+public class ResourceService extends TwinsEntityAccessService<ResourceEntity> {
     protected final FeaturerService featurerService;
     protected final ResourceRepository resourceRepository;
     protected final StorageService storageService;

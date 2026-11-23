@@ -8,9 +8,11 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.DataScope;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.Identifiable;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -21,6 +23,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_pointer")
+@DataScope({DataScopeType.SYSTEM, DataScopeType.DOMAIN})
 public class TwinPointerEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     @Column(name = "id")

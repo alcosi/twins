@@ -1,13 +1,11 @@
 package org.twins.core.dao.twin;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.IdClass;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.annotation.DataScope;
+import org.twins.core.enums.datascope.DataScopeType;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -19,6 +17,7 @@ import java.util.UUID;
 @FieldNameConstants
 @Table(name = "twin_last_change")
 @IdClass(TwinLastChangeEntity.Pk.class)
+@DataScope(DataScopeType.DOMAIN_MEMBER)
 public class TwinLastChangeEntity {
 
     @Id

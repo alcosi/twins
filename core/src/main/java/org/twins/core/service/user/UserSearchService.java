@@ -39,12 +39,6 @@ import java.util.UUID;
 import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
 import static org.twins.core.dao.user.UserSpecification.*;
 
-/**
- * Users join the common {@link EntitySearchService} contract so configured-search flow can treat
- * them uniformly. Enum-driven sorting (name/email/status) and group counting (by status) are
- * supported on top of the featurer-driven {@link UserSorter}; the execution path stays custom
- * ({@link #findUsers} weaves childTwinSearches subqueries).
- */
 @Slf4j
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
