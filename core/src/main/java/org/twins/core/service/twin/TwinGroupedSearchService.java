@@ -47,6 +47,7 @@ public class TwinGroupedSearchService {
     private final FeaturerService featurerService;
     private final UserService userService;
     private final TwinService twinService;
+    private final TwinFieldService twinFieldService;
     private final AuthService authService;
     private final TwinStatusService twinStatusService;
     private final DataListOptionService dataListOptionService;
@@ -66,7 +67,7 @@ public class TwinGroupedSearchService {
 
         // canonical batch load: every dynamic field value (FieldValueLink included) lands in twin.fieldValuesKit
         twinService.loadFieldsValues(twins);
-        TwinTreeAssembler.Assembly assembly = TwinTreeAssembler.assemble(twins, levels);
+        TwinTreeAssembler.Assembly assembly = TwinTreeAssembler.assemble(twins, levels, twinFieldService::getFieldValue);
         materializeKeyValues(assembly.all());
         TwinTreeAssembler.sort(assembly.roots(), levels);
         return new TwinGroupedSearchResult().setGroups(assembly.roots());
@@ -146,15 +147,13 @@ public class TwinGroupedSearchService {
         // base fields are regular twin_class_field rows of the global ancestor class: one load covers all levels
         Kit<TwinClassFieldEntity, UUID> fields = loadFields(fieldIds);
         for (TwinGroupLevel level : levels) {
-            if (SystemIdLookup.isSystemField(level.getFieldId())) {
-                resolveBasicField(level, fields.get(level.getFieldId()));
-            } else {
-                resolveDynamicField(level, fields.get(level.getFieldId()));
-            }
+            boolean nameSortable = SystemIdLookup.isSystemField(level.getFieldId())
+                    ? resolveBasicField(level, fields.get(level.getFieldId()))
+                    : resolveDynamicField(level, fields.get(level.getFieldId()));
             if (level.getSort() == null) {
-                level.setSort(defaultSort(level));
+                level.setSort(nameSortable ? TwinGroupSort.NAME_ASC : TwinGroupSort.KEY_ASC);
             }
-            if (isNameSort(level.getSort()) && !nameSortable(level)) {
+            if (isNameSort(level.getSort()) && !nameSortable) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                         "NAME sort is not supported for level " + level.getFieldId());
             }
@@ -169,69 +168,48 @@ public class TwinGroupedSearchService {
         return twinClassFieldService.findEntitiesSafe(fieldIds);
     }
 
-    private void resolveBasicField(TwinGroupLevel level, TwinClassFieldEntity field) throws ServiceException {
-        TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(level.getFieldId());
-        if (basicField == null) {
+    /**
+     * Base levels need no value shaping of their own: TwinFieldService.getFieldValue reads the twin
+     * column (and an attached entity) by the field id. Returns whether the key has a name
+     * (users and the head twin).
+     */
+    private boolean resolveBasicField(TwinGroupLevel level, TwinClassFieldEntity field) throws ServiceException {
+        if (!TwinFieldService.GROUPABLE_BASIC_FIELDS.contains(TwinEntity.BasicField.convertOrNull(level.getFieldId()))) {
             // tags, markers and aliases are system fields but have no scalar column to group by
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                     "Field " + level.getFieldId() + " is not groupable");
         }
-        level
-                .setBasicField(basicField)
-                .setField(field)
-                .setKeyPrototype(basicPrototype(basicField, field));
+        level.setField(field);
+        return NAME_SORTABLE_BASIC_FIELDS.contains(TwinEntity.BasicField.convertOrNull(level.getFieldId()));
     }
 
-    private void resolveDynamicField(TwinGroupLevel level, TwinClassFieldEntity field) throws ServiceException {
+    /**
+     * Dynamic levels are validated against the same acceptance set as the count/v1 countGroup
+     * contract: link, datalist, simple, decimal, boolean and timestamp storages. Returns whether
+     * the key has a name (a link key is a twin).
+     */
+    private boolean resolveDynamicField(TwinGroupLevel level, TwinClassFieldEntity field) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
-        level
-                .setField(field)
-                .setKeyPrototype(dynamicPrototype(field, fieldTyper.getStorage(field)));
+        TwinFieldStorage storage = fieldTyper.getStorage(field);
+        if (!(storage instanceof TwinFieldStorageLink
+                || storage instanceof TwinFieldStorageDatalist
+                || storage instanceof TwinFieldStorageTimestamp
+                || storage instanceof TwinFieldStorageBoolean
+                || storage instanceof TwinFieldStorageDecimal
+                || storage instanceof TwinFieldStorageSimple)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                    "{} is not countable", field.logNormal());
+        }
+        level.setField(field);
+        return storage instanceof TwinFieldStorageLink;
     }
 
-    private static FieldValue basicPrototype(TwinEntity.BasicField basicField, TwinClassFieldEntity field) throws ServiceException {
-        return switch (basicField) {
-            case ASSIGNEE_USER_ID, OWNER_USER_ID, CREATOR_USER_ID -> new FieldValueUserSingle(field);
-            case TWIN_STATUS_ID -> new FieldValueStatus(field);
-            case TWIN_CLASS_ID -> new FieldValueTwinClassSingle(field);
-            case HEAD_TWIN_ID -> new FieldValueLinkSingle(field);
-            case FLAVOR_DATA_LIST_OPTION_ID -> new FieldValueSelectSingle(field);
-            default -> throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
-                    "Field " + basicField.getId() + " is not groupable");
-        };
-    }
-
-    private static FieldValue dynamicPrototype(TwinClassFieldEntity field, TwinFieldStorage storage) throws ServiceException {
-        if (storage instanceof TwinFieldStorageLink) {
-            return new FieldValueLinkSingle(field);
-        }
-        if (storage instanceof TwinFieldStorageDatalist) {
-            return new FieldValueSelectSingle(field);
-        }
-        if (storage instanceof TwinFieldStorageTimestamp) {
-            return new FieldValueDate(field, null);
-        }
-        if (storage instanceof TwinFieldStorageBoolean) {
-            return new FieldValueBoolean(field);
-        }
-        if (storage instanceof TwinFieldStorageDecimal || storage instanceof TwinFieldStorageSimple) {
-            // a decimal deserializes to its formatted text (FieldValueText), the string is the key
-            return new FieldValueText(field);
-        }
-        // the same acceptance set as the count/v1 countGroup contract: simple, decimal, boolean,
-        // timestamp and datalist storages (link goes through its own branch above)
-        throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
-                "{} is not countable", field.logNormal());
-    }
-
-    private static TwinGroupSort defaultSort(TwinGroupLevel level) {
-        return nameSortable(level) ? TwinGroupSort.NAME_ASC : TwinGroupSort.KEY_ASC;
-    }
-
-    private static boolean nameSortable(TwinGroupLevel level) {
-        return level.getKeyPrototype() instanceof FieldValueUserSingle
-                || level.getKeyPrototype() instanceof FieldValueLinkSingle;
-    }
+    /** Base keys whose entity has a name: users and the head twin (statuses, classes and options do not). */
+    private static final Set<TwinEntity.BasicField> NAME_SORTABLE_BASIC_FIELDS = Set.of(
+            TwinEntity.BasicField.OWNER_USER_ID,
+            TwinEntity.BasicField.ASSIGNEE_USER_ID,
+            TwinEntity.BasicField.CREATOR_USER_ID,
+            TwinEntity.BasicField.HEAD_TWIN_ID);
 
     private static boolean isNameSort(TwinGroupSort groupSort) {
         return groupSort == TwinGroupSort.NAME_ASC || groupSort == TwinGroupSort.NAME_DESC;

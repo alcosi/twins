@@ -7,11 +7,11 @@ import java.util.UUID;
 
 /**
  * Single-id transition state of a group key value: the key is known only as an entity id, the entity
- * itself is NOT loaded. TwinGroupLevel.extractKeys produces it for base-field keys (base fields live
- * in twin columns, not in twin.fieldValuesKit), TwinGroupedSearchService bulk-materializes it into
- * the concrete single value (FieldValueUserSingle and siblings) — one findEntitiesSafe per entity
- * type per request, so no N+1. The target value type is resolved once at level resolution and
- * carried here, so materialization needs no featurer lookup.
+ * itself is NOT loaded. TwinFieldService.getFieldValue produces it for base-field keys read from
+ * twin columns (with no entity attached to the twin), TwinGroupedSearchService bulk-materializes it
+ * into the concrete single value (FieldValueUserSingle and siblings) — one findEntitiesSafe per
+ * entity type per request, so no N+1. The target value type is resolved once and carried here, so
+ * materialization needs no featurer lookup.
  * <p>
  * Unlike the multi-id {@link FieldValueReference} (the string-parser transport, which carries a
  * whole link-field id list), this one holds exactly one id — hence FieldValueSingle: the scalar key

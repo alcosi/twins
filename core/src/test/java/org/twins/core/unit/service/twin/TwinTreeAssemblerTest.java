@@ -3,12 +3,16 @@ package org.twins.core.unit.service.twin;
 import org.cambium.common.kit.Kit;
 import org.junit.jupiter.api.Test;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
 import org.twins.core.enums.twin.TwinGroupSort;
-import org.twins.core.featurer.fieldtyper.value.*;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.fieldtyper.value.FieldValueStatus;
+import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
 import org.twins.core.service.twin.TwinTreeAssembler;
 
 import java.util.*;
@@ -33,7 +37,7 @@ class TwinTreeAssemblerTest {
     void nestsStatusAssigneeAndLinkAndCountsALeafOnceInTheParents() throws Exception {
         TwinEntity task = withLinks(task(1, STATUS, ANN), DST_1, DST_2);
         TwinEntity other = task(2, OTHER_STATUS, BOB);
-        List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(task, other), levels()).roots();
+        List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(task, other), levels(), values(Map.of())).roots();
 
         roots.sort(TwinTreeAssembler.keys(true));
         assertEquals(List.of(STATUS, OTHER_STATUS), keys(roots));
@@ -49,9 +53,8 @@ class TwinTreeAssemblerTest {
         TwinEntity ann = task(1, STATUS, ANN);
         TwinEntity unassigned = task(2, STATUS, null);
         List<TwinGroupLevel> levels = List.of(assigneeLevel());
-        List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(ann, unassigned), levels).roots();
+        List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(ann, unassigned), levels, values(Map.of())).roots();
 
-        attachNames(roots, Map.of(ANN, "Ann"));
         TwinTreeAssembler.sort(roots, levels);
         assertEquals(Arrays.asList(ANN, null), keys(roots));
         assertEquals(List.of(ann.getId()), roots.get(0).getTwins().stream().map(TwinEntity::getId).toList());
@@ -62,7 +65,7 @@ class TwinTreeAssemblerTest {
     @Test
     void rootLinkCountsTheSameLeafInEachRoot() throws Exception {
         TwinEntity task = withLinks(task(1, STATUS, ANN), DST_1, DST_2);
-        List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(task), List.of(linkLevel())).roots();
+        List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(task), List.of(linkLevel()), values(Map.of())).roots();
 
         assertEquals(2, roots.size());
         assertEquals(1, roots.get(0).getCount());
@@ -76,7 +79,7 @@ class TwinTreeAssemblerTest {
         TwinEntity second = task(2, STATUS, ANN);
         TwinEntity third = task(3, STATUS, BOB);
         List<TwinGroup> roots = TwinTreeAssembler.assemble(
-                List.of(first, second, first, third), List.of(assigneeLevel())).roots();
+                List.of(first, second, first, third), List.of(assigneeLevel()), values(Map.of())).roots();
 
         assertEquals(2, roots.size());
         assertEquals(BOB, roots.get(0).getKey());
@@ -92,9 +95,10 @@ class TwinTreeAssemblerTest {
         TwinEntity unassigned = task(1, STATUS, null);
         TwinEntity ann = task(2, STATUS, ANN);
         TwinEntity bob = task(3, STATUS, BOB);
-        List<TwinGroup> groups = TwinTreeAssembler.assemble(List.of(unassigned, ann, bob), List.of(assigneeLevel())).roots();
+        List<TwinGroupLevel> levels = List.of(assigneeLevel());
+        List<TwinGroup> groups = TwinTreeAssembler.assemble(List.of(unassigned, ann, bob), levels,
+                values(Map.of(ANN, "Ann", BOB, "Bob"))).roots();
 
-        attachNames(groups, Map.of(ANN, "Ann", BOB, "Bob"));
         TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.KEY_ASC)));
         assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
         TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.KEY_DESC)));
@@ -105,7 +109,8 @@ class TwinTreeAssemblerTest {
         assertEquals(Arrays.asList(BOB, ANN, null), keys(groups));
 
         // equal names fall back to the key
-        attachNames(groups, Map.of(ANN, "Ann", BOB, "Ann"));
+        groups = TwinTreeAssembler.assemble(List.of(unassigned, ann, bob), levels,
+                values(Map.of(ANN, "Ann", BOB, "Ann"))).roots();
         TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.NAME_DESC)));
         assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
     }
@@ -116,12 +121,12 @@ class TwinTreeAssemblerTest {
         TwinEntity unassigned2 = task(4, STATUS, null);
         TwinEntity ann = task(2, STATUS, ANN);
         List<TwinGroup> groups = TwinTreeAssembler.assemble(
-                List.of(unassigned1, ann, unassigned2), List.of(assigneeLevel())).roots();
+                List.of(unassigned1, ann, unassigned2), List.of(assigneeLevel()), values(Map.of())).roots();
         groups.sort(TwinTreeAssembler.counts(false));
         assertEquals(Arrays.asList(null, ANN), keys(groups));
 
         TwinEntity bob = task(3, STATUS, BOB);
-        groups = TwinTreeAssembler.assemble(List.of(ann, bob), List.of(assigneeLevel())).roots();
+        groups = TwinTreeAssembler.assemble(List.of(ann, bob), List.of(assigneeLevel()), values(Map.of())).roots();
         groups.sort(TwinTreeAssembler.counts(false));
         assertEquals(List.of(ANN, BOB), keys(groups));
     }
@@ -132,26 +137,41 @@ class TwinTreeAssemblerTest {
 
     private static TwinGroupLevel statusLevel() {
         return new TwinGroupLevel()
-                .setBasicField(TwinEntity.BasicField.TWIN_STATUS_ID)
                 .setField(STATUS_FIELD)
-                .setKeyPrototype(new FieldValueStatus(STATUS_FIELD))
                 .setSort(TwinGroupSort.KEY_ASC);
     }
 
     private static TwinGroupLevel assigneeLevel() {
         return new TwinGroupLevel()
-                .setBasicField(TwinEntity.BasicField.ASSIGNEE_USER_ID)
                 .setField(ASSIGNEE_FIELD)
-                .setKeyPrototype(new FieldValueUserSingle(ASSIGNEE_FIELD))
                 .setSort(TwinGroupSort.NAME_ASC);
     }
 
     private static TwinGroupLevel linkLevel() {
         return new TwinGroupLevel()
-                .setFieldId(LINK)
                 .setField(LINK_FIELD)
-                .setKeyPrototype(new FieldValueLinkSingle(LINK_FIELD))
                 .setSort(TwinGroupSort.NAME_ASC);
+    }
+
+    /**
+     * Stands in for TwinFieldService.getFieldValue: base columns become single values (the user
+     * names simulate the loaded key entities), the link field reads the kit.
+     */
+    private static TwinTreeAssembler.FieldValueGetter values(Map<UUID, String> userNames) {
+        return (twin, field) -> {
+            if (field == STATUS_FIELD) {
+                return twin.getTwinStatusId() == null
+                        ? new FieldValueStatus(field)
+                        : new FieldValueStatus(field).setValue(new TwinStatusEntity().setId(twin.getTwinStatusId()));
+            }
+            if (field == ASSIGNEE_FIELD) {
+                return twin.getAssignerUserId() == null
+                        ? new FieldValueUserSingle(field)
+                        : new FieldValueUserSingle(field).setValue(
+                        new UserEntity().setId(twin.getAssignerUserId()).setName(userNames.get(twin.getAssignerUserId())));
+            }
+            return twin.getFieldValuesKit() == null ? new FieldValueLink(field) : twin.getFieldValuesKit().get(field.getId());
+        };
     }
 
     private static TwinEntity withLinks(TwinEntity twin, UUID... dstIds) {
@@ -171,19 +191,6 @@ class TwinTreeAssemblerTest {
                 .setId(UUID.fromString("00000000-0000-0000-0000-00000000000" + suffix))
                 .setTwinStatusId(statusId)
                 .setAssignerUserId(assignerUserId);
-    }
-
-    /**
-     * Stands in for the service-side bulk materialization: replaces the ids-only reference key value
-     * with a concrete FieldValueUserSingle carrying the named user.
-     */
-    private static void attachNames(List<TwinGroup> groups, Map<UUID, String> names) {
-        for (TwinGroup group : groups) {
-            if (group.getKey() instanceof UUID id && names.containsKey(id)) {
-                group.setKeyValue(new FieldValueUserSingle(ASSIGNEE_FIELD)
-                        .setValue(new UserEntity().setId(id).setName(names.get(id))));
-            }
-        }
     }
 
     private static List<UUID> keys(List<TwinGroup> groups) {

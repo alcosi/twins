@@ -2,8 +2,10 @@ package org.twins.core.service.twin;
 
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSingle;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
@@ -14,26 +16,32 @@ public final class TwinTreeAssembler {
     private TwinTreeAssembler() {
     }
 
+    /** The current value of a level field on a twin — TwinFieldService.getFieldValue. */
+    @FunctionalInterface
+    public interface FieldValueGetter {
+        FieldValue getFieldValue(TwinEntity twin, TwinClassFieldEntity field) throws ServiceException;
+    }
+
     /**
      * Walks every twin down the levels, finding or creating a node per key, and places the twin
      * into the leaf node. A level with several keys (datalist, link) puts the twin into every
      * matching branch.
      */
-    public static Assembly assemble(List<TwinEntity> twins, List<TwinGroupLevel> levels) throws ServiceException {
+    public static Assembly assemble(List<TwinEntity> twins, List<TwinGroupLevel> levels, FieldValueGetter valueGetter) throws ServiceException {
         Bucket root = new Bucket();
         Set<UUID> seen = new HashSet<>();
         for (TwinEntity twin : twins) {
             if (twin == null || twin.getId() == null || !seen.add(twin.getId())) {
                 continue;
             }
-            place(root, twin, levels, 0);
+            place(root, twin, levels, 0, valueGetter);
         }
         List<TwinGroup> all = new ArrayList<>();
         List<TwinGroup> roots = toGroups(root.children.values(), 0, levels, all);
         return new Assembly(roots, all);
     }
 
-    private static void place(Bucket node, TwinEntity twin, List<TwinGroupLevel> levels, int levelIndex) throws ServiceException {
+    private static void place(Bucket node, TwinEntity twin, List<TwinGroupLevel> levels, int levelIndex, FieldValueGetter valueGetter) throws ServiceException {
         // a twin visits each node at most once (the input is distinct, and the keys of a level are
         // distinct), so the visit itself is the count increment
         node.count++;
@@ -41,12 +49,13 @@ public final class TwinTreeAssembler {
             node.twins.add(twin);
             return;
         }
-        for (FieldValueSingle keyValue : levels.get(levelIndex).extractKeys(twin)) {
+        TwinGroupLevel level = levels.get(levelIndex);
+        for (FieldValueSingle keyValue : level.extractKeys(valueGetter.getFieldValue(twin, level.getField()))) {
             Bucket child = node.children.computeIfAbsent(keyValue.getScalarValue(), key -> new Bucket());
             if (child.keyValue == null) {
                 child.keyValue = keyValue;
             }
-            place(child, twin, levels, levelIndex + 1);
+            place(child, twin, levels, levelIndex + 1, valueGetter);
         }
     }
 

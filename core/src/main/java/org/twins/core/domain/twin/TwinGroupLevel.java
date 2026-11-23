@@ -17,30 +17,15 @@ import java.util.*;
 public class TwinGroupLevel {
     private UUID fieldId;
     private TwinGroupSort sort;
-    private TwinEntity.BasicField basicField;
     private TwinClassFieldEntity field;
-    private FieldValue keyPrototype;
 
     /**
-     * The group keys of one twin at this level: a single undefined value (the empty group), or several
-     * single-key values for multi-value fields (datalist, link) — then the twin lands in every branch.
-     * Valid only after the level was resolved (basicField or field + keyPrototype are set) and
-     * TwinService.loadFieldsValues filled twin.fieldValuesKit. The scalar key of each returned value is
-     * its getScalarValue().
+     * The group keys of one twin at this level, read from the level field's current value
+     * (TwinFieldService.getFieldValue — base and dynamic fields alike): a single value (the scalar
+     * keys, the typed empty value = the empty group), or several single-key values for multi-value
+     * fields (datalist, link) — then the twin lands in every branch.
      */
-    public Collection<FieldValueSingle> extractKeys(TwinEntity twin) throws ServiceException {
-        if (basicField != null) {
-            UUID id = (UUID) basicField.getValue(twin);
-            // base fields are not in twin.fieldValuesKit: the key starts as an id-only reference
-            // and is bulk-materialized by the service into a concrete value
-            return id == null ? emptyKey()
-                    : List.of(new FieldValueReferenceSingle(field, keyPrototype.getClass(), id));
-        }
-        FieldValue value = twin.getFieldValuesKit() == null ? null : twin.getFieldValuesKit().get(field.getId());
-        if (value == null || value.isEmpty()) {
-            // a twin of a class without the field has no value and groups under the empty key
-            return emptyKey();
-        }
+    public Collection<FieldValueSingle> extractKeys(FieldValue value) throws ServiceException {
         if (value instanceof FieldValueLink link) {
             // the key is the far twin; a backward link field has empty values
             // (backward loading is disabled platform-wide) and groups under the empty key
@@ -50,7 +35,7 @@ public class TwinGroupLevel {
                     keys.put(end.getId(), new FieldValueLinkSingle(field).setValue(end));
                 }
             }
-            return keys.isEmpty() ? emptyKey() : keys.values();
+            return keys.isEmpty() ? List.of(new FieldValueLinkSingle(field)) : List.copyOf(keys.values());
         }
         if (value instanceof FieldValueSelect select) {
             Map<UUID, FieldValueSingle> keys = new LinkedHashMap<>();
@@ -59,20 +44,15 @@ public class TwinGroupLevel {
                     keys.put(option.getId(), new FieldValueSelectSingle(field).setValue(option));
                 }
             }
-            return keys.isEmpty() ? emptyKey() : keys.values();
+            return keys.isEmpty() ? List.of(new FieldValueSelectSingle(field)) : List.copyOf(keys.values());
         }
         if (value instanceof FieldValueSingle scalar) {
-            // simple values and dates; a decimal also lands here as FieldValueText: the typer formats
-            // it to a canonical string ("0.00"), so the string itself is a stable group key
+            // simple values and dates; an undefined value is the empty key of its type (null scalar);
+            // a decimal also lands here as FieldValueText: the typer formats it to a canonical
+            // string ("0.00"), so the string itself is a stable group key
             return List.of(scalar);
         }
         throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                 "Field " + field.getId() + " is not countable");
-    }
-
-    private Collection<FieldValueSingle> emptyKey() {
-        // an undefined value of the level's type, so the key type survives even without a key;
-        // resolve* sets only single-valued prototypes, so the cast cannot fail
-        return List.of((FieldValueSingle) keyPrototype.newInstance(field));
     }
 }

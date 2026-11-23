@@ -22,12 +22,10 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
-import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
+import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
+import org.twins.core.service.twin.TwinFieldService;
 import org.twins.core.service.twin.TwinGroupedSearchService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
 import org.twins.core.service.twin.TwinService;
@@ -57,6 +55,8 @@ class TwinGroupedSearchServiceTest {
     @Mock
     private TwinService twinService;
     @Mock
+    private TwinFieldService twinFieldService;
+    @Mock
     private AuthService authService;
     @Mock
     private TwinStatusService twinStatusService;
@@ -70,7 +70,7 @@ class TwinGroupedSearchServiceTest {
     @BeforeEach
     void setUp() {
         service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, twinClassService, featurerService,
-                userService, twinService, authService, twinStatusService, dataListOptionService);
+                userService, twinService, twinFieldService, authService, twinStatusService, dataListOptionService);
     }
 
     @Test
@@ -108,6 +108,7 @@ class TwinGroupedSearchServiceTest {
     @Test
     void assigneeGroupsKeepTheEmptyKeyLast() throws Exception {
         stubBaseFields();
+        stubGetFieldValue();
         UUID assigneeId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
         UUID ann = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
         TwinEntity task = new TwinEntity().setId(UUID.randomUUID()).setAssignerUserId(ann);
@@ -144,6 +145,7 @@ class TwinGroupedSearchServiceTest {
 
     @Test
     void fieldOfAnotherClassGroupsUnderTheEmptyKey() throws Exception {
+        stubGetFieldValue();
         UUID fieldId = UUID.randomUUID();
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId).setFieldTyperFeaturerId(1);
         TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
@@ -183,6 +185,7 @@ class TwinGroupedSearchServiceTest {
 
     @Test
     void linkFieldWithoutAValueGroupsUnderTheEmptyKey() throws Exception {
+        stubGetFieldValue();
         UUID fieldId = UUID.randomUUID();
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId).setFieldTyperFeaturerId(1310);
         TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
@@ -211,6 +214,7 @@ class TwinGroupedSearchServiceTest {
 
     @Test
     void linkFieldIsGroupedByTheFarTwinIdFromTheFieldValuesKit() throws Exception {
+        stubGetFieldValue();
         UUID fieldId = UUID.randomUUID();
         UUID dstId = UUID.randomUUID();
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId).setFieldTyperFeaturerId(1310);
@@ -255,6 +259,26 @@ class TwinGroupedSearchServiceTest {
                 fields.add(new TwinClassFieldEntity().setId(id));
             }
             return new Kit<>(fields, TwinClassFieldEntity::getId);
+        });
+    }
+
+    /**
+     * Stands in for TwinFieldService.getFieldValue: the assignee column becomes a reference (or the
+     * typed empty value), dynamic fields read the canonical kit, an absent value comes back
+     * typed-empty (the empty link shape covers the level-less twins of every dynamic test here —
+     * the scalar is null either way).
+     */
+    private void stubGetFieldValue() throws Exception {
+        when(twinFieldService.getFieldValue(any(TwinEntity.class), any(TwinClassFieldEntity.class))).thenAnswer(invocation -> {
+            TwinEntity twin = invocation.getArgument(0);
+            TwinClassFieldEntity field = invocation.getArgument(1);
+            if (TwinEntity.BasicField.convertOrNull(field.getId()) == TwinEntity.BasicField.ASSIGNEE_USER_ID) {
+                return twin.getAssignerUserId() == null
+                        ? new FieldValueUserSingle(field)
+                        : new FieldValueReferenceSingle(field, FieldValueUserSingle.class, twin.getAssignerUserId());
+            }
+            FieldValue kitValue = twin.getFieldValuesKit() == null ? null : twin.getFieldValuesKit().get(field.getId());
+            return kitValue != null ? kitValue : new FieldValueLink(field);
         });
     }
 
