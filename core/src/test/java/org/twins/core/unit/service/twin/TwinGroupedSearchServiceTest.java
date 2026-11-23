@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -25,6 +26,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
+import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.twin.TwinFieldService;
 import org.twins.core.service.twin.TwinGroupedSearchService;
 import org.twins.core.service.twin.TwinSearchServiceV2;
@@ -59,6 +61,8 @@ class TwinGroupedSearchServiceTest {
     @Mock
     private AuthService authService;
     @Mock
+    private I18nService i18nService;
+    @Mock
     private TwinStatusService twinStatusService;
     @Mock
     private DataListOptionService dataListOptionService;
@@ -70,7 +74,7 @@ class TwinGroupedSearchServiceTest {
     @BeforeEach
     void setUp() {
         service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, twinClassService, featurerService,
-                userService, twinService, twinFieldService, authService, twinStatusService, dataListOptionService);
+                userService, twinService, twinFieldService, authService, i18nService, twinStatusService, dataListOptionService);
     }
 
     @Test
@@ -83,26 +87,15 @@ class TwinGroupedSearchServiceTest {
     void twoClassesAreAccepted() throws Exception {
         stubBaseFields();
         stubLocale();
+        stubTranslations();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
         when(twinSearchServiceV2.findAllUnpaged(any(), any(), eq((long) TwinGroupedSearchService.MAX_TWINS))).thenReturn(List.of());
 
         TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID(), UUID.randomUUID()))
-                .setLevels(List.of(assignee(TwinGroupSort.KEY_ASC))));
+                .setLevels(List.of(assignee(TwinGroupSort.VALUE_ASC))));
 
         assertTrue(result.getGroups().isEmpty());
-    }
-
-    @Test
-    void rejectsNameSortForStatus() throws Exception {
-        stubBaseFields();
-        UUID statusId = SystemIds.TwinClassField.Base.STATUS_ID;
-        ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
-                .setSearch(classes(UUID.randomUUID()))
-                .setLevels(List.of(new TwinGroupLevel()
-                        .setFieldId(statusId)
-                        .setSort(TwinGroupSort.NAME_ASC)))));
-        assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
     }
 
     @Test
@@ -114,6 +107,7 @@ class TwinGroupedSearchServiceTest {
         TwinEntity task = new TwinEntity().setId(UUID.randomUUID()).setAssignerUserId(ann);
         TwinEntity unassigned = new TwinEntity().setId(UUID.randomUUID());
         stubLocale();
+        stubTranslations();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
         when(twinSearchServiceV2.findAllUnpaged(any(), any(), anyLong())).thenReturn(List.of(task, unassigned));
         when(userService.findEntitiesSafe(any())).thenReturn(new Kit<>(
@@ -121,7 +115,7 @@ class TwinGroupedSearchServiceTest {
 
         TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID()))
-                .setLevels(List.of(assignee(TwinGroupSort.NAME_ASC))));
+                .setLevels(List.of(assignee(TwinGroupSort.VALUE_ASC))));
 
         assertEquals(Arrays.asList(ann, null), result.getGroups().stream().map(TwinGroup::getKey).toList());
         assertEquals(List.of(task.getId()), result.getGroups().get(0).getTwins().stream().map(TwinEntity::getId).toList());
@@ -131,13 +125,45 @@ class TwinGroupedSearchServiceTest {
     }
 
     @Test
+    void statusGroupsSortByTheLocalizedI18nName() throws Exception {
+        stubBaseFields();
+        stubLocale();
+        UUID done = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
+        UUID pending = UUID.fromString("00000000-0000-0000-0000-0000000000a2");
+        UUID doneI18n = UUID.randomUUID();
+        UUID pendingI18n = UUID.randomUUID();
+        TwinEntity doneTask = new TwinEntity().setId(UUID.randomUUID()).setTwinStatusId(done);
+        TwinEntity pendingTask = new TwinEntity().setId(UUID.randomUUID()).setTwinStatusId(pending);
+        // the eager twinStatus is attached at once, carrying the business key and the i18n id
+        when(twinFieldService.getFieldValue(any(TwinEntity.class), any(TwinClassFieldEntity.class))).thenAnswer(invocation -> {
+            TwinEntity twin = invocation.getArgument(0);
+            TwinClassFieldEntity field = invocation.getArgument(1);
+            return new FieldValueStatus(field).setValue(new TwinStatusEntity()
+                    .setId(twin.getTwinStatusId())
+                    .setKey(done.equals(twin.getTwinStatusId()) ? "zzz_done" : "aaa_pending")
+                    .setNameI18nId(done.equals(twin.getTwinStatusId()) ? doneI18n : pendingI18n));
+        });
+        when(i18nService.translateToLocale(anySet(), any(Locale.class)))
+                .thenReturn(Map.of(doneI18n, "Done", pendingI18n, "Pending"));
+        when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
+        when(twinSearchServiceV2.findAllUnpaged(any(), any(), anyLong())).thenReturn(List.of(pendingTask, doneTask));
+
+        TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
+                .setSearch(classes(UUID.randomUUID()))
+                .setLevels(List.of(status(TwinGroupSort.VALUE_ASC))));
+
+        // the business keys sort the other way round — only the localized names give this order
+        assertEquals(List.of(done, pending), result.getGroups().stream().map(TwinGroup::getKey).toList());
+    }
+
+    @Test
     void invalidMemberSortIsRejectedBeforeTheFetch() throws Exception {
         stubBaseFields();
         stubLocale();
 
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID()))
-                .setLevels(List.of(assignee(TwinGroupSort.KEY_ASC)))
+                .setLevels(List.of(assignee(TwinGroupSort.VALUE_ASC)))
                 .setMemberSorts(List.of(new TwinMemberSort()))));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
         verify(twinSearchServiceV2, never()).findAllUnpaged(any(), any(), anyLong());
@@ -156,12 +182,13 @@ class TwinGroupedSearchServiceTest {
         when(featurerService.getFeaturer(1, FieldTyper.class)).thenReturn(typer);
         when(typer.getStorage(field)).thenReturn(storage);
         stubLocale();
+        stubTranslations();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
         when(twinSearchServiceV2.findAllUnpaged(any(), any(), anyLong())).thenReturn(List.of(twin));
 
         TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID(), UUID.randomUUID()))
-                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC))));
+                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.VALUE_ASC))));
 
         assertEquals(1, result.getGroups().size());
         assertNull(result.getGroups().get(0).getKey());
@@ -175,7 +202,7 @@ class TwinGroupedSearchServiceTest {
 
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID()))
-                .setLevels(List.of(assignee(TwinGroupSort.KEY_ASC)))
+                .setLevels(List.of(assignee(TwinGroupSort.VALUE_ASC)))
                 .setMemberSorts(List.of(new TwinMemberSort()
                         .setFieldId(SystemIds.TwinClassField.Base.HEAD_ID)
                         .setDirection(SortDirection.DESC)))));
@@ -200,12 +227,13 @@ class TwinGroupedSearchServiceTest {
             return null;
         }).when(twinService).loadFieldsValues(anyCollection());
         stubLocale();
+        stubTranslations();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
         when(twinSearchServiceV2.findAllUnpaged(any(), any(), anyLong())).thenReturn(List.of(twin));
 
         TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID()))
-                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC))));
+                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.VALUE_ASC))));
 
         assertEquals(1, result.getGroups().size());
         assertNull(result.getGroups().get(0).getKey());
@@ -232,12 +260,13 @@ class TwinGroupedSearchServiceTest {
             return null;
         }).when(twinService).loadFieldsValues(anyCollection());
         stubLocale();
+        stubTranslations();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
         when(twinSearchServiceV2.findAllUnpaged(any(), any(), anyLong())).thenReturn(List.of(twin));
 
         TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID()))
-                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.KEY_ASC))));
+                .setLevels(List.of(new TwinGroupLevel().setFieldId(fieldId).setSort(TwinGroupSort.VALUE_ASC))));
 
         assertEquals(1, result.getGroups().size());
         assertEquals(dstId, result.getGroups().get(0).getKey());
@@ -287,6 +316,14 @@ class TwinGroupedSearchServiceTest {
         when(apiUser.getLocale()).thenReturn(Locale.ENGLISH);
     }
 
+    /**
+     * The bulk translate before the sort: no i18n-backed keys in these tests, so the map is empty
+     * (the status test stubs its own names).
+     */
+    private void stubTranslations() {
+        when(i18nService.translateToLocale(anySet(), any(Locale.class))).thenReturn(Map.of());
+    }
+
     private static BasicSearch classes(UUID... classIds) {
         BasicSearch search = new BasicSearch();
         search.setTwinClassIdList(Set.of(classIds));
@@ -296,6 +333,12 @@ class TwinGroupedSearchServiceTest {
     private static TwinGroupLevel assignee(TwinGroupSort sort) {
         return new TwinGroupLevel()
                 .setFieldId(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)
+                .setSort(sort);
+    }
+
+    private static TwinGroupLevel status(TwinGroupSort sort) {
+        return new TwinGroupLevel()
+                .setFieldId(SystemIds.TwinClassField.Base.STATUS_ID)
                 .setSort(sort);
     }
 }

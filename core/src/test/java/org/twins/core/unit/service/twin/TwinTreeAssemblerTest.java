@@ -55,7 +55,7 @@ class TwinTreeAssemblerTest {
         List<TwinGroupLevel> levels = List.of(assigneeLevel());
         List<TwinGroup> roots = TwinTreeAssembler.assemble(List.of(ann, unassigned), levels, values(Map.of())).roots();
 
-        TwinTreeAssembler.sort(roots, levels);
+        TwinTreeAssembler.sort(roots, levels, Map.of());
         assertEquals(Arrays.asList(ANN, null), keys(roots));
         assertEquals(List.of(ann.getId()), roots.get(0).getTwins().stream().map(TwinEntity::getId).toList());
         assertNull(roots.get(0).getGroups());
@@ -91,7 +91,7 @@ class TwinTreeAssemblerTest {
     }
 
     @Test
-    void nullKeyIsLastForKeyAndNameSortInBothDirections() throws Exception {
+    void nullKeyIsLastForValueSortInBothDirections() throws Exception {
         TwinEntity unassigned = task(1, STATUS, null);
         TwinEntity ann = task(2, STATUS, ANN);
         TwinEntity bob = task(3, STATUS, BOB);
@@ -99,20 +99,40 @@ class TwinTreeAssemblerTest {
         List<TwinGroup> groups = TwinTreeAssembler.assemble(List.of(unassigned, ann, bob), levels,
                 values(Map.of(ANN, "Ann", BOB, "Bob"))).roots();
 
-        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.KEY_ASC)));
+        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.VALUE_ASC)), Map.of());
         assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
-        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.KEY_DESC)));
-        assertEquals(Arrays.asList(BOB, ANN, null), keys(groups));
-        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.NAME_ASC)));
-        assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
-        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.NAME_DESC)));
+        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.VALUE_DESC)), Map.of());
         assertEquals(Arrays.asList(BOB, ANN, null), keys(groups));
 
-        // equal names fall back to the key
+        // equal values fall back to the key, so the order stays deterministic
         groups = TwinTreeAssembler.assemble(List.of(unassigned, ann, bob), levels,
                 values(Map.of(ANN, "Ann", BOB, "Ann"))).roots();
-        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.NAME_DESC)));
+        TwinTreeAssembler.sort(groups, List.of(assigneeLevel().setSort(TwinGroupSort.VALUE_DESC)), Map.of());
         assertEquals(Arrays.asList(ANN, BOB, null), keys(groups));
+    }
+
+    @Test
+    void valueSortComparesTheLocalizedStatusNameWithTheBusinessKeyFallback() throws Exception {
+        UUID untranslated = UUID.fromString("00000000-0000-0000-0000-0000000000a3");
+        UUID doneI18n = UUID.fromString("00000000-0000-0000-0000-0000000000e1");
+        UUID pendingI18n = UUID.fromString("00000000-0000-0000-0000-0000000000e2");
+        Map<UUID, String> businessKeys = Map.of(STATUS, "zzz", OTHER_STATUS, "aaa", untranslated, "mmm");
+        Map<UUID, UUID> i18nIds = Map.of(STATUS, doneI18n, OTHER_STATUS, pendingI18n);
+        // statuses have no name column: the display name is the translation, the key is the fallback
+        TwinTreeAssembler.FieldValueGetter getter = (twin, field) -> new FieldValueStatus(field).setValue(
+                new TwinStatusEntity().setId(twin.getTwinStatusId())
+                        .setKey(businessKeys.get(twin.getTwinStatusId()))
+                        .setNameI18nId(i18nIds.get(twin.getTwinStatusId())));
+        List<TwinGroupLevel> levels = List.of(statusLevel());
+        List<TwinGroup> groups = TwinTreeAssembler.assemble(
+                List.of(task(1, STATUS, ANN), task(2, OTHER_STATUS, ANN), task(3, untranslated, ANN)),
+                levels, getter).roots();
+
+        TwinTreeAssembler.sort(groups, levels, Map.of(doneI18n, "Done", pendingI18n, "Pending"));
+
+        // "Done" < "Pending" < "mmm" (no translation falls back to the business key), while the raw
+        // business keys would order aaa, mmm, zzz
+        assertEquals(List.of(STATUS, OTHER_STATUS, untranslated), keys(groups));
     }
 
     @Test
@@ -138,19 +158,19 @@ class TwinTreeAssemblerTest {
     private static TwinGroupLevel statusLevel() {
         return new TwinGroupLevel()
                 .setField(STATUS_FIELD)
-                .setSort(TwinGroupSort.KEY_ASC);
+                .setSort(TwinGroupSort.VALUE_ASC);
     }
 
     private static TwinGroupLevel assigneeLevel() {
         return new TwinGroupLevel()
                 .setField(ASSIGNEE_FIELD)
-                .setSort(TwinGroupSort.NAME_ASC);
+                .setSort(TwinGroupSort.VALUE_ASC);
     }
 
     private static TwinGroupLevel linkLevel() {
         return new TwinGroupLevel()
                 .setField(LINK_FIELD)
-                .setSort(TwinGroupSort.NAME_ASC);
+                .setSort(TwinGroupSort.VALUE_ASC);
     }
 
     /**
