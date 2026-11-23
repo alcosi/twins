@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -22,10 +23,7 @@ import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.twin.TwinFieldService;
-import org.twins.core.service.twin.TwinGroupedSearchService;
-import org.twins.core.service.twin.TwinSearchServiceV2;
-import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.*;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinstatus.TwinStatusService;
@@ -60,6 +58,10 @@ class TwinGroupedSearchServiceTest {
     @Mock
     private DataListOptionService dataListOptionService;
     @Mock
+    private TwinTagService twinTagService;
+    @Mock
+    private TwinMarkerService twinMarkerService;
+    @Mock
     private ApiUser apiUser;
 
     private TwinGroupedSearchService service;
@@ -67,7 +69,8 @@ class TwinGroupedSearchServiceTest {
     @BeforeEach
     void setUp() {
         service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, twinClassService,
-                userService, twinService, twinFieldService, authService, i18nService, twinStatusService, dataListOptionService);
+                userService, twinService, twinFieldService, authService, i18nService, twinStatusService, dataListOptionService,
+                twinTagService, twinMarkerService);
     }
 
     @Test
@@ -147,6 +150,47 @@ class TwinGroupedSearchServiceTest {
 
         // the business keys sort the other way round — only the localized names give this order
         assertEquals(List.of(done, pending), result.getGroups().stream().map(TwinGroup::getKey).toList());
+    }
+
+    @Test
+    void tagsLevelBulkLoadsTheTagKit() throws Exception {
+        UUID tagOption1 = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
+        UUID tagOption2 = UUID.fromString("00000000-0000-0000-0000-0000000000a2");
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.TAGS);
+        TwinEntity tagged = new TwinEntity().setId(UUID.randomUUID());
+        TwinEntity untagged = new TwinEntity().setId(UUID.randomUUID());
+        when(twinClassFieldService.findEntitiesSafe(any())).thenReturn(new Kit<>(List.of(field), TwinClassFieldEntity::getId));
+        // the bulk kit load fills twinTagKit; getFieldValue then deserializes a FieldValueSelect from it
+        doAnswer(invocation -> {
+            tagged.setTwinTagKit(new Kit<>(List.of(
+                    new DataListOptionEntity().setId(tagOption1),
+                    new DataListOptionEntity().setId(tagOption2)), DataListOptionEntity::getId));
+            untagged.setTwinTagKit(new Kit<>(new ArrayList<>(), DataListOptionEntity::getId));
+            return null;
+        }).when(twinTagService).loadTags(anyCollection());
+        when(twinFieldService.getFieldValue(any(TwinEntity.class), any(TwinClassFieldEntity.class))).thenAnswer(invocation -> {
+            TwinEntity twin = invocation.getArgument(0);
+            TwinClassFieldEntity tagField = invocation.getArgument(1);
+            FieldValueSelect select = new FieldValueSelect(tagField);
+            if (twin.getTwinTagKit() != null) {
+                select.setItems(twin.getTwinTagKit().getList());
+            }
+            return select;
+        });
+        stubLocale();
+        stubTranslations();
+        when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
+        when(twinSearchServiceV2.findAllUnpaged(any(), any(), anyLong())).thenReturn(List.of(tagged, untagged));
+
+        TwinGroupedSearchResult result = service.search(new TwinGroupedSearch()
+                .setSearch(classes(UUID.randomUUID()))
+                .setLevels(List.of(new TwinGroupLevel().setFieldId(SystemIds.TwinClassField.Base.TAGS).setSort(TwinGroupSort.VALUE_ASC))));
+
+        // one twin lands in every branch of its options, the untagged one under the empty key
+        assertEquals(Arrays.asList(tagOption1, tagOption2, null),
+                result.getGroups().stream().map(TwinGroup::getKey).toList());
+        verify(twinTagService).loadTags(List.of(tagged, untagged));
+        verify(twinMarkerService, never()).loadMarkers(anyCollection());
     }
 
     @Test

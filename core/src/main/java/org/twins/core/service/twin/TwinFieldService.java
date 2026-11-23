@@ -46,9 +46,11 @@ public class TwinFieldService {
             TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID);
 
     /**
-     * System fields without a scalar twin column whose values still load into twin.fieldValuesKit:
-     * tags and markers deserialize as FieldValueSelect (the same shape as datalist fields), so they
-     * group exactly like dynamic select fields — extractKeys splits them into per-option keys.
+     * System fields without a scalar twin column whose values deserialize from their own twin kits
+     * into FieldValueSelect (the same shape as datalist fields): tags read twin.twinTagKit and
+     * markers twin.twinMarkerKit — {@code TwinFieldStorageTag} / {@code TwinFieldStorageMarker}
+     * load them — so they group exactly like dynamic select fields: extractKeys splits them into
+     * per-option keys.
      */
     public static final Set<UUID> GROUPABLE_SYSTEM_KIT_FIELDS = Set.of(
             SystemIds.TwinClassField.Base.TAGS,
@@ -101,6 +103,11 @@ public class TwinFieldService {
     public FieldValue getFieldValue(TwinEntity twin, TwinClassFieldEntity field) throws ServiceException {
         TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(field.getId());
         if (basicField == null) {
+            // tags and markers are system fields without a column: their typer deserializes a
+            // FieldValueSelect from the (bulk-preloaded) twinTagKit / twinMarkerKit
+            if (GROUPABLE_SYSTEM_KIT_FIELDS.contains(field.getId())) {
+                return twinService.deserializeValue(twinService.wrapField(twin, field));
+            }
             FieldValue value = twin.getFieldValuesKit() == null ? null : twin.getFieldValuesKit().get(field.getId());
             return value != null ? value : twinService.createFieldValue(field);
         }

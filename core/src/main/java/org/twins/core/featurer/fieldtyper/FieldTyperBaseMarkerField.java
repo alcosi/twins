@@ -9,7 +9,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorImmutable;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageTwin;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageMarker;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 
 import java.util.Properties;
@@ -18,7 +18,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1331,
         name = "BaseMarkers",
         description = "Field typer for base markers twin field")
-public class FieldTyperBaseMarkerField extends FieldTyperImmutable<FieldDescriptorImmutable, FieldValueSelect, TwinFieldStorageTwin, TwinFieldSearchNotImplemented> {
+public class FieldTyperBaseMarkerField extends FieldTyperImmutable<FieldDescriptorImmutable, FieldValueSelect, TwinFieldStorageMarker, TwinFieldSearchNotImplemented> {
 
     @Override
     public FieldDescriptorImmutable getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {

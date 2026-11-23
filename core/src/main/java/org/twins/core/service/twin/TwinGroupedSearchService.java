@@ -48,6 +48,8 @@ public class TwinGroupedSearchService {
     private final I18nService i18nService;
     private final TwinStatusService twinStatusService;
     private final DataListOptionService dataListOptionService;
+    private final TwinTagService twinTagService;
+    private final TwinMarkerService twinMarkerService;
 
     @Transactional(readOnly = true, rollbackFor = Throwable.class)
     public TwinGroupedSearchResult search(TwinGroupedSearch request) throws ServiceException {
@@ -64,6 +66,7 @@ public class TwinGroupedSearchService {
 
         // canonical batch load: every dynamic field value (FieldValueLink included) lands in twin.fieldValuesKit
         twinService.loadFieldsValues(twins);
+        loadKitBackedLevels(twins, levels);
         TwinTreeAssembler.Assembly assembly = TwinTreeAssembler.assemble(twins, levels, twinFieldService::getFieldValue);
         materializeKeyValues(assembly.all());
         // VALUE sorts compare the localized names of the i18n-backed keys (statuses, classes,
@@ -162,6 +165,21 @@ public class TwinGroupedSearchService {
             return Kit.emptyKit();
         }
         return twinClassFieldService.findEntitiesSafe(fieldIds);
+    }
+
+    /**
+     * Tag/marker levels read their values from twin.twinTagKit / twin.twinMarkerKit (the base
+     * pseudo rows are not part of any class field kit, so loadFieldsValues does not touch them):
+     * one bulk load per such level keeps the per-twin deserialize query-free.
+     */
+    private void loadKitBackedLevels(List<TwinEntity> twins, List<TwinGroupLevel> levels) throws ServiceException {
+        for (TwinGroupLevel level : levels) {
+            if (SystemIds.TwinClassField.Base.TAGS.equals(level.getFieldId())) {
+                twinTagService.loadTags(twins);
+            } else if (SystemIds.TwinClassField.Base.MARKERS.equals(level.getFieldId())) {
+                twinMarkerService.loadMarkers(twins);
+            }
+        }
     }
 
     private Specification<TwinEntity> memberOrder(List<TwinMemberSort> memberSorts, Locale locale) throws ServiceException {

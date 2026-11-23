@@ -11,6 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.TwinField;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -118,11 +119,31 @@ class TwinFieldServiceTest extends BaseUnitTest {
     }
 
     @Test
-    void tagLikeSystemFieldsAreNotGroupable() {
-        // system fields without a BasicField column: the check must reject them, not NPE on the set
-        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.TAGS);
+    void tagsAndMarkersAreGroupableKitFields() {
+        assertDoesNotThrow(() -> twinFieldService.checkGroupable(
+                new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.TAGS)));
+        assertDoesNotThrow(() -> twinFieldService.checkGroupable(
+                new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.MARKERS)));
+    }
+
+    @Test
+    void aliasSystemFieldIsNotGroupable() {
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.ALIASES);
         ServiceException exception = assertThrows(ServiceException.class, () -> twinFieldService.checkGroupable(field));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
+    }
+
+    @Test
+    void kitBackedSystemFieldsDeserializeThroughTheTyper() throws Exception {
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.TAGS);
+        TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
+        TwinField twinField = mock(TwinField.class);
+        FieldValueSelect select = new FieldValueSelect(field);
+        when(twinService.wrapField(twin, field)).thenReturn(twinField);
+        when(twinService.deserializeValue(twinField)).thenReturn(select);
+
+        // the tag options come from the typer (twinTagKit -> FieldValueSelect), not from the kit
+        assertEquals(select, twinFieldService.getFieldValue(twin, field));
     }
 
     @Test
