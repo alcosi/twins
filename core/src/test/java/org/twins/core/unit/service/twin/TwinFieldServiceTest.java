@@ -2,6 +2,7 @@ package org.twins.core.unit.service.twin;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -12,6 +13,9 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.twin.TwinFieldService;
 import org.twins.core.service.twin.TwinService;
@@ -20,18 +24,24 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit contract of TwinFieldService.getFieldValue — the single read point behind twin grouping:
- * base fields come from twin columns (an attached entity wins over the bare id, an id-only key
- * becomes a reference for bulk materialization), dynamic fields come from twin.fieldValuesKit, and
- * an absent value comes back as an undefined value of the field's type, never null.
+ * Unit contract of TwinFieldService — the field access behind twin grouping. checkGroupable is the
+ * pre-search gate (base fields need a scalar column, dynamic fields an accepted storage);
+ * getFieldValue is the single read point: base fields come from twin columns (an attached entity
+ * wins over the bare id, an id-only key becomes a reference for bulk materialization), dynamic
+ * fields come from twin.fieldValuesKit, and an absent value comes back as an undefined value of
+ * the field's type, never null.
  */
 class TwinFieldServiceTest extends BaseUnitTest {
 
     @Mock
     private TwinService twinService;
+
+    @Mock
+    private FeaturerService featurerService;
 
     @InjectMocks
     private TwinFieldService twinFieldService;
@@ -96,6 +106,44 @@ class TwinFieldServiceTest extends BaseUnitTest {
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.NAME);
         ServiceException exception = assertThrows(ServiceException.class,
                 () -> twinFieldService.getFieldValue(new TwinEntity().setId(UUID.randomUUID()), field));
+        assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
+    }
+
+    @Test
+    void groupableBaseFieldsPassTheCheck() throws Exception {
+        assertDoesNotThrow(() -> twinFieldService.checkGroupable(
+                new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID)));
+        assertDoesNotThrow(() -> twinFieldService.checkGroupable(
+                new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.STATUS_ID)));
+    }
+
+    @Test
+    void tagLikeSystemFieldsAreNotGroupable() {
+        // system fields without a BasicField column: the check must reject them, not NPE on the set
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.TAGS);
+        ServiceException exception = assertThrows(ServiceException.class, () -> twinFieldService.checkGroupable(field));
+        assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
+    }
+
+    @Test
+    void dynamicFieldWithAcceptedStorageIsGroupable() throws Exception {
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(UUID.randomUUID()).setFieldTyperFeaturerId(1310);
+        FieldTyper typer = mock(FieldTyper.class);
+        when(featurerService.getFeaturer(1310, FieldTyper.class)).thenReturn(typer);
+        when(typer.getStorage(field)).thenReturn(mock(TwinFieldStorageSimple.class));
+
+        assertDoesNotThrow(() -> twinFieldService.checkGroupable(field));
+    }
+
+    @Test
+    void dynamicFieldWithUnsupportedStorageIsNotGroupable() throws Exception {
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(UUID.randomUUID()).setFieldTyperFeaturerId(1310);
+        FieldTyper typer = mock(FieldTyper.class);
+        when(featurerService.getFeaturer(1310, FieldTyper.class)).thenReturn(typer);
+        // a bare storage mock is none of the six accepted types
+        when(typer.getStorage(field)).thenReturn(mock(TwinFieldStorage.class));
+
+        ServiceException exception = assertThrows(ServiceException.class, () -> twinFieldService.checkGroupable(field));
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), exception.getErrorCode());
     }
 

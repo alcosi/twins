@@ -2,18 +2,24 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
+import org.twins.core.service.SystemIdLookup;
 
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
 /**
- * Twin field VALUE access. Today it is the single read point behind twin grouping; the rest of the
+ * Twin field VALUE access and groupability — the contract behind twin grouping. Today it is the
+ * pre-search groupability check plus the single read point for group keys; the rest of the
  * field-value machinery (parseFieldValue / materializeFieldValues / createFieldValue, still on
  * TwinService) migrates here over time.
  */
@@ -22,11 +28,13 @@ import java.util.function.Function;
 public class TwinFieldService {
     // createFieldValue until the value plumbing migrates here
     private final TwinService twinService;
+    private final FeaturerService featurerService;
 
     /**
-     * Base (system) fields getFieldValue shapes into a single group key value; keep in sync with the
-     * getFieldValue switch. Tags, markers and aliases are system fields too, but have no scalar
-     * column to group by.
+     * Base (system) fields with a scalar twin column to group by — the groupable subset of
+     * BasicField, kept in sync with the getFieldValue switch. The other system fields (name,
+     * aliases and the like) have no groupable scalar; tags and markers are groupable too, but
+     * through the kit — see {@link #GROUPABLE_SYSTEM_KIT_FIELDS}.
      */
     public static final Set<TwinEntity.BasicField> GROUPABLE_BASIC_FIELDS = Set.of(
             TwinEntity.BasicField.OWNER_USER_ID,
@@ -36,6 +44,48 @@ public class TwinFieldService {
             TwinEntity.BasicField.TWIN_CLASS_ID,
             TwinEntity.BasicField.HEAD_TWIN_ID,
             TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID);
+
+    /**
+     * System fields without a scalar twin column whose values still load into twin.fieldValuesKit:
+     * tags and markers deserialize as FieldValueSelect (the same shape as datalist fields), so they
+     * group exactly like dynamic select fields — extractKeys splits them into per-option keys.
+     */
+    public static final Set<UUID> GROUPABLE_SYSTEM_KIT_FIELDS = Set.of(
+            SystemIds.TwinClassField.Base.TAGS,
+            SystemIds.TwinClassField.Base.MARKERS);
+
+    /**
+     * Whether the field may serve as a group level — checked before the search runs, so a bad level
+     * fails cheaply instead of mid-assembly. Base fields need a scalar twin column
+     * ({@link #GROUPABLE_BASIC_FIELDS}); tags and markers pass as kit-backed selects
+     * ({@link #GROUPABLE_SYSTEM_KIT_FIELDS}); dynamic fields need a storage from the same
+     * acceptance set as the count/v1 countGroup contract (link, datalist, simple, decimal, boolean,
+     * timestamp).
+     */
+    public void checkGroupable(TwinClassFieldEntity field) throws ServiceException {
+        if (SystemIdLookup.isSystemField(field.getId())) {
+            if (GROUPABLE_SYSTEM_KIT_FIELDS.contains(field.getId())) {
+                return;
+            }
+            TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(field.getId());
+            if (basicField == null || !GROUPABLE_BASIC_FIELDS.contains(basicField)) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                        "Field " + field.getId() + " is not groupable");
+            }
+            return;
+        }
+        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
+        TwinFieldStorage storage = fieldTyper.getStorage(field);
+        if (!(storage instanceof TwinFieldStorageLink
+                || storage instanceof TwinFieldStorageDatalist
+                || storage instanceof TwinFieldStorageTimestamp
+                || storage instanceof TwinFieldStorageBoolean
+                || storage instanceof TwinFieldStorageDecimal
+                || storage instanceof TwinFieldStorageSimple)) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                    "{} is not countable", field.logNormal());
+        }
+    }
 
     /**
      * The current value of one field on one twin — the single read point for twin grouping

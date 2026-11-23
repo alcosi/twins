@@ -3,7 +3,6 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -21,10 +20,7 @@ import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.twin.TwinGroupSort;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.service.SystemIdLookup;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.i18n.I18nService;
@@ -45,7 +41,6 @@ public class TwinGroupedSearchService {
     private final TwinSearchServiceV2 twinSearchServiceV2;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassService twinClassService;
-    private final FeaturerService featurerService;
     private final UserService userService;
     private final TwinService twinService;
     private final TwinFieldService twinFieldService;
@@ -152,11 +147,9 @@ public class TwinGroupedSearchService {
         // base fields are regular twin_class_field rows of the global ancestor class: one load covers all levels
         Kit<TwinClassFieldEntity, UUID> fields = loadFields(fieldIds);
         for (TwinGroupLevel level : levels) {
-            if (SystemIdLookup.isSystemField(level.getFieldId())) {
-                resolveBasicField(level, fields.get(level.getFieldId()));
-            } else {
-                resolveDynamicField(level, fields.get(level.getFieldId()));
-            }
+            TwinClassFieldEntity field = fields.get(level.getFieldId());
+            twinFieldService.checkGroupable(field);
+            level.setField(field);
             if (level.getSort() == null) {
                 level.setSort(TwinGroupSort.VALUE_ASC);
             }
@@ -169,38 +162,6 @@ public class TwinGroupedSearchService {
             return Kit.emptyKit();
         }
         return twinClassFieldService.findEntitiesSafe(fieldIds);
-    }
-
-    /**
-     * Base levels need no value shaping of their own: TwinFieldService.getFieldValue reads the twin
-     * column (and an attached entity) by the field id. Only the groupability is checked here.
-     */
-    private void resolveBasicField(TwinGroupLevel level, TwinClassFieldEntity field) throws ServiceException {
-        if (!TwinFieldService.GROUPABLE_BASIC_FIELDS.contains(TwinEntity.BasicField.convertOrNull(level.getFieldId()))) {
-            // tags, markers and aliases are system fields but have no scalar column to group by
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
-                    "Field " + level.getFieldId() + " is not groupable");
-        }
-        level.setField(field);
-    }
-
-    /**
-     * Dynamic levels are validated against the same acceptance set as the count/v1 countGroup
-     * contract: link, datalist, simple, decimal, boolean and timestamp storages.
-     */
-    private void resolveDynamicField(TwinGroupLevel level, TwinClassFieldEntity field) throws ServiceException {
-        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
-        TwinFieldStorage storage = fieldTyper.getStorage(field);
-        if (!(storage instanceof TwinFieldStorageLink
-                || storage instanceof TwinFieldStorageDatalist
-                || storage instanceof TwinFieldStorageTimestamp
-                || storage instanceof TwinFieldStorageBoolean
-                || storage instanceof TwinFieldStorageDecimal
-                || storage instanceof TwinFieldStorageSimple)) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
-                    "{} is not countable", field.logNormal());
-        }
-        level.setField(field);
     }
 
     private Specification<TwinEntity> memberOrder(List<TwinMemberSort> memberSorts, Locale locale) throws ServiceException {

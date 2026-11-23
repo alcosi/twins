@@ -2,7 +2,6 @@ package org.twins.core.unit.service.twin;
 
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.featurer.FeaturerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,10 +18,6 @@ import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.twin.TwinGroupSort;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.FieldTyperLink;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageLink;
-import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
@@ -51,8 +46,6 @@ class TwinGroupedSearchServiceTest {
     @Mock
     private TwinClassService twinClassService;
     @Mock
-    private FeaturerService featurerService;
-    @Mock
     private UserService userService;
     @Mock
     private TwinService twinService;
@@ -73,7 +66,7 @@ class TwinGroupedSearchServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, twinClassService, featurerService,
+        service = new TwinGroupedSearchService(twinSearchServiceV2, twinClassFieldService, twinClassService,
                 userService, twinService, twinFieldService, authService, i18nService, twinStatusService, dataListOptionService);
     }
 
@@ -173,14 +166,10 @@ class TwinGroupedSearchServiceTest {
     void fieldOfAnotherClassGroupsUnderTheEmptyKey() throws Exception {
         stubGetFieldValue();
         UUID fieldId = UUID.randomUUID();
-        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId).setFieldTyperFeaturerId(1);
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
         TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
-        FieldTyper typer = mock(FieldTyper.class);
-        TwinFieldStorageSimple storage = mock(TwinFieldStorageSimple.class);
         when(twinClassFieldService.findEntitiesSafe(any())).thenReturn(
                 new Kit<>(List.of(field), TwinClassFieldEntity::getId));
-        when(featurerService.getFeaturer(1, FieldTyper.class)).thenReturn(typer);
-        when(typer.getStorage(field)).thenReturn(storage);
         stubLocale();
         stubTranslations();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
@@ -214,13 +203,10 @@ class TwinGroupedSearchServiceTest {
     void linkFieldWithoutAValueGroupsUnderTheEmptyKey() throws Exception {
         stubGetFieldValue();
         UUID fieldId = UUID.randomUUID();
-        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId).setFieldTyperFeaturerId(1310);
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
         TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
-        FieldTyperLink typer = mock(FieldTyperLink.class);
         when(twinClassFieldService.findEntitiesSafe(any())).thenReturn(
                 new Kit<>(List.of(field), TwinClassFieldEntity::getId));
-        when(featurerService.getFeaturer(1310, FieldTyper.class)).thenReturn(typer);
-        when(typer.getStorage(field)).thenReturn(mock(TwinFieldStorageLink.class));
         // canonical load filled the kit, but this twin has no value for the level field
         doAnswer(invocation -> {
             twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
@@ -245,14 +231,11 @@ class TwinGroupedSearchServiceTest {
         stubGetFieldValue();
         UUID fieldId = UUID.randomUUID();
         UUID dstId = UUID.randomUUID();
-        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId).setFieldTyperFeaturerId(1310);
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
         TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
         TwinEntity farTwin = new TwinEntity().setId(dstId);
-        FieldTyperLink typer = mock(FieldTyperLink.class);
         when(twinClassFieldService.findEntitiesSafe(any())).thenReturn(
                 new Kit<>(List.of(field), TwinClassFieldEntity::getId));
-        when(featurerService.getFeaturer(1310, FieldTyper.class)).thenReturn(typer);
-        when(typer.getStorage(field)).thenReturn(mock(TwinFieldStorageLink.class));
         // the canonical load fills twin.fieldValuesKit; the FieldValueLink carries the far twins
         doAnswer(invocation -> {
             twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
