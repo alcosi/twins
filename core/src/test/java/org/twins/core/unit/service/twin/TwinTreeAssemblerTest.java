@@ -7,10 +7,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
-import org.twins.core.enums.twin.TwinGroupKeyType;
 import org.twins.core.enums.twin.TwinGroupSort;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.twin.TwinTreeAssembler;
 
 import java.util.*;
@@ -26,6 +24,10 @@ class TwinTreeAssemblerTest {
     private static final UUID LINK = UUID.fromString("00000000-0000-0000-0000-0000000000c1");
     private static final UUID DST_1 = UUID.fromString("00000000-0000-0000-0000-0000000000d1");
     private static final UUID DST_2 = UUID.fromString("00000000-0000-0000-0000-0000000000d2");
+
+    private static final TwinClassFieldEntity STATUS_FIELD = new TwinClassFieldEntity().setId(UUID.randomUUID());
+    private static final TwinClassFieldEntity ASSIGNEE_FIELD = new TwinClassFieldEntity().setId(UUID.randomUUID());
+    private static final TwinClassFieldEntity LINK_FIELD = new TwinClassFieldEntity().setId(LINK);
 
     @Test
     void nestsStatusAssigneeAndLinkAndCountsALeafOnceInTheParents() throws Exception {
@@ -125,23 +127,30 @@ class TwinTreeAssemblerTest {
     }
 
     private static List<TwinGroupLevel> levels() {
-        return List.of(
-                new TwinGroupLevel().setBasicField(TwinEntity.BasicField.TWIN_STATUS_ID).setSort(TwinGroupSort.KEY_ASC),
-                assigneeLevel(),
-                linkLevel());
+        return List.of(statusLevel(), assigneeLevel(), linkLevel());
+    }
+
+    private static TwinGroupLevel statusLevel() {
+        return new TwinGroupLevel()
+                .setBasicField(TwinEntity.BasicField.TWIN_STATUS_ID)
+                .setField(STATUS_FIELD)
+                .setKeyPrototype(new FieldValueStatus(STATUS_FIELD))
+                .setSort(TwinGroupSort.KEY_ASC);
     }
 
     private static TwinGroupLevel assigneeLevel() {
         return new TwinGroupLevel()
                 .setBasicField(TwinEntity.BasicField.ASSIGNEE_USER_ID)
+                .setField(ASSIGNEE_FIELD)
+                .setKeyPrototype(new FieldValueUserSingle(ASSIGNEE_FIELD))
                 .setSort(TwinGroupSort.NAME_ASC);
     }
 
     private static TwinGroupLevel linkLevel() {
         return new TwinGroupLevel()
                 .setFieldId(LINK)
-                .setKeyType(TwinGroupKeyType.TWIN)
-                .setDynamicField(new TwinClassFieldEntity().setId(LINK))
+                .setField(LINK_FIELD)
+                .setKeyPrototype(new FieldValueLinkSingle(LINK_FIELD))
                 .setSort(TwinGroupSort.NAME_ASC);
     }
 
@@ -151,7 +160,7 @@ class TwinTreeAssemblerTest {
             items.add(new TwinEntity().setId(dstId));
         }
         twin.setFieldValuesKit(new Kit<>(FieldValue::getTwinClassFieldId));
-        twin.getFieldValuesKit().add(new FieldValueLink(new TwinClassFieldEntity().setId(LINK))
+        twin.getFieldValuesKit().add(new FieldValueLink(LINK_FIELD)
                 .setForwardLink(true)
                 .setItems(items));
         return twin;
@@ -164,10 +173,15 @@ class TwinTreeAssemblerTest {
                 .setAssignerUserId(assignerUserId);
     }
 
+    /**
+     * Stands in for the service-side bulk materialization: replaces the ids-only reference key value
+     * with a concrete FieldValueUserSingle carrying the named user.
+     */
     private static void attachNames(List<TwinGroup> groups, Map<UUID, String> names) {
         for (TwinGroup group : groups) {
             if (group.getKey() instanceof UUID id && names.containsKey(id)) {
-                group.setKeyEntity(new UserEntity().setId(id).setName(names.get(id)));
+                group.setKeyValue(new FieldValueUserSingle(ASSIGNEE_FIELD)
+                        .setValue(new UserEntity().setId(id).setName(names.get(id))));
             }
         }
     }

@@ -5,10 +5,8 @@ public enum TwinGroupKeyType {
     STATUS,
     TWIN_CLASS,
     TWIN,
-    DATA_LIST_OPTION_FLAVOR,
-    DATA_LIST_OPTION_FIELD,
+    DATA_LIST_OPTION,
     TEXT,
-    DECIMAL,
     BOOLEAN,
     TIMESTAMP
 }

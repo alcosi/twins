@@ -24,6 +24,8 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageLink;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSimple;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
+import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.twin.TwinGroupedSearchService;
@@ -79,6 +81,7 @@ class TwinGroupedSearchServiceTest {
 
     @Test
     void twoClassesAreAccepted() throws Exception {
+        stubBaseFields();
         stubLocale();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
         when(twinSearchServiceV2.findAllUnpaged(any(), any(), eq((long) TwinGroupedSearchService.MAX_TWINS))).thenReturn(List.of());
@@ -91,7 +94,8 @@ class TwinGroupedSearchServiceTest {
     }
 
     @Test
-    void rejectsNameSortForStatus() {
+    void rejectsNameSortForStatus() throws Exception {
+        stubBaseFields();
         UUID statusId = SystemIds.TwinClassField.Base.STATUS_ID;
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
                 .setSearch(classes(UUID.randomUUID()))
@@ -103,6 +107,7 @@ class TwinGroupedSearchServiceTest {
 
     @Test
     void assigneeGroupsKeepTheEmptyKeyLast() throws Exception {
+        stubBaseFields();
         UUID assigneeId = SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID;
         UUID ann = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
         TwinEntity task = new TwinEntity().setId(UUID.randomUUID()).setAssignerUserId(ann);
@@ -119,11 +124,14 @@ class TwinGroupedSearchServiceTest {
 
         assertEquals(Arrays.asList(ann, null), result.getGroups().stream().map(TwinGroup::getKey).toList());
         assertEquals(List.of(task.getId()), result.getGroups().get(0).getTwins().stream().map(TwinEntity::getId).toList());
+        // the ids-only reference was bulk-materialized into a concrete user value
+        assertEquals("Ann", ((FieldValueUserSingle) result.getGroups().get(0).getKeyValue()).getValue().getName());
         assertNull(result.getGroups().get(1).getKey());
     }
 
     @Test
     void invalidMemberSortIsRejectedBeforeTheFetch() throws Exception {
+        stubBaseFields();
         stubLocale();
 
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
@@ -160,6 +168,7 @@ class TwinGroupedSearchServiceTest {
 
     @Test
     void unsupportedBasicMemberSortIsRejectedBeforeTheFetch() throws Exception {
+        stubBaseFields();
         stubLocale();
 
         ServiceException exception = assertThrows(ServiceException.class, () -> service.search(new TwinGroupedSearch()
@@ -218,8 +227,6 @@ class TwinGroupedSearchServiceTest {
             twin.getFieldValuesKit().add(new FieldValueLink(field).setForwardLink(true).setItems(List.of(farTwin)));
             return null;
         }).when(twinService).loadFieldsValues(anyCollection());
-        when(twinService.findEntitiesSafe(any())).thenReturn(
-                new Kit<>(List.of(farTwin), TwinEntity::getId));
         stubLocale();
         when(twinSearchServiceV2.createSortSpecification(any(), any(), any())).thenReturn((root, query, cb) -> null);
         when(twinSearchServiceV2.findAllUnpaged(any(), any(), anyLong())).thenReturn(List.of(twin));
@@ -230,8 +237,25 @@ class TwinGroupedSearchServiceTest {
 
         assertEquals(1, result.getGroups().size());
         assertEquals(dstId, result.getGroups().get(0).getKey());
-        assertEquals(farTwin, result.getGroups().get(0).getKeyEntity());
+        // the far twin rides in the key value: no second findEntitiesSafe load is needed
+        assertEquals(farTwin, ((FieldValueLinkSingle) result.getGroups().get(0).getKeyValue()).getValue());
         verify(twinService).loadFieldsValues(List.of(twin));
+        verify(twinService, never()).findEntitiesSafe(any());
+    }
+
+    /**
+     * Base fields are regular twin_class_field rows of the global ancestor class; the test fabricates
+     * a bare row per requested id.
+     */
+    private void stubBaseFields() throws Exception {
+        when(twinClassFieldService.findEntitiesSafe(any())).thenAnswer(invocation -> {
+            Collection<UUID> ids = invocation.getArgument(0);
+            List<TwinClassFieldEntity> fields = new ArrayList<>();
+            for (UUID id : ids) {
+                fields.add(new TwinClassFieldEntity().setId(id));
+            }
+            return new Kit<>(fields, TwinClassFieldEntity::getId);
+        });
     }
 
     private void stubLocale() throws Exception {

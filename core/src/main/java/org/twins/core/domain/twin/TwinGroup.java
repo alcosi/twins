@@ -5,27 +5,33 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.enums.twin.TwinGroupKeyType;
+import org.twins.core.featurer.fieldtyper.value.FieldValueSingle;
 
 import java.util.List;
 
 @Data
 @Accessors(chain = true)
 public class TwinGroup {
-    private Object key;
-    private List<TwinEntity> twins;
-    private List<TwinGroup> groups;
-    private int count;
-    private TwinGroupKeyType keyType;
-
     /**
-     * Entity behind the group key (UserEntity, TwinStatusEntity, TwinClassEntity, TwinEntity or
-     * DataListOptionEntity) — an attached relation, same style as TwinEntity.assignerUser. Batch-loaded by
-     * TwinGroupedSearchService.loadKeyEntities; the mapper only postpones it into relatedObjects.
-     * Null when the key is null, the key type has no entity behind it (TEXT/DECIMAL/BOOLEAN/TIMESTAMP),
-     * or the entity is missing / not readable.
+     * The key as a single field value: carries the key type (by its class, for the mapper) and the
+     * loaded key entity (user, status, class, twin, data list option). Basic-field keys are born as
+     * FieldValueReferenceSingle (id only) and bulk-materialized by TwinGroupedSearchService. The
+     * empty key holds an undefined value of the level's type, so the type survives even without a key.
      */
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private Object keyEntity;
+    private FieldValueSingle keyValue;
+
+    private List<TwinEntity> twins;
+    private List<TwinGroup> groups;
+    private int count;
+
+    /**
+     * The scalar key the tree was built by (the dto value and the sort token): an entity id for
+     * user/status/class/twin/option keys, the scalar itself for TEXT/BOOLEAN/TIMESTAMP keys, null for
+     * the empty key. Derived from keyValue — never stored, so the two can never disagree.
+     */
+    public Object getKey() {
+        return keyValue == null ? null : keyValue.getScalarValue();
+    }
 }

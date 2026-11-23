@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueDate extends FieldValueStated {
+public class FieldValueDate extends FieldValueStated implements FieldValueSingle {
     @Getter
     private LocalDateTime date;
     private String pattern;
@@ -47,6 +47,11 @@ public class FieldValueDate extends FieldValueStated {
             this.state = State.PRESENT;
         }
         return this;
+    }
+
+    @Override
+    public Object getScalarValue() {
+        return date;
     }
 
     @Override

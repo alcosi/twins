@@ -6,16 +6,13 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.twin.TwinGroupLevel;
-import org.twins.core.enums.twin.TwinGroupKeyType;
 import org.twins.core.featurer.fieldtyper.value.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class TwinGroupLevelTest {
     @Test
@@ -24,27 +21,32 @@ class TwinGroupLevelTest {
         UUID option = UUID.randomUUID();
         UUID otherOption = UUID.randomUUID();
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
-        TwinGroupLevel level = level(fieldId, TwinGroupKeyType.DATA_LIST_OPTION_FIELD);
+        TwinGroupLevel level = level(field, new FieldValueSelectSingle(field));
 
-        // a twin of a class without the field has no value in the kit
-        assertEquals(Collections.singletonList(null), level.extractKeys(new TwinEntity().setId(UUID.randomUUID())));
+        // a twin of a class without the field has no value in the kit; the empty key keeps the level's type
+        Collection<FieldValueSingle> missing = level.extractKeys(new TwinEntity().setId(UUID.randomUUID()));
+        assertEquals(Collections.singletonList(null), scalars(missing));
+        assertInstanceOf(FieldValueSelectSingle.class, single(missing));
 
         TwinEntity task = twinWithValue(new FieldValueSelect(field).setItems(List.of(
                 new DataListOptionEntity().setId(option),
                 new DataListOptionEntity().setId(option),
                 new DataListOptionEntity().setId(otherOption))));
-        assertEquals(List.of(option, otherOption), level.extractKeys(task));
+        Collection<FieldValueSingle> keys = level.extractKeys(task);
+        assertEquals(List.of(option, otherOption), scalars(keys));
+        FieldValueSelectSingle keyValue = assertInstanceOf(FieldValueSelectSingle.class, keys.iterator().next());
+        // the option rides in the key value: no second load is needed downstream
+        assertEquals(option, keyValue.getValue().getId());
     }
 
     @Test
-    void decimalValueParsesFromItsTextFormToAScaleIndependentKey() throws Exception {
+    void decimalAndTextValuesKeepTheirFormattedStringKey() throws Exception {
         UUID fieldId = UUID.randomUUID();
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
         TwinEntity twin = twinWithValue(new FieldValueText(field).setValue("0.00"));
 
-        assertEquals(List.of(BigDecimal.ZERO), level(fieldId, TwinGroupKeyType.DECIMAL).extractKeys(twin));
-        // a plain text key stays the string it is
-        assertEquals(List.of("0.00"), level(fieldId, TwinGroupKeyType.TEXT).extractKeys(twin));
+        // a decimal deserializes to FieldValueText; the formatted string is the group key
+        assertEquals(List.of("0.00"), scalars(level(field, new FieldValueText(field)).extractKeys(twin)));
     }
 
     @Test
@@ -54,7 +56,7 @@ class TwinGroupLevelTest {
         LocalDateTime date = LocalDateTime.of(2026, 1, 1, 0, 0);
         TwinEntity twin = twinWithValue(new FieldValueDate(field, null).setDate(date));
 
-        assertEquals(List.of(date), level(fieldId, TwinGroupKeyType.TIMESTAMP).extractKeys(twin));
+        assertEquals(List.of(date), scalars(level(field, new FieldValueDate(field, null)).extractKeys(twin)));
     }
 
     @Test
@@ -62,24 +64,63 @@ class TwinGroupLevelTest {
         UUID fieldId = UUID.randomUUID();
         UUID dst = UUID.randomUUID();
         TwinClassFieldEntity field = new TwinClassFieldEntity().setId(fieldId);
-        TwinGroupLevel level = level(fieldId, TwinGroupKeyType.TWIN);
+        TwinGroupLevel level = level(field, new FieldValueLinkSingle(field));
 
         TwinEntity twin = twinWithValue(new FieldValueLink(field)
                 .setItems(List.of(new TwinEntity().setId(dst), new TwinEntity().setId(dst))));
-        assertEquals(List.of(dst), level.extractKeys(twin));
+        Collection<FieldValueSingle> keys = level.extractKeys(twin);
+        assertEquals(List.of(dst), scalars(keys));
+        // the far twin rides in the key value: no second load is needed downstream
+        FieldValueLinkSingle keyValue = assertInstanceOf(FieldValueLinkSingle.class, single(keys));
+        assertEquals(dst, keyValue.getValue().getId());
 
         TwinEntity undefined = twinWithValue(new FieldValueLink(field).undefine());
-        assertEquals(Collections.singletonList(null), level.extractKeys(undefined));
+        assertEquals(Collections.singletonList(null), scalars(level.extractKeys(undefined)));
 
         // no kit at all (a twin of a class without the field)
-        assertEquals(Collections.singletonList(null), level.extractKeys(new TwinEntity().setId(UUID.randomUUID())));
+        assertEquals(Collections.singletonList(null), scalars(level.extractKeys(new TwinEntity().setId(UUID.randomUUID()))));
     }
 
-    private static TwinGroupLevel level(UUID fieldId, TwinGroupKeyType keyType) {
+    @Test
+    void basicFieldKeyStartsAsAnIdOnlyReference() throws Exception {
+        UUID assigneeId = UUID.randomUUID();
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(UUID.randomUUID());
+        TwinGroupLevel level = new TwinGroupLevel()
+                .setFieldId(field.getId())
+                .setBasicField(TwinEntity.BasicField.ASSIGNEE_USER_ID)
+                .setField(field)
+                .setKeyPrototype(new FieldValueUserSingle(field));
+
+        Collection<FieldValueSingle> keys = level.extractKeys(new TwinEntity().setId(UUID.randomUUID()).setAssignerUserId(assigneeId));
+        assertEquals(List.of(assigneeId), scalars(keys));
+        FieldValueReferenceSingle reference = assertInstanceOf(FieldValueReferenceSingle.class, single(keys));
+        assertEquals(FieldValueUserSingle.class, reference.getValueType());
+        assertEquals(assigneeId, reference.getId());
+
+        // an unassigned twin groups under the empty key of the level's type
+        Collection<FieldValueSingle> empty = level.extractKeys(new TwinEntity().setId(UUID.randomUUID()));
+        assertEquals(Collections.singletonList(null), scalars(empty));
+        assertInstanceOf(FieldValueUserSingle.class, single(empty));
+    }
+
+    private static TwinGroupLevel level(TwinClassFieldEntity field, FieldValue keyPrototype) {
         return new TwinGroupLevel()
-                .setFieldId(fieldId)
-                .setKeyType(keyType)
-                .setDynamicField(new TwinClassFieldEntity().setId(fieldId));
+                .setFieldId(field.getId())
+                .setField(field)
+                .setKeyPrototype(keyPrototype);
+    }
+
+    private static List<Object> scalars(Collection<FieldValueSingle> values) {
+        List<Object> scalars = new ArrayList<>();
+        for (FieldValueSingle value : values) {
+            scalars.add(value.getScalarValue());
+        }
+        return scalars;
+    }
+
+    private static FieldValueSingle single(Collection<FieldValueSingle> values) {
+        assertEquals(1, values.size());
+        return values.iterator().next();
     }
 
     private static TwinEntity twinWithValue(FieldValue value) {

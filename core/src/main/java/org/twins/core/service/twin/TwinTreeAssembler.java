@@ -2,9 +2,11 @@ package org.twins.core.service.twin;
 
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.twin.TwinGroup;
 import org.twins.core.domain.twin.TwinGroupLevel;
+import org.twins.core.featurer.fieldtyper.value.FieldValueLinkSingle;
+import org.twins.core.featurer.fieldtyper.value.FieldValueSingle;
+import org.twins.core.featurer.fieldtyper.value.FieldValueUserSingle;
 
 import java.util.*;
 
@@ -18,7 +20,7 @@ public final class TwinTreeAssembler {
      * matching branch.
      */
     public static Assembly assemble(List<TwinEntity> twins, List<TwinGroupLevel> levels) throws ServiceException {
-        Bucket root = new Bucket(null);
+        Bucket root = new Bucket();
         Set<UUID> seen = new HashSet<>();
         for (TwinEntity twin : twins) {
             if (twin == null || twin.getId() == null || !seen.add(twin.getId())) {
@@ -39,20 +41,22 @@ public final class TwinTreeAssembler {
             node.twins.add(twin);
             return;
         }
-        for (Object key : levels.get(levelIndex).extractKeys(twin)) {
-            place(node.children.computeIfAbsent(key, Bucket::new), twin, levels, levelIndex + 1);
+        for (FieldValueSingle keyValue : levels.get(levelIndex).extractKeys(twin)) {
+            Bucket child = node.children.computeIfAbsent(keyValue.getScalarValue(), key -> new Bucket());
+            if (child.keyValue == null) {
+                child.keyValue = keyValue;
+            }
+            place(child, twin, levels, levelIndex + 1);
         }
     }
 
     private static List<TwinGroup> toGroups(Iterable<Bucket> buckets, int levelIndex, List<TwinGroupLevel> levels, List<TwinGroup> all) {
-        TwinGroupLevel level = levels.get(levelIndex);
         boolean last = levelIndex == levels.size() - 1;
         List<TwinGroup> groups = new ArrayList<>();
         for (Bucket bucket : buckets) {
             TwinGroup group = new TwinGroup()
-                    .setKey(bucket.key)
-                    .setCount(bucket.count)
-                    .setKeyType(level.getKeyType());
+                    .setKeyValue(bucket.keyValue)
+                    .setCount(bucket.count);
             all.add(group);
             if (last) {
                 group.setTwins(bucket.twins);
@@ -132,11 +136,11 @@ public final class TwinTreeAssembler {
     }
 
     private static String keyName(TwinGroup group) {
-        if (group.getKeyEntity() instanceof UserEntity user) {
-            return user.getName();
+        if (group.getKeyValue() instanceof FieldValueUserSingle user && user.getValue() != null) {
+            return user.getValue().getName();
         }
-        if (group.getKeyEntity() instanceof TwinEntity twin) {
-            return twin.getName();
+        if (group.getKeyValue() instanceof FieldValueLinkSingle link && link.getValue() != null) {
+            return link.getValue().getName();
         }
         return null;
     }
@@ -177,13 +181,9 @@ public final class TwinTreeAssembler {
     }
 
     private static final class Bucket {
-        private final Object key;
+        private FieldValueSingle keyValue;
         private final LinkedHashMap<Object, Bucket> children = new LinkedHashMap<>();
         private final List<TwinEntity> twins = new ArrayList<>();
         private int count;
-
-        private Bucket(Object key) {
-            this.key = key;
-        }
     }
 }

@@ -23,6 +23,10 @@ import java.util.UUID;
  * Extension point: select fields (FieldValueSelect) are NOT covered — their resolution needs featurer params
  * (dataListId, supportCustomValue) and stays on the legacy in-place parse path. When they migrate, extend this
  * class with the option criteria (e.g. FieldValueReferenceSelect) instead of widening this class.
+ * <p>
+ * Deliberately NOT FieldValueSingle: this is a multi-id transport (a link field parses into a whole
+ * id list), so it has no single scalar. Single-id consumers (group keys) use
+ * {@link FieldValueReferenceSingle}.
  */
 public class FieldValueReference extends FieldValueStated {
 

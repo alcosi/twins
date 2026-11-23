@@ -8,7 +8,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public abstract class FieldValueSimple<T> extends FieldValueStated {
+public abstract class FieldValueSimple<T> extends FieldValueStated implements FieldValueSingle {
     @Getter
     protected T value;
 
@@ -30,6 +30,11 @@ public abstract class FieldValueSimple<T> extends FieldValueStated {
     @Override
     public boolean hasValue(String value) {
         return StringUtils.equals(this.value != null ? this.value.toString() : null, value); //todo
+    }
+
+    @Override
+    public Object getScalarValue() {
+        return value;
     }
 
     @Override

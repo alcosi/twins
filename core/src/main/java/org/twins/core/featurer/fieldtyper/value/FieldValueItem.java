@@ -7,7 +7,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import java.util.UUID;
 import java.util.function.Function;
 
-public abstract class FieldValueItem<T> extends FieldValueStated {
+public abstract class FieldValueItem<T> extends FieldValueStated implements FieldValueSingle {
     @Getter
     protected T value;
 
@@ -44,6 +44,11 @@ public abstract class FieldValueItem<T> extends FieldValueStated {
     }
 
     protected abstract Function<T, UUID> itemGetIdFunction();
+
+    @Override
+    public Object getScalarValue() {
+        return value == null ? null : itemGetIdFunction().apply(value);
+    }
 
     @Override
     public void copyValueTo(FieldValueStated dst) {
