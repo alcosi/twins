@@ -2,6 +2,8 @@ package org.twins.core.dao.search;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.query.SortDirection;
@@ -29,6 +31,11 @@ public class TwinSearchSortEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     @Column(name = "direction")
     private SortDirection direction;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinSearchEntity search;
 
     public String easyLog(Level level) {
         switch (level) {

@@ -4,8 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
@@ -15,8 +13,7 @@ import org.twins.core.dao.search.TwinSearchPredicateEntity;
 import org.twins.core.dao.search.TwinSearchPredicateRepository;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.Collections;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -47,27 +44,19 @@ public class TwinSearchPredicateService extends EntitySecureFindServiceImpl<Twin
         return true;
     }
 
-    public void loadPredicates(TwinSearchEntity entity) throws ServiceException {
-        loadPredicates(List.of(entity));
+    public void loadPredicates(TwinSearchEntity src) {
+        loadPredicates(Collections.singletonList(src));
     }
 
-    public void loadPredicates(Collection<TwinSearchEntity> entities) throws ServiceException {
-        Kit<TwinSearchEntity, UUID> needLoad = new Kit<>(TwinSearchEntity::getId);
-        for (TwinSearchEntity entity : entities)
-            if (entity.getSearchPredicateKit() == null)
-                needLoad.add(entity);
-
-        if (needLoad.isEmpty()) return;
-
-        KitGrouped<TwinSearchPredicateEntity, UUID, UUID> predicatesKit = new KitGrouped<>(
-                twinSearchPredicateRepository.findByTwinSearchIdIn(needLoad.getIdSet()),
+    public void loadPredicates(Collection<TwinSearchEntity> srcList) {
+        loadKit(srcList,
+                TwinSearchEntity::getId,
+                TwinSearchEntity::getSearchPredicateKit,
+                TwinSearchEntity::setSearchPredicateKit,
+                twinSearchPredicateRepository::findByTwinSearchIdIn,
                 TwinSearchPredicateEntity::getId,
-                TwinSearchPredicateEntity::getTwinSearchId);
-
-        for (Map.Entry<UUID, TwinSearchEntity> entry : needLoad.getMap().entrySet()) {
-            List<TwinSearchPredicateEntity> grouped = predicatesKit.getGrouped(entry.getKey());
-            entry.getValue().setSearchPredicateKit(new Kit<>(grouped, TwinSearchPredicateEntity::getId));
-        }
+                TwinSearchPredicateEntity::getTwinSearchId,
+                TwinSearchPredicateEntity::setSearch);
     }
 
 }

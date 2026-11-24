@@ -9,18 +9,16 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.resource.ResourceService;
+import org.twins.core.service.twin.TwinSearchServiceV3;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemRepository;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -32,6 +30,8 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
     private final FaceService faceService;
     private final I18nService i18nService;
     private final PermissionService permissionService;
+    private final ResourceService resourceService;
+    private final TwinSearchServiceV3 twinSearchServiceV3;
 
     @Override
     public CrudRepository<FaceNB001MenuItemEntity, UUID> entityRepository() {
@@ -59,16 +59,16 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getFace() == null || !entity.getFace().getId().equals(entity.getFaceId()))
-                    entity.setFace(faceService.findEntitySafe(entity.getFaceId()));
-                if (entity.getLabelI18n() == null || !entity.getLabelI18n().getId().equals(entity.getLabelI18nId()))
-                    entity.setLabelI18n(i18nService.findEntitySafe(entity.getLabelI18nId()));
-                if (entity.getDescriptionI18nId() != null && (entity.getDescriptionI18n() == null || !entity.getDescriptionI18n().getId().equals(entity.getDescriptionI18nId())))
-                    entity.setDescriptionI18n(i18nService.findEntitySafe(entity.getDescriptionI18nId()));
+                faceService.findEntitySafe(entity.getFaceId());
+                i18nService.findEntitySafe(entity.getLabelI18nId());
+                if (entity.getDescriptionI18nId() != null)
+                    i18nService.findEntitySafe(entity.getDescriptionI18nId());
                 if (entity.getTargetPageFaceId() != null && (entity.getTargetPageFace() == null || !entity.getTargetPageFace().getId().equals(entity.getTargetPageFaceId())))
                     entity.setTargetPageFace(faceService.findEntitySafe(entity.getTargetPageFaceId()));
                 if (entity.getPermissionId() != null && (entity.getPermission() == null || !entity.getPermission().getId().equals(entity.getPermissionId())))
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
+                if (entity.getCounterTwinSearchId() != null && !SystemIds.TwinSearch.UNLIMITED.equals(entity.getCounterTwinSearchId()))
+                    twinSearchServiceV3.findEntitySafe(entity.getCounterTwinSearchId());
         }
         return true;
     }
@@ -95,6 +95,61 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
                 FaceNB001MenuItemEntity::getId,
                 FaceNB001MenuItemEntity::getParentFaceMenuItemId,
                 FaceNB001MenuItemEntity::setParentFaceMenuItem);
+    }
+
+    public void loadIconResources(FaceNB001MenuItemEntity src) throws ServiceException {
+        loadIconResources(Collections.singletonList(src));
+    }
+
+    public void loadIconResources(Collection<FaceNB001MenuItemEntity> srcList) throws ServiceException {
+        resourceService.load(srcList,
+                FaceNB001MenuItemEntity::getIconResourceId,
+                FaceNB001MenuItemEntity::getIconResource,
+                FaceNB001MenuItemEntity::setIconResource);
+    }
+
+    public void loadTargetPageFaces(FaceNB001MenuItemEntity src) throws ServiceException {
+        loadTargetPageFaces(Collections.singletonList(src));
+    }
+
+    public void loadTargetPageFaces(Collection<FaceNB001MenuItemEntity> srcList) throws ServiceException {
+        faceService.load(srcList,
+                FaceNB001MenuItemEntity::getTargetPageFaceId,
+                FaceNB001MenuItemEntity::getTargetPageFace,
+                FaceNB001MenuItemEntity::setTargetPageFace);
+    }
+
+    public void loadPermissions(FaceNB001MenuItemEntity src) throws ServiceException {
+        loadPermissions(Collections.singletonList(src));
+    }
+
+    public void loadPermissions(Collection<FaceNB001MenuItemEntity> srcList) throws ServiceException {
+        permissionService.load(srcList,
+                FaceNB001MenuItemEntity::getPermissionId,
+                FaceNB001MenuItemEntity::getPermission,
+                FaceNB001MenuItemEntity::setPermission);
+    }
+
+    public void loadCounters(FaceNB001MenuItemEntity src) throws ServiceException {
+        loadCounters(Collections.singletonList(src));
+    }
+
+    /**
+     * Fills the transient counter badge for every item with counterTwinSearchId set. Each distinct
+     * search is counted once through the configured pipeline (the header is resolved inside, a
+     * misconfigured id fails the request); items without a configured search keep counter null.
+     */
+    public void loadCounters(Collection<FaceNB001MenuItemEntity> srcList) throws ServiceException {
+        Map<UUID, Long> counts = new HashMap<>();
+        for (FaceNB001MenuItemEntity item : srcList) {
+            UUID searchId = item.getCounterTwinSearchId();
+            item.setCounter(null);
+            if (searchId == null)
+                continue;
+            if (!counts.containsKey(searchId))
+                counts.put(searchId, twinSearchServiceV3.countConfigured(searchId, null, null));
+            item.setCounter(counts.get(searchId));
+        }
     }
 
 }

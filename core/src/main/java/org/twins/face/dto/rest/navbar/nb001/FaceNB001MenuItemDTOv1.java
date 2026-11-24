@@ -46,6 +46,12 @@ public class FaceNB001MenuItemDTOv1 {
     @Schema(description = "target twin id")
     private UUID targetTwinId;
 
+    @Schema(description = "saved twin search id for the counter badge", example = DTOExamples.SEARCH_ID)
+    public UUID counterTwinSearchId;
+
+    @Schema(description = "twins count matching the saved search; filled only when counterTwinSearchId is set")
+    public Long counter;
+
     @Schema(description = "display order among siblings, smaller values are shown first")
     public Integer order;
 }

@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.ConfiguredSearch;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_search")
-public class TwinSearchEntity implements EasyLoggable {
+public class TwinSearchEntity implements EasyLoggable, ConfiguredSearch {
     @Id
     private UUID id;
 
@@ -31,6 +32,10 @@ public class TwinSearchEntity implements EasyLoggable {
 
     @Column(name = "permission_id")
     private UUID permissionId;
+
+    /** Nullable: NULL means a global (system) search, readable cross-domain. */
+    @Column(name = "domain_id")
+    private UUID domainId;
 
     @Column(name = "twin_search_alias_id")
     private UUID twinSearchAliasId;
@@ -58,6 +63,17 @@ public class TwinSearchEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinSearchSortEntity,UUID> sortKit;
+
+    /** Sorting is stored as twin_search_sort rows (one TwinSorter per twin class field), not on the header. */
+    @Override
+    public Integer getSorterFeaturerId() {
+        return null;
+    }
+
+    @Override
+    public HashMap<String, String> getSorterParams() {
+        return null;
+    }
 
     public String easyLog(Level level)  {
         switch (level) {

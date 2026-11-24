@@ -31,13 +31,17 @@ public class FaceNB001RestDTOMapper extends RestSimpleDTOMapper<FaceNB001Entity,
 
     @Override
     public void map(FaceNB001Entity src, FaceNB001DTOv1 dst, MapperContext mapperContext) throws Exception {
+        faceNB001Service.loadFaces(src);
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
-            case DETAILED -> dst
-                    .setAdminAreaLabel(I18nCacheHolder.addId(src.getAdminAreaLabelI18nId()))
-                    .setAdminAreaIcon(resourceService.getResourceUri(src.getAdminAreaIconResource()))
-                    .setUserAreaLabel(I18nCacheHolder.addId(src.getUserAreaLabelI18nId()))
-                    .setUserAreaIcon(resourceService.getResourceUri(src.getUserAreaIconResource()));
+            case DETAILED -> {
+                faceNB001Service.loadIconResources(src);
+                dst
+                        .setAdminAreaLabel(I18nCacheHolder.addId(src.getAdminAreaLabelI18nId()))
+                        .setAdminAreaIcon(resourceService.getResourceUri(src.getAdminAreaIconResource()))
+                        .setUserAreaLabel(I18nCacheHolder.addId(src.getUserAreaLabelI18nId()))
+                        .setUserAreaIcon(resourceService.getResourceUri(src.getUserAreaIconResource()));
+            }
         }
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
             faceNB001Service.loadMenuItems(src);
@@ -48,6 +52,10 @@ public class FaceNB001RestDTOMapper extends RestSimpleDTOMapper<FaceNB001Entity,
     @Override
     public void beforeCollectionConversion(Collection<FaceNB001Entity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceNB001Service.loadFaces(srcCollection);
+        if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
+            faceNB001Service.loadIconResources(srcCollection);
+        }
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItemCollectionMode.HIDE)) {
             faceNB001Service.loadMenuItems(srcCollection);
         }
