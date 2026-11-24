@@ -59,7 +59,7 @@ public final class SystemIdLookup {
         }
         var basicField = TwinEntity.BasicField.convertOrNull(systemFieldId);
         if (basicField != null) {
-            return basicField.getValue(twinEntity);
+            return basicField.getRawValue(twinEntity);
         }
         return null;
     }

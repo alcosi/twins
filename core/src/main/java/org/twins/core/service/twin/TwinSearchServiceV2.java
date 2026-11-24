@@ -127,7 +127,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
         boolean ascending = sortDirection != SortDirection.DESC;
 
         var basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);
-        if (basicField != null) {
+        if (basicField != null && basicField.isTwinColumn()) {
             switch (basicField) {
                 case NAME:
                     return toSortSpecification(ascending, TwinEntity.Fields.name);
@@ -152,7 +152,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
                 case CREATOR_USER_ID:
                     return toSortSpecification(ascending, TwinEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
                 default:
-                    throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Field " + twinClassFieldId + " is not groupable");
+                    throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Field " + twinClassFieldId + " is not sortable");
             }
         }
 
@@ -167,30 +167,18 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
      * Whether the given id is a basic field accepted by the basic-field branch of
      * {@link #createSortSpecification(UUID, SortDirection, Locale)}. Dynamic fields are sorted by
      * {@link TwinSorter} there, but callers may restrict member sorting to basic fields only.
-     * Keep this switch in sync with the one above.
+     * Delegates to {@link TwinEntity.BasicField#isSortable()}.
      */
     public static boolean isBasicSortFieldSupported(UUID twinClassFieldId) {
         TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);
-        if (basicField == null) {
-            return false;
-        }
-        return switch (basicField) {
-            case NAME, DESCRIPTION, CREATED_AT, EXTERNAL_ID, SORT_ORDER, FLAVOR_DATA_LIST_OPTION_ID,
-                    TWIN_CLASS_ID, TWIN_STATUS_ID, OWNER_USER_ID, ASSIGNEE_USER_ID, CREATOR_USER_ID -> true;
-            default -> false;
-        };
+        return basicField != null && basicField.isSortable();
     }
 
     @Override
     public String convertToEntityField(UUID twinClassFieldId) throws ServiceException {
         var basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);
-        if (basicField == TwinEntity.BasicField.HEAD_TWIN_ID
-                || basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID
-                || basicField == TwinEntity.BasicField.TWIN_CLASS_ID
-                || basicField == TwinEntity.BasicField.TWIN_STATUS_ID
-                || basicField == TwinEntity.BasicField.OWNER_USER_ID
-                || basicField == TwinEntity.BasicField.ASSIGNEE_USER_ID
-                || basicField == TwinEntity.BasicField.CREATOR_USER_ID)
+        // kit-backed groupable fields (tags, markers) group via their storage countGroup instead
+        if (basicField != null && basicField.isTwinColumn() && basicField.isGroupable())
             return basicField.getName();
         throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Field " + twinClassFieldId + " is not groupable");
     }
@@ -251,8 +239,9 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
     }
 
     /**
-     * Provider path for twin grouping: basic system field -> direct root field (reusing the
-     * {@link #convertToEntityField(UUID)} groupable whitelist); dynamic twin class field ->
+     * Provider path for twin grouping: a column-backed base field ({@code BasicField.twinColumn})
+     * -> direct root field (reusing the {@link #convertToEntityField(UUID)} groupable whitelist);
+     * a kit-backed base field (tags, markers) or a dynamic twin class field ->
      * {@link org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage#countGroup}. Provider order
      * matches the {@code groupFields} iteration (the row columns are read back in that order).
      */
@@ -261,7 +250,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
         List<GroupExpressionProvider<TwinEntity>> providers = new ArrayList<>(groupFields.size());
         for (UUID fieldId : groupFields) {
             TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(fieldId);
-            if (basicField != null) {
+            if (basicField != null && basicField.isTwinColumn()) {
                 providers.add(GroupExpressionProvider.ofField(convertToEntityField(fieldId)));
             } else {
                 providers.add(countGroup(twinClassFieldService.findEntitySafe(fieldId)));

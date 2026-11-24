@@ -51,6 +51,6 @@ public class TwinSorterTwinField extends TwinSorter {
 
     private String getTwinEntityField(UUID fieldId) {
         var basicField = TwinEntity.BasicField.convertOrNull(fieldId);
-        return basicField != null ? basicField.getName() : null;
+        return basicField != null && basicField.isSortable() ? basicField.getName() : null;
     }
 }

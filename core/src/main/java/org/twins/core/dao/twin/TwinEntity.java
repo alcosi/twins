@@ -660,31 +660,42 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     }
 
     public enum BasicField {
-        NAME(Fields.name, SystemIds.TwinClassField.Base.NAME, TwinEntity::getName),
-        DESCRIPTION(Fields.description, SystemIds.TwinClassField.Base.DESCRIPTION, TwinEntity::getDescription),
-        EXTERNAL_ID(Fields.externalId, SystemIds.TwinClassField.Base.EXTERNAL_ID, TwinEntity::getExternalId),
-        OWNER_USER_ID(Fields.ownerUserId, SystemIds.TwinClassField.Base.OWNER_USER_ID, TwinEntity::getOwnerUserId),
-        FLAVOR_DATA_LIST_OPTION_ID(Fields.flavorDataListOptionId, SystemIds.TwinClassField.Base.FLAVOR_ID, TwinEntity::getFlavorDataListOptionId),
-        TWIN_CLASS_ID(Fields.twinClassId, SystemIds.TwinClassField.Base.TWIN_CLASS_ID, TwinEntity::getTwinClassId),
-        ASSIGNEE_USER_ID(Fields.assignerUserId, SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId),
-        HEAD_TWIN_ID(Fields.headTwinId, SystemIds.TwinClassField.Base.HEAD_ID, TwinEntity::getHeadTwinId),
-        CREATOR_USER_ID(Fields.createdByUserId, SystemIds.TwinClassField.Base.CREATOR_USER_ID, TwinEntity::getCreatedByUserId),
-        TWIN_STATUS_ID(Fields.twinStatusId, SystemIds.TwinClassField.Base.STATUS_ID, TwinEntity::getTwinStatusId),
-        CREATED_AT(Fields.createdAt, SystemIds.TwinClassField.Base.CREATED_AT, TwinEntity::getCreatedAt),
-        ID(Fields.id, SystemIds.TwinClassField.Base.ID, TwinEntity::getId),
-        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemIds.TwinClassField.Base.ALIASES, TwinEntity::getAliasSpaceId),
-        SORT_ORDER(Fields.sortOrder, SystemIds.TwinClassField.Base.SORT_ORDER, TwinEntity::getSortOrder);
+        NAME(Fields.name, SystemIds.TwinClassField.Base.NAME, TwinEntity::getName, true, false, true),
+        DESCRIPTION(Fields.description, SystemIds.TwinClassField.Base.DESCRIPTION, TwinEntity::getDescription, true, false, true),
+        EXTERNAL_ID(Fields.externalId, SystemIds.TwinClassField.Base.EXTERNAL_ID, TwinEntity::getExternalId, true, false, true),
+        OWNER_USER_ID(Fields.ownerUserId, SystemIds.TwinClassField.Base.OWNER_USER_ID, TwinEntity::getOwnerUserId, true, true, true),
+        FLAVOR_DATA_LIST_OPTION_ID(Fields.flavorDataListOptionId, SystemIds.TwinClassField.Base.FLAVOR_ID, TwinEntity::getFlavorDataListOptionId, true, true, true),
+        TWIN_CLASS_ID(Fields.twinClassId, SystemIds.TwinClassField.Base.TWIN_CLASS_ID, TwinEntity::getTwinClassId, true, true, true),
+        ASSIGNEE_USER_ID(Fields.assignerUserId, SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID, TwinEntity::getAssignerUserId, true, true, true),
+        HEAD_TWIN_ID(Fields.headTwinId, SystemIds.TwinClassField.Base.HEAD_ID, TwinEntity::getHeadTwinId, true, true, false),
+        CREATOR_USER_ID(Fields.createdByUserId, SystemIds.TwinClassField.Base.CREATOR_USER_ID, TwinEntity::getCreatedByUserId, true, true, true),
+        TWIN_STATUS_ID(Fields.twinStatusId, SystemIds.TwinClassField.Base.STATUS_ID, TwinEntity::getTwinStatusId, true, true, true),
+        CREATED_AT(Fields.createdAt, SystemIds.TwinClassField.Base.CREATED_AT, TwinEntity::getCreatedAt, true, false, true),
+        ID(Fields.id, SystemIds.TwinClassField.Base.ID, TwinEntity::getId, true, false, false),
+        ALIAS_SPACE_ID(Fields.aliasSpaceId, SystemIds.TwinClassField.Base.ALIASES, TwinEntity::getAliasSpaceId, true, false, false),
+        SORT_ORDER(Fields.sortOrder, SystemIds.TwinClassField.Base.SORT_ORDER, TwinEntity::getSortOrder, true, false, true),
+        TAGS(Fields.twinTagKit, SystemIds.TwinClassField.Base.TAGS, TwinEntity::getTwinTagKit, false, true, false),
+        MARKERS(Fields.twinMarkerKit, SystemIds.TwinClassField.Base.MARKERS, TwinEntity::getTwinMarkerKit, false, true, false);
 
         @Getter
         private final String name;
         @Getter
         private final UUID id;
+        @Getter
+        private final boolean twinColumn;
+        @Getter
+        private final boolean groupable;
+        @Getter
+        private final boolean sortable;
         private final Function<TwinEntity, Object> functionGetValue;
 
-        BasicField(String name, UUID id, Function<TwinEntity, Object> functionGetValue) {
+        BasicField(String name, UUID id, Function<TwinEntity, Object> functionGetValue, boolean twinColumn, boolean groupable, boolean sortable) {
             this.name = name;
             this.id = id;
             this.functionGetValue = functionGetValue;
+            this.twinColumn = twinColumn;
+            this.groupable = groupable;
+            this.sortable = sortable;
         }
 
         public static BasicField convertOrNull(UUID twinClassFieldId) {
@@ -695,7 +706,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
             return null;
         }
 
-        public Object getValue(TwinEntity twinEntity) {
+        public Object getRawValue(TwinEntity twinEntity) {
             return functionGetValue.apply(twinEntity);
         }
     }

@@ -6,14 +6,12 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.storage.*;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemIdLookup;
 
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -31,46 +29,17 @@ public class TwinFieldService {
     private final FeaturerService featurerService;
 
     /**
-     * Base (system) fields with a scalar twin column to group by — the groupable subset of
-     * BasicField, kept in sync with the getFieldValue switch. The other system fields (name,
-     * aliases and the like) have no groupable scalar; tags and markers are groupable too, but
-     * through the kit — see {@link #GROUPABLE_SYSTEM_KIT_FIELDS}.
-     */
-    public static final Set<TwinEntity.BasicField> GROUPABLE_BASIC_FIELDS = Set.of(
-            TwinEntity.BasicField.OWNER_USER_ID,
-            TwinEntity.BasicField.ASSIGNEE_USER_ID,
-            TwinEntity.BasicField.CREATOR_USER_ID,
-            TwinEntity.BasicField.TWIN_STATUS_ID,
-            TwinEntity.BasicField.TWIN_CLASS_ID,
-            TwinEntity.BasicField.HEAD_TWIN_ID,
-            TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID);
-
-    /**
-     * System fields without a scalar twin column whose values deserialize from their own twin kits
-     * into FieldValueSelect (the same shape as datalist fields): tags read twin.twinTagKit and
-     * markers twin.twinMarkerKit — {@code TwinFieldStorageTag} / {@code TwinFieldStorageMarker}
-     * load them — so they group exactly like dynamic select fields: extractKeys splits them into
-     * per-option keys.
-     */
-    public static final Set<UUID> GROUPABLE_SYSTEM_KIT_FIELDS = Set.of(
-            SystemIds.TwinClassField.Base.TAGS,
-            SystemIds.TwinClassField.Base.MARKERS);
-
-    /**
      * Whether the field may serve as a group level — checked before the search runs, so a bad level
-     * fails cheaply instead of mid-assembly. Base fields need a scalar twin column
-     * ({@link #GROUPABLE_BASIC_FIELDS}); tags and markers pass as kit-backed selects
-     * ({@link #GROUPABLE_SYSTEM_KIT_FIELDS}); dynamic fields need a storage from the same
-     * acceptance set as the count/v1 countGroup contract (link, datalist, simple, decimal, boolean,
-     * timestamp).
+     * fails cheaply instead of mid-assembly. A base field needs {@link TwinEntity.BasicField#isGroupable()}
+     * (column-backed or kit-backed); a kit-backed one's values deserialize from the twin kit into
+     * FieldValueSelect, so it groups exactly like a dynamic select field: extractKeys splits it
+     * into per-option keys; dynamic fields need a storage from the same acceptance set as the
+     * count/v1 countGroup contract (link, datalist, simple, decimal, boolean, timestamp).
      */
     public void checkGroupable(TwinClassFieldEntity field) throws ServiceException {
         if (SystemIdLookup.isSystemField(field.getId())) {
-            if (GROUPABLE_SYSTEM_KIT_FIELDS.contains(field.getId())) {
-                return;
-            }
             TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(field.getId());
-            if (basicField == null || !GROUPABLE_BASIC_FIELDS.contains(basicField)) {
+            if (basicField == null || !basicField.isGroupable()) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                         "Field " + field.getId() + " is not groupable");
             }
@@ -93,7 +62,8 @@ public class TwinFieldService {
      * The current value of one field on one twin — the single read point for twin grouping
      * (TwinGroupLevel.extractKeys). A dynamic field reads twin.fieldValuesKit (filled by
      * TwinService.loadFieldsValues); an absent value comes back as an undefined value of the field's
-     * type, never null, so the group key type survives even without a value. A base field lives in
+     * type, never null, so the group key type survives even without a value. A kit-backed base field
+     * (tags, markers) delegates to its typer over the twin kit. A column-backed base field lives in
      * a twin column instead: an entity already attached to the twin (EAGER association or a filled
      * transient relation — ownerUser, twinStatus, twinClass, assignerUser, createdByUser, headTwin)
      * becomes the concrete single value at once; a bare id becomes an id-only
@@ -103,15 +73,15 @@ public class TwinFieldService {
     public FieldValue getFieldValue(TwinEntity twin, TwinClassFieldEntity field) throws ServiceException {
         TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(field.getId());
         if (basicField == null) {
-            // tags and markers are system fields without a column: their typer deserializes a
-            // FieldValueSelect from the (bulk-preloaded) twinTagKit / twinMarkerKit
-            if (GROUPABLE_SYSTEM_KIT_FIELDS.contains(field.getId())) {
-                return twinService.deserializeValue(twinService.wrapField(twin, field));
-            }
             FieldValue value = twin.getFieldValuesKit() == null ? null : twin.getFieldValuesKit().get(field.getId());
             return value != null ? value : twinService.createFieldValue(field);
         }
-        if (!GROUPABLE_BASIC_FIELDS.contains(basicField)) {
+        if (!basicField.isTwinColumn()) {
+            // kit-backed base field (tags, markers): the typer deserializes a FieldValueSelect
+            // from the (bulk-preloaded) twinTagKit / twinMarkerKit
+            return twinService.deserializeValue(twinService.wrapField(twin, field));
+        }
+        if (!basicField.isGroupable()) {
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
                     "Field " + field.getId() + " is not groupable");
         }

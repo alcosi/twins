@@ -168,15 +168,17 @@ public class TwinGroupedSearchService {
     }
 
     /**
-     * Tag/marker levels read their values from twin.twinTagKit / twin.twinMarkerKit (the base
-     * pseudo rows are not part of any class field kit, so loadFieldsValues does not touch them):
-     * one bulk load per such level keeps the per-twin deserialize query-free.
+     * Kit-backed base-field levels (the non-column BasicField members: tags, markers) read their
+     * values from twin.twinTagKit / twin.twinMarkerKit (the base pseudo rows are not part of any
+     * class field kit, so loadFieldsValues does not touch them): one bulk load per such level
+     * keeps the per-twin deserialize query-free.
      */
     private void loadKitBackedLevels(List<TwinEntity> twins, List<TwinGroupLevel> levels) throws ServiceException {
         for (TwinGroupLevel level : levels) {
-            if (SystemIds.TwinClassField.Base.TAGS.equals(level.getFieldId())) {
+            TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(level.getFieldId());
+            if (basicField == TwinEntity.BasicField.TAGS) {
                 twinTagService.loadTags(twins);
-            } else if (SystemIds.TwinClassField.Base.MARKERS.equals(level.getFieldId())) {
+            } else if (basicField == TwinEntity.BasicField.MARKERS) {
                 twinMarkerService.loadMarkers(twins);
             }
         }
