@@ -537,6 +537,11 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private Kit<FieldValue, UUID> baseFieldValuesKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinLinkService.FindTwinLinksResult twinLinks;
 
     @Transient
@@ -771,6 +776,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         // Calculated
         twinFieldCalculated = null;
         fieldValuesKit = null;
+        baseFieldValuesKit = null;
 
         // Links / transitions
         twinLinks = null;
@@ -823,6 +829,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         // Calculated
         twinFieldCalculated = null;
         fieldValuesKit = null;
+        baseFieldValuesKit = null;
         // Links
         twinLinks = null;
         // todo
@@ -837,6 +844,7 @@ public class TwinEntity implements Cloneable, EasyLoggable, ResettableTransientS
         twinFieldCalcStorageLoaded = null;
         twinFieldAttributeKit = null;
         fieldValuesKit = null;
+        baseFieldValuesKit = null;
         return this;
     }
 }

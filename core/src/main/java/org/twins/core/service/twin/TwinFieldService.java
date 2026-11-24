@@ -2,6 +2,7 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
@@ -49,7 +50,7 @@ public class TwinFieldService {
         TwinFieldStorage storage = fieldTyper.getStorage(field);
         if (!(storage instanceof TwinFieldStorageLink
                 || storage instanceof TwinFieldStorageDatalist
-                || storage instanceof TwinFieldStorageTimestamp
+                || storage instanceof TwinFieldStorageTimestamp //not sure that grouping with seconds is good idea
                 || storage instanceof TwinFieldStorageBoolean
                 || storage instanceof TwinFieldStorageDecimal
                 || storage instanceof TwinFieldStorageSimple)) {
@@ -68,7 +69,8 @@ public class TwinFieldService {
      * transient relation — ownerUser, twinStatus, twinClass, assignerUser, createdByUser, headTwin)
      * becomes the concrete single value at once; a bare id becomes an id-only
      * {@link FieldValueReferenceSingle} for the caller to bulk-materialize
-     * (TwinGroupedSearchService.materializeKeyValues).
+     * (TwinGroupedSearchService.materializeKeyValues). Every base-field value is computed once and
+     * cached in twin.baseFieldValuesKit, so repeated reads return the same instance.
      */
     public FieldValue getFieldValue(TwinEntity twin, TwinClassFieldEntity field) throws ServiceException {
         TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(field.getId());
@@ -76,6 +78,26 @@ public class TwinFieldService {
             FieldValue value = twin.getFieldValuesKit() == null ? null : twin.getFieldValuesKit().get(field.getId());
             return value != null ? value : twinService.createFieldValue(field);
         }
+        // base fields (column-backed or kit-backed) are cached on the twin, like fieldValuesKit:
+        // a repeated read of the same field returns the same FieldValue instance. The cache
+        // reflects the twin state at first read and is dropped by the reset* methods.
+        Kit<FieldValue, UUID> kit = twin.getBaseFieldValuesKit();
+        if (kit != null) {
+            FieldValue cached = kit.get(field.getId());
+            if (cached != null) {
+                return cached;
+            }
+        }
+        FieldValue value = computeBaseValue(twin, field, basicField);
+        if (kit == null) {
+            kit = new Kit<>(FieldValue::getTwinClassFieldId);
+            twin.setBaseFieldValuesKit(kit);
+        }
+        kit.add(value);
+        return value;
+    }
+
+    private FieldValue computeBaseValue(TwinEntity twin, TwinClassFieldEntity field, TwinEntity.BasicField basicField) throws ServiceException {
         if (!basicField.isTwinColumn()) {
             // kit-backed base field (tags, markers): the typer deserializes a FieldValueSelect
             // from the (bulk-preloaded) twinTagKit / twinMarkerKit

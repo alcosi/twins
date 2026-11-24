@@ -25,8 +25,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit contract of TwinFieldService — the field access behind twin grouping. checkGroupable is the
@@ -144,6 +143,32 @@ class TwinFieldServiceTest extends BaseUnitTest {
 
         // the tag options come from the typer (twinTagKit -> FieldValueSelect), not from the kit
         assertEquals(select, twinFieldService.getFieldValue(twin, field));
+    }
+
+    @Test
+    void baseFieldValueIsCachedOnTheTwin() throws Exception {
+        UUID assigneeId = UUID.randomUUID();
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID);
+        TwinEntity twin = new TwinEntity().setId(UUID.randomUUID()).setAssignerUserId(assigneeId);
+
+        FieldValue first = twinFieldService.getFieldValue(twin, field);
+
+        assertSame(first, twinFieldService.getFieldValue(twin, field));
+        assertSame(first, twin.getBaseFieldValuesKit().get(field.getId()));
+    }
+
+    @Test
+    void kitBackedValueIsCachedAndDeserializesOnlyOnce() throws Exception {
+        TwinClassFieldEntity field = new TwinClassFieldEntity().setId(SystemIds.TwinClassField.Base.TAGS);
+        TwinEntity twin = new TwinEntity().setId(UUID.randomUUID());
+        TwinField twinField = mock(TwinField.class);
+        FieldValueSelect select = new FieldValueSelect(field);
+        when(twinService.wrapField(twin, field)).thenReturn(twinField);
+        when(twinService.deserializeValue(twinField)).thenReturn(select);
+
+        assertSame(select, twinFieldService.getFieldValue(twin, field));
+        assertSame(select, twinFieldService.getFieldValue(twin, field));
+        verify(twinService, times(1)).deserializeValue(any(TwinField.class));
     }
 
     @Test
