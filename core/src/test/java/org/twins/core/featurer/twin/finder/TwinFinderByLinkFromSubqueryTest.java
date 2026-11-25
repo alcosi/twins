@@ -12,7 +12,7 @@ import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.holder.EntityRequestCacheHolder;
 import org.twins.core.holder.TwinSearchRecursionGuard;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinSearchService;
+import org.twins.core.service.twin.TwinSearchServiceV3;
 
 import java.util.Map;
 import java.util.Properties;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 class TwinFinderByLinkFromSubqueryTest {
 
     @Mock
-    private TwinSearchService twinSearchService;
+    private TwinSearchServiceV3 twinSearchServiceV3;
     @Mock
     private AuthService authService;
     @Mock
@@ -40,7 +40,7 @@ class TwinFinderByLinkFromSubqueryTest {
         EntityRequestCacheHolder.clear();
         TwinSearchRecursionGuard.clear();
         finder = new TwinFinderByLinkFromSubquery();
-        finder.twinSearchService = twinSearchService;
+        finder.twinSearchServiceV3 = twinSearchServiceV3;
     }
 
     @Test
@@ -49,7 +49,7 @@ class TwinFinderByLinkFromSubqueryTest {
         UUID link = UUID.randomUUID();
         UUID sourceA = UUID.randomUUID();
         UUID sourceB = UUID.randomUUID();
-        when(twinSearchService.findTwinIds(eq(searchId), any(), anyInt()))
+        when(twinSearchServiceV3.findTwinIds(eq(searchId), any(), anyInt()))
                 .thenReturn(Set.of(sourceA, sourceB));
 
         TwinSearch twinSearch = new TwinSearch();
@@ -65,7 +65,7 @@ class TwinFinderByLinkFromSubqueryTest {
         UUID searchId = UUID.randomUUID();
         UUID link = UUID.randomUUID();
         UUID source = UUID.randomUUID();
-        when(twinSearchService.findTwinIds(eq(searchId), any(), anyInt()))
+        when(twinSearchServiceV3.findTwinIds(eq(searchId), any(), anyInt()))
                 .thenReturn(Set.of(source));
 
         TwinSearch twinSearch = new TwinSearch();
@@ -79,7 +79,7 @@ class TwinFinderByLinkFromSubqueryTest {
     void emptySubquery_matchesNothing() throws ServiceException {
         UUID searchId = UUID.randomUUID();
         UUID link = UUID.randomUUID();
-        when(twinSearchService.findTwinIds(eq(searchId), any(), anyInt()))
+        when(twinSearchServiceV3.findTwinIds(eq(searchId), any(), anyInt()))
                 .thenReturn(Set.of());
 
         TwinSearch twinSearch = new TwinSearch();
@@ -101,12 +101,12 @@ class TwinFinderByLinkFromSubqueryTest {
         when(authService.getApiUser()).thenReturn(apiUser);
         when(apiUser.getUserId()).thenReturn(userId);
         when(apiUser.getDomainId()).thenReturn(domainId);
-        when(twinSearchService.findTwinIds(eq(searchId), any(), anyInt()))
+        when(twinSearchServiceV3.findTwinIds(eq(searchId), any(), anyInt()))
                 .thenReturn(Set.of(portionA, portionB));
         finder.authService = authService;
 
         TwinFinderByLinkFromSubquery second = new TwinFinderByLinkFromSubquery();
-        second.twinSearchService = twinSearchService;
+        second.twinSearchServiceV3 = twinSearchServiceV3;
         second.authService = authService;
 
         TwinSearch firstSearch = new TwinSearch();
@@ -116,7 +116,7 @@ class TwinFinderByLinkFromSubqueryTest {
 
         assertEquals(Set.of(portionA, portionB), firstSearch.getSrcLinksAnyOfList().get(firstLink));
         assertEquals(Set.of(portionA, portionB), secondSearch.getSrcLinksAnyOfList().get(secondLink));
-        verify(twinSearchService, times(1)).findTwinIds(eq(searchId), any(), anyInt());
+        verify(twinSearchServiceV3, times(1)).findTwinIds(eq(searchId), any(), anyInt());
     }
 
     @Test
@@ -130,7 +130,7 @@ class TwinFinderByLinkFromSubqueryTest {
         when(apiUser.getDomainId()).thenReturn(domainId);
         finder.authService = authService;
         // the subquery re-enters the same finder with the same search id while it is being resolved
-        when(twinSearchService.findTwinIds(eq(searchId), any(), anyInt()))
+        when(twinSearchServiceV3.findTwinIds(eq(searchId), any(), anyInt()))
                 .thenAnswer(invocation -> {
                     finder.concatSearch(properties(searchId, link, true), new TwinSearch(), Map.of());
                     return Set.of();

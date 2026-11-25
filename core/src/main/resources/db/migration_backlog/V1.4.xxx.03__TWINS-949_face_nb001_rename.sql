@@ -1,8 +1,8 @@
--- TWINS-943: rename face_navbar_nb001* tables to face_nb001* (drop the redundant "navbar" segment),
+-- TWINS-949: rename face_navbar_nb001* tables to face_nb001* (drop the redundant "navbar" segment),
 -- including the two columns carrying the old prefix, plus their constraints and indexes.
 -- Idempotent: every rename is guarded by an existence check, so a rerun skips what is already renamed
 -- (style mirrors V1.4.394.08 face_tw* -> face_wt* rename).
--- Note: the counter_twin_search_id FK/index come from V1.4.394.09, applied before this script.
+-- Note: the counter_twin_search_id FK/index come from V1.4.xxx.01 (TWINS-949), applied before this script.
 -- Unprefixed legacy names unrelated to the renamed columns (fk_menu_items_permission,
 -- idx_menu_items_permission) are left untouched.
 
@@ -46,12 +46,12 @@ begin
         execute format('alter table %I rename constraint %I to %I', r.tablename, r.conname, replace(r.conname, 'face_navbar_nb001', 'face_nb001'));
     end loop;
 
-    -- 4. names the replace loop cannot fully handle: the parent-FK index was truncated at 63 chars,
-    -- and the parent-FK constraint never carried the prefix. Map them to the full conventional form
+    -- 4. names the replace loop cannot fully handle: the parent-FK index was truncated at 63 chars
+    -- (step 3 turns it into idx_face_nb001_menu_item_parent_face_nb001_menu_i), and the parent-FK
+    -- constraint never carried the prefix. Map them to the full conventional form
     -- (with the shorter names they now fit the limit).
     for m in select * from (values
-        ('idx_face_nb001_menu_item_parent_face_nb001_menu_i', 'idx_face_nb001_menu_item_parent_face_nb001_menu_item_id'),
-        ('idx_face_navbar_nb001_menu_item_parent_face_navbar_nb001_menu_i', 'idx_face_nb001_menu_item_parent_face_navbar_nb001_menu_item_id')
+        ('idx_face_nb001_menu_item_parent_face_nb001_menu_i', 'idx_face_nb001_menu_item_parent_face_nb001_menu_item_id')
     ) as t(old_name, new_name) loop
         if exists (select from pg_indexes where schemaname = current_schema() and indexname = m.old_name) then
             execute format('alter index %I rename to %I', m.old_name, m.new_name);

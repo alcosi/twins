@@ -130,25 +130,36 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
                 FaceNB001MenuItemEntity::setPermission);
     }
 
-    public void loadCounters(FaceNB001MenuItemEntity src) throws ServiceException {
+    public void loadCounters(FaceNB001MenuItemEntity src) {
         loadCounters(Collections.singletonList(src));
     }
 
     /**
      * Fills the transient counter badge for every item with counterTwinSearchId set. Each distinct
-     * search is counted once through the configured pipeline (the header is resolved inside, a
-     * misconfigured id fails the request); items without a configured search keep counter null.
+     * search is counted once through the configured pipeline (the header is resolved inside);
+     * items without a configured search keep counter null. A failing search degrades to a null
+     * counter (logged) instead of failing the whole navbar request.
      */
-    public void loadCounters(Collection<FaceNB001MenuItemEntity> srcList) throws ServiceException {
+    public void loadCounters(Collection<FaceNB001MenuItemEntity> srcList) {
         Map<UUID, Long> counts = new HashMap<>();
         for (FaceNB001MenuItemEntity item : srcList) {
+            if (item.getCounter() != null)
+                continue;
             UUID searchId = item.getCounterTwinSearchId();
-            item.setCounter(null);
             if (searchId == null)
                 continue;
             if (!counts.containsKey(searchId))
-                counts.put(searchId, twinSearchServiceV3.countConfigured(searchId, null, null));
+                counts.put(searchId, countSafely(searchId));
             item.setCounter(counts.get(searchId));
+        }
+    }
+
+    private Long countSafely(UUID searchId) {
+        try {
+            return twinSearchServiceV3.countConfigured(searchId, null, null);
+        } catch (Exception e) {
+            log.warn("Counter badge failed for twin search {}: {}", searchId, e.getMessage());
+            return null;
         }
     }
 

@@ -62,7 +62,8 @@ public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntit
 
     @Override
     public boolean isEntityReadDenied(TwinSearchEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        // NULL domain_id = global (system) search, readable cross-domain; see V1.4.xxx.02 migration
+        return checkDomainAccessDenied(entity.getDomainId(), entity.logShort(), readPermissionCheckMode);
     }
 
     @Override
