@@ -46,7 +46,7 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
                 .setOrder(src.getOrder())
                 .setCounterTwinSearchId(src.getCounterTwinSearchId())
-                .setCounter(src.getCounter())
+                .setCounter(src.getCounter() != null && src.getCounter() > 0 ? src.getCounter() : null)
                 .setChildren(convertCollection(src.getChilds() == null ? null : faceNB001MenuItemService.sorted(src.getChilds()))); //be afraid of endless looping!
 
 
