@@ -17,10 +17,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
-import org.twins.core.domain.apiuser.DomainResolverHeaders;
-import org.twins.core.domain.apiuser.LocaleResolverDomainUser;
-import org.twins.core.domain.apiuser.LocaleResolverHeader;
-import org.twins.core.domain.apiuser.MainResolverAuthToken;
+import org.twins.core.domain.apiuser.*;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
 
@@ -49,6 +46,8 @@ public class ApiUserResolverService {
     long activityThrottleMinutes;
     @Getter
     final DomainResolverHeaders domainResolverHeaders;
+    @Getter
+    final AdminAreaResolverHeaders adminAreaResolverHeaders;
     @Getter
     final LocaleResolverDomainUser localeResolverDomainUser;
     @Getter

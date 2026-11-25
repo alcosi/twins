@@ -205,7 +205,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
-        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
+        if (permissionService.currentUserCanViewAllTwinsInDomain())
             return false;
         if (entity.getTwinClass().getOwnerType().isBusinessAccountLevel()
                 && entity.getOwnerBusinessAccountId() != null //for twin_templates owner will not be filled

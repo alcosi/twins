@@ -568,6 +568,27 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             : apiUser.getUser().getPermissions().containsAll(permissions);
     }
 
+    /**
+     * The single choke point for the {@link Permissions#DOMAIN_TWINS_VIEW_ALL} bypass (domain-wide
+     * twin visibility across all business accounts). The bypass applies when:
+     * <ul>
+     *   <li>the caller is a system identity with the hardcoded grant — schedulers run without an
+     *       HTTP request, so no admin-area header can ever be present for them; or</li>
+     *   <li>the request was issued from the FE admin zone ({@code AdminArea} header, resolved via
+     *       {@link ApiUser#isAdminArea()}) and the user holds the permission.</li>
+     * </ul>
+     * Regular users without the header fall back to normal permission checks (owner BA/user scope).
+     */
+    public boolean currentUserCanViewAllTwinsInDomain() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!apiUser.isUserSpecified())
+            return false;
+        // system identities (schedulers) run without an HTTP request — no header can ever exist for them
+        if (systemUserHasPermission(apiUser.getUserId(), false, Set.of(Permissions.DOMAIN_TWINS_VIEW_ALL.getId())))
+            return true;
+        return apiUser.isAdminArea() && currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL);
+    }
+
     public void loadCurrentUserPermissions() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!apiUser.isUserSpecified())
@@ -616,7 +637,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     }
 
     public boolean canViewTwinsOwnedByBusinessAccounts(Set<UUID> businessAccountIds) throws ServiceException {
-        if (businessAccountIds == null || currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
+        if (businessAccountIds == null || currentUserCanViewAllTwinsInDomain())
             return true;
         else if (businessAccountIds.size() == 1 && businessAccountIds.contains(authService.getApiUser().getBusinessAccountId()))
             return true;

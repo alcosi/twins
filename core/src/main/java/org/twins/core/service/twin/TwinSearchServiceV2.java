@@ -32,7 +32,6 @@ import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DBUService;
 import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.usergroup.UserGroupService;
 
@@ -86,7 +85,7 @@ public class TwinSearchServiceV2 extends EntitySearchService<BasicSearch, TwinEn
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
         Specification<TwinEntity> specification = createTwinEntityBasicSearchSpecification(search, userId);
 
-        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !search.isCheckViewPermission()) {
+        if (permissionService.currentUserCanViewAllTwinsInDomain() || !search.isCheckViewPermission()) {
             specification = specification
                     .and(checkClassWithDomain(search.getTwinClassIdList(), apiUser));
         } else {

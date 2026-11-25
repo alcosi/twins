@@ -24,8 +24,9 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
  * Encapsulates the visibility rules previously duplicated across {@code CommentSearchService} and
  * {@code TwinLinkSearchService}, mirroring {@code TwinSearchServiceV2}:
  * <ul>
- *   <li>with {@link Permissions#DOMAIN_TWINS_VIEW_ALL} the twin is visible when it belongs to the
- *       caller's domain (resolved via {@code twin -> twinClass.domainId});</li>
+ *   <li>with {@link Permissions#DOMAIN_TWINS_VIEW_ALL} (admin-area requests only, see
+ *       {@link PermissionService#currentUserCanViewAllTwinsInDomain()}) the twin is visible when it
+ *       belongs to the caller's domain (resolved via {@code twin -> twinClass.domainId});</li>
  *   <li>otherwise the twin must be individually authorized via {@code checkPermissions}
  *       (view-permission grants) + {@code checkClass} (owner-type / domain).</li>
  * </ul>
@@ -40,7 +41,7 @@ public class TwinAccessSpecificationFactory {
 
     public <T> Specification<T> checkTwinAccess(ApiUser apiUser, String... twinEntityFieldPath) throws ServiceException {
         UUID domainId = apiUser.getDomainId();
-        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
+        if (permissionService.currentUserCanViewAllTwinsInDomain()) {
             // twin.twinClass.domainId = domainId
             return checkFieldUuid(domainId, concatArray(twinEntityFieldPath, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
         }

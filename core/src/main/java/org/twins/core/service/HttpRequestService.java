@@ -7,9 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.util.WebUtils;
-import org.twins.core.service.auth.ActAsUserService;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -26,8 +26,7 @@ public class HttpRequestService extends SessionLocaleResolver {
     public static final String HEADER_BUSINESS_ACCOUNT_ID = "BusinessAccountId";
     public static final String HEADER_CHANNEL = "Channel";
     public static final String HEADER_ACT_AS_USER = "X-Act-As-User";
-
-    private final ActAsUserService actAsUserService;
+    public static final String HEADER_ADMIN_AREA = "AdminArea";
 
     public HttpServletRequest getRequest() {
         return request;
@@ -56,6 +55,22 @@ public class HttpRequestService extends SessionLocaleResolver {
 
     public String getChannelIdFromRequest() {
         return request.getHeader(HEADER_CHANNEL);
+    }
+
+    public String getAdminAreaFromRequest() {
+        return request.getHeader(HEADER_ADMIN_AREA);
+    }
+
+    /**
+     * True only for requests explicitly marked as issued from the admin area of the frontend
+     * (header {@link #HEADER_ADMIN_AREA}: true — the FE sets it solely for admin-zone requests).
+     * Returns false when no request is bound to the current thread (schedulers, async tasks),
+     * instead of failing on the unbound request proxy.
+     */
+    public boolean isAdminArea() {
+        if (RequestContextHolder.getRequestAttributes() == null)
+            return false;
+        return Boolean.parseBoolean(request.getHeader(HEADER_ADMIN_AREA));
     }
 
     @Override

@@ -47,6 +47,8 @@ public class ApiUser {
     private DomainResolver domainResolver;
     private Locale locale;
     private LocaleResolver localeResolver;
+    private Boolean adminArea;
+    private AdminAreaResolver adminAreaResolver;
     private BusinessAccountResolver businessAccountResolver;
     private UserResolver userResolver;
     private MachineBusinessAccountResolver machineBusinessAccountResolver;
@@ -118,6 +120,11 @@ public class ApiUser {
         return this;
     }
 
+    public ApiUser setAdminAreaResolver(AdminAreaResolver adminAreaResolver) {
+        this.adminAreaResolver = adminAreaResolver;
+        return this;
+    }
+
     public DomainEntity getDomain() throws ServiceException {
         if (domain != null)
             return domain;
@@ -178,6 +185,22 @@ public class ApiUser {
             log.error("Resolve locale exception:", e);
         }
         log.info("resolved locale[{}]", locale);
+    }
+
+    /**
+     * True when the request was issued from the FE admin zone ({@code AdminArea} header).
+     * Gates the domain-wide visibility bypasses (e.g. DOMAIN_TWINS_VIEW_ALL) so they apply
+     * only to admin-area requests. Resolves lazily and caches per request; in non-request
+     * threads (schedulers, async) the default header resolver safely yields false.
+     */
+    public boolean isAdminArea() {
+        if (adminArea != null)
+            return adminArea;
+        if (adminAreaResolver == null)
+            adminAreaResolver = apiUserResolverService.getAdminAreaResolverHeaders();
+        adminArea = adminAreaResolver.resolveAdminArea();
+        log.info("resolved adminArea[{}]", adminArea);
+        return adminArea;
     }
 
     private void resolveDomainId() {
