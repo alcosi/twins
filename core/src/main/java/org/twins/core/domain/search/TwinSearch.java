@@ -23,32 +23,57 @@ import java.util.function.Function;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinSearch extends EntitySearch<TwinEntity> {
+public class TwinSearch extends EntitySearch<TwinEntity> implements ConfiguredSearchHolder<TwinSearchEntity> {
+    @SearchFilter
     private Set<UUID> twinIdList;
+    @SearchFilter
     private Set<String> twinNameLikeList;
+    @SearchFilter
     private Set<String> twinNameNotLikeList;
+    @SearchFilter
     private Set<String> twinDescriptionLikeList;
+    @SearchFilter
     private Set<String> twinDescriptionNotLikeList;
+    @SearchFilter
     private Set<String> externalIdList;
+    @SearchFilter
     private Set<String> externalIdExcludeList;
+    @SearchFilter
     private Set<UUID> twinIdExcludeList;
+    @SearchFilter
     private Set<UUID> twinClassIdList;
+    @SearchFilter
     private Set<UUID> twinClassIdExcludeList;
     private DBUMembershipCheck dbuMembershipCheck; // this will take sense only if we search by TWIN_CLASS_USER or TWIN_CLASS_BUSINESS_ACCOUNT
+    @SearchFilter
     private Set<UUID> headTwinClassIdList;
+    @SearchFilter
     private Set<UUID> twinClassExtendsHierarchyContainsIdList;
+    @SearchFilter
     private Set<UUID> headTwinIdList;
+    @SearchFilter
     private Set<UUID> statusIdList;
+    @SearchFilter
     private Set<UUID> assigneeUserIdList;
+    @SearchFilter
     private Set<UUID> assigneeUserIdExcludeList;
+    @SearchFilter
     private Set<String> assigneeUserNameList;
+    @SearchFilter
     private Set<String> assigneeUserNameExcludeList;
+    @SearchFilter
     private Set<UUID> createdByUserIdList;
+    @SearchFilter
     private Set<UUID> createdByUserIdExcludeList;
+    @SearchFilter
     private Set<String> createdByUserNameList;
+    @SearchFilter
     private Set<String> createdByUserNameExcludeList;
+    @SearchFilter
     private Set<UUID> ownerUserIdList;
+    @SearchFilter
     private Set<UUID> ownerBusinessAccountIdList;
+    @SearchFilter
     private Set<UUID> ownerBusinessAccountIdExcludeList;
     private Map<UUID, Set<UUID>> dstLinksAnyOfList;
     private Map<UUID, Set<UUID>> dstLinksNoAnyOfList;
@@ -59,15 +84,25 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
     private Map<UUID, Set<UUID>> srcLinksAllOfList;
     private Map<UUID, Set<UUID>> srcLinksNoAllOfList;
     private List<TwinSearchBySpaceRoleUser> spaceRoleUsersList;
+    @SearchFilter
     private Set<UUID> hierarchyTreeContainsIdList;
+    @SearchFilter
     private Set<UUID> statusIdExcludeList;
+    @SearchFilter
     private Set<UUID> tagDataListOptionIdList;
+    @SearchFilter
     private Set<UUID> tagDataListOptionIdExcludeList;
+    @SearchFilter
     private Set<UUID> markerDataListOptionIdList;
+    @SearchFilter
     private Set<UUID> markerDataListOptionIdExcludeList;
+    @SearchFilter
     private Set<UUID> flavorDataListOptionIdList;
+    @SearchFilter
     private Set<UUID> flavorDataListOptionIdExcludeList;
+    @SearchFilter
     private Set<Touch> touchList;
+    @SearchFilter
     private Set<Touch> touchExcludeList;
     private List<TwinFieldSearch> fields;
     private TwinFieldFilter fieldsFilter;
@@ -78,6 +113,8 @@ public class TwinSearch extends EntitySearch<TwinEntity> {
     private IntegerRange headHierarchyCounterDirectChildrenRange;
     // if true, status check will consider freeze status from twin class (freeze status has priority over native twin status)
     private boolean checkFreezeStatus = true;
+    // a finder sets this when the accumulated search is known to match nothing — the flow short-circuits without hitting the DB
+    private boolean emptySearch = false;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(twinIdList) &&

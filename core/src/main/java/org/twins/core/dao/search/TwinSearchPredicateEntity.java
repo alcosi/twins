@@ -8,6 +8,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.annotation.ConfiguredSearchPredicate;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_search_predicate")
-public class TwinSearchPredicateEntity implements EasyLoggable {
+public class TwinSearchPredicateEntity implements EasyLoggable, ConfiguredSearchPredicate {
     @Id
     private UUID id;
 
@@ -45,6 +46,16 @@ public class TwinSearchPredicateEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinSearchEntity search;
+
+    @Override
+    public Integer getFinderFeaturerId() {
+        return twinFinderFeaturerId;
+    }
+
+    @Override
+    public HashMap<String, String> getFinderParams() {
+        return twinFinderParams;
+    }
 
     public String easyLog(Level level)  {
         switch (level) {

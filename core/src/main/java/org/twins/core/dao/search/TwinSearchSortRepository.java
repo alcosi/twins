@@ -11,6 +11,6 @@ import java.util.UUID;
 @Repository
 public interface TwinSearchSortRepository extends CrudRepository<TwinSearchSortEntity, UUID>, JpaSpecificationExecutor<TwinSearchSortEntity> {
 
-    List<TwinSearchSortEntity> findByTwinSearchIdIn(Collection<UUID> searchId);
+    List<TwinSearchSortEntity> findByTwinSearchIdInOrderByOrderAsc(Collection<UUID> searchId);
 
 }

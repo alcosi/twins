@@ -4,9 +4,6 @@ import io.github.breninsul.logging.aspect.JavaLoggingLevel;
 import io.github.breninsul.logging.aspect.annotation.LogExecutionTime;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
@@ -15,7 +12,9 @@ import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.search.TwinSearchSortEntity;
 import org.twins.core.dao.search.TwinSearchSortRepository;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -45,37 +44,23 @@ public class TwinSearchSortService extends EntitySecureFindServiceImpl<TwinSearc
         return true;
     }
 
-    public void sortByOrder(List<TwinSearchSortEntity> sorts) {
-        if (CollectionUtils.isNotEmpty(sorts))
-            sorts.sort(Comparator.comparing(TwinSearchSortEntity::getOrder, Comparator.nullsLast(Integer::compareTo)));
+    public void loadSorts(TwinSearchEntity src) {
+        loadSorts(Collections.singletonList(src));
     }
 
-    public void loadSorts(TwinSearchEntity entity) throws ServiceException {
-        loadSorts(List.of(entity));
-    }
-
-    public void loadSorts(Collection<TwinSearchEntity> entities) throws ServiceException {
-        Kit<TwinSearchEntity, UUID> needLoad = new Kit<>(TwinSearchEntity::getId);
-        for (TwinSearchEntity entity : entities) {
-            if (entity.getSortKit() == null) {
-                needLoad.add(entity);
-            }
-        }
-
-        if (needLoad.isEmpty()) {
-            return;
-        }
-
-        KitGrouped<TwinSearchSortEntity, UUID, UUID> sortKit = new KitGrouped<>(
-                twinSearchSortRepository.findByTwinSearchIdIn(needLoad.getIdSet()),
+    /**
+     * Fills sortKit per search in one query. The repository orders by {@code order} ASC (nulls last),
+     * and loadKit preserves that encounter order inside each per-search kit (Kit is LinkedHashMap-backed).
+     */
+    public void loadSorts(Collection<TwinSearchEntity> srcList) {
+        loadKit(srcList,
+                TwinSearchEntity::getId,
+                TwinSearchEntity::getSortKit,
+                TwinSearchEntity::setSortKit,
+                twinSearchSortRepository::findByTwinSearchIdInOrderByOrderAsc,
                 TwinSearchSortEntity::getId,
-                TwinSearchSortEntity::getTwinSearchId);
-
-        for (Map.Entry<UUID, TwinSearchEntity> entry : needLoad.getMap().entrySet()) {
-            List<TwinSearchSortEntity> grouped = sortKit.getGrouped(entry.getKey());
-            sortByOrder(grouped);
-            entry.getValue().setSortKit(new Kit<>(grouped, TwinSearchSortEntity::getId));
-        }
+                TwinSearchSortEntity::getTwinSearchId,
+                TwinSearchSortEntity::setSearch);
     }
 
 }

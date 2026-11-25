@@ -1,24 +1,24 @@
 package org.twins.face.dao.navbar.nb001;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.util.UUID;
 
-@Data
-@Accessors(chain = true)
 @Entity
-@Table(name = "face_navbar_nb001_menu_item")
+@Getter
+@Setter
+@Accessors(chain = true)
+@FieldNameConstants
+@Table(name = "face_nb001_menu_item")
 public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Id
     @Column(name = "id")
@@ -42,7 +42,7 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Column(name = "permission_id")
     private UUID permissionId;
 
-    @Column(name = "face_navbar_nb001_status_id")
+    @Column(name = "face_nb001_status_id")
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -53,51 +53,67 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Column(name = "target_twin_id")
     private UUID targetTwinId;
 
-    @Column(name = "parent_face_navbar_nb001_menu_item_id")
+    @Column(name = "counter_twin_search_id")
+    private UUID counterTwinSearchId;
+
+    @Column(name = "parent_face_nb001_menu_item_id")
     private UUID parentFaceMenuItemId;
 
     @Column(name = "`order`")
     private Integer order;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceEntity face;
+    private FaceEntity faceSpecOnly;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity labelI18n;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "description_i18n_id", nullable = false, insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity descriptionI18n;
-
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ResourceEntity iconResourceSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_page_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity targetPageFaceSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_twin_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinEntity targetTwinSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private PermissionEntity permissionSpecOnly;
+
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ResourceEntity iconResource;
 
     @Deprecated
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_page_face_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity targetPageFace;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_twin_id", nullable = false, insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private TwinEntity targetTwin;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private PermissionEntity permission;
@@ -105,7 +121,7 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    Kit<FaceNB001MenuItemEntity, UUID> childs;
+    private Kit<FaceNB001MenuItemEntity, UUID> childs;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -116,6 +132,11 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceNB001MenuItemEntity parentFaceMenuItem;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Long counter;
 
     @Override
     public String easyLog(Level level) {

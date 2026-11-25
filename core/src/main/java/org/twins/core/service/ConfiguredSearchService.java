@@ -53,6 +53,30 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
         if (unlimitedSearchId().equals(searchId)) {
             return runFreeSearch(narrowSearch, pagination);
         }
+        R mainSearch = buildConfiguredSearch(searchId, namedParamsMap, narrowSearch);
+        if (mainSearch.isEmptySearch()) {
+            return PaginationResult.EMPTY;
+        }
+        return runConfiguredSearch(mainSearch, pagination);
+    }
+
+    /**
+     * Counts entities matched by the configured search: the same predicate pipeline as
+     * {@link #findConfigured}, but a single COUNT query — sorting and pagination are not applied.
+     */
+    public long countConfigured(UUID searchId, Map<String, String> namedParamsMap, R narrowSearch) throws ServiceException {
+        if (unlimitedSearchId().equals(searchId)) {
+            return runFreeCount(narrowSearch != null ? narrowSearch : entitySearchService().newSearch());
+        }
+        R mainSearch = buildConfiguredSearch(searchId, namedParamsMap, narrowSearch);
+        if (mainSearch.isEmptySearch()) {
+            return 0;
+        }
+        return runConfiguredCount(mainSearch);
+    }
+
+    /** Builds the domain search from the saved header: predicates → narrow → header attached. */
+    private R buildConfiguredSearch(UUID searchId, Map<String, String> namedParamsMap, R narrowSearch) throws ServiceException {
         S searchEntity = findEntitySafe(searchId);
         R mainSearch = entitySearchService().newSearch();
         for (P predicate : loadPredicates(searchEntity)) {
@@ -61,10 +85,7 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
         }
         narrowSearch(mainSearch, narrowSearch);
         mainSearch.setConfiguredSearch(searchEntity);
-        if (mainSearch.isEmptySearch()) {
-            return PaginationResult.EMPTY;
-        }
-        return runConfiguredSearch(mainSearch, pagination);
+        return mainSearch;
     }
 
     /**
@@ -78,6 +99,16 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
         spec = addConfiguredSorting(mainSearch, pagination, spec);
         Page<E> page = searchExecutor().findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(page, pagination);
+    }
+
+    /**
+     * Executes the configured count: filter specification only (no sorter, no pageable) + COUNT query.
+     * Override together with {@link #runConfiguredSearch} when the search needs a different execution shape.
+     */
+    protected long runConfiguredCount(R mainSearch) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        Specification<E> spec = entitySearchService().createFilterSpecification(mainSearch, apiUser.getDomainId(), apiUser.getLocale());
+        return searchExecutor().count(spec);
     }
 
     /** Applies the configured sorter when it is forced or the client did not request a sort. */
@@ -165,6 +196,14 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
      */
     protected PaginationResult<E> runFreeSearch(R search, SimplePagination pagination) throws ServiceException {
         return entitySearchService().search(search, pagination);
+    }
+
+    /**
+     * UNLIMITED count path: plain free count over the narrow filter.
+     * Override together with {@link #runFreeSearch} when free search has a custom execution shape.
+     */
+    protected long runFreeCount(R search) throws ServiceException {
+        return entitySearchService().count(search);
     }
 
     // Generic narrowing over @SearchFilter fields. Narrowed types: Set, Ternary, Map<UUID,Boolean>

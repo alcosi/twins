@@ -31,7 +31,8 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     @Override
     public void map(FaceNB001MenuItemEntity src, FaceNB001MenuItemDTOv1 dst, MapperContext mapperContext) throws Exception {
         faceNB001MenuItemService.loadChilds(src);
-
+        faceNB001MenuItemService.loadIconResources(src);
+        faceNB001MenuItemService.loadCounters(src);
         dst
                 .setId(src.getId())
                 .setKey(src.getKey())
@@ -44,14 +45,18 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setGuardedByPermissionId(src.getPermissionId())
                 .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
                 .setOrder(src.getOrder())
+                .setCounterTwinSearchId(src.getCounterTwinSearchId())
+                .setCounter(src.getCounter() != null && src.getCounter() > 0 ? src.getCounter() : null)
                 .setChildren(convertCollection(src.getChilds() == null ? null : faceNB001MenuItemService.sorted(src.getChilds()))); //be afraid of endless looping!
 
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
+            faceNB001MenuItemService.loadTargetPageFaces(src);
             faceRestDTOMapper.postpone(src.getTargetPageFace(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2FaceMode.SHORT));
         }
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2PermissionMode.HIDE)) {
+            faceNB001MenuItemService.loadPermissions(src);
             permissionRestDTOMapper.postpone(src.getPermission(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2PermissionMode.SHORT));
         }
     }
@@ -60,5 +65,13 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     public void beforeCollectionConversion(Collection<FaceNB001MenuItemEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         faceNB001MenuItemService.loadChilds(srcCollection);
+        faceNB001MenuItemService.loadIconResources(srcCollection);
+        faceNB001MenuItemService.loadCounters(srcCollection);
+        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
+            faceNB001MenuItemService.loadTargetPageFaces(srcCollection);
+        }
+        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2PermissionMode.HIDE)) {
+            faceNB001MenuItemService.loadPermissions(srcCollection);
+        }
     }
 }
