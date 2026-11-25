@@ -3,6 +3,8 @@
 Статус: модель согласована (2026-10-15/16): пример, rollback, LOCK, ленивое открытие версий,
 механика удалений row_status. Развивает `domain-versioning-handoff.md`; реализация — пилотный
 план `domain-versioning-slice-a.md` (переписан по модели v2, 2026-10-16). Открытых вопросов нет.
+Срез B (Java-оркестрация операций, формат артефактов, saved_*-конвенция, реестр-таблица)
+согласован 2026-11-17 — см. раздел «Срез B».
 
 ## Модель — двумя словами
 
@@ -599,7 +601,7 @@ ALTER TABLE domain_version ADD COLUMN rollback_delta_hash varchar;     -- SHA-25
 2. **`domain_version_id`** — срез аудита по окну версии, без него rollback не построить.
 3. **`row_id` = PK самой строки**; таблицам без uuid PK (составные ключи) id добавляется миграцией — контракт описан в разделе «Схема».
 4. **Таблица резолва `domain_config_audit_resolve` не нужна** — в модели v2 каждая строка несёт `domain_id`/`domain_version_id`, аудит ничего не вычисляет по FK-цепочкам.
-5. Фильтр «осмысленного изменения» общий у штампа и аудита: no-op UPDATE не пишет ни штамп, ни аудит (иначе ложные изменения в дельте). Из сравнения исключаются технические колонки, не являющиеся содержимым настройки: `updated_at`, `created_at`, счётчики (`twin_counter` и подобные), деревья иерархий, сам штамп `domain_version_id` — реестр исключений ведётся в `domain_version_tables()`. **Образы `before`/`after` хранятся уже очищенными** (минус исключённый набор, минус `id` — он в колонке `row_id`): чистка на записи, а не на чтении — в истории нет шума `updated_at`, а восстановление из образа не затирает живые счётчики/деревья, обслуживаемые триггерами для других строк. `row_status` в образе сохраняется (осмысленная колонка). Прежний штамп чистка вырезала бы — поэтому он поднят в отдельную колонку `before_domain_version_id`. Контракт реестра: волна, вводящая generated/identity-колонку, обязана добавить её в исключённый набор — в образы она не попадёт, восстановление её не тронет.
+5. Фильтр «осмысленного изменения» общий у штампа и аудита: no-op UPDATE не пишет ни штамп, ни аудит (иначе ложные изменения в дельте). Из сравнения исключаются технические колонки, не являющиеся содержимым настройки: `updated_at`, `created_at`, счётчики (`twin_counter` и подобные), деревья иерархий, сам штамп `domain_version_id` — реестр исключений ведётся в `domain_version_tables()` (пересмотрено 2026-11-17: `created_at`/`updated_at` удаляются из схемы целиком, а реестр переезжает из функции в таблицу `domain_versioned_table`, наполняемую из Java — см. «Срез B»). **Образы `before`/`after` хранятся уже очищенными** (минус исключённый набор, минус `id` — он в колонке `row_id`): чистка на записи, а не на чтении — в истории нет шума `updated_at`, а восстановление из образа не затирает живые счётчики/деревья, обслуживаемые триггерами для других строк. `row_status` в образе сохраняется (осмысленная колонка). Прежний штамп чистка вырезала бы — поэтому он поднят в отдельную колонку `before_domain_version_id`. Контракт реестра: волна, вводящая generated/identity-колонку, обязана добавить её в исключённый набор — в образы она не попадёт, восстановление её не тронет.
 6. **Аудит пишут ВСЕ пути, включая служебные** (импорт, rollback, релизная чистка) — раньше предполагалось выключать аудит под GUC; вместо этого каждая запись несёт колонку `domain_operation_status` (IDLE = обычная правка, IMPORTING, RELEASING, ROLLBACK). История полная: «строка приехала импортом 1.2», «восстановлена rollback'ом»; UI «человеческих» правок фильтрует по IDLE.
 
 Хранение — долговременное (история «кто/когда/что»); при росте объёмов — шедулер переноса в архив (отдельная задача, не блокер).
@@ -687,6 +689,11 @@ ALTER TABLE domain ADD COLUMN locked_by uuid REFERENCES "user" ON UPDATE CASCADE
   импорт FULL/INCREMENTAL, restore, rollback.
 - Дополнительно `pg_trigger_depth() > 1` отличает запись, сделанную из другого триггера, от
   верхнеуровневого оператора — бесплатное усиление защиты.
+
+(Реализация, 2026-11-17: обе двери сведены в ОДИН GUC `twins.domain_version_op` плюс
+`pg_trigger_depth() > 1` — см. миграцию 02, `domain_version_protected_path()`. Под защищённым
+путём входящий штамп строки эхуется — гейт, ленивое открытие окна и перештамповка не работают;
+аудит журналируется под текущим штампом строки.)
 
 Таблица `domain_version`: любые записи только под `twins.version_op`; строки со статусом RELEASED
 неизменяемы всегда, даже с GUC. Таблица `domain_version_audit`: INSERT только из аудита-обёрток;
@@ -859,7 +866,117 @@ SELECT r.id
 - **Аудит пишут все пути** с тегом этапа `domain_operation_status` (IDLE/IMPORTING/RELEASING/
   ROLLBACK) — история полная, «человеческие» правки фильтруются по IDLE.
 
+---
+
+## Срез B — Java-оркестрация и артефакты (согласовано 2026-11-17)
+
+### Кто строит артефакты
+
+Формат артефактов целиком принадлежит Java: конверт, сборка, SHA-256 над финальными байтами;
+хэш никогда не пересчитывается из БД. Причины: resource-хранилище доступно только из Java
+(байты артефакта всё равно поднимаются в Java), а рождение формата в Java открывает путь
+конвертерам версий формата через поле `format`. Триггеры только журналируют; артефакты
+рождаются в момент оркестрации операции.
+
+Форматы (v1):
+
+- снапшот: `{"format":"twins-domain-config/1","tables":{"<table>":[{row},...]}}` — все строки
+  домена, кроме DELETED (DISABLED едут со своим статусом);
+- дельта (прямая и обратная): `{"format":"twins-domain-config-delta/1","upsert":{"<table>":[rows]},
+  "delete":{"<table>":[ids]}}`; upsert — полный образ строки (идемпотентное применение);
+- ключи образов — snake_case имена колонок БД; это контракт v1 (маппинг возможен позже через
+  bump `format`).
+
+### Чтение и реестр таблиц
+
+- Чтение строк — через JPA (entity в точности соответствуют текущей схеме), read-only
+  транзакция; конверсия entity → Map — обходом basic-атрибутов JPA-метамодели с именами из
+  `@Column`. Jackson-по-entity запрещён (transients, lazy specOnly-ассоциации). Fallback при
+  проблемах с L1/памятью — Tuple-проекции.
+- Реестр версионируемых таблиц — наследники `DomainConfigEntity`; исключения полей — новая
+  аннотация `@DomainConfigIgnore` на полях (`domainVersionId` помечен один раз на базе;
+  производные колонки вроде счётчиков и деревьев `twin_class` — на entity).
+- SQL-сторона: функция `domain_version_tables()` ЗАМЕНЯЕТСЯ таблицей `domain_versioned_table`
+  (`table_name` PK, `excluded_columns text[]` — полный слитый список: common + per-table).
+  Таблица создаётся миграцией 01, наполняется Java при старте (ApplicationRunner, прецедент
+  `SystemEntityBootstrap`): ТОЛЬКО upsert (`ON CONFLICT DO UPDATE WHERE IS DISTINCT FROM`),
+  DELETE — никогда (rolling-deploy safety). SQL хранит common-set fallback на окно «миграция
+  применена → первый boot нового кода». Миграция 02 правится in-place (ничего не выпущено;
+  локальную БД переприменить). Единственный источник истины — Java-модель; лёгкий guard-test на
+  забытую аннотацию остаётся.
+- Boot-проверка покрытия колонок ОТКЛОНЕНА: только комментарий на `DomainConfigEntity` и в
+  билдере — колонки, которые есть в БД, но не смаплены в entity, осознанно не попадают в
+  артефакты (темповые/технические колонки — норма).
+
+### `saved_at` / `saved_by_user_id` вместо `created_*`/`updated_*`
+
+- Каждая настроечная таблица получает `saved_at` + `saved_by_user_id` — единый маркер последнего
+  сохранения (информация о создании — первая INSERT-запись аудита строки). Ведутся ТРИГГЕРАМИ:
+  `NEW.saved_at := CURRENT_TIMESTAMP; NEW.saved_by_user_id := current_actor_user_id_get()` —
+  покрывает сервисы, прямой SQL и служебные операции; канал актора — существующий GUC
+  `app.current_user_id` (`TransactionActorUserService`).
+- Бэкфилл: `saved_at := coalesce(updated_at, created_at)`, `saved_by_user_id := created_by_user_id`;
+  без FK на user (прецедент `audit.actor_user_id`).
+- Скоуп: 7 таблиц пилота сейчас; конвенция обязательна для волн 1–4; Twin/бизнес-сущности не
+  трогаем.
+- Поля живут на `DomainConfigEntity` в §13-форме trigger-maintained: `insertable/updatable=false`
+  + `@Generated(INSERT,UPDATE)` + `@DomainConfigIgnore`.
+- `created_at`/`updated_at` УДАЛЯЮТСЯ из БД и entity сразу (без переходного периода в схеме);
+  только DTO-слой временно сохраняет `created*`-поля как deprecated (удаление 2027-01-17) с
+  маппингом из `saved_*`. Оговорка: для строк, существовавших до версионирования, реальное
+  создание аудиту неизвестно (baseline INSERT'ы имеют actor NULL и время бэкфилла); приближение
+  сохраняется через бэкфилл `saved_at`. Перед дропом — свип использований
+  `createdAt`/`updatedAt`/`createdByUserId` по 7 пилотным entity (сортировки, мапперы,
+  `setCreatedAt` в дубликаторах).
+- Исключённый набор становится `['saved_at','saved_by_user_id','domain_version_id']`
+  (`created_at`/`updated_at` уходят вместе с колонками). `rowStatus` добавляется на
+  `DomainConfigEntity` (writable — переходы ACTIVE↔DISABLED пишет Java; первый потребитель —
+  билдер снапшота).
+
+### Построение дельт — DomainVersionArtifactService
+
+Дельты (прямая и обратная) строит тот же Java-билдер, в момент релиза, вызовом из
+`DomainOperationService.release()` между `release_start` и `release_end`:
+
+- **прямая**: JPA-чтение строк со штампом окна (`domain_version_id = :window`), ВКЛЮЧАЯ DELETED
+  (они физически живы до чистки в `release_end`); ACTIVE/DISABLED → upsert-образ (с id),
+  DELETED → delete-список;
+- **обратная**: аудит окна через `DomainVersionAuditEntity` (`before`/`after` — уже
+  `Map<String,Object>`), `ORDER BY seq ASC`, первая запись на `(table_name, row_id)`:
+  `before IS NULL` → delete-список; иначе → upsert before-образа. Правило сформулировано через
+  `before IS NULL`, а не через тип операции — корректно для INSERT/UPDATE/DELETE/RESTORE
+  автоматически. id подставляется обратно в образ (аудит хранит образы без id — он в колонке
+  `row_id`). Аудит-образы сериализуются тем же детерминированным маппером, что и entity-образы
+  (байт-паритет между артефактами не требуется: импортёр биндит типизированные значения,
+  PG-приведения унифицируют). Первый релиз — без обратной дельты (страхует `release_end`);
+- строка, рождённая и удалённая в одном окне: в прямую дельту не попадает (удалена физически),
+  в обратной даёт «delete несуществующего id» — безвредный no-op.
+
+### Оркестратор DomainOperationService
+
+- release: tx1 `release_start` → сборка артефактов ВНЕ транзакции (состояние заморожено
+  RELEASING) + замер длительности → tx2 `ResourceService.addResource` ×2–3 + `release_end`
+  атомарно. При сбое — `domain_operation_abort` в REQUIRES_NEW (авто-аборт, RELEASING не
+  залипает).
+- rollback: `rollback_start` → Java применяет аудит окна в seq DESC (INSERT → физическое
+  удаление; DELETE/UPDATE → восстановление before-образа; штамп — из `before_domain_version_id`)
+  под GUC `twins.domain_version_op` → `rollback_end` сворачивает опустевшее окно.
+- Ошибки: `DataAccessException` → развёрнутый `PSQLException`, ERRCODE 55006 → новый
+  `ErrorCodeTwins.DOMAIN_OPERATION_CONFLICT` (HTTP 409, сообщение БД прокидывается); прочее —
+  rethrow.
+- REST: `DomainOperationController` — `POST /private/domain_version/release|rollback|abort|lock/v1`,
+  `@ProtectedBy(DOMAIN_VERSION_MANAGE)`. История для UI — существующий audit-search + фильтр
+  `domainOperationStatus=IDLE`.
+
 ## Следующие шаги
 
-1. Реализация пилота по `ai/plans/domain-versioning-slice-a.md` (миграции 01–04, тесты);
-   далее срезы B (Java/REST), C (импорт), D (дублирование).
+1. Срез A (миграции 01–04) реализован; компиляция ветки восстановлена 2026-11-17 (3 дефекта:
+   rename-наследники `ContextService`/`ContextCollectorService`, импорт `EventType` в
+   `DomainVersionAuditEntity`, shadowing параметра в `TwinClassDuplicateService`).
+   Интеграционный тест `DomainVersionPilotIntegrationTest` ждёт container-runtime.
+2. Срез B — дизайн зафиксирован выше; реализация по шагам: билдер артефактов +
+   `DomainConfigEntity` (`saved_*`, `rowStatus`, `@DomainConfigIgnore`), `domain_versioned_table`
+   + startup-sync + правка миграции 02, saved_*-триггеры и дроп `created_at`/`updated_at` (после
+   свипа использований), DTO-шимы; затем `DomainOperationService` (release → rollback →
+   abort/lock) + REST. Верификация на локальной БД: два прогона билдера → идентичный SHA-256.
+3. Срезы C (импорт FULL/INCREMENTAL) и D (дублирование) — после B.
