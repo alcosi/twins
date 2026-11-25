@@ -11,6 +11,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.FaceMode;
 import org.twins.face.dao.page.pg002.FacePG002Entity;
 import org.twins.face.dao.page.pg002.FacePG002TabEntity;
 import org.twins.face.dto.rest.page.pg002.FacePG002DTOv1;
+import org.twins.face.service.page.FacePG002Service;
 import org.twins.face.service.page.FacePG002TabService;
 
 import java.util.Collection;
@@ -23,10 +24,12 @@ import java.util.List;
 public class FacePG002RestDTOMapper extends RestSimpleDTOMapper<FacePG002Entity, FacePG002DTOv1> {
     protected final FaceRestDTOMapper faceRestDTOMapper;
     protected final FacePG002TabRestDTOMapper facePG002TabRestDTOMapper;
+    protected final FacePG002Service facePG002Service;
     protected final FacePG002TabService facePG002TabService;
 
     @Override
     public void map(FacePG002Entity src, FacePG002DTOv1 dst, MapperContext mapperContext) throws Exception {
+        facePG002Service.loadFace(src);
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case SHORT -> dst
@@ -37,7 +40,7 @@ public class FacePG002RestDTOMapper extends RestSimpleDTOMapper<FacePG002Entity,
         }
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabCollectionMode.HIDE)) {
             facePG002TabService.loadTabs(src);
-            List<FacePG002TabEntity> sortedList = facePG002TabService.filterVariants(src.getTabs(), FacePG002TabEntity::getOrder);
+            List<FacePG002TabEntity> sortedList = facePG002TabService.filterVariants(src.getTabs(), tab -> tab.getOrder() == null ? 0 : tab.getOrder());
             dst.setTabs(facePG002TabRestDTOMapper.convertCollection(sortedList, mapperContext));
         }
     }
@@ -45,6 +48,7 @@ public class FacePG002RestDTOMapper extends RestSimpleDTOMapper<FacePG002Entity,
     @Override
     public void beforeCollectionConversion(Collection<FacePG002Entity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        facePG002Service.loadFace(srcCollection);
         if (mapperContext.hasModeButNot(FacePG002Modes.FacePG002TabCollectionMode.HIDE)) {
             facePG002TabService.loadTabs(srcCollection);
         }

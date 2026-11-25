@@ -14,6 +14,7 @@ import org.twins.core.domain.face.PointedFace;
 import org.twins.core.service.attachment.AttachmentRestrictionService;
 import org.twins.core.service.face.FacePointedService;
 import org.twins.core.service.face.FaceService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.face.dao.widget.wt004.FaceWT004Entity;
 import org.twins.face.dao.widget.wt004.FaceWT004Repository;
 
@@ -29,6 +30,7 @@ public class FaceWT004Service extends FacePointedService<FaceWT004Entity> {
     private final FaceWT004Repository faceWT004Repository;
     private final FaceService faceService;
     private final AttachmentRestrictionService attachmentRestrictionService;
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public CrudRepository<FaceWT004Entity, UUID> entityRepository() {
@@ -42,7 +44,9 @@ public class FaceWT004Service extends FacePointedService<FaceWT004Entity> {
 
     @Override
     public boolean isEntityReadDenied(FaceWT004Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return faceService.isEntityReadDenied(entity.getFace());
+        if (entity.getFace() == null)
+            entity.setFace(findFaceForReadCheck(entity.getFaceId()));
+        return faceService.isEntityReadDenied(entity.getFace(), readPermissionCheckMode);
     }
 
     @Override
@@ -53,6 +57,17 @@ public class FaceWT004Service extends FacePointedService<FaceWT004Entity> {
     @Override
     public List<FaceWT004Entity> getVariants(UUID of) {
         return faceWT004Repository.findByFaceId(of);
+    }
+
+    public void loadImagesTwinClassFields(FaceWT004Entity src) throws ServiceException {
+        loadImagesTwinClassFields(Collections.singletonList(src));
+    }
+
+    public void loadImagesTwinClassFields(Collection<FaceWT004Entity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                FaceWT004Entity::getImagesTwinClassFieldId,
+                FaceWT004Entity::getImagesTwinClassField,
+                FaceWT004Entity::setImagesTwinClassField);
     }
 
     public void loadRestriction(PointedFace<FaceWT004Entity> pointedFace) throws ServiceException {

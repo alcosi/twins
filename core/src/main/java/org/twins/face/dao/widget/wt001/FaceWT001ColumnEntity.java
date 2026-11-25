@@ -1,21 +1,22 @@
 package org.twins.face.dao.widget.wt001;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.cambium.common.EasyLoggable;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.face.FaceVariantEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_wt001_column")
-public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariantEntity {
+public class FaceWT001ColumnEntity implements FaceVariantEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -39,23 +40,39 @@ public class FaceWT001ColumnEntity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "show_by_default")
     private Boolean showByDefault;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_wt001_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceWT001Entity faceWT001SpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_field_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinClassFieldEntity twinClassField;
+    private TwinClassFieldEntity twinClassFieldSpecOnly;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "label_i18n_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity labelI18n;
+    private TwinClassFieldEntity twinClassField;
 
     @Transient
     @EqualsAndHashCode.Exclude

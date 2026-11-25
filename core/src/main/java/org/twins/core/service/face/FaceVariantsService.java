@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.face.FaceEntity;
@@ -83,4 +84,15 @@ public abstract class FaceVariantsService<T extends FaceVariantEntity> extends E
     }
 
     public abstract List<T> getVariants(UUID of);
+
+    /**
+     * Resolves the face for read-denial checks without its own read check: the denial verdict
+     * is the return value of {@code isEntityReadDenied}, not an exception.
+     */
+    protected FaceEntity findFaceForReadCheck(UUID faceId) throws ServiceException {
+        return faceService.findEntity(faceId,
+                EntitySmartService.FindMode.ifEmptyThrows,
+                EntitySmartService.ReadPermissionCheckMode.none,
+                EntitySmartService.EntityValidateMode.none);
+    }
 }

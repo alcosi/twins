@@ -7,6 +7,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
 import org.twins.face.dao.page.pg002.FacePG002TabEntity;
 import org.twins.face.dao.page.pg002.FacePG002WidgetEntity;
@@ -24,6 +25,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class FacePG002WidgetService extends FaceVariantsService<FacePG002WidgetEntity> {
     private final FacePG002WidgetRepository facePG002WidgetRepository;
+    private final FaceService faceService;
 
     @Override
     public CrudRepository<FacePG002WidgetEntity, UUID> entityRepository() {
@@ -63,5 +65,16 @@ public class FacePG002WidgetService extends FaceVariantsService<FacePG002WidgetE
     @Override
     public List<FacePG002WidgetEntity> getVariants(UUID of) {
         return facePG002WidgetRepository.findByFacePagePG002TabIdInAndActiveTrue(Collections.singleton(of));
+    }
+
+    public void loadWidgetFaces(FacePG002WidgetEntity src) throws ServiceException {
+        loadWidgetFaces(Collections.singletonList(src));
+    }
+
+    public void loadWidgetFaces(Collection<FacePG002WidgetEntity> srcCollection) throws ServiceException {
+        faceService.load(srcCollection,
+                FacePG002WidgetEntity::getWidgetFaceId,
+                FacePG002WidgetEntity::getWidgetFace,
+                FacePG002WidgetEntity::setWidgetFace);
     }
 }

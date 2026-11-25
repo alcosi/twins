@@ -45,7 +45,9 @@ public class FaceWT001Service extends FacePointedService<FaceWT001Entity> {
 
     @Override
     public boolean isEntityReadDenied(FaceWT001Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return faceService.isEntityReadDenied(entity.getFace());
+        if (entity.getFace() == null)
+            entity.setFace(findFaceForReadCheck(entity.getFaceId()));
+        return faceService.isEntityReadDenied(entity.getFace(), readPermissionCheckMode);
     }
 
     @Override
@@ -56,6 +58,17 @@ public class FaceWT001Service extends FacePointedService<FaceWT001Entity> {
     @Override
     public List<FaceWT001Entity> getVariants(UUID of) {
         return faceWT001Repository.findByFaceId(of);
+    }
+
+    public void loadModalFaces(FaceWT001Entity src) throws ServiceException {
+        loadModalFaces(Collections.singletonList(src));
+    }
+
+    public void loadModalFaces(Collection<FaceWT001Entity> srcCollection) throws ServiceException {
+        faceService.load(srcCollection,
+                FaceWT001Entity::getModalFaceId,
+                FaceWT001Entity::getModalFace,
+                FaceWT001Entity::setModalFace);
     }
 
     /**

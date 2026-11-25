@@ -2,23 +2,27 @@ package org.twins.face.dao.widget.wt006;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.cambium.common.EasyLoggable;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FacePointedEntity;
-import org.twins.core.dao.i18n.I18nEntity;
+import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldSearchEntity;
 
 import java.util.HashMap;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_wt006")
-public class FaceWT006Entity implements EasyLoggable, FacePointedEntity {
+public class FaceWT006Entity implements FacePointedEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -48,23 +52,70 @@ public class FaceWT006Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "editable_field_filter_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldFilterParams;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_twin_pointer_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinPointerEntity targetTwinPointerSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinPointerEntity targetTwinPointer;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_class_field_search_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFieldSearchEntity twinClassFieldSearchSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinClassFieldSearchEntity twinClassFieldSearch;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "editable_field_filter_featurer_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FeaturerEntity fieldFilterFeaturerSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FeaturerEntity fieldFilterFeaturer;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceEntity face;
+    private FaceEntity faceSpecOnly;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "label_i18n_id", nullable = false, insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity labelI18n;
+    private FaceEntity face;
 
     @Override
     public String easyLog(Level level) {
@@ -72,7 +123,7 @@ public class FaceWT006Entity implements EasyLoggable, FacePointedEntity {
             case SHORT:
                 return "faceWT006[" + faceId + "]";
             default:
-                return "faceWT006[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+                return "faceWT006[id:" + faceId + (face != null ? ", componentId:" + face.getFaceComponentId() : "") + "]";
         }
     }
 }

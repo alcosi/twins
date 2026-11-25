@@ -9,8 +9,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceTwinPointerService;
 import org.twins.core.service.face.FaceVariantsService;
+import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.bc.FaceBC001Entity;
 import org.twins.face.dao.bc.FaceBC001ItemEntity;
 import org.twins.face.dao.bc.FaceBC001ItemRepository;
@@ -28,6 +30,8 @@ public class FaceBC001Service extends FaceVariantsService<FaceBC001Entity> {
     private final FaceBC001Repository faceBC001Repository;
     private final FaceBC001ItemRepository faceBC001ItemRepository;
     private final FaceTwinPointerService faceTwinPointerService;
+    private final FaceService faceService;
+    private final ResourceService resourceService;
 
     @Override
     public CrudRepository<FaceBC001Entity, UUID> entityRepository() {
@@ -68,6 +72,28 @@ public class FaceBC001Service extends FaceVariantsService<FaceBC001Entity> {
                 FaceBC001ItemEntity::getId,
                 FaceBC001ItemEntity::getFaceBC001Id,
                 FaceBC001ItemEntity::setFaceBC001);
+    }
+
+    public void loadFace(FaceBC001Entity src) throws ServiceException {
+        loadFace(Collections.singletonList(src));
+    }
+
+    public void loadFace(Collection<FaceBC001Entity> srcCollection) throws ServiceException {
+        faceService.load(srcCollection,
+                FaceBC001Entity::getFaceId,
+                FaceBC001Entity::getFace,
+                FaceBC001Entity::setFace);
+    }
+
+    public void loadIconResources(FaceBC001ItemEntity src) throws ServiceException {
+        loadIconResources(Collections.singletonList(src));
+    }
+
+    public void loadIconResources(Collection<FaceBC001ItemEntity> srcCollection) throws ServiceException {
+        resourceService.load(srcCollection,
+                FaceBC001ItemEntity::getIconResourceId,
+                FaceBC001ItemEntity::getIconResource,
+                FaceBC001ItemEntity::setIconResource);
     }
 
     public List<Pair<FaceBC001ItemEntity, TwinEntity>> getBC001ItemToTwinPairs(FaceBC001Entity entity) throws ServiceException {

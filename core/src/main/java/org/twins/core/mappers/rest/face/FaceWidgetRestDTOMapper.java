@@ -25,6 +25,7 @@ public class FaceWidgetRestDTOMapper<E extends FacePointedEntity> extends RestSi
 
     @Override
     public void map(PointedFace<E> src, FaceWidgetDTOv1 dst, MapperContext mapperContext) throws Exception {
+        faceService.loadFace(src);
         faceRestDTOMapper.map(src.getConfig().getFace(), dst, mapperContext);
         dst.setPointedTwinId(src.getTargetTwinId());
         if (mapperContext.hasModeButNot(TwinMode.FaceWidget2TwinMode.HIDE)) {
@@ -36,6 +37,7 @@ public class FaceWidgetRestDTOMapper<E extends FacePointedEntity> extends RestSi
     @Override
     public void beforeCollectionConversion(Collection<PointedFace<E>> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceService.loadFace(srcCollection);
         if (mapperContext.hasModeButNot(TwinMode.FaceWidget2TwinMode.HIDE)) {
             faceService.loadTwin(srcCollection);
         }

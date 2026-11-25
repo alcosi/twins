@@ -1,20 +1,22 @@
 package org.twins.face.dao.page.pg001;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.cambium.common.EasyLoggable;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_pg001_widget")
-public class FacePG001WidgetEntity implements EasyLoggable, FaceVariantEntity {
+public class FacePG001WidgetEntity implements FaceVariantEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -32,19 +34,41 @@ public class FacePG001WidgetEntity implements EasyLoggable, FaceVariantEntity {
     private String styleClasses;
 
     @Column(name = "active", nullable = false)
-    private boolean active;
+    private Boolean active;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "widget_face_id", nullable = false, insertable = false, updatable = false)
+    @JoinColumn(name = "face_pg001_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceEntity widgetFace;
+    private FacePG001Entity facePG001SpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "widget_face_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity widgetFaceSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity widgetFace;
 
     @Transient
     @EqualsAndHashCode.Exclude

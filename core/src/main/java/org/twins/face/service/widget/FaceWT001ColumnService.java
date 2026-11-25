@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.service.face.FaceVariantsService;
+import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.face.dao.widget.wt001.FaceWT001ColumnEntity;
 import org.twins.face.dao.widget.wt001.FaceWT001ColumnRepository;
 import org.twins.face.dao.widget.wt001.FaceWT001Entity;
@@ -24,6 +25,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class FaceWT001ColumnService extends FaceVariantsService<FaceWT001ColumnEntity> {
     private final FaceWT001ColumnRepository faceWT001ColumnRepository;
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public CrudRepository<FaceWT001ColumnEntity, UUID> entityRepository() {
@@ -63,5 +65,16 @@ public class FaceWT001ColumnService extends FaceVariantsService<FaceWT001ColumnE
                 FaceWT001ColumnEntity::getId,
                 FaceWT001ColumnEntity::getFaceWT001Id,
                 FaceWT001ColumnEntity::setFaceWT001);
+    }
+
+    public void loadTwinClassFields(FaceWT001ColumnEntity src) throws ServiceException {
+        loadTwinClassFields(Collections.singletonList(src));
+    }
+
+    public void loadTwinClassFields(Collection<FaceWT001ColumnEntity> srcCollection) throws ServiceException {
+        twinClassFieldService.load(srcCollection,
+                FaceWT001ColumnEntity::getTwinClassFieldId,
+                FaceWT001ColumnEntity::getTwinClassField,
+                FaceWT001ColumnEntity::setTwinClassField);
     }
 }

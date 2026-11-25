@@ -7,7 +7,9 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
+import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.widget.wt002.FaceWT002ButtonEntity;
 import org.twins.face.dao.widget.wt002.FaceWT002ButtonRepository;
 import org.twins.face.dao.widget.wt002.FaceWT002Entity;
@@ -24,6 +26,8 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class FaceWT002ButtonService extends FaceVariantsService<FaceWT002ButtonEntity> {
     private final FaceWT002ButtonRepository faceWT002ButtonRepository;
+    private final FaceService faceService;
+    private final ResourceService resourceService;
 
     @Override
     public CrudRepository<FaceWT002ButtonEntity, UUID> entityRepository() {
@@ -63,5 +67,27 @@ public class FaceWT002ButtonService extends FaceVariantsService<FaceWT002ButtonE
     @Override
     public List<FaceWT002ButtonEntity> getVariants(UUID faceWT002Id) {
         return faceWT002ButtonRepository.findByFaceWT002Id(faceWT002Id);
+    }
+
+    public void loadIconResources(FaceWT002ButtonEntity src) throws ServiceException {
+        loadIconResources(Collections.singletonList(src));
+    }
+
+    public void loadIconResources(Collection<FaceWT002ButtonEntity> srcCollection) throws ServiceException {
+        resourceService.load(srcCollection,
+                FaceWT002ButtonEntity::getIconResourceId,
+                FaceWT002ButtonEntity::getIconResource,
+                FaceWT002ButtonEntity::setIconResource);
+    }
+
+    public void loadModalFaces(FaceWT002ButtonEntity src) throws ServiceException {
+        loadModalFaces(Collections.singletonList(src));
+    }
+
+    public void loadModalFaces(Collection<FaceWT002ButtonEntity> srcCollection) throws ServiceException {
+        faceService.load(srcCollection,
+                FaceWT002ButtonEntity::getModalFaceId,
+                FaceWT002ButtonEntity::getModalFace,
+                FaceWT002ButtonEntity::setModalFace);
     }
 }

@@ -1,22 +1,23 @@
 package org.twins.face.dao.bc;
 
 import jakarta.persistence.*;
-
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.i18n.I18nEntity;
+import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
-@Data
-@Entity
+@Getter
+@Setter
 @Accessors(chain = true)
+@FieldNameConstants
+@Entity
 @Table(name = "face_bc001_item")
-public class FaceBC001ItemEntity {
+public class FaceBC001ItemEntity implements EasyLoggable, Identifiable<UUID> {
 
     @Id
     @Column(name = "id")
@@ -24,7 +25,7 @@ public class FaceBC001ItemEntity {
 
     @Column(name = "`order`")
     @Basic
-    private int order;
+    private Integer order;
 
     @Column(name = "twin_pointer_id")
     private UUID twinPointerId;
@@ -38,27 +39,52 @@ public class FaceBC001ItemEntity {
     @Column(name = "label_id")
     private UUID labelId;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinPointerEntity twinPointerSpecOnly;
+
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private TwinPointerEntity twinPointer;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "face_bc001_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private FaceBC001Entity faceBC001;
+    private FaceBC001Entity faceBC001SpecOnly;
 
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ResourceEntity iconResourceSpecOnly;
+
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ResourceEntity iconResource;
 
-    @ManyToOne
-    @JoinColumn(name = "label_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity label;
+    private FaceBC001Entity faceBC001;
+
+    @Override
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "faceBC001Item[" + id + "]";
+            default:
+                return "faceBC001Item[id:" + id + ", faceBC001Id:" + faceBC001Id + ", order:" + order + "]";
+        }
+    }
 }

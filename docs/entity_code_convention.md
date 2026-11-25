@@ -73,6 +73,23 @@ twinEntity.getTagsSpecOnly().size()  // SELECT * FROM twin_tag WHERE twin_id = ?
 
 These calls are especially dangerous in mappers, loops, serialization, logging, and debugger evaluation.
 
+### 3.4 Exception — `domain_id` (tenant scoping)
+
+`domain_id` (and similar context-implicit tenant columns) NEVER gets the §2 field set:
+
+- **no** `domainSpecOnly` relation — specifications never join `domain`; tenancy is enforced by the service layer from the `ApiUser` context, not by criteria joins
+- **no** `@Transient domain` field — the current domain is always available from the auth context; nothing dereferences `entity.getDomain()`
+- **no** `loadDomain(...)` methods (see load_method_pattern.md)
+
+Keep only the raw id:
+
+```java
+@Column(name = "domain_id")
+private UUID domainId;
+```
+
+(Pre-existing `domainSpecOnly` usages inside the `dao.domain` package are aggregate-internal joins and are legitimate under §3.1.)
+
 ---
 
 ## 4. Naming Convention
@@ -569,7 +586,72 @@ Lombok naming note: for an `is`-prefixed **primitive** `boolean` Lombok generate
 
 ---
 
-## 15. ArchUnit Rule (planned)
+## 15. Required Interfaces — `EasyLoggable` and `Identifiable`
+
+### 15.1 `EasyLoggable` — mandatory on every entity
+
+Every JPA entity MUST implement `org.cambium.common.EasyLoggable`:
+
+```java
+@Entity
+@Table(name = "face_component_type")
+public class FaceComponentTypeEntity implements EasyLoggable, Identifiable<String> {
+
+    @Override
+    public String easyLog(Level level) {
+        return "faceComponentType[" + id + "]";
+    }
+}
+```
+
+All logging goes through the inherited `logShort()` / `logNormal()` / `logDetailed()` — never `entity.easyLog(Level.X)` directly (see the Logging rule in `CLAUDE.md`). The `easyLog(Level)` implementation builds the message lazily and must never touch lazy relations or SpecOnly fields — only raw fields and already-loaded transient ones (null-guard them).
+
+### 15.2 `Identifiable<ID>` — mandatory for every entity with a primary key
+
+Every JPA entity that declares an `@Id` (primary key) MUST implement `org.twins.core.domain.Identifiable<ID>`, where `ID` is the primary key type. No exceptions for child, kit-loaded or dictionary entities — see §15.3 for non-`id` primary keys.
+
+Consumers that rely on the contract:
+
+- **postpone into MapperContext related objects** (`someMapper.postpone(entity, ...)`) — `MapperContext.addRelatedObject` extracts the id via `instanceof Identifiable<?>`; a non-`Identifiable` object is **silently dropped** from related objects ("can not be stored in mapperContext");
+- **`EntitiesChangesCollector` / `TwinChangesCollector`** (create / update flows with change tracking);
+- **`EntityDuplicateService`**.
+
+The generic parameter is the id type:
+
+| Entity kind                                | Interface                  |
+| ------------------------------------------ | -------------------------- |
+| Regular root entity (`UUID id`)            | `Identifiable<UUID>`       |
+| Dictionary / enum-like entity (`String id`)| `Identifiable<String>`     |
+| Featurer entities (`Integer id`)           | `Identifiable<Integer>`    |
+
+Precedents: `FaceEntity implements EasyLoggable, Identifiable<UUID>`, `HistoryTypeEntity implements EasyLoggable, Identifiable<String>`, `FeaturerEntity implements Identifiable<Integer>`.
+
+Chain-setter compatibility: with `@Accessors(chain = true)` the Lombok-generated `setId` returns the concrete entity type — a valid covariant override of `Identifiable<ID> setId(ID id)`. No manual setter is needed.
+
+Base interfaces SHOULD carry both contracts, so implementors do not redeclare them: `FaceVariantEntity extends EasyLoggable, Identifiable<UUID>` (and `FacePointedEntity extends FaceVariantEntity`), so every face variant entity simply declares `implements FaceVariantEntity` / `implements FacePointedEntity`. Only entities outside such a hierarchy declare the two interfaces directly.
+
+### 15.3 Child entities and non-`id` primary keys
+
+Child entities (kit-loaded by a parent service, see `load_method_pattern.md`) are NOT exempt — §15.2 applies to them as well.
+
+If the primary key column is not named `id` (e.g. `FaceNB001Entity`, whose PK is `face_id`), Lombok does not generate `getId()` / `setId(...)`. Add explicit delegates:
+
+```java
+@Override
+public UUID getId() {
+    return faceId;
+}
+
+@Override
+public FaceNB001Entity setId(UUID id) {
+    this.faceId = id;
+    return this;
+}
+```
+
+---
+
+## 16. ArchUnit Rule (planned)
 
 Access to `*SpecOnly` fields must be forbidden outside:
 

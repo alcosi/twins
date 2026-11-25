@@ -25,6 +25,7 @@ Each `load*` method consists of three phases:
 * Filtering: an entity is skipped if the `@Transient` field is already not `null`
 * Early return when the `needLoad` collection is empty
 * Results are grouped by owner entity ID using `KitGrouped`
+* Exception: `domain_id` (tenant scoping) never gets a load method — no `@Transient domain` field exists on entities (see entity_code_convention.md §3.4)
 
 ## Implementation Variants
 

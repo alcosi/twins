@@ -1,22 +1,23 @@
 package org.twins.face.dao.page.pg001;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.cambium.common.EasyLoggable;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_pg001")
-public class FacePG001Entity implements EasyLoggable, FaceVariantEntity {
+public class FacePG001Entity implements FaceVariantEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -32,29 +33,37 @@ public class FacePG001Entity implements EasyLoggable, FaceVariantEntity {
 
     @Column(name = "style_classes")
     private String styleClasses;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FaceEntity face;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "title_i18n_id", nullable = false, insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity titleI18n;
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    Kit<FacePG001WidgetEntity, UUID> widgets;
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_id", nullable = false, insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity faceSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity face;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<FacePG001WidgetEntity, UUID> widgets;
 
     @Override
     public String easyLog(Level level) {
@@ -62,7 +71,7 @@ public class FacePG001Entity implements EasyLoggable, FaceVariantEntity {
             case SHORT:
                 return "facePG001[" + faceId + "]";
             default:
-                return "facePG001[id:" + faceId + ", componentId:" + face.getFaceComponentId() + "]";
+                return "facePG001[id:" + faceId + (face != null ? ", componentId:" + face.getFaceComponentId() : "") + "]";
         }
     }
 

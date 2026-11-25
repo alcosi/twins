@@ -15,6 +15,8 @@ import org.twins.face.dao.widget.wt004.FaceWT004Entity;
 import org.twins.face.dto.rest.widget.wt004.FaceWT004DTOv1;
 import org.twins.face.service.widget.FaceWT004Service;
 
+import java.util.Collection;
+
 
 @Component
 @RequiredArgsConstructor
@@ -40,13 +42,14 @@ public class FaceWT004RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                         .setKey(wt004.getKey())
                         .setLabel(I18nCacheHolder.addId(wt004.getLabelI18nId()))
                         .setImagesTwinClassFieldId(wt004.getImagesTwinClassFieldId())
-                        .setUploadable(wt004.isUploadable())
+                        .setUploadable(wt004.getUploadable())
                         .setRestrictionId(wt004.getTwinAttachmentRestriction() != null ? wt004.getTwinAttachmentRestriction().getId() : null);
 
             }
         }
 
         if (mapperContext.hasModeButNot(FaceWT004Modes.FaceWT0042TwinClassFieldMode.HIDE)) {
+            faceWT004Service.loadImagesTwinClassFields(src.getConfig());
             dst.setImagesTwinClassFieldId(src.getConfig().getImagesTwinClassFieldId());
             twinClassFieldRestDTOMapper.postpone(src.getConfig().getImagesTwinClassField(), mapperContext.forkOnPoint(FaceWT004Modes.FaceWT0042TwinClassFieldMode.SHORT));
         }
@@ -58,6 +61,15 @@ public class FaceWT004RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                 dst.setRestrictionId(src.getConfig().getTwinAttachmentRestriction().getId());
                 attachmentRestrictionRestDTOMapper.postpone(src.getConfig().getTwinAttachmentRestriction(), mapperContext.forkOnPoint(FaceWT004Modes.FaceWT0042AttachmentRestrictionMode.SHOW));
             }
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<PointedFace<FaceWT004Entity>> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(FaceWT004Modes.FaceWT0042TwinClassFieldMode.HIDE)) {
+            faceWT004Service.loadImagesTwinClassFields(srcCollection.stream().map(PointedFace::getConfig).toList());
         }
     }
 }

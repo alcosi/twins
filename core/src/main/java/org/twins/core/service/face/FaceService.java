@@ -85,6 +85,17 @@ public class FaceService extends EntitySecureFindServiceImpl<FaceEntity> {
         }
     }
 
+    public void loadFace(PointedFace<? extends FacePointedEntity> src) throws ServiceException {
+        loadFace(Collections.singletonList(src));
+    }
+
+    public void loadFace(Collection<? extends PointedFace<? extends FacePointedEntity>> srcCollection) throws ServiceException {
+        load(srcCollection.stream().map(PointedFace::getConfig).toList(),
+                FacePointedEntity::getFaceId,
+                FacePointedEntity::getFace,
+                FacePointedEntity::setFace);
+    }
+
     public void loadFaces(TwinEntity src) {
         loadFaces(Collections.singletonList(src));
     }
