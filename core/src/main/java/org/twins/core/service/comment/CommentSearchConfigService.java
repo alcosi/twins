@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.comment.*;
 import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.enums.sort.CommentSortField;
 import org.twins.core.featurer.comment.finder.CommentFinder;
 import org.twins.core.featurer.comment.sorter.CommentSorter;
 import org.twins.core.featurer.search.SearchFinder;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Service
-public class CommentSearchConfigService extends ConfiguredSearchService<TwinCommentSearchEntity, TwinCommentSearchPredicateEntity, CommentSearch, TwinCommentEntity> {
+public class CommentSearchConfigService extends ConfiguredSearchService<TwinCommentSearchEntity, TwinCommentSearchPredicateEntity, CommentSearch, TwinCommentEntity, CommentSortField> {
     private final TwinCommentSearchRepository twinCommentSearchRepository;
     private final TwinCommentSearchPredicateRepository twinCommentSearchPredicateRepository;
     private final TwinCommentRepository twinCommentRepository;

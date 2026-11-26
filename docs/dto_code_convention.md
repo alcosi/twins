@@ -155,6 +155,80 @@ public class ResourceSearchRqDTO extends Request {
 - `sortDirection` — enum `SortDirection` (`ASC` / `DESC`).
 - Both fields are optional. Defaults are set in the domain Search Object (`sortField = ResourceSortField.createdAt`, `sortDirection = SortDirection.ASC`).
 
+The flat pair above expresses **single-field** sorting. Endpoints supporting **multi-field** sorting (configured searches, `twin search v4`) carry a `List<XSortDTOv1> sorts` instead — see 3.3.
+
+### 3.3 Configured Search Request DTOs
+
+Configured search endpoints (`POST /private/<entity>/search/{searchId}/v1`) take a request DTO extending the shared abstract base `SearchConfiguredRqDTOv1`:
+
+```java
+// org.twins.core.dto.rest.SearchConfiguredRqDTOv1
+@Data
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
+@Schema(name = "SearchConfiguredRqV1")
+public abstract class SearchConfiguredRqDTOv1 extends Request {
+    @Schema(description = "Search named params values")
+    public Map<String, String> params;
+}
+```
+
+Per-entity request DTO:
+
+```java
+@Schema(name = "ResourceSearchConfiguredRqV1")
+public class ResourceSearchConfiguredRqDTOv1 extends SearchConfiguredRqDTOv1 {
+    @Schema(description = "search narrow")
+    public ResourceSearchDTOv1 narrow;
+
+    @Valid
+    @Size(max = 2)
+    @Schema(description = "Sort rules. Max 2 fields; list order defines precedence. Default: createdAt ASC")
+    public List<ResourceSortDTOv1> sorts;
+}
+```
+
+Rules:
+
+* Extends `SearchConfiguredRqDTOv1`, **not** `Request` directly — `params` comes from the shared base
+* `narrow` reuses the same `ResourceSearchDTOv1` as the free search API (search criteria without sort)
+* `sorts` is optional, capped at 2 entries (`@Size(max = 2)`) — a deliberate contract limit on sort complexity; `@Valid` cascades validation into list items. The configured pipeline applies them with precedence: client sorts > configured sorter (unless `force_sorting`) > pagination query sort > entity default (see docs/configured_search_architecture.md)
+* The controller `@RequestBody` parameter **must** carry `@Valid`, otherwise `@Size`/`@NotNull` inside the body silently do not fire (see 2.3)
+* The shared base holds **no** sort list — sort field types differ per entity, and a generic base (`SearchConfiguredRqDTOv1<S>`) is forbidden: the JavaParser-based TS DTO generator cannot resolve type variables (see 8.3)
+
+#### `SortDTOv1` — Sort Base Class
+
+All multi-field sort DTOs extend the shared abstract base:
+
+```java
+// org.twins.core.dto.rest.SortDTOv1
+@Data
+@Accessors(chain = true)
+@Schema(name = "SortV1")
+public abstract class SortDTOv1 {
+    @Schema(description = "Sort direction: ASC or DESC. Default: ASC")
+    public SortDirection sortDirection;
+}
+```
+
+Per-entity subclass pins its own sort selector:
+
+```java
+@Schema(name = "ResourceSortV1")
+public class ResourceSortDTOv1 extends SortDTOv1 {
+    @NotNull
+    @Schema(description = "Sort field. Default: createdAt")
+    public ResourceSortField sortField;
+}
+```
+
+Rules:
+
+* The sort selector lives in the subclass and is `@NotNull`: either an entity `XSortField` enum from `enums.sort` (`CommentSortDTOv1.sortField`) or an entity-specific reference (`TwinSortDTOv1.twinClassFieldId`) when sorting is not enum-driven
+* `sortDirection` stays in the base — it is uniform across all entities; `null` means the entity default direction
+* One sort DTO per entity: class `<Entity>SortDTOv1`, schema `<Entity>SortV1`
+* `@EqualsAndHashCode(callSuper = true)` on every DTO subclass in an inheritance hierarchy — Lombok's default `callSuper = false` silently drops base fields from equality
+
 ---
 
 ## 4. Response DTOs
@@ -387,3 +461,7 @@ public String originalFileName;
 ### 8.2 Schema name
 
 `@Schema(name = ...)` on a DTO class ends with `V1`. Drop the `DTO` token from the class name and keep the version: class `ResourceSearchRqDTOv1` → schema `ResourceSearchRqV1`, class `ResourceDTOv1` → schema `ResourceV1`. A name without `V1` (`Resource`, `ResourceSearch`) is invalid.
+
+### 8.3 No Generic DTOs
+
+DTO classes **must not** declare type variables (`class SearchConfiguredRqDTOv1<S> { List<S> sorts; }`). The TS DTO generator (`generateTypeScriptDTOsTask`, JavaParser-based) cannot resolve generic type variables and would emit broken TypeScript. Share common fields via a non-generic abstract base class; each subclass declares its own concrete-typed fields (see `SortDTOv1` / `SearchConfiguredRqDTOv1` in 3.3).

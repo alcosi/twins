@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.*;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.enums.sort.DataListOptionSortField;
 import org.twins.core.featurer.datalist.finder.DataListOptionFinder;
 import org.twins.core.featurer.datalist.sorter.DataListOptionSorter;
 import org.twins.core.featurer.search.SearchFinder;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 
 @RequiredArgsConstructor
 @Service
-public class DataListOptionSearchConfigService extends ConfiguredSearchService<DataListOptionSearchEntity, DataListOptionSearchPredicateEntity, DataListOptionSearch, DataListOptionEntity> {
+public class DataListOptionSearchConfigService extends ConfiguredSearchService<DataListOptionSearchEntity, DataListOptionSearchPredicateEntity, DataListOptionSearch, DataListOptionEntity, DataListOptionSortField> {
     private final DataListOptionSearchRepository dataListOptionSearchRepository;
     private final DataListOptionSearchPredicateRepository dataListOptionSearchPredicateRepository;
     private final DataListOptionRepository dataListOptionRepository;

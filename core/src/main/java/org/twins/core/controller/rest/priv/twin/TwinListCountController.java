@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.dto.rest.twin.*;
-import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinSearchConfiguredDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinSearchExtendedDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinSearchService;
@@ -38,7 +38,7 @@ public class TwinListCountController extends ApiController {
 
     private final TwinSearchService twinSearchService;
     private final TwinSearchExtendedDTOReverseMapper twinSearchRqDTOMapper;
-    private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
+    private final TwinSearchConfiguredDTOReverseMapper twinSearchConfiguredDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchCountV1", summary = "Count twins by frontendId")
@@ -75,8 +75,8 @@ public class TwinListCountController extends ApiController {
         TwinSearchBatchRsDTOv1 rs = new TwinSearchBatchRsDTOv1();
         try {
             Map<String, SearchByAlias> searchMap = new HashMap<>();
-            for (Map.Entry<String, TwinSearchByAliasRqDTOv1> entry : request.searchMap.entrySet()) {
-                SearchByAlias searchByAlias = twinSearchByAliasDTOReverseMapper.convert(entry.getValue());
+            for (Map.Entry<String, TwinSearchConfiguredRqDTOv1> entry : request.searchMap.entrySet()) {
+                SearchByAlias searchByAlias = twinSearchConfiguredDTOReverseMapper.convert(entry.getValue());
                 searchByAlias.setAlias(entry.getKey());
                 searchMap.put(entry.getKey(), searchByAlias);
             }

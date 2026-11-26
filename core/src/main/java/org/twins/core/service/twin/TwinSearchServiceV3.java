@@ -19,6 +19,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.domain.search.TwinSort;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.featurer.search.SearchFinder;
 import org.twins.core.featurer.search.SearchSorter;
@@ -30,6 +31,7 @@ import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -42,7 +44,7 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
-public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntity, TwinSearchPredicateEntity, BasicSearch, TwinEntity> {
+public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntity, TwinSearchPredicateEntity, BasicSearch, TwinEntity, UUID> {
     private final TwinSearchRepository twinSearchRepository;
     private final TwinSearchPredicateRepository twinSearchPredicateRepository;
     private final TwinRepository twinRepository;
@@ -126,13 +128,18 @@ public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntit
 
     /**
      * Applies the configured twin_search_sort rows (each via its own TwinSorter featurer) when sorting
-     * is forced or the client did not request a sort; falls back to the entity default sort otherwise.
-     * Replaces the base sorter-featurer resolution, which does not exist for twin searches.
+     * is forced or the client did not request a sort (neither request-body sorts nor the pagination
+     * query sort); client sorts are twinClassFieldId→direction maps applied via the base
+     * {@link #addClientSorting}. Replaces the base sorter-featurer resolution, which does not exist
+     * for twin searches. Sort precedence: client sorts > configured sorts (unless force_sorting) >
+     * pagination query sort > entity default.
      */
     @Override
-    protected Specification<TwinEntity> addConfiguredSorting(BasicSearch mainSearch, SimplePagination pagination, Specification<TwinEntity> spec) throws ServiceException {
+    protected Specification<TwinEntity> addConfiguredSorting(BasicSearch mainSearch, Map<UUID, SortDirection> clientSorts, SimplePagination pagination, Specification<TwinEntity> spec) throws ServiceException {
         TwinSearchEntity searchEntity = mainSearch.getConfiguredSearch();
-        if (searchEntity != null && (Boolean.TRUE.equals(searchEntity.getForceSorting()) || pagination == null || pagination.getSort() == null)) {
+        boolean hasClientSorts = MapUtils.isNotEmpty(clientSorts);
+        boolean hasPaginationSort = pagination != null && pagination.getSort() != null;
+        if (searchEntity != null && (Boolean.TRUE.equals(searchEntity.getForceSorting()) || (!hasClientSorts && !hasPaginationSort))) {
             twinSearchSortService.loadSorts(searchEntity);
             if (KitUtils.isNotEmpty(searchEntity.getSortKit())) {
                 List<TwinSort> sorts = new ArrayList<>();
@@ -154,9 +161,15 @@ public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntit
                     return spec;
             }
         }
+        if (hasClientSorts) {
+            spec = addClientSorting(clientSorts, spec);
+            if (pagination != null)
+                pagination.setSort(null);
+            return spec;
+        }
         // No configured sort applied and the client did not request one: entity default sort keeps
-        // offset pagination deterministic (client sort > configured sorts > entity default).
-        if (pagination == null || pagination.getSort() == null) {
+        // offset pagination deterministic.
+        if (!hasPaginationSort) {
             Specification<TwinEntity> defaultSort = createDefaultSortSpecification(authService.getApiUser().getLocale());
             if (defaultSort != null)
                 spec = spec.and(defaultSort);

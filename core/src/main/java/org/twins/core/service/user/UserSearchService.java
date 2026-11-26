@@ -12,6 +12,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.data.domain.Page;
@@ -33,6 +34,7 @@ import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -111,6 +113,15 @@ public class UserSearchService extends EntitySearchService<UserSearch, UserEntit
     }
 
     public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
+        return findUsers(search, null, pagination);
+    }
+
+    /**
+     * Client sorts: an ordered sortField→direction map (LinkedHashMap — iteration order defines
+     * ORDER BY precedence). They beat the non-forced configured sorter and the pagination query sort;
+     * force_sorting = true beats client sorts.
+     */
+    public PaginationResult<UserEntity> findUsers(UserSearch search, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
         Specification<UserEntity> userSpec = createUserSpecification(search);
 
         if (search.getChildTwinSearches() != null && CollectionUtils.isNotEmpty(search.getChildTwinSearches().getSearches())) {
@@ -125,12 +136,12 @@ public class UserSearchService extends EntitySearchService<UserSearch, UserEntit
                     .orElse(null);
 
             if (twinSpec != null) {
-                Specification<UserEntity> combinedSpec = userSpec.and(twinSpec);
+                Specification<UserEntity> combinedSpec = addClientSorting(clientSorts, pagination, userSpec.and(twinSpec));
                 Page<UserEntity> page = userRepository.findAll(combinedSpec, PaginationUtils.pageableOffset(pagination));
                 return PaginationUtils.convertInPaginationResult(page, pagination);
             }
         }
-        userSpec = addSorting(search, pagination, userSpec);
+        userSpec = addSorting(search, clientSorts, pagination, userSpec);
         Page<UserEntity> page = userRepository.findAll(userSpec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
@@ -188,18 +199,38 @@ public class UserSearchService extends EntitySearchService<UserSearch, UserEntit
         );
     }
 
-    private Specification<UserEntity> addSorting(UserSearch search, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
+    private Specification<UserEntity> addSorting(UserSearch search, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
         UserSearchEntity searchEntity = search.getConfiguredSearch();
+        boolean hasClientSorts = MapUtils.isNotEmpty(clientSorts);
         if (searchEntity != null &&
-                (searchEntity.getForceSorting() || pagination == null || pagination.getSort() == null)) {
+                (searchEntity.getForceSorting() || (!hasClientSorts && (pagination == null || pagination.getSort() == null)))) {
             UserSorter userSorter = featurerService.getFeaturer(searchEntity.getUserSorterFeaturerId(), UserSorter.class);
             var sortFunction = userSorter.createSort(searchEntity.getUserSorterParams());
             if (sortFunction != null) {
                 specification = sortFunction.apply(specification);
                 if (pagination != null)
                     pagination.setSort(null);
+                return specification;
             }
         }
+        return addClientSorting(clientSorts, pagination, specification);
+    }
+
+    /**
+     * Client sorts via {@link #createSortSpecification} (Specification-based — never Pageable sort,
+     * see docs/api_sorting_architecture.md); map iteration order defines ORDER BY precedence.
+     */
+    private Specification<UserEntity> addClientSorting(Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
+        if (MapUtils.isEmpty(clientSorts))
+            return specification;
+        Locale locale = authService.getApiUser().getLocale();
+        for (var entry : clientSorts.entrySet()) {
+            var sortSpec = createSortSpecification(entry.getKey(), entry.getValue(), locale);
+            if (sortSpec != null)
+                specification = Specification.allOf(specification, sortSpec);
+        }
+        if (pagination != null)
+            pagination.setSort(null);
         return specification;
     }
 }

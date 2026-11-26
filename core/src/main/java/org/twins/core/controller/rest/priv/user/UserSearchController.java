@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -22,7 +23,6 @@ import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.user.UserSearchConfiguredDTOv1;
 import org.twins.core.dto.rest.user.UserSearchConfiguredRqDTOv1;
 import org.twins.core.dto.rest.user.UserSearchRqDTOv1;
 import org.twins.core.dto.rest.user.UserSearchRsDTOv1;
@@ -30,8 +30,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserSearchConfiguredDTOReverseMapper;
 import org.twins.core.mappers.rest.user.UserSearchDTOReverseMapper;
+import org.twins.core.mappers.rest.user.UserSortDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserSearchConfigService;
 import org.twins.core.service.user.UserSearchService;
@@ -48,9 +48,9 @@ public class UserSearchController extends ApiController {
     private final UserSearchConfigService userSearchConfigService;
     private final UserRestDTOMapper userRestDTOMapper;
     private final UserSearchDTOReverseMapper userSearchDTOReverseMapper;
+    private final UserSortDTOReverseMapper userSortDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
-    private final UserSearchConfiguredDTOReverseMapper userSearchConfiguredDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userSearchV1", summary = "Return a list of users by search criteria")
@@ -93,14 +93,14 @@ public class UserSearchController extends ApiController {
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortField = UserEntity.Fields.createdAt) SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
-            @RequestBody UserSearchConfiguredRqDTOv1 request) {
+            @RequestBody @Valid UserSearchConfiguredRqDTOv1 request) {
         UserSearchRsDTOv1 rs = new UserSearchRsDTOv1();
         try {
-            UserSearchConfiguredDTOv1 search = request.getSearch();
             PaginationResult<UserEntity> users = userSearchConfigService.findConfigured(
                     searchId,
-                    search != null ? search.getParams() : null,
-                    userSearchConfiguredDTOReverseMapper.convert(search),
+                    request.getParams(),
+                    userSearchDTOReverseMapper.convert(request.getNarrow()),
+                    userSortDTOReverseMapper.convert(request.getSorts()),
                     pagination
             );
             rs

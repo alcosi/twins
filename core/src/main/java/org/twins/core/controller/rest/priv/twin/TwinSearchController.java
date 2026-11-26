@@ -21,7 +21,7 @@ import org.twins.core.controller.rest.annotation.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchConfiguredRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv2;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
@@ -49,8 +49,9 @@ public class TwinSearchController extends ApiController {
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final TwinSearchExtendedDTOReverseMapper twinSearchExtendedDTOReverseMapper;
     private final PaginationMapper paginationMapper;
-    private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
+    private final TwinSearchConfiguredDTOReverseMapper twinSearchConfiguredDTOReverseMapper;
     private final TwinSearchRqDTOv2ReverseMapper twinSearchRqDTOv2ReverseMapper;
+    private final TwinSortDTOReverseMapper twinSortDTOReverseMapper;
     private final TwinSortDTOReverseMapperV2 twinSortDTOReverseMapperV2;
 
     @ParametersApiUserHeaders
@@ -126,10 +127,10 @@ public class TwinSearchController extends ApiController {
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
-            @RequestBody TwinSearchByAliasRqDTOv1 request) {
+            @RequestBody @Valid TwinSearchConfiguredRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request).setAlias(searchAlias), pagination);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchConfiguredDTOReverseMapper.convert(request).setAlias(searchAlias), pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
@@ -155,10 +156,10 @@ public class TwinSearchController extends ApiController {
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
-            @RequestBody TwinSearchByAliasRqDTOv1 request) {
+            @RequestBody @Valid TwinSearchConfiguredRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(searchId, request.getParams(), twinSearchExtendedDTOReverseMapper.convert(request.getNarrow()), pagination);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(searchId, request.getParams(), twinSearchExtendedDTOReverseMapper.convert(request.getNarrow()), twinSortDTOReverseMapper.convertCollection(request.getSorts()), pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))

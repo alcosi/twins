@@ -30,6 +30,7 @@ import org.twins.core.dto.rest.comment.CommentSearchRsDTOv1;
 import org.twins.core.mappers.rest.comment.CommentRestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentSearchDTORestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentSearchRqRestDTOMapper;
+import org.twins.core.mappers.rest.comment.CommentSortDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -51,6 +52,7 @@ public class CommentSearchController extends ApiController {
     private final CommentRestDTOMapper viewRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final CommentSearchDTORestDTOMapper commentSearchDTORestDTOMapper;
+    private final CommentSortDTOReverseMapper commentSortDTOReverseMapper;
 
     private final PaginationMapper paginationMapper;
 
@@ -128,7 +130,8 @@ public class CommentSearchController extends ApiController {
         CommentSearchRsDTOv1 rs = new CommentSearchRsDTOv1();
         try {
             PaginationResult<TwinCommentEntity> result = commentSearchConfigService
-                    .findConfigured(searchId, request.getParams(), commentSearchDTORestDTOMapper.convert(request.getNarrow()), pagination);
+                    .findConfigured(searchId, request.getParams(), commentSearchDTORestDTOMapper.convert(request.getNarrow()),
+                            commentSortDTOReverseMapper.convert(request.getSorts()), pagination);
             rs
                     .setPagination(paginationMapper.convert(result))
                     .setComments(viewRestDTOMapper.convertCollection(result.getList(), mapperContext))

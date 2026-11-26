@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
@@ -32,6 +33,7 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldSortDTOReverseMapper;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclassfield.TwinClassFieldSearchConfigService;
 import org.twins.core.service.twinclassfield.TwinClassFieldSearchService;
@@ -50,6 +52,7 @@ public class TwinClassFieldSearchController extends ApiController {
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     private final TwinClassFieldSearchService twinClassFieldSearchService;
     private final TwinClassFieldSearchConfigService twinClassFieldSearchConfigService;
+    private final TwinClassFieldSortDTOReverseMapper twinClassFieldSortDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @Deprecated
@@ -122,11 +125,12 @@ public class TwinClassFieldSearchController extends ApiController {
             @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldSearchRsDTOv1.class) @Schema(hidden = true) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
-            @RequestBody TwinClassFieldSearchConfiguredRqDTOv1 request) {
+            @RequestBody @Valid TwinClassFieldSearchConfiguredRqDTOv1 request) {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
         try {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchConfigService
-                    .findConfigured(searchId, request.getParams(), twinClassFieldSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
+                    .findConfigured(searchId, request.getParams(), twinClassFieldSearchDTOReverseMapper.convert(request.getNarrow()),
+                            twinClassFieldSortDTOReverseMapper.convert(request.getSorts()), pagination);
             rs
                     .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClassFieldList))

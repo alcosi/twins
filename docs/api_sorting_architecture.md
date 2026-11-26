@@ -386,8 +386,8 @@ Jackson automatically deserializes `sortField` from a JSON string into an enum. 
 
 The following components are no longer used by the new pattern but remain in the codebase:
 
-* `SortDTOv1` — replaced by inline sort fields in SearchDTO (enum type)
-* `SortDTOReverseMapper` — replaced by direct mapping in SearchDTOReverseMapper
+* `SortDTOv1` (the old String-field variant) — replaced by inline sort fields in SearchDTO (enum type). The name was later revived for the abstract multi-field sort base (`sortDirection` in the base, subclass-pinned enum `sortField` — see docs/dto_code_convention.md §3.3): a different class with different semantics
+* `SortDTOReverseMapper` (the old variant) — replaced by direct mapping in SearchDTOReverseMapper. The name was later revived for the converter family collapsing a `SortDTOv1` list into an ordered `Map<sortField, SortDirection>` (LinkedHashMap — list order defines precedence), used by configured-search endpoints
 * `SortField<T>` interface — replaced by a static helper in `CommonSpecification`
 * `SortOption<S>` — replaced by direct `sortField` + `sortDirection` fields
 

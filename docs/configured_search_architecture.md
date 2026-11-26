@@ -86,15 +86,15 @@ Concrete finder/sorter featurer types are thin subclasses pinning the generic pa
 
 `namedParamsMap` carries runtime context from the caller (e.g. `FieldFinder.PARAM_CURRENT_TWIN_CLASS_ID`, `PARAM_CURRENT_TWIN_ID` — faces pass them when rendering).
 
-The sorter is applied when `force_sorting = true` **or** the client did not request a sort. The sort function wraps the filter specification; `pagination.setSort(null)` is then cleared so the two sort sources do not conflict.
+The sorter is applied when `force_sorting = true` **or** the client did not request a sort (neither request-body `sorts` nor the pagination query sort). The sort function wraps the filter specification; `pagination.setSort(null)` is then cleared so the two sort sources do not conflict.
 
-If the sorter does not apply (no sorter configured, it returned `null`, and the client did not request a sort), the configured pipeline falls back to the **entity default sort** — the base service's `createDefaultSortSpecification` builds it from the free-search service's `defaultSortField()` (ASC); a `null` default sort field keeps no ORDER BY. This keeps offset pagination deterministic. The sort precedence is: **client sort > configured sorter > entity default**, uniform with the free pipeline.
+If the sorter does not apply (no sorter configured, it returned `null`, and the client did not request a sort), the configured pipeline falls back to the **entity default sort** — the base service's `createDefaultSortSpecification` builds it from the free-search service's `defaultSortField()` (ASC); a `null` default sort field keeps no ORDER BY. This keeps offset pagination deterministic. The sort precedence is: **client sorts (body `sorts`) > configured sorter (unless force_sorting) > pagination query sort > entity default**, uniform with the free pipeline.
 
 Not covered by the base classes: `TwinSorter` (TYPE_41) sorts twins by a *field value* (`createSort(params, twinClassFieldEntity, direction)`) — a different contract, not a configured-search sorter.
 
 ## Execution flow
 
-The flow is owned by the **config service** (`<X>SearchConfigService`), so the plain `<X>SearchService` stays free-search only and new configured searches never touch it. All five non-twin implementations extend the common base `org.twins.core.service.ConfiguredSearchService<S, P, R, E>`, which implements the flow once as a template method `findConfigured(searchId, namedParamsMap, narrowSearch, pagination)` over small per-entity hooks (twin is the only exception — the same steps live in `TwinSearchService`, see "Accepted differences"):
+The flow is owned by the **config service** (`<X>SearchConfigService`), so the plain `<X>SearchService` stays free-search only and new configured searches never touch it. All five non-twin implementations extend the common base `org.twins.core.service.ConfiguredSearchService<S, P, R, E, SF>` (SF = the entity sort field type, which types the client sorts map), which implements the flow once as a template method `findConfigured(searchId, namedParamsMap, narrowSearch, pagination)` over small per-entity hooks (twin is the only exception — the same steps live in `TwinSearchService`, see "Accepted differences"):
 
 1. **UNLIMITED short-circuit** — `search(narrowSearch, pagination)` directly.
 2. **Load header** via `findEntitySafe(searchId)` on the config service itself — a plain `EntitySecureFindServiceImpl` doing the domain check (`checkDomainAccessDenied(entity.getDomainId(), ...)`; `domain_id = null` passes for everyone).
@@ -103,7 +103,7 @@ The flow is owned by the **config service** (`<X>SearchConfigService`), so the p
 5. **Narrow**: `narrowSearch(mainSearch, narrowSearch)` in the base — intersects the configured search with the client filter (see below).
 6. **Remember the header**: `mainSearch.setConfiguredSearch(searchEntity)` — the header travels inside the domain search so the sort step can reach it later.
 7. **Empty-search short-circuit**: if a finder marked `mainSearch.setEmptySearch(true)` (it detected an impossible condition, e.g. `FieldFinderStub`), return an empty page without hitting the DB.
-8. **Sort**: if `forceSorting` or client sort is absent → run the sorter featurer (for twin: `twin_search_sort` rows or TwinSearchExecutor).
+8. **Sort**: if `forceSorting` or the client did not request a sort → run the sorter featurer (for twin: `twin_search_sort` rows or TwinSearchExecutor); client-requested body sorts are applied when present (they beat a non-forced sorter); the entity default sort is the final fallback.
 9. Run the default execution: filter specification + sort wrapper + page fetch via the entity repository (base `runConfiguredSearch`; for twin: TwinSearchExecutor pipeline).
 
 Twin adds one level of indirection: the header selects a `TwinSearchExecutor` featurer (default ID_5701) that performs steps 4–8, enabling alternative execution strategies (e.g. id-only queries, count-only, recursion-guarded subsearches).
@@ -129,14 +129,15 @@ POST /private/<entity>/search/v1|v2            — free search (full DTO body)
 POST /private/<entity>/search/{searchId}/v1    — configured search
 ```
 
-Configured-search request DTO (`TwinClassFieldSearchConfiguredRqDTOv1` style):
+Configured-search request DTO (`TwinClassFieldSearchConfiguredRqDTOv1` style) — the shared base `SearchConfiguredRqDTOv1` (in `org.twins.core.dto.rest`) carries `params`:
 
 ```java
-public class XSearchConfiguredRqDTOv1 extends Request {
-    public Map<String, String> params;   // named params for finders
+public class XSearchConfiguredRqDTOv1 extends SearchConfiguredRqDTOv1 {
     public XSearchDTOv1 narrow;          // client-side narrowing (same DTO as free search)
 }
 ```
+
+Every configured request DTO also carries an optional client-side `sorts` list (`@Valid @Size(max = 2)`, list order defines precedence). All sort DTOs extend the shared `SortDTOv1` base (`sortDirection`); each subclass pins its own sort field: twin uses `TwinSortDTOv1.twinClassFieldId`, the others use their entity `XSortField` enum (`CommentSortDTOv1`, `TwinClassSortDTOv1`, `TwinClassFieldSortDTOv1`, `DataListOptionSortDTOv1`, `UserSortDTOv1`). The controller converts the list into an ordered sortField→direction LinkedHashMap (a `SortDTOReverseMapper` subclass) and passes it to `findConfigured(searchId, params, narrow, clientSorts, pagination)`; the base `ConfiguredSearchService` applies it via the free-search service's `createSortSpecification` (Specification-based, never Pageable sort) with the precedence stated above. Twin is the exception in shape, not in support: its REST endpoints route through `TwinSearchService` (executor pipeline), where client sorts travel as `List<TwinSort>` merged into the narrow `BasicSearch.sorts`; the map form works only on the `TwinSearchServiceV3` pipeline (keys = twinClassFieldId).
 
 Response is identical to free search (paged entity list + relatedObjects). Controllers are `@ProtectedBy` entity permissions; configured-search read access is domain-checked in the config service.
 
@@ -155,7 +156,7 @@ There is **no CRUD API** for configured searches (planned separately). They are 
 1. `twin_search` has no `domain_id`; access is gated by `permission_id` instead. Adding `domain_id` would need a non-trivial backfill — candidate for a separate task.
 2. twin sorting lives in a separate `twin_search_sort` table (multi-field sort by twin class fields); the embedded sorter block used by other configured searches was dropped from `twin_search` in `V1.3.431.01`.
 3. twin configured searches support aliases, a head-search composition, and a pluggable executor.
-4. user: the execution path stays custom (`findUsers` weaves childTwinSearches subqueries, so `runConfiguredSearch` is overridden and the base default-sort fallback does not fire there). `UserSearchService` still extends `EntitySearchService` fully — enum-driven sorting (`UserSortField`: name/email/status, default `name`) and group counting by status (`UserGroupField`) are implemented and available.
+4. user: the execution path stays custom (`findUsers` weaves childTwinSearches subqueries, so `runConfiguredSearch` is overridden and the base default-sort fallback does not fire there). Client sorts are woven into `findUsers` with the same precedence (including the childTwinSearches branch, which otherwise keeps its historical no-sorter behavior). `UserSearchService` still extends `EntitySearchService` fully — enum-driven sorting (`UserSortField`: name/email/status, default `name`) and group counting by status (`UserGroupField`) are implemented and available.
 
 ## Unified in the 2026-11 consistency pass
 
@@ -179,9 +180,9 @@ Checklist per entity `<X>` (existing free-search service `<X>SearchService exten
 2. **DAO**: `<X>SearchEntity` (implements `ConfiguredSearch` — two delegate getters for the sorter columns), `<X>SearchPredicateEntity` (implements `ConfiguredSearchPredicate`; SpecOnly back-reference, `@FieldNameConstants`), two `CrudRepository` interfaces with `findBy<X>SearchId`.
 3. **Featurers**: thin subclasses `<X>Finder extends SearchFinder<<X>Search>` and `<X>Sorter extends SearchSorter<<X>Entity>` with the `@FeaturerType` annotation, plus at least one stub implementation each.
 4. **Domain search**: add `<X>SearchEntity configuredSearch` and `boolean emptySearch` fields to `<X>Search`, `implements ConfiguredSearchHolder<<X>SearchEntity>`, and annotate every narrowable filter field with `@SearchFilter`.
-5. **Config service**: `<X>SearchConfigService extends ConfiguredSearchService<<X>SearchEntity, <X>SearchPredicateEntity, <X>Search, <X>Entity>>` — the whole flow comes from the base (`findConfigured` + default `runConfiguredSearch`); implement the hooks: the 4 `EntitySecureFindServiceImpl` overrides (`isEntityReadDenied` = domain check), `unlimitedSearchId()`, `entitySearchService()` (return the `<X>SearchService` — mandatory; the base takes `newSearch()`, `createFilterSpecification()` and the default sort fallback from it), `loadPredicates()`, `finderClass()`, `sorterClass()`, `searchExecutor()` (the entity repository). `runFreeSearch()` defaults to `<X>SearchService.search` — override it only when free search has a custom shape (`UserSearchConfigService` must weave childTwinSearches via `findUsers`), `runConfiguredSearch()` only for a non-standard execution shape, and `narrowSearchSpecific()` only for narrowing the generic `@SearchFilter` scan cannot express. `authService`/`featurerService` are inherited from the base.
+5. **Config service**: `<X>SearchConfigService extends ConfiguredSearchService<<X>SearchEntity, <X>SearchPredicateEntity, <X>Search, <X>Entity, <X>SortField>>` — the whole flow comes from the base (`findConfigured` + default `runConfiguredSearch`); implement the hooks: the 4 `EntitySecureFindServiceImpl` overrides (`isEntityReadDenied` = domain check), `unlimitedSearchId()`, `entitySearchService()` (return the `<X>SearchService` — mandatory; the base takes `newSearch()`, `createFilterSpecification()`, `createSortSpecification()` and the default sort fallback from it), `loadPredicates()`, `finderClass()`, `sorterClass()`, `searchExecutor()` (the entity repository). `runFreeSearch()` defaults to `<X>SearchService.search` — override it only when free search has a custom shape (`UserSearchConfigService` must weave childTwinSearches via `findUsers`), `runConfiguredSearch()` only for a non-standard execution shape, and `narrowSearchSpecific()` only for narrowing the generic `@SearchFilter` scan cannot express. `authService`/`featurerService` are inherited from the base.
 6. **Search service**: untouched — no configured-search code there.
-7. **DTO + mapper**: `<X>SearchConfiguredRqDTOv1 { params, narrow }`; reuse the existing free-search DTO for `narrow` and its reverse mapper.
+7. **DTO + mapper**: `<X>SearchConfiguredRqDTOv1 extends SearchConfiguredRqDTOv1 { narrow }` (`params` comes from the shared base); reuse the existing free-search DTO for `narrow` and its reverse mapper.
 8. **Controller**: `POST /private/<x>/search/{searchId}/v1` in the existing search controller, calling `<x>SearchConfigService.findConfigured(searchId, request.getParams(), narrow, pagination)`, mirroring the free-search endpoint's mapper context and response DTO.
 9. **Consumers** (optional): add `<x>_search_id` FK columns to faces/permissions/factories that should reference configured searches.
 

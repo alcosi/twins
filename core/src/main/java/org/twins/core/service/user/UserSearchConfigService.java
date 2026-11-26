@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.user.*;
 import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.enums.sort.UserSortField;
 import org.twins.core.featurer.search.SearchFinder;
 import org.twins.core.featurer.search.SearchSorter;
 import org.twins.core.featurer.user.finder.UserFinder;
@@ -20,13 +22,14 @@ import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserSearchConfigService extends ConfiguredSearchService<UserSearchEntity, UserSearchPredicateEntity, UserSearch, UserEntity> {
+public class UserSearchConfigService extends ConfiguredSearchService<UserSearchEntity, UserSearchPredicateEntity, UserSearch, UserEntity, UserSortField> {
     private final UserSearchRepository userSearchRepository;
     private final UserSearchPredicateRepository userSearchPredicateRepository;
     private final UserSearchService userSearchService;
@@ -84,8 +87,8 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
 
     /** Free search must weave childTwinSearches subqueries — the plain EntitySearchService.search cannot. */
     @Override
-    protected PaginationResult<UserEntity> runFreeSearch(UserSearch search, SimplePagination pagination) throws ServiceException {
-        return userSearchService.findUsers(search, pagination);
+    protected PaginationResult<UserEntity> runFreeSearch(UserSearch search, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
+        return userSearchService.findUsers(search, clientSorts, pagination);
     }
 
     /** childTwinSearches narrowing cannot be expressed by the generic @SearchFilter scan. */
@@ -113,7 +116,7 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
      * subquery specs (and historically skips the sorter when they are present).
      */
     @Override
-    protected PaginationResult<UserEntity> runConfiguredSearch(UserSearch mainSearch, SimplePagination pagination) throws ServiceException {
-        return userSearchService.findUsers(mainSearch, pagination);
+    protected PaginationResult<UserEntity> runConfiguredSearch(UserSearch mainSearch, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
+        return userSearchService.findUsers(mainSearch, clientSorts, pagination);
     }
 }

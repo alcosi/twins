@@ -29,6 +29,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionSearchRqDTOv2;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionSearchDTOReverseMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionSortDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -48,6 +49,7 @@ public class DataListOptionSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
 
     private final DataListOptionSearchDTOReverseMapper dataListOptionSearchDTOReverseMapper;
+    private final DataListOptionSortDTOReverseMapper dataListOptionSortDTOReverseMapper;
     private final DataListOptionSearchService dataListOptionSearchService;
     private final DataListOptionSearchConfigService dataListOptionSearchConfigService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -125,7 +127,8 @@ public class DataListOptionSearchController extends ApiController {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchConfigService
-                    .findConfigured(searchId, request.getParams(), dataListOptionSearchDTOReverseMapper.convert(request.getNarrow()), pagination);
+                    .findConfigured(searchId, request.getParams(), dataListOptionSearchDTOReverseMapper.convert(request.getNarrow()),
+                            dataListOptionSortDTOReverseMapper.convert(request.getSorts()), pagination);
             rs
                     .setPagination(paginationMapper.convert(dataListOptionList))
                     .setOptions(dataListOptionRestDTOMapper.convertCollection(dataListOptionList.getList(), mapperContext))

@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinCountBySearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinCountRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinCountRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchConfiguredRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -89,7 +89,7 @@ public class TwinCountController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinCountBySearchIdV1(
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
-            @RequestBody @Valid TwinSearchByAliasRqDTOv1 request) {
+            @RequestBody @Valid TwinSearchConfiguredRqDTOv1 request) {
         TwinCountBySearchRsDTOv1 rs = new TwinCountBySearchRsDTOv1();
         try {
             rs.setCount(twinSearchServiceV3.countConfigured(searchId, request.getParams(), twinSearchExtendedDTOReverseMapper.convert(request.getNarrow())));

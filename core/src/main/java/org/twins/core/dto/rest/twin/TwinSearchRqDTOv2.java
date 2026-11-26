@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,6 +18,7 @@ public class TwinSearchRqDTOv2 extends Request {
     @Schema(description = "Search params")
     public TwinSearchExtendedDTOv2 search;
 
+    @Valid
     @Size(max = 2)
     @Schema(description = "Sort rules. Supports multi-field sort via TwinClassFieldId")
     public List<TwinSortDTOv1> sorts;

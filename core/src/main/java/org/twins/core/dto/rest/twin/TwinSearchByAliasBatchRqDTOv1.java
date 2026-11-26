@@ -14,5 +14,5 @@ import java.util.Map;
 @Schema(name =  "TwinSearchByAliasBatchRqV1")
 public class TwinSearchByAliasBatchRqDTOv1 extends Request {
     @Schema(description = "Search alias ref alias request body(TwinSearchByAliasRqV1)")
-    public Map<String, TwinSearchByAliasRqDTOv1> searchMap;
+    public Map<String, TwinSearchConfiguredRqDTOv1> searchMap;
 }

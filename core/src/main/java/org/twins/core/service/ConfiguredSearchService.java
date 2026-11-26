@@ -35,12 +35,14 @@ import static org.cambium.common.util.SetUtils.narrowSet;
  * Base class for {@code <X>SearchConfigService} — owns the configured-search execution flow
  * (see docs/configured_search_architecture.md), so {@code <X>SearchService} stays free-search only.
  *
- * @param <S> configured search header entity (the {@code <entity>_search} table)
- * @param <P> predicate entity (the {@code <entity>_search_predicate} table)
- * @param <R> domain search object
- * @param <E> result entity
+ * @param <S>  configured search header entity (the {@code <entity>_search} table)
+ * @param <P>  predicate entity (the {@code <entity>_search_predicate} table)
+ * @param <R>  domain search object
+ * @param <E>  result entity
+ * @param <SF> entity sort field type (a sort enum for most entities, twinClassFieldId for twin) —
+ *             the SF of the free-search service; types the client sorts map keys
  */
-public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P extends ConfiguredSearchPredicate, R extends EntitySearch<E> & ConfiguredSearchHolder<S>, E>
+public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P extends ConfiguredSearchPredicate, R extends EntitySearch<E> & ConfiguredSearchHolder<S>, E, SF>
         extends EntitySecureFindServiceImpl<S> {
 
     @Autowired
@@ -50,14 +52,24 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
     protected FeaturerService featurerService;
 
     public PaginationResult<E> findConfigured(UUID searchId, Map<String, String> namedParamsMap, R narrowSearch, SimplePagination pagination) throws ServiceException {
+        return findConfigured(searchId, namedParamsMap, narrowSearch, null, pagination);
+    }
+
+    /**
+     * Same as {@link #findConfigured(UUID, Map, EntitySearch, SimplePagination)} plus client-requested
+     * sorts: an ordered sortField→direction map (LinkedHashMap — iteration order defines ORDER BY
+     * precedence). Sort precedence:
+     * client sorts > configured sorter (unless force_sorting) > pagination query sort > entity default.
+     */
+    public PaginationResult<E> findConfigured(UUID searchId, Map<String, String> namedParamsMap, R narrowSearch, Map<SF, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
         if (unlimitedSearchId().equals(searchId)) {
-            return runFreeSearch(narrowSearch, pagination);
+            return runFreeSearch(narrowSearch, clientSorts, pagination);
         }
         R mainSearch = buildConfiguredSearch(searchId, namedParamsMap, narrowSearch);
         if (mainSearch.isEmptySearch()) {
             return PaginationResult.EMPTY;
         }
-        return runConfiguredSearch(mainSearch, pagination);
+        return runConfiguredSearch(mainSearch, clientSorts, pagination);
     }
 
     /**
@@ -93,10 +105,10 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
      * {@code mainSearch.getConfiguredSearch()} carries the header for the sorter step.
      * Override only when the search needs a different execution shape (see UserSearchConfigService).
      */
-    protected PaginationResult<E> runConfiguredSearch(R mainSearch, SimplePagination pagination) throws ServiceException {
+    protected PaginationResult<E> runConfiguredSearch(R mainSearch, Map<SF, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Specification<E> spec = entitySearchService().createFilterSpecification(mainSearch, apiUser.getDomainId(), apiUser.getLocale());
-        spec = addConfiguredSorting(mainSearch, pagination, spec);
+        spec = addConfiguredSorting(mainSearch, clientSorts, pagination, spec);
         Page<E> page = searchExecutor().findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(page, pagination);
     }
@@ -111,10 +123,16 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
         return searchExecutor().count(spec);
     }
 
-    /** Applies the configured sorter when it is forced or the client did not request a sort. */
-    protected Specification<E> addConfiguredSorting(R mainSearch, SimplePagination pagination, Specification<E> spec) throws ServiceException {
+    /**
+     * Applies the configured sorter when it is forced or the client did not request a sort (neither
+     * request-body {@code sorts} nor the pagination query sort). Sort precedence:
+     * client sorts > configured sorter (unless force_sorting) > pagination query sort > entity default.
+     */
+    protected Specification<E> addConfiguredSorting(R mainSearch, Map<SF, SortDirection> clientSorts, SimplePagination pagination, Specification<E> spec) throws ServiceException {
         S searchEntity = mainSearch.getConfiguredSearch();
-        if (searchEntity != null && (Boolean.TRUE.equals(searchEntity.getForceSorting()) || pagination == null || pagination.getSort() == null)) {
+        boolean hasClientSorts = MapUtils.isNotEmpty(clientSorts);
+        boolean hasPaginationSort = pagination != null && pagination.getSort() != null;
+        if (searchEntity != null && (Boolean.TRUE.equals(searchEntity.getForceSorting()) || (!hasClientSorts && !hasPaginationSort))) {
             SearchSorter<E> sorter = featurerService.getFeaturer(searchEntity.getSorterFeaturerId(), sorterClass());
             var sortFunction = sorter.createSort(searchEntity.getSorterParams());
             if (sortFunction != null) {
@@ -125,9 +143,16 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
                 return spec;
             }
         }
+        if (hasClientSorts) {
+            spec = addClientSorting(clientSorts, spec);
+            if (pagination != null) {
+                pagination.setSort(null);
+            }
+            return spec;
+        }
         // No configured sort applied and the client did not request one: fall back to the entity
-        // default sort to keep offset pagination deterministic (client sort > configured sorter > entity default).
-        if (pagination == null || pagination.getSort() == null) {
+        // default sort to keep offset pagination deterministic.
+        if (!hasPaginationSort) {
             Specification<E> defaultSort = createDefaultSortSpecification(authService.getApiUser().getLocale());
             if (defaultSort != null) {
                 spec = spec.and(defaultSort);
@@ -137,10 +162,26 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
     }
 
     /**
-     * Free-search service for the entity — the source of fresh search instances and the entity
-     * default sort fallback (when its {@code defaultSortField()} is non-null).
+     * Client-requested sorts via the free-search service's {@code createSortSpecification}
+     * (Specification-based — never Pageable sort, see docs/api_sorting_architecture.md);
+     * map iteration order defines ORDER BY precedence.
      */
-    protected abstract EntitySearchService<R, E, ?, ?> entitySearchService();
+    protected Specification<E> addClientSorting(Map<SF, SortDirection> clientSorts, Specification<E> spec) throws ServiceException {
+        Locale locale = authService.getApiUser().getLocale();
+        for (Map.Entry<SF, SortDirection> entry : clientSorts.entrySet()) {
+            Specification<E> sortSpec = entitySearchService().createSortSpecification(entry.getKey(), entry.getValue(), locale);
+            if (sortSpec != null) {
+                spec = Specification.allOf(spec, sortSpec);
+            }
+        }
+        return spec;
+    }
+
+    /**
+     * Free-search service for the entity — the source of fresh search instances, the sort field
+     * type and the entity default sort fallback (when its {@code defaultSortField()} is non-null).
+     */
+    protected abstract EntitySearchService<R, E, SF, ?> entitySearchService();
 
     /**
      * Entity default sort for the configured pipeline, used when no configured sorter produced a sort
@@ -148,16 +189,11 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
      * (ASC); a null default sort field keeps legacy behavior — no ORDER BY.
      */
     protected Specification<E> createDefaultSortSpecification(Locale locale) throws ServiceException {
-        return createDefaultSortSpecification(entitySearchService(), locale);
-    }
-
-    // Capture helper binding the wildcard sort-field type so defaultSortField() feeds createSortSpecification.
-    private <SF, GF> Specification<E> createDefaultSortSpecification(EntitySearchService<R, E, SF, GF> service, Locale locale) throws ServiceException {
-        SF defaultSortField = service.defaultSortField();
+        SF defaultSortField = entitySearchService().defaultSortField();
         if (defaultSortField == null) {
             return null;
         }
-        return service.createSortSpecification(defaultSortField, SortDirection.ASC, locale);
+        return entitySearchService().createSortSpecification(defaultSortField, SortDirection.ASC, locale);
     }
 
     /**
@@ -194,8 +230,11 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
      * UNLIMITED path: plain free search over the narrow filter.
      * Override only when free search has a custom execution shape (see UserSearchConfigService).
      */
-    protected PaginationResult<E> runFreeSearch(R search, SimplePagination pagination) throws ServiceException {
-        return entitySearchService().search(search, pagination);
+    protected PaginationResult<E> runFreeSearch(R search, Map<SF, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
+        if (MapUtils.isEmpty(clientSorts)) {
+            return entitySearchService().search(search, pagination);
+        }
+        return entitySearchService().search(search, pagination, clientSorts);
     }
 
     /**

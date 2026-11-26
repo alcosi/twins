@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.enums.consts.SystemIds;
+import org.twins.core.enums.sort.TwinClassSortField;
 import org.twins.core.featurer.classfinder.ClassFinder;
 import org.twins.core.featurer.classfinder.sorter.ClassSorter;
 import org.twins.core.featurer.search.SearchFinder;
@@ -23,7 +24,7 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinClassSearchEntity, TwinClassSearchPredicateEntity, TwinClassSearch, TwinClassEntity> {
+public class TwinClassSearchConfigService extends ConfiguredSearchService<TwinClassSearchEntity, TwinClassSearchPredicateEntity, TwinClassSearch, TwinClassEntity, TwinClassSortField> {
     private final TwinClassSearchRepository classSearchRepository;
     private final TwinClassSearchPredicateRepository classSearchPredicateRepository;
     private final TwinClassRepository twinClassRepository;
