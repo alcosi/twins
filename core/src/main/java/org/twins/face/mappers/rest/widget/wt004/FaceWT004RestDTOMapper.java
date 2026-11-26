@@ -71,5 +71,10 @@ public class FaceWT004RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
         if (mapperContext.hasModeButNot(FaceWT004Modes.FaceWT0042TwinClassFieldMode.HIDE)) {
             faceWT004Service.loadImagesTwinClassFields(srcCollection.stream().map(PointedFace::getConfig).toList());
         }
+        // same gates as the two loadRestriction call sites in map(): DETAILED mode or attachment-restriction related object
+        if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED
+                || mapperContext.hasModeButNot(FaceWT004Modes.FaceWT0042AttachmentRestrictionMode.HIDE)) {
+            faceWT004Service.loadRestriction(srcCollection);
+        }
     }
 }

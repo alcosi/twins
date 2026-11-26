@@ -15,7 +15,7 @@ public class FaceBC001ItemDTOv1 {
     private UUID id;
 
     @Schema(description = "order")
-    private int order;
+    private Integer order;
 
     @Schema(description = "twin id")
     private UUID twinId;

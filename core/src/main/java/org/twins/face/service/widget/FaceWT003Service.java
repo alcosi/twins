@@ -85,12 +85,7 @@ public class FaceWT003Service extends FacePointedService<FaceWT003Entity> {
 
     public void loadSubstitutionFields(Collection<FaceWT003Entity> srcCollection) throws ServiceException {
         twinClassFieldService.load(srcCollection,
-                FaceWT003Entity::getTitleSubstitutionTwinClassFieldId,
-                FaceWT003Entity::getSubstitutionTitleField,
-                FaceWT003Entity::setSubstitutionTitleField);
-        twinClassFieldService.load(srcCollection,
-                FaceWT003Entity::getMessageSubstitutionTwinClassFieldId,
-                FaceWT003Entity::getSubstitutionMessageField,
-                FaceWT003Entity::setSubstitutionMessageField);
+                new LoadedField<>(FaceWT003Entity::getTitleSubstitutionTwinClassFieldId, FaceWT003Entity::getSubstitutionTitleField, FaceWT003Entity::setSubstitutionTitleField),
+                new LoadedField<>(FaceWT003Entity::getMessageSubstitutionTwinClassFieldId, FaceWT003Entity::getSubstitutionMessageField, FaceWT003Entity::setSubstitutionMessageField));
     }
 }
