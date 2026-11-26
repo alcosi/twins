@@ -162,10 +162,7 @@ public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntit
             }
         }
         if (hasClientSorts) {
-            spec = addClientSorting(clientSorts, spec);
-            if (pagination != null)
-                pagination.setSort(null);
-            return spec;
+            return addClientSorting(clientSorts, pagination, spec); // clears the pagination query sort inside
         }
         // No configured sort applied and the client did not request one: entity default sort keeps
         // offset pagination deterministic.

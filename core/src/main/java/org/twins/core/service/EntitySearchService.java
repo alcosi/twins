@@ -63,23 +63,29 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     public PaginationResult<E> search(S search, SimplePagination pagination, Map<SF, SortDirection> sortFields) throws ServiceException {
         if (search == null)
             search = newSearch();
-        Locale locale = authService.getApiUser().getLocale();
-        Specification<E> spec;
-        if (MapUtils.isNotEmpty(sortFields)) {
-            spec = createFilterSpecification(search);
-            for (var entry : sortFields.entrySet()) {
-                var sortField = entry.getKey();
-                var sortDirection = entry.getValue();
-                var sortSpec = createSortSpecification(sortField, sortDirection, locale);
-                if (sortSpec != null) {
-                    spec = Specification.allOf(spec, sortSpec);
-                }
-            }
-        } else {
-            spec = createFilterSpecification(search);
-        }
+        Specification<E> spec = addClientSorting(sortFields, pagination, createFilterSpecification(search));
         Page<E> page = jpaSpecificationExecutor().findAll(spec, PaginationUtils.pageableOffset(pagination.setSort(null)));
         return PaginationUtils.convertInPaginationResult(page, pagination);
+    }
+
+    /**
+     * Client-requested sorts via {@link #createSortSpecification} (Specification-based — never
+     * Pageable sort, see docs/api_sorting_architecture.md); map iteration order defines ORDER BY
+     * precedence. The pagination query sort is cleared when sorts are applied — the two sort
+     * sources must not conflict (Spring Data JPA #2253). Empty sorts are a no-op.
+     */
+    protected Specification<E> addClientSorting(Map<SF, SortDirection> clientSorts, SimplePagination pagination, Specification<E> specification) throws ServiceException {
+        if (MapUtils.isEmpty(clientSorts))
+            return specification;
+        Locale locale = authService.getApiUser().getLocale();
+        for (var entry : clientSorts.entrySet()) {
+            var sortSpec = createSortSpecification(entry.getKey(), entry.getValue(), locale);
+            if (sortSpec != null)
+                specification = Specification.allOf(specification, sortSpec);
+        }
+        if (pagination != null)
+            pagination.setSort(null);
+        return specification;
     }
 
     public Map<GF, Long> countByGroupFields(S search, GF groupField) throws ServiceException {

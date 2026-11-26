@@ -144,11 +144,7 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
             }
         }
         if (hasClientSorts) {
-            spec = addClientSorting(clientSorts, spec);
-            if (pagination != null) {
-                pagination.setSort(null);
-            }
-            return spec;
+            return addClientSorting(clientSorts, pagination, spec); // clears the pagination query sort inside
         }
         // No configured sort applied and the client did not request one: fall back to the entity
         // default sort to keep offset pagination deterministic.
@@ -162,19 +158,12 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
     }
 
     /**
-     * Client-requested sorts via the free-search service's {@code createSortSpecification}
-     * (Specification-based — never Pageable sort, see docs/api_sorting_architecture.md);
-     * map iteration order defines ORDER BY precedence.
+     * Client-requested sorts, applied by the free-search service (Specification-based — never
+     * Pageable sort, see docs/api_sorting_architecture.md); map iteration order defines ORDER BY
+     * precedence. The pagination query sort is cleared inside when sorts are applied.
      */
-    protected Specification<E> addClientSorting(Map<SF, SortDirection> clientSorts, Specification<E> spec) throws ServiceException {
-        Locale locale = authService.getApiUser().getLocale();
-        for (Map.Entry<SF, SortDirection> entry : clientSorts.entrySet()) {
-            Specification<E> sortSpec = entitySearchService().createSortSpecification(entry.getKey(), entry.getValue(), locale);
-            if (sortSpec != null) {
-                spec = Specification.allOf(spec, sortSpec);
-            }
-        }
-        return spec;
+    protected Specification<E> addClientSorting(Map<SF, SortDirection> clientSorts, SimplePagination pagination, Specification<E> spec) throws ServiceException {
+        return entitySearchService().addClientSorting(clientSorts, pagination, spec);
     }
 
     /**

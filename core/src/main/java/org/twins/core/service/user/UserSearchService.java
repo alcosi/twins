@@ -213,24 +213,6 @@ public class UserSearchService extends EntitySearchService<UserSearch, UserEntit
                 return specification;
             }
         }
-        return addClientSorting(clientSorts, pagination, specification);
-    }
-
-    /**
-     * Client sorts via {@link #createSortSpecification} (Specification-based — never Pageable sort,
-     * see docs/api_sorting_architecture.md); map iteration order defines ORDER BY precedence.
-     */
-    private Specification<UserEntity> addClientSorting(Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
-        if (MapUtils.isEmpty(clientSorts))
-            return specification;
-        Locale locale = authService.getApiUser().getLocale();
-        for (var entry : clientSorts.entrySet()) {
-            var sortSpec = createSortSpecification(entry.getKey(), entry.getValue(), locale);
-            if (sortSpec != null)
-                specification = Specification.allOf(specification, sortSpec);
-        }
-        if (pagination != null)
-            pagination.setSort(null);
-        return specification;
+        return addClientSorting(clientSorts, pagination, specification); // inherited from EntitySearchService
     }
 }
