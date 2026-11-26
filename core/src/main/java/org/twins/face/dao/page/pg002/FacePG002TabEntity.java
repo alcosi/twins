@@ -1,22 +1,23 @@
 package org.twins.face.dao.page.pg002;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.cambium.common.EasyLoggable;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceVariantEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_pg002_tab")
-public class FacePG002TabEntity implements EasyLoggable, FaceVariantEntity {
+public class FacePG002TabEntity implements FaceVariantEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -34,36 +35,52 @@ public class FacePG002TabEntity implements EasyLoggable, FaceVariantEntity {
     private String styleClasses;
 
     @Column(name = "active", nullable = false)
-    private boolean active;
+    private Boolean active;
 
     @Column(name = "icon_resource_id")
     private UUID iconResourceId;
 
+    @Column(name = "`order`")
+    private Short order;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_pg002_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FacePG002Entity facePG002SpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "title_i18n_id", nullable = false, insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity titleI18n;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private ResourceEntity iconResource;
-
-    @Column(name = "`order`")
-    private short order;
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    Kit<FacePG002WidgetEntity, UUID> widgets;
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ResourceEntity iconResourceSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private ResourceEntity iconResource;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<FacePG002WidgetEntity, UUID> widgets;
 
     @Transient
     @EqualsAndHashCode.Exclude

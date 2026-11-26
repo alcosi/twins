@@ -1,25 +1,25 @@
 package org.twins.face.dao.widget.wt010;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FacePointedEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.twin.TwinPointerEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 import org.twins.core.dao.twinclass.TwinClassSearchEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_wt010")
-public class FaceWT010Entity implements EasyLoggable, FacePointedEntity {
+public class FaceWT010Entity implements FacePointedEntity {
 
     @Id
     @Column(name = "id")
@@ -49,47 +49,70 @@ public class FaceWT010Entity implements EasyLoggable, FacePointedEntity {
     @Column(name = "save_changes_label_i18n_id")
     private UUID saveChangesLabelI18nId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FaceEntity face;
-
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_class_search_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinClassSearchEntity twinClassSearch;
+    private TwinClassSearchEntity twinClassSearchSpecOnly;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "class_selector_label_i18n_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity classSelectorLabelI18n;
+    private TwinClassSearchEntity twinClassSearch;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "target_twin_pointer_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinPointerEntity targetTwinPointerSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinPointerEntity targetTwinPointer;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity faceSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity face;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private ResourceEntity iconResourceSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ResourceEntity iconResource;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "label_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity label;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "save_changes_label_i18n_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private I18nEntity saveChangesLabelI18n;
 
     @Override
     public String easyLog(Level level) {
@@ -97,7 +120,7 @@ public class FaceWT010Entity implements EasyLoggable, FacePointedEntity {
             case SHORT:
                 return "faceWT010[" + id + "]";
             default:
-                return "faceWT010[id:" + id + ", name:" + face.getName() + "]";
+                return "faceWT010[id:" + id + (face != null ? ", name:" + face.getName() : "") + "]";
         }
     }
 }

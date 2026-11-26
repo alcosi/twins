@@ -11,6 +11,8 @@ import org.twins.face.dao.widget.wt009.FaceWT009Entity;
 import org.twins.face.dto.rest.widget.wt009.FaceWT009DTOv1;
 import org.twins.face.service.widget.FaceWT009Service;
 
+import java.util.Collection;
+
 @Component
 @RequiredArgsConstructor
 public class FaceWT009RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceWT009Entity>, FaceWT009DTOv1> {
@@ -30,6 +32,15 @@ public class FaceWT009RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                 dst
                         .setActions(faceWT009ActionRestDTOMapper.convertCollection(src.getConfig().getActions()));
             }
+        }
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<PointedFace<FaceWT009Entity>> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
+            faceWT009Service.loadActions(srcCollection.stream().map(PointedFace::getConfig).toList());
         }
     }
 }

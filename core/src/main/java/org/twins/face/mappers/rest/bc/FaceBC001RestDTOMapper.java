@@ -9,6 +9,8 @@ import org.twins.face.dao.bc.FaceBC001Entity;
 import org.twins.face.dto.rest.bc.FaceBC001DTOv1;
 import org.twins.face.service.bc.FaceBC001Service;
 
+import java.util.Collection;
+
 @Component
 @RequiredArgsConstructor
 public class FaceBC001RestDTOMapper extends RestSimpleDTOMapper<FaceBC001Entity, FaceBC001DTOv1> {
@@ -19,8 +21,15 @@ public class FaceBC001RestDTOMapper extends RestSimpleDTOMapper<FaceBC001Entity,
 
     @Override
     public void map(FaceBC001Entity src, FaceBC001DTOv1 dst, MapperContext mapperContext) throws Exception {
+        faceBC001Service.loadFace(src);
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         var listOfPairs = faceBC001Service.getBC001ItemToTwinPairs(src);
         dst.setItems(faceBC001ItemRestDTOMapper.convertCollection(listOfPairs, mapperContext));
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<FaceBC001Entity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceBC001Service.loadFace(srcCollection);
     }
 }

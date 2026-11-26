@@ -12,6 +12,8 @@ import org.twins.core.service.face.FaceVariantsService;
 import org.twins.face.dao.page.pg002.FacePG002Entity;
 import org.twins.face.dao.page.pg002.FacePG002Repository;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -36,7 +38,9 @@ public class FacePG002Service extends FaceVariantsService<FacePG002Entity> {
 
     @Override
     public boolean isEntityReadDenied(FacePG002Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return faceService.isEntityReadDenied(entity.getFace());
+        if (entity.getFace() == null)
+            entity.setFace(findFaceForReadCheck(entity.getFaceId()));
+        return faceService.isEntityReadDenied(entity.getFace(), readPermissionCheckMode);
     }
 
     @Override
@@ -47,5 +51,16 @@ public class FacePG002Service extends FaceVariantsService<FacePG002Entity> {
     @Override
     public List<FacePG002Entity> getVariants(UUID of) {
         return facePG001Repository.findByFaceId(of);
+    }
+
+    public void loadFace(FacePG002Entity src) throws ServiceException {
+        loadFace(Collections.singletonList(src));
+    }
+
+    public void loadFace(Collection<FacePG002Entity> srcCollection) throws ServiceException {
+        faceService.load(srcCollection,
+                FacePG002Entity::getFaceId,
+                FacePG002Entity::getFace,
+                FacePG002Entity::setFace);
     }
 }

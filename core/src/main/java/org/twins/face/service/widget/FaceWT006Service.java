@@ -46,7 +46,9 @@ public class FaceWT006Service extends FacePointedService<FaceWT006Entity> {
 
     @Override
     public boolean isEntityReadDenied(FaceWT006Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return faceService.isEntityReadDenied(entity.getFace());
+        if (entity.getFace() == null)
+            entity.setFace(findFaceForReadCheck(entity.getFaceId()));
+        return faceService.isEntityReadDenied(entity.getFace(), readPermissionCheckMode);
     }
 
     @Override

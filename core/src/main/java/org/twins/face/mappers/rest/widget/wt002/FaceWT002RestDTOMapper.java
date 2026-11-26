@@ -47,6 +47,8 @@ public class FaceWT002RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
     public void beforeCollectionConversion(Collection<PointedFace<FaceWT002Entity>> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
         faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
-        faceWT002ButtonService.loadButtons(srcCollection.stream().map(PointedFace::getConfig).toList());
+        if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
+            faceWT002ButtonService.loadButtons(srcCollection.stream().map(PointedFace::getConfig).toList());
+        }
     }
 }

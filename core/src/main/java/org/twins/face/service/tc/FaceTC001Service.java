@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.service.face.FaceService;
 import org.twins.core.service.face.FaceVariantsService;
+import org.twins.core.service.resource.ResourceService;
 import org.twins.face.dao.tc.tc001.FaceTC001Entity;
 import org.twins.face.dao.tc.tc001.FaceTC001OptionEntity;
 import org.twins.face.dao.tc.tc001.FaceTC001OptionRepository;
@@ -27,6 +28,7 @@ import java.util.function.Function;
 public class FaceTC001Service extends FaceVariantsService<FaceTC001Entity> {
     private final FaceTC001Repository faceTC001Repository;
     private final FaceService faceService;
+    private final ResourceService resourceService;
     private final FaceTC001OptionRepository faceTC001OptionRepository;
 
     @Override
@@ -41,7 +43,9 @@ public class FaceTC001Service extends FaceVariantsService<FaceTC001Entity> {
 
     @Override
     public boolean isEntityReadDenied(FaceTC001Entity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return faceService.isEntityReadDenied(entity.getFace());
+        if (entity.getFace() == null)
+            entity.setFace(findFaceForReadCheck(entity.getFaceId()));
+        return faceService.isEntityReadDenied(entity.getFace(), readPermissionCheckMode);
     }
 
     @Override
@@ -52,6 +56,28 @@ public class FaceTC001Service extends FaceVariantsService<FaceTC001Entity> {
     @Override
     public List<FaceTC001Entity> getVariants(UUID of) {
         return faceTC001Repository.findByFaceId(of);
+    }
+
+    public void loadFace(FaceTC001Entity src) throws ServiceException {
+        loadFace(Collections.singletonList(src));
+    }
+
+    public void loadFace(Collection<FaceTC001Entity> srcCollection) throws ServiceException {
+        faceService.load(srcCollection,
+                FaceTC001Entity::getFaceId,
+                FaceTC001Entity::getFace,
+                FaceTC001Entity::setFace);
+    }
+
+    public void loadIconResources(FaceTC001Entity src) throws ServiceException {
+        loadIconResources(Collections.singletonList(src));
+    }
+
+    public void loadIconResources(Collection<FaceTC001Entity> srcCollection) throws ServiceException {
+        resourceService.load(srcCollection,
+                FaceTC001Entity::getIconResourceId,
+                FaceTC001Entity::getIconResource,
+                FaceTC001Entity::setIconResource);
     }
 
     public void loadOptions(FaceTC001Entity src) {

@@ -12,6 +12,7 @@ import org.twins.face.domain.widget.wt006.FaceWT006TwinClassField;
 import org.twins.face.dto.rest.widget.wt006.FaceWT006DTOv2;
 import org.twins.face.service.widget.FaceWT006Service;
 
+import java.util.Collection;
 import java.util.List;
 
 
@@ -31,5 +32,12 @@ public class FaceWT006v2RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Fa
                 .setLabel(I18nCacheHolder.addId(src.getConfig().getLabelI18nId()))
                 .setStyleClasses(src.getConfig().getStyleClasses())
                 .setFields(faceWT006v2FieldRestDTOMapper.convertCollection(fields));
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<PointedFace<FaceWT006Entity>> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        // loadFields stays per-element: it is a per-config field search (featurer + twin params), not a bulkable transient load
     }
 }

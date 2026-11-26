@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "face_nb001")
-public class FaceNB001Entity implements EasyLoggable {
+public class FaceNB001Entity implements EasyLoggable, Identifiable<UUID> {
     @Id
     @Column(name = "face_id")
     private UUID faceId;
@@ -77,6 +78,17 @@ public class FaceNB001Entity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private Kit<FaceNB001MenuItemEntity, UUID> menuItems;
+
+    @Override
+    public UUID getId() {
+        return faceId;
+    }
+
+    @Override
+    public FaceNB001Entity setId(UUID id) {
+        this.faceId = id;
+        return this;
+    }
 
     @Override
     public String easyLog(Level level) {

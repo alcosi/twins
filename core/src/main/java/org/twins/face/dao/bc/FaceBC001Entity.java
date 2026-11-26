@@ -1,11 +1,9 @@
 package org.twins.face.dao.bc;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
@@ -13,11 +11,13 @@ import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_bc001")
-public class FaceBC001Entity implements EasyLoggable, FaceVariantEntity {
+public class FaceBC001Entity implements FaceVariantEntity {
 
     @Id
     @Column(name = "id")
@@ -32,17 +32,31 @@ public class FaceBC001Entity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "name")
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "face_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FaceEntity face;
-
-    @ManyToOne
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity faceSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity face;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -55,7 +69,7 @@ public class FaceBC001Entity implements EasyLoggable, FaceVariantEntity {
             case SHORT:
                 return "faceBC001[" + id + "]";
             default:
-                return "faceBC001[id:" + id + ", name:" + face.getName() + "]";
+                return "faceBC001[id:" + id + (face != null ? ", name:" + face.getName() : "") + "]";
         }
     }
 }

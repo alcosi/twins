@@ -11,6 +11,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.face.dao.widget.wt008.FaceWT008Entity;
 import org.twins.face.dto.rest.widget.wt008.FaceWT008DTOv1;
 
+import java.util.Collection;
+
 @Component
 @RequiredArgsConstructor
 public class FaceWT008RestDTOMapper extends RestSimpleDTOMapper<PointedFace<FaceWT008Entity>, FaceWT008DTOv1> {
@@ -27,5 +29,11 @@ public class FaceWT008RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                 .setLabel(I18nCacheHolder.addId(config.getLabelI18nId()))
                 .setTwinCommentSearchId(config.getTwinCommentSearchId())
                 .setStyleClasses(StringUtils.splitToSet(config.getStyleClasses(), " "));
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<PointedFace<FaceWT008Entity>> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
     }
 }

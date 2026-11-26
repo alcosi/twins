@@ -49,7 +49,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
                         .setLabel(I18nCacheHolder.addId(config.getLabelI18nId()))
                         .setTwinClassId(config.getTwinClassId())
                         .setSearchId(config.getSearchId())
-                        .setShowCreateButton(config.isShowCreateButton())
+                        .setShowCreateButton(config.getShowCreateButton())
                         .setColumns(faceWT001ColumnRestDTOMapper.convertCollection(faceWT001ColumnService.filterVariants(config.getColumns()), mapperContext));
                 Map<String, String> searchParams = faceWT001Service.getSearchParams(config);
                 if (searchParams != null && !searchParams.isEmpty()) {
@@ -59,6 +59,7 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
         }
 
         if (mapperContext.hasModeButNot(FaceMode.ModalFace2FaceMode.HIDE)) {
+            faceWT001Service.loadModalFaces(config);
             faceRestDTOMapper.postpone(config.getModalFace(), mapperContext.forkOnPoint(FaceMode.ModalFace2FaceMode.SHORT));
             dst.setModalFaceId(config.getModalFaceId());
         }
@@ -69,9 +70,12 @@ public class FaceWT001RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
         super.beforeCollectionConversion(srcCollection, mapperContext);
         faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         List<FaceWT001Entity> configs = srcCollection.stream().map(PointedFace::getConfig).toList();
-        faceWT001ColumnService.loadColumns(configs);
         if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
+            faceWT001ColumnService.loadColumns(configs);
             faceWT001Service.loadSearchParams(configs);
+        }
+        if (mapperContext.hasModeButNot(FaceMode.ModalFace2FaceMode.HIDE)) {
+            faceWT001Service.loadModalFaces(configs);
         }
     }
 }

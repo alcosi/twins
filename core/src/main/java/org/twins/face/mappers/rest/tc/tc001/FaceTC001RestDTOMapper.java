@@ -28,12 +28,14 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
 
     @Override
     public void map(FaceTC001Entity src, FaceTC001DTOv1 dst, MapperContext mapperContext) throws Exception {
+        faceTC001Service.loadFace(src);
         faceRestDTOMapper.map(src.getFace(), dst, mapperContext);
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) {
             case SHORT -> dst
                     .setKey(src.getKey());
             case DETAILED -> {
                 faceTC001Service.loadOptions(src);
+                faceTC001Service.loadIconResources(src);
                 dst
                         .setKey(src.getKey())
                         .setStyleClasses(StringUtils.splitToSet(src.getStyleClasses(), " "))
@@ -51,6 +53,10 @@ public class FaceTC001RestDTOMapper extends RestSimpleDTOMapper<FaceTC001Entity,
     @Override
     public void beforeCollectionConversion(Collection<FaceTC001Entity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceTC001Service.loadOptions(srcCollection);
+        faceTC001Service.loadFace(srcCollection);
+        if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
+            faceTC001Service.loadOptions(srcCollection);
+            faceTC001Service.loadIconResources(srcCollection);
+        }
     }
 }

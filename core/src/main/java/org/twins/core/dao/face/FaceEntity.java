@@ -11,7 +11,8 @@ import org.twins.core.domain.Identifiable;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Accessors(chain = true)
 @FieldNameConstants
 @Entity
@@ -26,22 +27,6 @@ public class FaceEntity implements EasyLoggable, Identifiable<UUID> {
     @Column(name = "face_component_id")
     private String faceComponentId;
 
-    @Deprecated // for specification only
-    @Getter(AccessLevel.NONE)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "face_component_id", nullable = false, insertable = false, updatable = false)
-    private FaceComponentTypeEntity faceComponentSpecOnly;
-
-    @Deprecated // for specification only
-    @Getter(AccessLevel.NONE)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
-    private UserEntity createdByUserSpecOnly;
-
     @Column(name = "name")
     private String name;
 
@@ -54,10 +39,26 @@ public class FaceEntity implements EasyLoggable, Identifiable<UUID> {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_component_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceComponentTypeEntity faceComponentSpecOnly;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceComponentTypeEntity faceComponent;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private UserEntity createdByUserSpecOnly;
 
     @Transient
     @EqualsAndHashCode.Exclude

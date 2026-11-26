@@ -33,15 +33,19 @@ public class FaceWT005RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
         switch (mapperContext.getModeOrUse(FaceMode.SHORT)) { // perhaps we need some separate mode
             case SHORT -> dst
                     .setKey(src.getConfig().getKey());
-            case DETAILED -> dst
-                    .setKey(src.getConfig().getKey())
-                    .setLabel(I18nCacheHolder.addId(src.getConfig().getLabelI18nId() != null ?
-                            src.getConfig().getLabelI18nId() : src.getConfig().getI18nTwinClassField().getNameI18nId()))
-                    .setI18nTwinClassFieldId(src.getConfig().getI18nTwinClassFieldId());
+            case DETAILED -> {
+                faceWT005Service.loadI18nTwinClassFields(src.getConfig());
+                dst
+                        .setKey(src.getConfig().getKey())
+                        .setLabel(I18nCacheHolder.addId(src.getConfig().getLabelI18nId() != null ?
+                                src.getConfig().getLabelI18nId() : src.getConfig().getI18nTwinClassField().getNameI18nId()))
+                        .setI18nTwinClassFieldId(src.getConfig().getI18nTwinClassFieldId());
+            }
         }
         faceWT005Service.loadAccordionItems(src.getConfig());
         dst.setAccordionItems(faceWT005AccordionItemRestDTOMapper.convertCollection(src.getConfig().getAccordionItems(), mapperContext));
         if (mapperContext.hasModeButNot(FaceWT005Modes.FaceWT0052TwinClassFieldMode.HIDE)) {
+            faceWT005Service.loadI18nTwinClassFields(src.getConfig());
             dst.setI18nTwinClassFieldId(src.getConfig().getI18nTwinClassFieldId());
             twinClassFieldRestDTOMapper.postpone(src.getConfig().getI18nTwinClassField(), mapperContext.forkOnPoint(FaceWT005Modes.FaceWT0052TwinClassFieldMode.SHORT));
         }
@@ -50,6 +54,12 @@ public class FaceWT005RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
     @Override
     public void beforeCollectionConversion(Collection<PointedFace<FaceWT005Entity>> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceWT005Service.loadAccordionItems(srcCollection.stream().map(PointedFace::getConfig).toList());
+        faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        var configs = srcCollection.stream().map(PointedFace::getConfig).toList();
+        faceWT005Service.loadAccordionItems(configs);
+        if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED
+                || mapperContext.hasModeButNot(FaceWT005Modes.FaceWT0052TwinClassFieldMode.HIDE)) {
+            faceWT005Service.loadI18nTwinClassFields(configs);
+        }
     }
 }

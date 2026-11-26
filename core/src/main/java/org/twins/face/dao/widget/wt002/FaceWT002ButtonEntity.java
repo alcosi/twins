@@ -1,22 +1,23 @@
 package org.twins.face.dao.widget.wt002;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.cambium.common.EasyLoggable;
+import lombok.*;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.face.FaceVariantEntity;
-import org.twins.core.dao.i18n.I18nEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.twin.TwinPointerValidatorRuleEntity;
 
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "face_wt002_button")
-public class FaceWT002ButtonEntity implements EasyLoggable, FaceVariantEntity {
+public class FaceWT002ButtonEntity implements FaceVariantEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -42,26 +43,49 @@ public class FaceWT002ButtonEntity implements EasyLoggable, FaceVariantEntity {
     @Column(name = "modal_face_id")
     private UUID modalFaceId;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "face_wt002_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceWT002Entity faceWT002SpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_pointer_validator_rule_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRuleSpecOnly;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "label_i18n_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    private I18nEntity labelI18n;
+    private TwinPointerValidatorRuleEntity twinPointerValidatorRule;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "icon_resource_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    private ResourceEntity iconResourceSpecOnly;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private ResourceEntity iconResource;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modal_face_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceEntity modalFaceSpecOnly;
+
+    @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity modalFace;

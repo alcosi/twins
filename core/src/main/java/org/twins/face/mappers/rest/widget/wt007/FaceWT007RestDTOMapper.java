@@ -29,8 +29,8 @@ public class FaceWT007RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
             case DETAILED -> {
                 faceWT007Service.loadButtons(src.getConfig());
                 dst
-                        .setGlue(src.getConfig().isGlue())
-                        .setAlignVertical(src.getConfig().isAlignVertical())
+                        .setGlue(src.getConfig().getGlue())
+                        .setAlignVertical(src.getConfig().getAlignVertical())
                         .setStyleClasses(StringUtils.splitToSet(src.getConfig().getStyleClasses(), " "))
                         .setButtons(faceWT007ButtonRestDTOMapper.convertCollection(src.getConfig().getButtons(), mapperContext));
             }
@@ -40,6 +40,9 @@ public class FaceWT007RestDTOMapper extends RestSimpleDTOMapper<PointedFace<Face
     @Override
     public void beforeCollectionConversion(Collection<PointedFace<FaceWT007Entity>> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        faceWT007Service.loadButtons(srcCollection.stream().map(PointedFace::getConfig).toList());
+        faceWidgetRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.getModeOrUse(FaceMode.SHORT) == FaceMode.DETAILED) {
+            faceWT007Service.loadButtons(srcCollection.stream().map(PointedFace::getConfig).toList());
+        }
     }
 }

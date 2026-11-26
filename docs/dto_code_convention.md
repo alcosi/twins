@@ -4,7 +4,7 @@
 
 All DTO classes must follow consistent naming and structure conventions.
 
-* All DTOs must be located in packages under `org/twins/core/dto/**`
+* All DTOs must be located in packages under `org/twins/core/dto/**`; faces UI-config DTOs live under `org/twins/face/dto/**` (e.g. `org.twins.face.dto.rest.widget.wt004`) — both layouts follow this convention
 * DTOs **must not** contain business logic
 * DTOs **must not** depend on Entity classes
 * DTOs are used exclusively for data transfer between layers and/or external interfaces

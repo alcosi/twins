@@ -9,7 +9,9 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.dao.face.FaceEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
@@ -19,7 +21,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "face_nb001_menu_item")
-public class FaceNB001MenuItemEntity implements EasyLoggable {
+public class FaceNB001MenuItemEntity implements EasyLoggable, Identifiable<UUID> {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -102,6 +104,22 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @ToString.Exclude
     private PermissionEntity permissionSpecOnly;
 
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "counter_twin_search_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinSearchEntity counterTwinSearchSpecOnly;
+
+    @Deprecated // for specification only
+    @Getter(AccessLevel.NONE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_face_nb001_menu_item_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private FaceNB001MenuItemEntity parentFaceMenuItemSpecOnly;
+
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
@@ -112,6 +130,16 @@ public class FaceNB001MenuItemEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private FaceEntity targetPageFace;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinEntity targetTwin;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private TwinSearchEntity counterTwinSearch;
 
     @Transient
     @EqualsAndHashCode.Exclude
