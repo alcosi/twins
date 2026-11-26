@@ -9,32 +9,23 @@ import jakarta.persistence.criteria.Subquery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.PaginationUtils;
-import org.cambium.featurer.FeaturerService;
-import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
-import org.twins.core.dao.user.UserSearchEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.UserSearch;
 import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.sort.UserGroupField;
 import org.twins.core.enums.sort.UserSortField;
 import org.twins.core.enums.user.UserStatus;
-import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -42,10 +33,10 @@ import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecif
 import static org.twins.core.dao.user.UserSpecification.*;
 
 /**
- * Users join the common {@link EntitySearchService} contract so configured-search flow can treat
- * them uniformly. Enum-driven sorting (name/email/status) and group counting (by status) are
- * supported on top of the featurer-driven {@link UserSorter}; the execution path stays custom
- * ({@link #findUsers} weaves childTwinSearches subqueries).
+ * Standard {@link EntitySearchService} heir: enum-driven sorting (name/email/status, default
+ * name) and group counting by status. The only user-specific twist — the childTwinSearches
+ * subquery weaving — lives inside {@link #createFilterSpecification}, where the contract expects
+ * all filtering, so the search/count/configured pipelines run unchanged.
  */
 @Slf4j
 @Service
@@ -54,7 +45,6 @@ import static org.twins.core.dao.user.UserSpecification.*;
 public class UserSearchService extends EntitySearchService<UserSearch, UserEntity, UserSortField, UserGroupField> {
     private final UserRepository userRepository;
     private final TwinSearchService twinSearchService;
-    private final FeaturerService featurerService;
 
     @Override
     public JpaSpecificationExecutor<UserEntity> jpaSpecificationExecutor() {
@@ -71,10 +61,33 @@ public class UserSearchService extends EntitySearchService<UserSearch, UserEntit
         return UserEntity.class;
     }
 
-    /** {@code domainId}/{@code locale} are pulled from the API user inside (businessAccountId is needed too). */
+    /**
+     * User predicates plus the childTwinSearches subquery weaving. businessAccountId is pulled
+     * from the API user (the contract has no slot for it); domainId arrives as a parameter.
+     */
     @Override
     public Specification<UserEntity> createFilterSpecification(UserSearch search, UUID domainId, Locale locale) throws ServiceException {
-        return createUserSpecification(search);
+        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
+        Specification<UserEntity> spec = Specification.allOf(
+                checkUserDomain(domainId),
+                checkBusinessAccountId(businessAccountId),
+                checkUuidIn(search.getUserIdList(), false, false, UserEntity.Fields.id),
+                checkUuidIn(search.getUserIdExcludeList(), true, false, UserEntity.Fields.id),
+                checkFieldLikeIn(search.getUserNameLikeList(), false, true, UserEntity.Fields.name),
+                checkFieldLikeIn(search.getUserNameLikeExcludeList(), true, false, UserEntity.Fields.name),
+                checkFieldLikeIn(search.getUserEmailLikeList(), false, true, UserEntity.Fields.email),
+                checkFieldLikeIn(search.getUserEmailLikeExcludeList(), true, false, UserEntity.Fields.email),
+                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailLikeList(), false, true),
+                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailExcludeList(), true, false),
+                checkUserGroupIdIn(search.getUserGroupIdList(), false, true, businessAccountId, domainId),
+                checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true, false, businessAccountId, domainId),
+                checkStatusLikeIn(search.getStatusIdList(), false),
+                checkStatusLikeIn(search.getStatusIdExcludeList(), true),
+                checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
+                checkSpaceRoleLikeIn(search.getSpaceExcludeList(), domainId, businessAccountId, true)
+        );
+        Specification<UserEntity> twinSpec = childTwinSearchesSpec(search);
+        return twinSpec == null ? spec : spec.and(twinSpec);
     }
 
     @Override
@@ -112,38 +125,22 @@ public class UserSearchService extends EntitySearchService<UserSearch, UserEntit
         return new UserEntity();
     }
 
-    public PaginationResult<UserEntity> findUsers(UserSearch search, SimplePagination pagination) throws ServiceException {
-        return findUsers(search, null, pagination);
-    }
-
     /**
-     * Client sorts: an ordered sortField→direction map (LinkedHashMap — iteration order defines
-     * ORDER BY precedence). They beat the non-forced configured sorter and the pagination query sort;
-     * force_sorting = true beats client sorts.
+     * One subquery per child twin search, combined by AND when matchAll and by OR otherwise;
+     * null when the search carries no child twin searches.
      */
-    public PaginationResult<UserEntity> findUsers(UserSearch search, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
-        Specification<UserEntity> userSpec = createUserSpecification(search);
-
-        if (search.getChildTwinSearches() != null && CollectionUtils.isNotEmpty(search.getChildTwinSearches().getSearches())) {
-            Specification<UserEntity> twinSpec = search.getChildTwinSearches().getSearches().stream()
-                    .filter(Objects::nonNull)
-                    .map(this::createTwinSpecification)
-                    .reduce((spec1, spec2) ->
-                            search.getChildTwinSearches().isMatchAll()
-                                    ? spec1.and(spec2)
-                                    : spec1.or(spec2)
-                    )
-                    .orElse(null);
-
-            if (twinSpec != null) {
-                Specification<UserEntity> combinedSpec = addClientSorting(clientSorts, pagination, userSpec.and(twinSpec));
-                Page<UserEntity> page = userRepository.findAll(combinedSpec, PaginationUtils.pageableOffset(pagination));
-                return PaginationUtils.convertInPaginationResult(page, pagination);
-            }
-        }
-        userSpec = addSorting(search, clientSorts, pagination, userSpec);
-        Page<UserEntity> page = userRepository.findAll(userSpec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(page, pagination);
+    private Specification<UserEntity> childTwinSearchesSpec(UserSearch search) {
+        if (search.getChildTwinSearches() == null || CollectionUtils.isEmpty(search.getChildTwinSearches().getSearches()))
+            return null;
+        return search.getChildTwinSearches().getSearches().stream()
+                .filter(Objects::nonNull)
+                .map(this::createTwinSpecification)
+                .reduce((spec1, spec2) ->
+                        search.getChildTwinSearches().isMatchAll()
+                                ? spec1.and(spec2)
+                                : spec1.or(spec2)
+                )
+                .orElse(null);
     }
 
     private Specification<UserEntity> createTwinSpecification(BasicSearch childSearch) {
@@ -174,45 +171,5 @@ public class UserSearchService extends EntitySearchService<UserSearch, UserEntit
                 return cb.disjunction();
             }
         };
-    }
-
-    public Specification<UserEntity> createUserSpecification(UserSearch search) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        UUID businessAccountId = authService.getApiUser().getBusinessAccountId();
-        return Specification.allOf(
-                checkUserDomain(domainId),
-                checkBusinessAccountId(businessAccountId),
-                checkUuidIn(search.getUserIdList(), false, false, UserEntity.Fields.id),
-                checkUuidIn(search.getUserIdExcludeList(), true, false, UserEntity.Fields.id),
-                checkFieldLikeIn(search.getUserNameLikeList(), false, true, UserEntity.Fields.name),
-                checkFieldLikeIn(search.getUserNameLikeExcludeList(), true, false, UserEntity.Fields.name),
-                checkFieldLikeIn(search.getUserEmailLikeList(), false, true, UserEntity.Fields.email),
-                checkFieldLikeIn(search.getUserEmailLikeExcludeList(), true, false, UserEntity.Fields.email),
-                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailLikeList(), false, true),
-                checkFieldNameOrEmailLikeIn(search.getUserNameOrEmailExcludeList(), true, false),
-                checkUserGroupIdIn(search.getUserGroupIdList(), false, true, businessAccountId, domainId),
-                checkUserGroupIdIn(search.getUserGroupIdExcludeList(), true, false, businessAccountId, domainId),
-                checkStatusLikeIn(search.getStatusIdList(), false),
-                checkStatusLikeIn(search.getStatusIdExcludeList(), true),
-                checkSpaceRoleLikeIn(search.getSpaceList(), domainId, businessAccountId, false),
-                checkSpaceRoleLikeIn(search.getSpaceExcludeList(), domainId, businessAccountId, true)
-        );
-    }
-
-    private Specification<UserEntity> addSorting(UserSearch search, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination, Specification<UserEntity> specification) throws ServiceException {
-        UserSearchEntity searchEntity = search.getConfiguredSearch();
-        boolean hasClientSorts = MapUtils.isNotEmpty(clientSorts);
-        if (searchEntity != null &&
-                (searchEntity.getForceSorting() || (!hasClientSorts && (pagination == null || pagination.getSort() == null)))) {
-            UserSorter userSorter = featurerService.getFeaturer(searchEntity.getUserSorterFeaturerId(), UserSorter.class);
-            var sortFunction = userSorter.createSort(searchEntity.getUserSorterParams());
-            if (sortFunction != null) {
-                specification = sortFunction.apply(specification);
-                if (pagination != null)
-                    pagination.setSort(null);
-                return specification;
-            }
-        }
-        return addClientSorting(clientSorts, pagination, specification); // inherited from EntitySearchService
     }
 }

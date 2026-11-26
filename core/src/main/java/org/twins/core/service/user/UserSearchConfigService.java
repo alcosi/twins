@@ -3,8 +3,6 @@ package org.twins.core.service.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
@@ -12,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.user.*;
 import org.twins.core.domain.search.BasicSearchList;
 import org.twins.core.domain.search.UserSearch;
-import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.enums.sort.UserSortField;
 import org.twins.core.featurer.search.SearchFinder;
@@ -22,7 +19,6 @@ import org.twins.core.featurer.user.sorter.UserSorter;
 import org.twins.core.service.ConfiguredSearchService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -85,12 +81,6 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
         return userRepository;
     }
 
-    /** Free search must weave childTwinSearches subqueries — the plain EntitySearchService.search cannot. */
-    @Override
-    protected PaginationResult<UserEntity> runFreeSearch(UserSearch search, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
-        return userSearchService.findUsers(search, clientSorts, pagination);
-    }
-
     /** childTwinSearches narrowing cannot be expressed by the generic @SearchFilter scan. */
     @Override
     protected void narrowSearchSpecific(UserSearch mainSearch, UserSearch narrowSearch) {
@@ -109,14 +99,5 @@ public class UserSearchConfigService extends ConfiguredSearchService<UserSearchE
 
             mainChild.setMatchAll(mainChild.isMatchAll() || narrowChild.isMatchAll());
         }
-    }
-
-    /**
-     * Users keep a custom configured path: findUsers additionally weaves childTwinSearches
-     * subquery specs (and historically skips the sorter when they are present).
-     */
-    @Override
-    protected PaginationResult<UserEntity> runConfiguredSearch(UserSearch mainSearch, Map<UserSortField, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
-        return userSearchService.findUsers(mainSearch, clientSorts, pagination);
     }
 }

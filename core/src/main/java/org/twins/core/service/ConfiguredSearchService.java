@@ -103,7 +103,8 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
     /**
      * Executes the configured search: filter specification + configured sorter + page fetch.
      * {@code mainSearch.getConfiguredSearch()} carries the header for the sorter step.
-     * Override only when the search needs a different execution shape (see UserSearchConfigService).
+     * Override only for a non-standard execution shape — entity-specific filter extras belong
+     * in the search service's {@code createFilterSpecification}, not here.
      */
     protected PaginationResult<E> runConfiguredSearch(R mainSearch, Map<SF, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -217,7 +218,9 @@ public abstract class ConfiguredSearchService<S extends ConfiguredSearch, P exte
 
     /**
      * UNLIMITED path: plain free search over the narrow filter.
-     * Override only when free search has a custom execution shape (see UserSearchConfigService).
+     * Override only for a non-standard execution shape — entity-specific filter extras
+     * (subqueries, cross-entity conditions) belong in the search service's
+     * {@code createFilterSpecification}, not here.
      */
     protected PaginationResult<E> runFreeSearch(R search, Map<SF, SortDirection> clientSorts, SimplePagination pagination) throws ServiceException {
         if (MapUtils.isEmpty(clientSorts)) {
