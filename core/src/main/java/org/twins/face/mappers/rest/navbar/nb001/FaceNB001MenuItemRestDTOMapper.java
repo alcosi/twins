@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.holder.I18nCacheHolder;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.face.FaceRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.resource.ResourceService;
@@ -22,9 +21,6 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
     private final ResourceService resourceService;
     private final FaceNB001MenuItemService faceNB001MenuItemService;
 
-    @MapperModePointerBinding(modes = FaceNB001Modes.FaceNB001MenuItem2FaceMode.class)
-    protected final FaceRestDTOMapper faceRestDTOMapper;
-
     @MapperModePointerBinding(modes = FaceNB001Modes.FaceNB001MenuItem2PermissionMode.class)
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
@@ -40,7 +36,6 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setDescription(I18nCacheHolder.addId(src.getDescriptionI18nId()))
                 .setDisabled(src.getStatus() == FaceNB001MenuItemEntity.Status.DISABLED) //todo
                 .setIcon(resourceService.getResourceUri(src.getIconResource()))
-                .setTargetPageFaceId(src.getTargetPageFaceId())
                 .setTargetTwinId(src.getTargetTwinId())
                 .setGuardedByPermissionId(src.getPermissionId())
                 .setParentFaceMenuItemId(src.getParentFaceMenuItemId())
@@ -48,12 +43,6 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
                 .setCounterTwinSearchId(src.getCounterTwinSearchId())
                 .setCounter(src.getCounter() != null && src.getCounter() > 0 ? src.getCounter() : null)
                 .setChildren(convertCollection(src.getChilds() == null ? null : faceNB001MenuItemService.sorted(src.getChilds()))); //be afraid of endless looping!
-
-
-        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
-            faceNB001MenuItemService.loadTargetPageFaces(src);
-            faceRestDTOMapper.postpone(src.getTargetPageFace(), mapperContext.forkOnPoint(FaceNB001Modes.FaceNB001MenuItem2FaceMode.SHORT));
-        }
 
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2PermissionMode.HIDE)) {
             faceNB001MenuItemService.loadPermissions(src);
@@ -67,9 +56,6 @@ public class FaceNB001MenuItemRestDTOMapper extends RestSimpleDTOMapper<FaceNB00
         faceNB001MenuItemService.loadChilds(srcCollection);
         faceNB001MenuItemService.loadIconResources(srcCollection);
         faceNB001MenuItemService.loadCounters(srcCollection);
-        if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2FaceMode.HIDE)) {
-            faceNB001MenuItemService.loadTargetPageFaces(srcCollection);
-        }
         if (mapperContext.hasModeButNot(FaceNB001Modes.FaceNB001MenuItem2PermissionMode.HIDE)) {
             faceNB001MenuItemService.loadPermissions(srcCollection);
         }

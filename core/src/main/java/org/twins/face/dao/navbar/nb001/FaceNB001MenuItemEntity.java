@@ -48,10 +48,6 @@ public class FaceNB001MenuItemEntity implements EasyLoggable, Identifiable<UUID>
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @Deprecated
-    @Column(name = "target_page_face_id")
-    private UUID targetPageFaceId;
-
     @Column(name = "target_twin_id")
     private UUID targetTwinId;
 
@@ -79,14 +75,6 @@ public class FaceNB001MenuItemEntity implements EasyLoggable, Identifiable<UUID>
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ResourceEntity iconResourceSpecOnly;
-
-    @Deprecated // for specification only
-    @Getter(AccessLevel.NONE)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "target_page_face_id", insertable = false, updatable = false)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FaceEntity targetPageFaceSpecOnly;
 
     @Deprecated // for specification only
     @Getter(AccessLevel.NONE)
@@ -124,12 +112,6 @@ public class FaceNB001MenuItemEntity implements EasyLoggable, Identifiable<UUID>
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private ResourceEntity iconResource;
-
-    @Deprecated
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private FaceEntity targetPageFace;
 
     @Transient
     @EqualsAndHashCode.Exclude

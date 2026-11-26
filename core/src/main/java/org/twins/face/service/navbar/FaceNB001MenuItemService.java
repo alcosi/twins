@@ -63,8 +63,6 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
                 i18nService.findEntitySafe(entity.getLabelI18nId());
                 if (entity.getDescriptionI18nId() != null)
                     i18nService.findEntitySafe(entity.getDescriptionI18nId());
-                if (entity.getTargetPageFaceId() != null && (entity.getTargetPageFace() == null || !entity.getTargetPageFace().getId().equals(entity.getTargetPageFaceId())))
-                    entity.setTargetPageFace(faceService.findEntitySafe(entity.getTargetPageFaceId()));
                 if (entity.getPermissionId() != null && (entity.getPermission() == null || !entity.getPermission().getId().equals(entity.getPermissionId())))
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
                 if (entity.getCounterTwinSearchId() != null && !SystemIds.TwinSearch.UNLIMITED.equals(entity.getCounterTwinSearchId()))
@@ -106,17 +104,6 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
                 FaceNB001MenuItemEntity::getIconResourceId,
                 FaceNB001MenuItemEntity::getIconResource,
                 FaceNB001MenuItemEntity::setIconResource);
-    }
-
-    public void loadTargetPageFaces(FaceNB001MenuItemEntity src) throws ServiceException {
-        loadTargetPageFaces(Collections.singletonList(src));
-    }
-
-    public void loadTargetPageFaces(Collection<FaceNB001MenuItemEntity> srcList) throws ServiceException {
-        faceService.load(srcList,
-                FaceNB001MenuItemEntity::getTargetPageFaceId,
-                FaceNB001MenuItemEntity::getTargetPageFace,
-                FaceNB001MenuItemEntity::setTargetPageFace);
     }
 
     public void loadPermissions(FaceNB001MenuItemEntity src) throws ServiceException {
