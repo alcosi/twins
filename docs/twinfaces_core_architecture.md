@@ -155,6 +155,7 @@ Current registry (`face_component` rows + code under `org.twins.face`):
 | `WT008` | WIDGET | Comments widget (delegates to a configured comment search). Feed: `POST /private/comment/search/{twinCommentSearchId}/v1` with `params.twinId = pointedTwinId`. New-comment input is shown only when the pointed twin's `actions` contain `COMMENT`; add via `POST /private/comment/twin/{pointedTwinId}/v1` | `face_wt008` |
 | `WT009` | WIDGET | Twin action buttons (generic actions: edit/delete/comment/…) | `face_wt009`, `face_wt009_action` |
 | `WT010` | WIDGET | Twin class change widget (class search + labels) | `face_wt010` |
+| `WT011` | WIDGET | Twin form widget: declarative layout Form → Columns → Sections → Rows → Fields; relative widths via weights, adaptive behavior via `adaptive_order`/`allow_wrap`, conditional elements via validator rules on every level | `face_wt011`, `face_wt011_column`, `face_wt011_section`, `face_wt011_row`, `face_wt011_field` |
 
 ### TW → WT merge (TWINS-943)
 
@@ -254,4 +255,5 @@ Editorial conventions for these pages (established with Nikita):
 | WT008 | `2419130523` | [link](https://alcosi.atlassian.net/wiki/spaces/Twins/pages/2419130523) |
 | WT009 | `2419458161` | [link](https://alcosi.atlassian.net/wiki/spaces/Twins/pages/2419458161) |
 | WT010 | `2419523659` | [link](https://alcosi.atlassian.net/wiki/spaces/Twins/pages/2419523659) |
+| WT011 | `2427060233` | [link](https://alcosi.atlassian.net/wiki/spaces/Twins/pages/2427060233) |
 
