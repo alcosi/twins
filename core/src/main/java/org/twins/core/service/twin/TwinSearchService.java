@@ -160,16 +160,26 @@ public class TwinSearchService {
     private List<BasicSearch> getBasicSearchesByAlias(List<TwinSearchEntity> searchEntities, SearchByAlias searchByAlias) throws ServiceException {
         List<BasicSearch> basicSearches = new ArrayList<>();
         for (TwinSearchEntity twinSearchEntity : searchEntities)
-            basicSearches.add(toBasicSearch(twinSearchEntity, searchByAlias.getParams(), searchByAlias.getNarrow()));
+            basicSearches.add(toBasicSearch(twinSearchEntity, searchByAlias.getParams(), searchByAlias.getNarrow(), searchByAlias.getSorts()));
         return basicSearches;
     }
 
     public BasicSearch toBasicSearch(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch narrowSearch) throws ServiceException {
+        return toBasicSearch(twinSearchEntity, namedParamsMap, narrowSearch, null);
+    }
+
+    /**
+     * Expands the saved search into a {@link BasicSearch}: predicates + sorts. Sort precedence:
+     * client-requested sorts > narrow search sorts > configured sort kit ({@code twin_search_sort}).
+     */
+    public BasicSearch toBasicSearch(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch narrowSearch, List<TwinSort> clientSorts) throws ServiceException {
         BasicSearch basicSearch = new BasicSearch();
         twinSearchPredicateService.loadPredicates(twinSearchEntity);
         twinSearchSortService.loadSorts(twinSearchEntity);
         addPredicates(twinSearchEntity.getSearchPredicateKit().getList(), namedParamsMap, basicSearch, narrowSearch);
-        if (narrowSearch != null && CollectionUtils.isNotEmpty(narrowSearch.getSorts()))
+        if (CollectionUtils.isNotEmpty(clientSorts))
+            basicSearch.setSorts(clientSorts);
+        else if (narrowSearch != null && CollectionUtils.isNotEmpty(narrowSearch.getSorts()))
             basicSearch.setSorts(narrowSearch.getSorts());
         else if (KitUtils.isNotEmpty(twinSearchEntity.getSortKit()))
             addSorts(twinSearchEntity, basicSearch);
@@ -231,12 +241,14 @@ public class TwinSearchService {
         if (SystemIds.TwinSearch.UNLIMITED.equals(searchId)) {
             return findTwins(applyClientSorts(searchNarrow, sorts), pagination);
         }
-        return findTwins(entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, applyClientSorts(searchNarrow, sorts), pagination);
+        return findTwins(entitySmartService.findById(searchId, twinSearchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, sorts, pagination);
     }
 
     /**
-     * Client-requested sorts travel inside the narrow search: {@link #toBasicSearch} gives narrow sorts
-     * precedence over the configured search sort kit, so merging here is enough for the whole executor pipeline.
+     * Free search (the UNLIMITED pseudo-search) has no configured pipeline and no executor —
+     * {@link BasicSearch#getSorts()} is its only sort channel (the same one the free-search
+     * endpoint uses), so client sorts are set into the search object here. Configured searches
+     * instead pass client sorts explicitly down the executor pipeline.
      */
     private static BasicSearch applyClientSorts(BasicSearch searchNarrow, List<TwinSort> sorts) {
         if (CollectionUtils.isEmpty(sorts))
@@ -267,18 +279,18 @@ public class TwinSearchService {
         return Set.copyOf(ids.subList(0, Math.min(ids.size(), limit)));
     }
 
-    public PaginationResult<TwinEntity> findTwins(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinEntity> findTwins(TwinSearchEntity twinSearchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, List<TwinSort> sorts, SimplePagination pagination) throws ServiceException {
         PaginationUtils.validPagination(pagination);
-        return twinSearchExecutor(twinSearchEntity).execute(twinSearchEntity, namedParamsMap, searchNarrow, pagination);
+        return twinSearchExecutor(twinSearchEntity).execute(twinSearchEntity, namedParamsMap, searchNarrow, sorts, pagination);
     }
 
     public PaginationResult<TwinEntity> findTwins(List<TwinSearchEntity> searchEntities, Map<String, String> namedParamsMap, BasicSearch searchNarrow, List<TwinSort> sorts, SimplePagination pagination) throws ServiceException {
-        searchNarrow = applyClientSorts(searchNarrow, sorts);
         if (searchEntities.size() == 1)
-            return findTwins(searchEntities.getFirst(), namedParamsMap, searchNarrow, pagination);
+            return findTwins(searchEntities.getFirst(), namedParamsMap, searchNarrow, sorts, pagination);
         SearchByAlias searchByAlias = new SearchByAlias();
         searchByAlias.setParams(namedParamsMap);
         searchByAlias.setNarrow(searchNarrow);
+        searchByAlias.setSorts(sorts);
         List<BasicSearch> basicSearches = getBasicSearchesByAlias(searchEntities, searchByAlias);
         return findTwins(basicSearches, pagination);
     }

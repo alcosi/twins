@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinSort;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.executor.TwinSearchExecutor;
 import org.twins.core.holder.TwinSearchRecursionGuard;
@@ -54,7 +55,7 @@ class TwinSearchExecutorTest {
         TwinSearchExecutor executor = reentrantThroughExecute(search);
 
         ServiceException e = assertThrows(ServiceException.class,
-                () -> executor.execute(search, Map.of(), null, pagination()));
+                () -> executor.execute(search, Map.of(), null, null, pagination()));
 
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), e.getErrorCode());
         assertTrue(e.getMessage().contains("circular saved search"), "message was: " + e.getMessage());
@@ -68,7 +69,7 @@ class TwinSearchExecutorTest {
         TwinSearchExecutor executor = reentrantThroughExecuteChild(search);
 
         ServiceException e = assertThrows(ServiceException.class,
-                () -> executor.execute(search, Map.of(), null, pagination()));
+                () -> executor.execute(search, Map.of(), null, null, pagination()));
 
         assertEquals(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT.getCode(), e.getErrorCode());
         assertTrue(e.getMessage().contains("circular saved search"), "message was: " + e.getMessage());
@@ -79,8 +80,8 @@ class TwinSearchExecutorTest {
         TwinSearchEntity search = new TwinSearchEntity().setId(UUID.randomUUID());
         CountingExecutor executor = (CountingExecutor) init(new CountingExecutor());
 
-        executor.execute(search, Map.of(), null, pagination());
-        executor.execute(search, Map.of(), null, pagination()); // pop worked — no cycle detected
+        executor.execute(search, Map.of(), null, null, pagination());
+        executor.execute(search, Map.of(), null, null, pagination()); // pop worked — no cycle detected
 
         assertEquals(2, executor.runs);
     }
@@ -89,8 +90,8 @@ class TwinSearchExecutorTest {
     private TwinSearchExecutor reentrantThroughExecute(TwinSearchEntity search) throws ServiceException {
         TwinSearchExecutor executor = new TwinSearchExecutor() {
             @Override
-            protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity s, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
-                return execute(search, Map.of(), null, pagination());
+            protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity s, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
+                return execute(search, Map.of(), null, null, pagination());
             }
 
             @Override
@@ -105,8 +106,8 @@ class TwinSearchExecutorTest {
     private TwinSearchExecutor reentrantThroughExecuteChild(TwinSearchEntity search) throws ServiceException {
         TwinSearchExecutor executor = new TwinSearchExecutor() {
             @Override
-            protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity s, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
-                return executeChild(search, Map.of(), null, pagination());
+            protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity s, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
+                return executeChild(search, Map.of(), null, null, pagination());
             }
 
             @Override
@@ -123,7 +124,7 @@ class TwinSearchExecutorTest {
         int runs = 0;
 
         @Override
-        protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity s, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) {
+        protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity s, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) {
             runs++;
             return new PaginationResult<TwinEntity>().setList(List.of()).setTotal(0);
         }

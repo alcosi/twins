@@ -7,9 +7,11 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinSort;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.holder.TwinSearchRecursionGuard;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -27,10 +29,16 @@ import java.util.Properties;
         description = "Executes one saved twin search")
 public abstract class TwinSearchExecutor extends FeaturerTwins {
 
-    public final PaginationResult<TwinEntity> execute(TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
+    /**
+     * Executes the saved search. {@code clientSorts} are the sorts requested by the caller
+     * (request body {@code sorts}); they take precedence over the narrow search sorts, which in
+     * turn take precedence over the configured sort kit ({@code twin_search_sort} rows).
+     * Implementations receive them unchanged — including in child executions.
+     */
+    public final PaginationResult<TwinEntity> execute(TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
         TwinSearchRecursionGuard.push(search.getId());
         try {
-            return doExecute(properties(search), search, namedParams, narrow, pagination);
+            return doExecute(properties(search), search, namedParams, narrow, clientSorts, pagination);
         } finally {
             TwinSearchRecursionGuard.pop(search.getId());
         }
@@ -47,10 +55,11 @@ public abstract class TwinSearchExecutor extends FeaturerTwins {
 
     /**
      * Runs a child saved search by its own executor; the guard of the public entry applies.
-     * Child pagination is used as given — the aligned-offset check is the top-level entry's duty.
+     * Client sorts propagate to the child unchanged. Child pagination is used as given —
+     * the aligned-offset check is the top-level entry's duty.
      */
-    protected final PaginationResult<TwinEntity> executeChild(TwinSearchEntity child, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
-        return executor(child).execute(child, namedParams, narrow, pagination);
+    protected final PaginationResult<TwinEntity> executeChild(TwinSearchEntity child, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
+        return executor(child).execute(child, namedParams, narrow, clientSorts, pagination);
     }
 
     /**
@@ -64,7 +73,7 @@ public abstract class TwinSearchExecutor extends FeaturerTwins {
         return featurerService.getFeaturer(search.getTwinSearchExecutorFeaturerId(), TwinSearchExecutor.class);
     }
 
-    protected abstract PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException;
+    protected abstract PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException;
 
     protected abstract long doCount(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow) throws ServiceException;
 

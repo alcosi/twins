@@ -13,6 +13,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.ConcatenatedPageWindow;
 import org.twins.core.domain.search.ConcatenatedPageWindow.Slice;
+import org.twins.core.domain.search.TwinSort;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDListTwinsTwinSearchId;
@@ -45,13 +46,13 @@ public class TwinSearchExecutorConcat extends TwinSearchExecutor {
     private final TwinSearchService twinSearchService;
 
     @Override
-    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
+    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
         List<TwinSearchEntity> children = findChildrenTwinSearches(properties);
         long[] counts = counts(children, namedParams, narrow);
         List<TwinEntity> rows = new ArrayList<>();
         for (Slice slice : ConcatenatedPageWindow.slices(counts, pagination.getOffset(), pagination.getLimit())) {
             SimplePagination childPagination = new SimplePagination().setOffset(slice.offset()).setLimit(slice.limit());
-            rows.addAll(executeChild(children.get(slice.index()), namedParams, narrow, childPagination).getList());
+            rows.addAll(executeChild(children.get(slice.index()), namedParams, narrow, clientSorts, childPagination).getList());
         }
         PaginationResult<TwinEntity> result = new PaginationResult<TwinEntity>()
                 .setList(rows)

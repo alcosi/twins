@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.search.TwinSearchEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinSort;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -30,8 +32,8 @@ public class TwinSearchExecutorByPredicates extends TwinSearchExecutor {
     private final TwinSearchService twinSearchService;
 
     @Override
-    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, SimplePagination pagination) throws ServiceException {
-        BasicSearch basicSearch = twinSearchService.toBasicSearch(search, namedParams, narrow);
+    protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
+        BasicSearch basicSearch = twinSearchService.toBasicSearch(search, namedParams, narrow, clientSorts);
         return twinSearchService.findTwinsUnaligned(basicSearch, pagination);
     }
 
