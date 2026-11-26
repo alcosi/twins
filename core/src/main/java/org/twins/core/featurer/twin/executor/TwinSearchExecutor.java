@@ -31,9 +31,9 @@ public abstract class TwinSearchExecutor extends FeaturerTwins {
 
     /**
      * Executes the saved search. {@code clientSorts} are the sorts requested by the caller
-     * (request body {@code sorts}); they take precedence over the narrow search sorts, which in
-     * turn take precedence over the configured sort kit ({@code twin_search_sort} rows).
-     * Implementations receive them unchanged — including in child executions.
+     * (request body {@code sorts}); they take precedence over the configured sort kit
+     * ({@code twin_search_sort} rows) — search objects are sort-free, so sorting is always an
+     * explicit parameter. Implementations receive them unchanged — including in child executions.
      */
     public final PaginationResult<TwinEntity> execute(TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
         TwinSearchRecursionGuard.push(search.getId());

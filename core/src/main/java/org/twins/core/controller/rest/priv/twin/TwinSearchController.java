@@ -69,7 +69,10 @@ public class TwinSearchController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchExtendedDTOReverseMapper.convert(request), pagination);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(
+                    twinSearchExtendedDTOReverseMapper.convert(request),
+                    twinSortDTOReverseMapper.convertCollection(request.getSorts()),
+                    pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))

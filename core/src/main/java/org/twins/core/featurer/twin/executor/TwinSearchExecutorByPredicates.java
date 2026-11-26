@@ -33,8 +33,9 @@ public class TwinSearchExecutorByPredicates extends TwinSearchExecutor {
 
     @Override
     protected PaginationResult<TwinEntity> doExecute(Properties properties, TwinSearchEntity search, Map<String, String> namedParams, BasicSearch narrow, List<TwinSort> clientSorts, SimplePagination pagination) throws ServiceException {
-        BasicSearch basicSearch = twinSearchService.toBasicSearch(search, namedParams, narrow, clientSorts);
-        return twinSearchService.findTwinsUnaligned(basicSearch, pagination);
+        BasicSearch basicSearch = twinSearchService.toBasicSearch(search, namedParams, narrow);
+        List<TwinSort> sorts = twinSearchService.resolveSorts(search, clientSorts);
+        return twinSearchService.findTwinsUnaligned(basicSearch, sorts, pagination);
     }
 
     @Override
