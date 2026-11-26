@@ -57,8 +57,12 @@ public class HttpRequestService extends SessionLocaleResolver {
         return request.getHeader(HEADER_CHANNEL);
     }
 
-    public String getAdminAreaFromRequest() {
-        return request.getHeader(HEADER_ADMIN_AREA);
+    /**
+     * True when an HTTP request is bound to the current thread; false in scheduler/async
+     * background threads, where the injected request proxy cannot be resolved.
+     */
+    public boolean isRequestBound() {
+        return RequestContextHolder.getRequestAttributes() != null;
     }
 
     /**
@@ -66,9 +70,12 @@ public class HttpRequestService extends SessionLocaleResolver {
      * (header {@link #HEADER_ADMIN_AREA}: true — the FE sets it solely for admin-zone requests).
      * Returns false when no request is bound to the current thread (schedulers, async tasks),
      * instead of failing on the unbound request proxy.
+     * <p><b>Not a security boundary:</b> the header is client-controlled — any holder of the
+     * gated permission can set it. It only narrows where elevated permissions take effect;
+     * never use it as the sole basis for a security decision.
      */
     public boolean isAdminArea() {
-        if (RequestContextHolder.getRequestAttributes() == null)
+        if (!isRequestBound())
             return false;
         return Boolean.parseBoolean(request.getHeader(HEADER_ADMIN_AREA));
     }

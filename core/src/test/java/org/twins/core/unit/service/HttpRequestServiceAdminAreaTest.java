@@ -7,7 +7,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.twins.core.service.HttpRequestService;
-import org.twins.core.service.auth.ActAsUserService;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,7 +27,7 @@ class HttpRequestServiceAdminAreaTest {
 
     @Test
     void noRequestBound_returnsFalse() {
-        HttpRequestService service = new HttpRequestService(new ActAsUserService(), mock(HttpServletRequest.class));
+        HttpRequestService service = new HttpRequestService(mock(HttpServletRequest.class));
         assertFalse(service.isAdminArea());
     }
 
@@ -37,13 +36,33 @@ class HttpRequestServiceAdminAreaTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader(HttpRequestService.HEADER_ADMIN_AREA)).thenReturn("true");
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
-        assertTrue(new HttpRequestService(new ActAsUserService(), request).isAdminArea());
+        assertTrue(new HttpRequestService(request).isAdminArea());
     }
 
     @Test
     void headerAbsent_returnsFalse() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
-        assertFalse(new HttpRequestService(new ActAsUserService(), request).isAdminArea());
+        assertFalse(new HttpRequestService(request).isAdminArea());
+    }
+
+    @Test
+    void headerGarbage_returnsFalse() {
+        // only the literal "true" counts — anything else must not enable the bypass
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getHeader(HttpRequestService.HEADER_ADMIN_AREA)).thenReturn("yes");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
+        assertFalse(new HttpRequestService(request).isAdminArea());
+    }
+
+    @Test
+    void isRequestBound_noRequest_returnsFalse() {
+        assertFalse(new HttpRequestService(mock(HttpServletRequest.class)).isRequestBound());
+    }
+
+    @Test
+    void isRequestBound_requestBound_returnsTrue() {
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(new MockHttpServletRequest()));
+        assertTrue(new HttpRequestService(mock(HttpServletRequest.class)).isRequestBound());
     }
 }

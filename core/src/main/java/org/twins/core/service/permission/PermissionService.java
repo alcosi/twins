@@ -534,6 +534,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
             SystemIds.User.NOTIFICATION_SCHEDULER, Set.of(Permissions.DOMAIN_TWINS_VIEW_ALL.getId())
     );
 
+    public static boolean systemUserHasPermission(UUID userId, Permissions permission) {
+        Set<UUID> systemPermissions = SYSTEM_USER_PERMISSIONS.get(userId);
+        if (systemPermissions == null) {
+            return false;
+        }
+        return systemPermissions.contains(permission.getId());
+    }
+
     public static boolean systemUserHasPermission(UUID userId, boolean anyOf, Set<UUID> permissions) {
         Set<UUID> systemPermissions = SYSTEM_USER_PERMISSIONS.get(userId);
         if (systemPermissions == null) {
@@ -570,23 +578,28 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     /**
      * The single choke point for the {@link Permissions#DOMAIN_TWINS_VIEW_ALL} bypass (domain-wide
-     * twin visibility across all business accounts). The bypass applies when:
+     * twin visibility across all business accounts), forked by thread type. The bypass applies when:
      * <ul>
-     *   <li>the caller is a system identity with the hardcoded grant — schedulers run without an
-     *       HTTP request, so no admin-area header can ever be present for them; or</li>
+     *   <li>the thread serves no HTTP request (schedulers, async) and the caller is a system
+     *       identity with the hardcoded grant — no admin-area header can ever exist there; or</li>
      *   <li>the request was issued from the FE admin zone ({@code AdminArea} header, resolved via
      *       {@link ApiUser#isAdminArea()}) and the user holds the permission.</li>
      * </ul>
-     * Regular users without the header fall back to normal permission checks (owner BA/user scope).
+     * Everyone else falls back to normal permission checks (owner BA/user scope); in background
+     * threads even permission holders get no bypass.
+     * <p><b>Not a security boundary:</b> the {@code AdminArea} header is client-controlled — any
+     * holder of the permission can set it. It only narrows where the permission takes effect;
+     * the permission check remains the actual access control.
      */
     public boolean currentUserCanViewAllTwinsInDomain() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!apiUser.isUserSpecified())
             return false;
-        // system identities (schedulers) run without an HTTP request — no header can ever exist for them
-        if (systemUserHasPermission(apiUser.getUserId(), false, Set.of(Permissions.DOMAIN_TWINS_VIEW_ALL.getId())))
-            return true;
-        return apiUser.isAdminArea() && currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL);
+        if (apiUser.isRemoteRequest()) {
+            return apiUser.isAdminArea() && currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL);
+        } else {
+            return systemUserHasPermission(apiUser.getUserId(), Permissions.DOMAIN_TWINS_VIEW_ALL);
+        }
     }
 
     public void loadCurrentUserPermissions() throws ServiceException {

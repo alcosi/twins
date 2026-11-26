@@ -49,6 +49,7 @@ public class ApiUser {
     private LocaleResolver localeResolver;
     private Boolean adminArea;
     private AdminAreaResolver adminAreaResolver;
+    private Boolean remoteRequest;
     private BusinessAccountResolver businessAccountResolver;
     private UserResolver userResolver;
     private MachineBusinessAccountResolver machineBusinessAccountResolver;
@@ -192,6 +193,8 @@ public class ApiUser {
      * Gates the domain-wide visibility bypasses (e.g. DOMAIN_TWINS_VIEW_ALL) so they apply
      * only to admin-area requests. Resolves lazily and caches per request; in non-request
      * threads (schedulers, async) the default header resolver safely yields false.
+     * <p><b>Not a security boundary:</b> the header is client-controlled — any holder of the
+     * gated permission can set it. Never use this flag as the sole basis for a security decision.
      */
     public boolean isAdminArea() {
         if (adminArea != null)
@@ -199,8 +202,20 @@ public class ApiUser {
         if (adminAreaResolver == null)
             adminAreaResolver = apiUserResolverService.getAdminAreaResolverHeaders();
         adminArea = adminAreaResolver.resolveAdminArea();
-        log.info("resolved adminArea[{}]", adminArea);
+        log.debug("resolved adminArea[{}]", adminArea);
         return adminArea;
+    }
+
+    /**
+     * True when the current thread serves an HTTP request (a request context is bound to it);
+     * false in scheduler/async background threads. Resolved lazily and cached — the binding
+     * cannot change during the ApiUser lifetime.
+     */
+    public boolean isRemoteRequest() {
+        if (remoteRequest != null)
+            return remoteRequest;
+        remoteRequest = apiUserResolverService.getHttpRequestService().isRequestBound();
+        return remoteRequest;
     }
 
     private void resolveDomainId() {

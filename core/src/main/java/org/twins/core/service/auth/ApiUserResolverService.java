@@ -20,6 +20,7 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.apiuser.*;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.HttpRequestService;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -48,6 +49,8 @@ public class ApiUserResolverService {
     final DomainResolverHeaders domainResolverHeaders;
     @Getter
     final AdminAreaResolverHeaders adminAreaResolverHeaders;
+    @Getter
+    final HttpRequestService httpRequestService;
     @Getter
     final LocaleResolverDomainUser localeResolverDomainUser;
     @Getter
