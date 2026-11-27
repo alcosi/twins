@@ -14,7 +14,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinHeadService;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinlink.TwinLinkService;
 
@@ -44,7 +44,7 @@ public abstract class ConditionerTwinExistsByHeadAndLinkDstBase extends Conditio
 
     @Lazy
     @Autowired
-    protected TwinSearchServiceV2 twinSearchService;
+    protected TwinSearchService twinSearchService;
     @Lazy
     @Autowired
     protected TwinService twinService;

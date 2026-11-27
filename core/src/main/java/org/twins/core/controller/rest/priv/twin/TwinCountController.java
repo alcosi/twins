@@ -30,8 +30,8 @@ import org.twins.core.mappers.rest.twin.TwinCountRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinSearchExtendedDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinSearchExtendedDTOv2ReverseMapper;
 import org.twins.core.service.permission.Permissions;
-import org.twins.core.service.twin.TwinSearchServiceV2;
-import org.twins.core.service.twin.TwinSearchServiceV3;
+import org.twins.core.service.twin.TwinSearchConfigService;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.UUID;
 
@@ -41,8 +41,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
 public class TwinCountController extends ApiController {
-    private final TwinSearchServiceV2 twinSearchServiceV2;
-    private final TwinSearchServiceV3 twinSearchServiceV3;
+    private final TwinSearchService twinSearchService;
+    private final TwinSearchConfigService twinSearchConfigService;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
     private final TwinSearchExtendedDTOv2ReverseMapper twinSearchExtendedDTOv2ReverseMapper;
@@ -65,7 +65,7 @@ public class TwinCountController extends ApiController {
         TwinCountRsDTOv1 rs = new TwinCountRsDTOv1();
         try {
             BasicSearch search = twinSearchExtendedDTOv2ReverseMapper.convert(request.getSearch());
-            var results = twinSearchServiceV2.countByGroupFields(search, request.getGroupFields(), pagination);
+            var results = twinSearchService.countByGroupFields(search, request.getGroupFields(), pagination);
             rs
                     .setCounts(twinCountRestDTOMapper.convertCollection(results.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(results))
@@ -92,7 +92,7 @@ public class TwinCountController extends ApiController {
             @RequestBody @Valid TwinSearchConfiguredRqDTOv1 request) {
         TwinCountBySearchRsDTOv1 rs = new TwinCountBySearchRsDTOv1();
         try {
-            rs.setCount(twinSearchServiceV3.countConfigured(searchId, request.getParams(), twinSearchExtendedDTOReverseMapper.convert(request.getNarrow())));
+            rs.setCount(twinSearchConfigService.countConfigured(searchId, request.getParams(), twinSearchExtendedDTOReverseMapper.convert(request.getNarrow())));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

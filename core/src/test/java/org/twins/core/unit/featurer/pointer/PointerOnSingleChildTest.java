@@ -42,7 +42,7 @@ class PointerOnSingleChildTest extends BaseUnitTest {
         @Test
         void load_noChildren_returnsEmptyMapping() throws ServiceException {
             var srcTwin = new TwinEntity().setId(UUID.randomUUID());
-            when(twinSearchService.findTwins(org.mockito.ArgumentMatchers.any())).thenReturn(Collections.emptyList());
+            when(twinSearchService.search(org.mockito.ArgumentMatchers.any())).thenReturn(Collections.emptyList());
 
             Map<UUID, TwinEntity> result = pointer.load(props(), List.of(srcTwin));
 
@@ -54,7 +54,7 @@ class PointerOnSingleChildTest extends BaseUnitTest {
             var srcTwin = new TwinEntity().setId(UUID.randomUUID());
             var childTwin = new TwinEntity();
             childTwin.setHeadTwinId(srcTwin.getId()); // batch grouping keys children by headTwinId
-            when(twinSearchService.findTwins(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(childTwin));
+            when(twinSearchService.search(org.mockito.ArgumentMatchers.any())).thenReturn(List.of(childTwin));
 
             Map<UUID, TwinEntity> result = pointer.load(props(), List.of(srcTwin));
 
@@ -68,7 +68,7 @@ class PointerOnSingleChildTest extends BaseUnitTest {
             child1.setHeadTwinId(srcTwin.getId());
             var child2 = new TwinEntity();
             child2.setHeadTwinId(srcTwin.getId());
-            when(twinSearchService.findTwins(org.mockito.ArgumentMatchers.any()))
+            when(twinSearchService.search(org.mockito.ArgumentMatchers.any()))
                     .thenReturn(List.of(child1, child2));
 
             var ex = assertThrows(

@@ -14,7 +14,7 @@ import org.twins.core.service.face.FaceService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.resource.ResourceService;
-import org.twins.core.service.twin.TwinSearchServiceV3;
+import org.twins.core.service.twin.TwinSearchConfigService;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemEntity;
 import org.twins.face.dao.navbar.nb001.FaceNB001MenuItemRepository;
 
@@ -31,7 +31,7 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
     private final I18nService i18nService;
     private final PermissionService permissionService;
     private final ResourceService resourceService;
-    private final TwinSearchServiceV3 twinSearchServiceV3;
+    private final TwinSearchConfigService twinSearchConfigService;
 
     @Override
     public CrudRepository<FaceNB001MenuItemEntity, UUID> entityRepository() {
@@ -66,7 +66,7 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
                 if (entity.getPermissionId() != null && (entity.getPermission() == null || !entity.getPermission().getId().equals(entity.getPermissionId())))
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
                 if (entity.getCounterTwinSearchId() != null && !SystemIds.TwinSearch.UNLIMITED.equals(entity.getCounterTwinSearchId()))
-                    twinSearchServiceV3.findEntitySafe(entity.getCounterTwinSearchId());
+                    twinSearchConfigService.findEntitySafe(entity.getCounterTwinSearchId());
         }
         return true;
     }
@@ -143,7 +143,7 @@ public class FaceNB001MenuItemService extends EntitySecureFindServiceImpl<FaceNB
 
     private Long countSafely(UUID searchId) {
         try {
-            return twinSearchServiceV3.countConfigured(searchId, null, null);
+            return twinSearchConfigService.countConfigured(searchId, null, null);
         } catch (Exception e) {
             log.warn("Counter badge failed for twin search {}: {}", searchId, e.getMessage());
             return null;

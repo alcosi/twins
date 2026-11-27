@@ -56,7 +56,7 @@ public class FillerFieldAsFoundTwinOfClass extends Filler {
         BasicSearch search = new BasicSearch();
         search
                 .addTwinClassId(extractedTwinClassId, false);
-        var entityList = twinSearchService.findTwins(search); // ONE query for the whole batch
+        var entityList = twinSearchService.search(search); // ONE query for the whole batch
         if (entityList.isEmpty()) {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "there are no twins of class[" + extractedTwinClassId + "] found.");
         }

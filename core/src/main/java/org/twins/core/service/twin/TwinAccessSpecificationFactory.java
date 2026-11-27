@@ -22,7 +22,7 @@ import static org.twins.core.dao.specifications.CommonSpecification.*;
  * Builds the object-level authorization {@link Specification} for an entity that references a
  * {@link TwinEntity} through a JPA path (e.g. a twin link's src/dst twin, a comment's twin).
  * Encapsulates the visibility rules previously duplicated across {@code CommentSearchService} and
- * {@code TwinLinkSearchService}, mirroring {@code TwinSearchServiceV2}:
+ * {@code TwinLinkSearchService}, mirroring {@code TwinSearchService}:
  * <ul>
  *   <li>with {@link Permissions#DOMAIN_TWINS_VIEW_ALL} the twin is visible when it belongs to the
  *       caller's domain (resolved via {@code twin -> twinClass.domainId});</li>

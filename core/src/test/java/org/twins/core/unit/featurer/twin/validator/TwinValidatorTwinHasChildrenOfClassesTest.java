@@ -8,23 +8,20 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.lang.reflect.Field;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 
 class TwinValidatorTwinHasChildrenOfClassesTest extends BaseUnitTest {
 
     @Mock
-    private TwinSearchServiceV2 twinSearchService;
+    private TwinSearchService twinSearchService;
 
     private TwinValidatorTwinHasChildrenOfClasses validator;
 

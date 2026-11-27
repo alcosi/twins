@@ -19,7 +19,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,9 +44,9 @@ public class FillerForwardLinkToTwinFoundByHeadAndLinkDst extends FillerLinks {
     @FeaturerParam(name = "Resolve head root", description = "Resolve head from factory item, else from context twin", order = 4, optional = true, defaultValue = "false")
     public static final FeaturerParamBoolean factoryItemElseContext = new FeaturerParamBoolean("factoryItemElseContext");
 
-    private final TwinSearchServiceV2 twinSearchService;
+    private final TwinSearchService twinSearchService;
 
-    public FillerForwardLinkToTwinFoundByHeadAndLinkDst(TwinSearchServiceV2 twinSearchService) {
+    public FillerForwardLinkToTwinFoundByHeadAndLinkDst(TwinSearchService twinSearchService) {
         this.twinSearchService = twinSearchService;
     }
 

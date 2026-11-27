@@ -25,7 +25,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.*;
 import org.twins.core.service.twin.TwinHeadService;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 import org.twins.core.service.twinlink.TwinLinkService;
@@ -81,7 +81,7 @@ public class ConditionerTwinExistsByTwinLinkAndFieldEqualsBase extends Condition
 
     @Lazy
     @Autowired
-    private TwinSearchServiceV2 twinSearchService;
+    private TwinSearchService twinSearchService;
     @Lazy
     @Autowired
     private TwinClassFieldService twinClassFieldService;

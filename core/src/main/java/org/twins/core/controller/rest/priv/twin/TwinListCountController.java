@@ -54,7 +54,7 @@ public class TwinListCountController extends ApiController {
             Map<String, BasicSearch> searchMap = new HashMap<>();
             for (Map.Entry<String, TwinSearchRqDTOv1> entry : request.searchMap.entrySet())
                 searchMap.put(entry.getKey(), twinSearchRqDTOMapper.convert(entry.getValue()));
-            rs.response(twinSearchService.countTwinsInBatch(searchMap));
+            rs.response(twinSearchService.countBatch(searchMap));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

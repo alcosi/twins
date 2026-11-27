@@ -11,7 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
 import java.util.*;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 class TwinValidatorTwinChildrenBooleanFieldHasValueTest extends BaseUnitTest {
 
     @Mock
-    private TwinSearchServiceV2 twinSearchService;
+    private TwinSearchService twinSearchService;
 
     @Mock
     private TwinClassFieldService twinClassFieldService;

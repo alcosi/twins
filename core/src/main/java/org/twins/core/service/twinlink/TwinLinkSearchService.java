@@ -65,7 +65,7 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
         // query.distinct(true) here: it breaks ORDER BY on joined fields (dstTwinName/srcTwinName/linkName)
         // because PostgreSQL requires DISTINCT-query ORDER BY expressions to appear in the SELECT list.
         // The dedup-by-EXISTS refactor of checkPermissions is tracked as follow-up tech debt (same as
-        // TwinSearchServiceV2 / CommentSearchService, which run without DISTINCT for the same reason).
+        // TwinSearchService / CommentSearchService, which run without DISTINCT for the same reason).
         return Specification.allOf(
                 checkUuidIn(search.getIdList(), false, false, TwinLinkEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinLinkEntity.Fields.id),
@@ -81,7 +81,7 @@ public class TwinLinkSearchService extends EntitySearchService<TwinLinkSearch, T
                 checkUuidIn(search.getCreatedByUserIdExcludeList(), true, false, TwinLinkEntity.Fields.createdByUserId),
                 checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinLinkEntity.Fields.createdAt),
                 // Object-level authorization of both endpoints — a twin link is visible only when the caller is
-                // authorized to read BOTH twins (same rules as TwinSearchServiceV2). See TwinAccessSpecificationFactory.
+                // authorized to read BOTH twins (same rules as TwinSearchService). See TwinAccessSpecificationFactory.
                 twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinLinkEntity.Fields.srcTwinSpecOnly),
                 twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinLinkEntity.Fields.dstTwinSpecOnly)
                 );

@@ -9,7 +9,6 @@ import org.mockito.Mock;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.trigger.messaging.rabbitmq.payloads.RabbitMqMessagePayloadTwin;
@@ -20,7 +19,7 @@ import org.twins.core.service.twin.TwinSearchService;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class TwinTriggerRabbitMqSendTwinChildrenInStatusesTest extends BaseUnitTest {
@@ -93,7 +92,7 @@ class TwinTriggerRabbitMqSendTwinChildrenInStatusesTest extends BaseUnitTest {
             when(apiUser.getDomainId()).thenReturn(domainId);
             when(apiUser.getBusinessAccountId()).thenReturn(businessAccountId);
 
-            when(twinSearchService.findTwins(any(BasicSearch.class)))
+            when(twinSearchService.search(any(BasicSearch.class)))
                     .thenReturn(List.of(child1, child2));
 
             var mockFactory = mock(CachingConnectionFactory.class);
@@ -128,7 +127,7 @@ class TwinTriggerRabbitMqSendTwinChildrenInStatusesTest extends BaseUnitTest {
             var apiUser = mock(ApiUser.class);
             when(authService.getApiUser()).thenReturn(apiUser);
 
-            when(twinSearchService.findTwins(any(BasicSearch.class)))
+            when(twinSearchService.search(any(BasicSearch.class)))
                     .thenReturn(Collections.emptyList());
 
             var mockFactory = mock(CachingConnectionFactory.class);
@@ -159,7 +158,7 @@ class TwinTriggerRabbitMqSendTwinChildrenInStatusesTest extends BaseUnitTest {
             var apiUser = mock(ApiUser.class);
             when(authService.getApiUser()).thenReturn(apiUser);
 
-            when(twinSearchService.findTwins(any(BasicSearch.class)))
+            when(twinSearchService.search(any(BasicSearch.class)))
                     .thenReturn(List.of(child));
 
             var mockFactory = mock(CachingConnectionFactory.class);
@@ -168,7 +167,7 @@ class TwinTriggerRabbitMqSendTwinChildrenInStatusesTest extends BaseUnitTest {
             trigger.send(props, parentTwin, null, null, null);
 
             var searchCaptor = ArgumentCaptor.forClass(BasicSearch.class);
-            verify(twinSearchService).findTwins(searchCaptor.capture());
+            verify(twinSearchService).search(searchCaptor.capture());
 
             var search = searchCaptor.getValue();
             assertEquals(Set.of(parentTwin.getId()), search.getHeadTwinIdList(), "head twin id should match");

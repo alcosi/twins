@@ -163,8 +163,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private CommentService commentService;
     @Autowired
     private TwinSearchService twinSearchService;
-    @Autowired
-    private TwinSearchServiceV2 twinSearchServiceV2;
     @Lazy
     @Autowired
     private ErrorRepository errorRepository;
@@ -877,7 +875,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             if (!twinEntity.isCreateElseUpdate()) {
                 basicSearch.setTwinIdExcludeList(Set.of(twinEntity.getId()));
             }
-            if (twinSearchServiceV2.exists(basicSearch)) {
+            if (twinSearchService.exists(basicSearch)) {
                 throw new ServiceException(ErrorCodeTwins.TWIN_NAME_IS_NOT_UNIQUE);
             }
         }

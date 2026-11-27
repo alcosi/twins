@@ -72,7 +72,7 @@ public class TwinTriggerRabbitMqSendTwinChildrenInStatuses extends TwinTriggerRa
         if (CollectionUtils.isNotEmpty(twinClassIds)) {
             search.addTwinClassExtendsHierarchyContainsId(twinClassIds);
         }
-        List<TwinEntity> children = twinSearchService.findTwins(search);
+        List<TwinEntity> children = twinSearchService.search(search);
 
         log.debug("Sending to Rabbit");
         ConnectionFactory factory = TwinTriggerRabbitMqConnection.rabbitConnectionCache.get(

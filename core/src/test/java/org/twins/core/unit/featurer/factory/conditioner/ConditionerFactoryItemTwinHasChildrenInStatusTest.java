@@ -13,7 +13,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.factory.conditioner.ConditionerFactoryItemTwinHasChildrenInStatus;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.lang.reflect.Field;
 import java.util.LinkedHashSet;
@@ -21,17 +21,14 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ConditionerFactoryItemTwinHasChildrenInStatusTest extends BaseUnitTest {
 
     @Mock
-    private TwinSearchServiceV2 twinSearchService;
+    private TwinSearchService twinSearchService;
 
     private ConditionerFactoryItemTwinHasChildrenInStatus conditioner;
 

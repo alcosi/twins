@@ -90,7 +90,7 @@ public class MultiplierIsolatedCopyWithDepth extends Multiplier {
             search.addStatusId(childrenStatusIds, false);
         }
 
-        var origTwinsChildren = twinSearchService.findTwins(search);
+        var origTwinsChildren = twinSearchService.search(search);
         origTwins.addAll(origTwinsChildren);
 
         Set<UUID> collectedTwinIds = new HashSet<>(origTwins.size());

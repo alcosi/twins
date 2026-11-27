@@ -86,7 +86,7 @@ class FillerFieldAsFoundTwinOfClassTest extends BaseUnitTest {
             var foundTwinId = UUID.randomUUID();
             var found = new TwinEntity().setId(foundTwinId);
             var factoryItem = buildFactoryItem();
-            when(twinSearchService.findTwins(any(BasicSearch.class))).thenReturn(List.of(found));
+            when(twinSearchService.search(any(BasicSearch.class))).thenReturn(List.of(found));
             var createdLink = new FieldValueLink(new TwinClassFieldEntity().setId(LINK_FIELD_ID));
             when(twinService.createFieldValue(LINK_FIELD_ID, found)).thenReturn(createdLink);
 
@@ -98,7 +98,7 @@ class FillerFieldAsFoundTwinOfClassTest extends BaseUnitTest {
         @Test
         void fill_noTwinFound_throwsStepError() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(twinSearchService.findTwins(any(BasicSearch.class))).thenReturn(Collections.emptyList());
+            when(twinSearchService.search(any(BasicSearch.class))).thenReturn(Collections.emptyList());
 
             var ex = assertThrows(ServiceException.class,
                     () -> filler.fill(props(), new FactoryItemsBatch().add(factoryItem), null, false));
@@ -109,7 +109,7 @@ class FillerFieldAsFoundTwinOfClassTest extends BaseUnitTest {
         @Test
         void fill_moreThanOneTwinFound_throwsStepError() throws ServiceException {
             var factoryItem = buildFactoryItem();
-            when(twinSearchService.findTwins(any(BasicSearch.class))).thenReturn(List.of(
+            when(twinSearchService.search(any(BasicSearch.class))).thenReturn(List.of(
                     new TwinEntity().setId(UUID.randomUUID()),
                     new TwinEntity().setId(UUID.randomUUID())));
 

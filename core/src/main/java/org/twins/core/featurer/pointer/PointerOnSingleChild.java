@@ -40,7 +40,7 @@ public class PointerOnSingleChild extends Pointer {
         batchSearch
                 .addHeadTwinId(srcTwins.stream().map(TwinEntity::getId).collect(Collectors.toList()))
                 .addTwinClassExtendsHierarchyContainsId(childClassId);
-        List<TwinEntity> allChildren = twinSearchService.findTwins(batchSearch);
+        List<TwinEntity> allChildren = twinSearchService.search(batchSearch);
         Map<UUID, List<TwinEntity>> byHead = allChildren.stream()
                 .collect(Collectors.groupingBy(TwinEntity::getHeadTwinId));
         Map<UUID, TwinEntity> result = new HashMap<>(srcTwins.size());

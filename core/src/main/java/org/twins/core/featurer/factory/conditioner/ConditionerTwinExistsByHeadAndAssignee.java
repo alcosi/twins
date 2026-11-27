@@ -15,7 +15,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twin.TwinHeadService;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
 import java.util.Set;
@@ -46,7 +46,7 @@ public class ConditionerTwinExistsByHeadAndAssignee extends Conditioner {
     private TwinHeadService twinHeadService;
     @Lazy
     @Autowired
-    private TwinSearchServiceV2 twinSearchService;
+    private TwinSearchService twinSearchService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {

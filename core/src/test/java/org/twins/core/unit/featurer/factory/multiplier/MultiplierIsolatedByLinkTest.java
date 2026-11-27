@@ -9,12 +9,12 @@ import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.enums.status.StatusType;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.featurer.factory.multiplier.MultiplierIsolatedByLink;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinSearchService;
@@ -104,7 +104,7 @@ class MultiplierIsolatedByLinkTest extends BaseUnitTest {
 
             var relative1 = buildRelative();
             var relative2 = buildRelative();
-            when(twinSearchService.findTwins(any(BasicSearch.class)))
+            when(twinSearchService.search(any(BasicSearch.class)))
                     .thenReturn(List.of(relative1, relative2));
 
             var result = multiplier.multiply(
@@ -136,7 +136,7 @@ class MultiplierIsolatedByLinkTest extends BaseUnitTest {
                     mock(FactoryContext.class));
 
             assertTrue(result.isEmpty());
-            verify(twinSearchService, never()).findTwins(any(BasicSearch.class));
+            verify(twinSearchService, never()).search(any(BasicSearch.class));
         }
 
         @Test
@@ -149,7 +149,7 @@ class MultiplierIsolatedByLinkTest extends BaseUnitTest {
             var link = new LinkEntity();
             link.setId(linkId);
             when(linkService.findEntitySafe(linkId)).thenReturn(link);
-            when(twinSearchService.findTwins(any(BasicSearch.class)))
+            when(twinSearchService.search(any(BasicSearch.class)))
                     .thenReturn(List.of());
 
             var result = multiplier.multiply(

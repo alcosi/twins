@@ -13,7 +13,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsClassId;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.*;
 
@@ -28,7 +28,7 @@ public class TwinValidatorTwinHasChildrenOfClasses extends TwinValidator {
 
     @Lazy
     @Autowired
-    TwinSearchServiceV2 twinSearchService;
+    TwinSearchService twinSearchService;
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {

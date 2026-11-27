@@ -55,7 +55,7 @@ public class MultiplierIsolatedRelativesByHead extends Multiplier {
                     .addTwinClassId(inputTwin.getTwinClassId(), false)
                     .addHeadTwinId(inputTwin.getHeadTwinId())
                     .addStatusId(statusIds.extract(properties), false);
-            List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);
+            List<TwinEntity> relativesTwinEntityList = twinSearchService.search(search);
             if (CollectionUtils.isEmpty(relativesTwinEntityList)) {
                 log.error(inputTwin.logShort() + " no relatives twins by head[" + inputTwin.getHeadTwinId() + "]");
                 continue;

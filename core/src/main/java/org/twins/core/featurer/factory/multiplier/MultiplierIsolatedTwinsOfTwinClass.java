@@ -40,7 +40,7 @@ public class MultiplierIsolatedTwinsOfTwinClass extends Multiplier {
                 .addOwnerBusinessAccountId(factoryContext.getRunLimitedByOwnerBusinessAccount())
                 .setTwinClassExtendsHierarchyContainsIdList(Set.of(twinClassId.extract(properties)));
 
-        List<TwinEntity> twins = twinSearchService.findTwins(search);
+        List<TwinEntity> twins = twinSearchService.search(search);
 
         for (TwinEntity twinEntity : twins) {
             TwinUpdate twinUpdate = new TwinUpdate();

@@ -71,7 +71,7 @@ public class MultiplierIsolatedByLink extends Multiplier {
                     .addOwnerBusinessAccountId(factoryContext.getRunLimitedByOwnerBusinessAccount())
                     .addLinkDstTwinsId(linkId.extract(properties), List.of(inputTwin.getId()), false, true)
                     .addStatusId(statusIds.extract(properties), excludeStatuses.extract(properties));
-            List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);
+            List<TwinEntity> relativesTwinEntityList = twinSearchService.search(search);
             if (CollectionUtils.isEmpty(relativesTwinEntityList)) {
                 log.error(inputTwin.logShort() + " no relatives twins by head[" + inputTwin.getHeadTwinId() + "]");
                 continue;

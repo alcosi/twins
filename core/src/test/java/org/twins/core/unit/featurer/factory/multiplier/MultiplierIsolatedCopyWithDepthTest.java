@@ -114,7 +114,7 @@ class MultiplierIsolatedCopyWithDepthTest extends BaseUnitTest {
             var apiUser = stubApiUser();
 
             when(authService.getApiUser()).thenReturn(apiUser);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
             when(twinLinkService.findAllBetweenTwinsIn(any())).thenReturn(new HashSet<>());
 
             var input = List.of(buildInputItem(inputId, classId, inputId.toString()));
@@ -143,7 +143,7 @@ class MultiplierIsolatedCopyWithDepthTest extends BaseUnitTest {
 
             when(authService.getApiUser()).thenReturn(apiUser);
             // search returns the direct child
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(
+            when(twinSearchService.search(any())).thenReturn(List.of(
                     buildChild(childId, rootId, classId, rootId + "." + childId)));
             when(twinLinkService.findAllBetweenTwinsIn(any())).thenReturn(new HashSet<>());
 
@@ -191,7 +191,7 @@ class MultiplierIsolatedCopyWithDepthTest extends BaseUnitTest {
             var apiUser = stubApiUser();
 
             when(authService.getApiUser()).thenReturn(apiUser);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
             when(twinLinkService.findAllBetweenTwinsIn(any())).thenReturn(new HashSet<>(Set.of(
                     new TwinLinkEntity()
                             .setId(UUID.randomUUID())
@@ -237,7 +237,7 @@ class MultiplierIsolatedCopyWithDepthTest extends BaseUnitTest {
         void multiply_emptyInput_producesNoOutput() throws ServiceException {
             var apiUser = stubApiUser();
             when(authService.getApiUser()).thenReturn(apiUser);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
             when(twinLinkService.findAllBetweenTwinsIn(any())).thenReturn(new HashSet<>());
 
             var result = multiplier.multiply(buildProperties(1, null), List.of(), mock(FactoryContext.class));
@@ -257,7 +257,7 @@ class MultiplierIsolatedCopyWithDepthTest extends BaseUnitTest {
             var apiUser = stubApiUser();
 
             when(authService.getApiUser()).thenReturn(apiUser);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
             when(twinLinkService.findAllBetweenTwinsInAndTwinsInStatusIds(any(), any())).thenReturn(new HashSet<>());
 
             multiplier.multiply(props, List.of(buildInputItem(inputId, classId, inputId.toString())), mock(FactoryContext.class));

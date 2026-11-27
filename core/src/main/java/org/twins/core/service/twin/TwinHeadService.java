@@ -28,12 +28,7 @@ import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
@@ -101,7 +96,7 @@ public class TwinHeadService {
         BasicSearch validHeadsSearch = new BasicSearch();
         validHeadsSearch.setTwinIdList(headTwinIds);
         validHeadsExpandSearch(subClass, validHeadsSearch);
-        var validHeads = new Kit<>(twinSearchService.findTwins(validHeadsSearch), TwinEntity::getId);
+        var validHeads = new Kit<>(twinSearchService.search(validHeadsSearch), TwinEntity::getId);
         if (headTwinIds.size() != validHeads.size()) {
             var missedHeads = new StringBuilder();
             for (var headTwinId : headTwinIds) {
@@ -122,7 +117,7 @@ public class TwinHeadService {
         segmentsSearch
                 .addTwinClassId(subClass.getId(), false)
                 .setHeadTwinIdList(headTwinIds);
-        var existedSegments = twinSearchService.findTwins(segmentsSearch);
+        var existedSegments = twinSearchService.search(segmentsSearch);
         if (!existedSegments.isEmpty()) {
             var existedForHeads = new StringBuilder(existedSegments.size() * 37 - 1);
             for (var existedSegment : existedSegments) {

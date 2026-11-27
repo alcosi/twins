@@ -49,7 +49,7 @@ public class FieldFinderByRelevantProjection extends FieldFinder {
 
         BasicSearch basicSearch = new BasicSearch();
         basicSearch.setTwinClassIdList(twinClassIds);
-        List<TwinEntity> twins = twinSearchService.findTwins(basicSearch);
+        List<TwinEntity> twins = twinSearchService.search(basicSearch);
 
         Set<UUID> relevantProjectionIds = twins.stream()
                 .map(TwinEntity::getTwinClassId)

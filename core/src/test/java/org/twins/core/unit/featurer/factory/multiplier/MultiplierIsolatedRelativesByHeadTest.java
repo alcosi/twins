@@ -8,12 +8,12 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.enums.status.StatusType;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.featurer.factory.multiplier.MultiplierIsolatedRelativesByHead;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
@@ -89,7 +89,7 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
                 ((TwinEntity) inv.getArgument(0)).setHeadTwin(head);
                 return head;
             }).when(twinService).loadHead(any(TwinEntity.class));
-            when(twinSearchService.findTwins(any(BasicSearch.class)))
+            when(twinSearchService.search(any(BasicSearch.class)))
                     .thenReturn(List.of(input, relative));
 
             var result = multiplier.multiply(
@@ -121,7 +121,7 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
                     mock(FactoryContext.class));
 
             assertTrue(result.isEmpty());
-            verify(twinSearchService, never()).findTwins(any(BasicSearch.class));
+            verify(twinSearchService, never()).search(any(BasicSearch.class));
         }
 
         @Test
@@ -136,7 +136,7 @@ class MultiplierIsolatedRelativesByHeadTest extends BaseUnitTest {
                 ((TwinEntity) inv.getArgument(0)).setHeadTwin(head);
                 return head;
             }).when(twinService).loadHead(any(TwinEntity.class));
-            when(twinSearchService.findTwins(any(BasicSearch.class)))
+            when(twinSearchService.search(any(BasicSearch.class)))
                     .thenReturn(List.of());
 
             var result = multiplier.multiply(

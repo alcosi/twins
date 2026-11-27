@@ -74,7 +74,7 @@ public class MultiplierIsolatedTwinsByHeadAndAssignee extends Multiplier {
                     .addHeadTwinId(headTwinId)
                     .addAssigneeUserId(assigneeUserId, false);
 
-            List<TwinEntity> twins = twinSearchService.findTwins(search);
+            List<TwinEntity> twins = twinSearchService.search(search);
             if (CollectionUtils.isEmpty(twins)) {
                 log.info("{} no twins of class[{}] by head[{}] and assignee[{}]",
                         contextTwin.logShort(), extractedTwinClassId, headTwinId, assigneeUserId);

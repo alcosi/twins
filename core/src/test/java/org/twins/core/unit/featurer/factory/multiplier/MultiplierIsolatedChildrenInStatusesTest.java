@@ -8,11 +8,11 @@ import org.mockito.Mock;
 import org.twins.core.base.BaseUnitTest;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.enums.status.StatusType;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.enums.status.StatusType;
 import org.twins.core.featurer.factory.multiplier.MultiplierIsolatedChildrenInStatuses;
 import org.twins.core.service.twin.TwinSearchService;
 
@@ -100,7 +100,7 @@ class MultiplierIsolatedChildrenInStatusesTest extends BaseUnitTest {
             var rel2 = buildRelative(inputHead1);
             var rel3 = buildRelative(inputHead2);
 
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(rel1, rel2, rel3));
+            when(twinSearchService.search(any())).thenReturn(List.of(rel1, rel2, rel3));
 
             var input = List.of(buildInputItem(inputHead1), buildInputItem(inputHead2));
 
@@ -130,7 +130,7 @@ class MultiplierIsolatedChildrenInStatusesTest extends BaseUnitTest {
             when(ctx.getRunLimitedByOwnerBusinessAccount()).thenReturn(null);
 
             var rel1 = buildRelative(head1);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(rel1));
+            when(twinSearchService.search(any())).thenReturn(List.of(rel1));
 
             var input = List.of(buildInputItem(head1), buildInputItem(head2NoChildren));
 
@@ -147,7 +147,7 @@ class MultiplierIsolatedChildrenInStatusesTest extends BaseUnitTest {
             var ctx = mock(FactoryContext.class);
             when(ctx.getRunLimitedByOwnerBusinessAccount()).thenReturn(null);
 
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
 
             var result = multiplier.multiply(
                     buildProperties(statusId.toString(), false),
@@ -169,12 +169,12 @@ class MultiplierIsolatedChildrenInStatusesTest extends BaseUnitTest {
             when(ctx.getRunLimitedByOwnerBusinessAccount()).thenReturn(null);
 
             var rel = buildRelative(head1);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(rel));
+            when(twinSearchService.search(any())).thenReturn(List.of(rel));
 
             multiplier.multiply(props, List.of(buildInputItem(head1)), ctx);
 
             var captor = org.mockito.ArgumentCaptor.forClass(BasicSearch.class);
-            verify(twinSearchService).findTwins(captor.capture());
+            verify(twinSearchService).search(captor.capture());
             // both status ids flowed into the include-side of the search
             assertNotNull(captor.getValue().getStatusIdList());
             assertTrue(captor.getValue().getStatusIdList().contains(status1));

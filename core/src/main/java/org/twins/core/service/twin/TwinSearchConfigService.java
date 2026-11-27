@@ -44,11 +44,11 @@ import java.util.function.Function;
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
-public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntity, TwinSearchPredicateEntity, BasicSearch, TwinEntity, UUID> {
+public class TwinSearchConfigService extends ConfiguredSearchService<TwinSearchEntity, TwinSearchPredicateEntity, BasicSearch, TwinEntity, UUID> {
     private final TwinSearchRepository twinSearchRepository;
     private final TwinSearchPredicateRepository twinSearchPredicateRepository;
     private final TwinRepository twinRepository;
-    private final TwinSearchServiceV2 twinSearchServiceV2;
+    private final TwinSearchService twinSearchService;
     private final TwinSearchSortService twinSearchSortService;
     private final TwinClassFieldService twinClassFieldService;
 
@@ -109,8 +109,8 @@ public class TwinSearchServiceV3 extends ConfiguredSearchService<TwinSearchEntit
     }
 
     @Override
-    protected TwinSearchServiceV2 entitySearchService() {
-        return twinSearchServiceV2;
+    protected TwinSearchService entitySearchService() {
+        return twinSearchService;
     }
 
     /**

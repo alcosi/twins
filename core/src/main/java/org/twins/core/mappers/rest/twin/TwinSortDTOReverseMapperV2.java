@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * Twin sorts by twin class field id (not by an enum) — the map key is the twinClassFieldId,
- * consumed by {@code TwinSearchServiceV2.createSortSpecification(UUID, SortDirection, Locale)}.
+ * consumed by {@code TwinSearchService.createSortSpecification(UUID, SortDirection, Locale)}.
  */
 @Component
 @RequiredArgsConstructor

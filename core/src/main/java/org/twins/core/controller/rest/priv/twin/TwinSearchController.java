@@ -31,7 +31,6 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinSearchServiceV2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,6 @@ import java.util.UUID;
 @ProtectedBy({Permissions.TWIN_MANAGE, Permissions.TWIN_VIEW})
 public class TwinSearchController extends ApiController {
     private final TwinSearchService twinSearchService;
-    private final TwinSearchServiceV2 twinSearchServiceV2;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final TwinSearchExtendedDTOReverseMapper twinSearchExtendedDTOReverseMapper;
@@ -192,7 +190,7 @@ public class TwinSearchController extends ApiController {
         try {
             var basicSearch = twinSearchRqDTOv2ReverseMapper.convert(request);
             var sort = twinSortDTOReverseMapperV2.convert(request.getSorts());
-            PaginationResult<TwinEntity> twins = twinSearchServiceV2.search(basicSearch, pagination, sort);
+            PaginationResult<TwinEntity> twins = twinSearchService.search(basicSearch, pagination, sort);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))

@@ -69,6 +69,33 @@ public abstract class EntitySearchService<S extends EntitySearch<E>, E, SF, GF> 
     }
 
     /**
+     * No-pagination search: the whole filtered list, ordered by the entity default sort
+     * ({@link #defaultSortField()}, ASC); a null default sort field keeps no ORDER BY.
+     */
+    public List<E> search(S search) throws ServiceException {
+        if (search == null)
+            search = newSearch();
+        Specification<E> spec = createFilterSpecification(search);
+        SF defaultSortField = defaultSortField();
+        if (defaultSortField != null) {
+            Specification<E> sortSpec = createSortSpecification(defaultSortField, SortDirection.ASC, authService.getApiUser().getLocale());
+            if (sortSpec != null)
+                spec = Specification.allOf(spec, sortSpec);
+        }
+        return jpaSpecificationExecutor().findAll(spec);
+    }
+
+    /**
+     * No-pagination search over a projection: entities are converted to the projection type by
+     * Spring Data inside the same query (see spring-projects/spring-data-jpa#430). No ORDER BY.
+     */
+    public <R> List<R> search(S search, Class<R> projection) throws ServiceException {
+        if (search == null)
+            search = newSearch();
+        return jpaSpecificationExecutor().findBy(createFilterSpecification(search), q -> q.as(projection).all());
+    }
+
+    /**
      * Client-requested sorts via {@link #createSortSpecification} (Specification-based — never
      * Pageable sort, see docs/api_sorting_architecture.md); map iteration order defines ORDER BY
      * precedence. The pagination query sort is cleared when sorts are applied — the two sort

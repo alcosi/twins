@@ -474,7 +474,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
             search.addStatusId(childrenStatusIds, false);
         }
 
-        return new HashSet<>(twinSearchService.findTwins(search));
+        return new HashSet<>(twinSearchService.search(search));
     }
 
     /**
@@ -517,7 +517,7 @@ public class MultiplierIsolatedCopyWithDepthAndClassChange extends Multiplier {
             search.addStatusId(childrenStatusIds, false);
         }
 
-        return new HashSet<>(twinSearchService.findTwins(search));
+        return new HashSet<>(twinSearchService.search(search));
     }
 
 

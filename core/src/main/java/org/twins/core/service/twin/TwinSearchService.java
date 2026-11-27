@@ -20,26 +20,41 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.i18n.specifications.I18nSpecification;
 import org.twins.core.dao.search.*;
+import org.twins.core.dao.specifications.GroupExpressionProvider;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.DBUMembershipCheck;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.domain.search.TwinSort;
+import org.twins.core.enums.SortDirection;
 import org.twins.core.enums.consts.SystemIds;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.twin.detector.SearchDetector;
 import org.twins.core.featurer.twin.executor.TwinSearchExecutor;
 import org.twins.core.featurer.twin.finder.TwinFinder;
 import org.twins.core.featurer.twin.sorter.TwinSorter;
+import org.twins.core.service.EntitySearchService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DBUService;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.search.TwinSearchPredicateService;
 import org.twins.core.service.search.TwinSearchSortService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
+import org.twins.core.service.usergroup.UserGroupService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -47,43 +62,266 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
-import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
+import static org.twins.core.dao.specifications.CommonSpecification.checkClassWithDomain;
+import static org.twins.core.dao.specifications.CommonSpecification.toSortSpecification;
+import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
+/**
+ * Twin search service (merged ex TwinSearchService + TwinSearchServiceV2): the standard
+ * {@link EntitySearchService} heir — sort and group fields are twinClassFieldIds, including the
+ * system base-field pseudo ids — plus the saved-search execution pipeline that has no
+ * configured-search counterpart (aliases, head search, pluggable {@link TwinSearchExecutor});
+ * see docs/configured_search_architecture.md, "Accepted differences".
+ *
+ * <p>Standard part (free search/count): {@link #createFilterSpecification},
+ * {@link #createSortSpecification} (basic fields, i18n joins and dynamic-field TwinSorter),
+ * group counting via {@code twin_class_field} storages. Plain {@code count}/{@code exists}/
+ * {@code countBatch} come from the base class.</p>
+ *
+ * <p>Twin-specific part: {@code twin_search}/{@code twin_search_predicate} expansion
+ * ({@link #toBasicSearch}), effective sort resolution ({@link #resolveSorts}), alias detection,
+ * and the explicit-{@link TwinSort} executions ({@link #findTwins(BasicSearch, List, SimplePagination)},
+ * {@link #findTwinsUnaligned}) with the deterministic id tie-breaker. Search objects stay
+ * sort-free: sorting is always an explicit execution parameter (the same object drives count
+ * queries, where ORDER BY is meaningless).</p>
+ */
 @Service
 @LogExecutionTime(logPrefix = "LONG EXECUTION TIME:", logIfTookMoreThenMs = 2 * 1000, level = JavaLoggingLevel.WARNING)
 @Slf4j
 @RequiredArgsConstructor
-public class TwinSearchService {
-    private final EntityManager entityManager;
+public class TwinSearchService extends EntitySearchService<BasicSearch, TwinEntity, UUID, UUID> {
     private final TwinRepository twinRepository;
+    private final UserGroupService userGroupService;
+    private final TwinClassFieldService twinClassFieldService;
+    private final PermissionService permissionService;
+    private final DBUService dbuService;
+    private final EntityManager entityManager;
     private final TwinSearchRepository twinSearchRepository;
     private final TwinSearchAliasRepository twinSearchAliasRepository;
     private final TwinSearchPredicateRepository twinSearchPredicateRepository;
     private final TwinSearchSortService twinSearchSortService;
     private final TwinSearchPredicateService twinSearchPredicateService;
-    private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
-    private final TwinSearchServiceV2 twinSearchServiceV2;
     @Lazy
     private final FeaturerService featurerService;
+    // Shadows the inherited @Autowired field: both predecessor services constructor-injected
+    // AuthService lazily (featurers and search executors constructor-depend on this service),
+    // and this exact injection shape is preserved on purpose.
     @Lazy
     private final AuthService authService;
 
-    public Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
+    @Override
+    public JpaSpecificationExecutor<TwinEntity> jpaSpecificationExecutor() {
+        return twinRepository;
+    }
+
+    @Override
+    public BasicSearch newSearch() {
+        return new BasicSearch();
+    }
+
+    @Override
+    protected Class<TwinEntity> entityClass() {
+        return TwinEntity.class;
+    }
+
+    @Override
+    protected TwinEntity newEntity() {
+        return new TwinEntity();
+    }
+
+    @Override
+    public Specification<TwinEntity> createFilterSpecification(BasicSearch search, UUID domainId, Locale locale) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return twinSearchServiceV2.createFilterSpecification(basicSearch, apiUser.getDomainId(), apiUser.getLocale());
+        userGroupService.loadGroupsForCurrentUser();
+        UUID businessAccountId = apiUser.getBusinessAccountId();
+        UUID userId = apiUser.getUser().getId();
+        //todo create filter by basicSearch.getExtendsTwinClassIdList()
+        Specification<TwinEntity> specification = createTwinEntityBasicSearchSpecification(search, userId);
+
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !search.isCheckViewPermission()) {
+            specification = specification
+                    .and(checkClassWithDomain(search.getTwinClassIdList(), apiUser));
+        } else {
+            detectSystemClassSearchCheck(search);
+            specification = specification
+                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroupsFootprint()))
+                    .and(checkClass(search.getTwinClassIdList(), apiUser, search.getDbuMembershipCheck()));
+        }
+
+        //HEAD TWIN CHECK
+        if (null != search.getHeadSearch() && !search.getHeadSearch().isEmpty())
+            specification = specification.and(
+                    checkHeadTwin(
+                            createTwinEntityBasicSearchSpecification(search.getHeadSearch(), userId),
+                            search.getHeadSearch()
+                    ));
+
+        //CHILDREN TWINS CHECK
+        if (null != search.getChildrenSearch() && !search.getChildrenSearch().isEmpty())
+            specification = specification.and(
+                    checkChildrenTwins(
+                            createTwinEntityBasicSearchSpecification(search.getChildrenSearch(), userId),
+                            search.getChildrenSearch()
+                    ));
+
+        return specification;
     }
 
-    public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
-        List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sortType(false, TwinEntity.Fields.createdAt));
-        //todo someone's responsibility for checking if we previously checked the user's domain and business account. Purely a log for control if something slips through?
-        return ret;
+    @Override
+    protected UUID defaultSortField() {
+        return SystemIds.TwinClassField.Base.CREATED_AT;
     }
 
-    public <T> List<T> findTwins(BasicSearch basicSearch, Class<T> projection) throws ServiceException {
-        //https://github.com/spring-projects/spring-data-jpa/pull/430
-        return twinRepository.findBy(createTwinEntitySearchSpecification(basicSearch), t -> t.as(projection).all());
+    @Override
+    public Specification<TwinEntity> createSortSpecification(UUID twinClassFieldId, SortDirection sortDirection, Locale locale) throws ServiceException {
+        if (twinClassFieldId == null)
+            return (root, query, cb) -> cb.conjunction();
+        boolean ascending = sortDirection != SortDirection.DESC;
+
+        var basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);
+        if (basicField != null) {
+            switch (basicField) {
+                case NAME:
+                    return toSortSpecification(ascending, TwinEntity.Fields.name);
+                case DESCRIPTION:
+                    return toSortSpecification(ascending, TwinEntity.Fields.description);
+                case CREATED_AT:
+                    return toSortSpecification(ascending, TwinEntity.Fields.createdAt);
+                case EXTERNAL_ID:
+                    return toSortSpecification(ascending, TwinEntity.Fields.externalId);
+                case SORT_ORDER:
+                    return toSortSpecification(ascending, TwinEntity.Fields.sortOrder);
+                case FLAVOR_DATA_LIST_OPTION_ID:
+                    return I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinEntity.Fields.flavorDataListOptionSpecOnly, DataListOptionEntity.Fields.optionI18nTranslationsSpecOnly);
+                case TWIN_CLASS_ID:
+                    return I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.nameI18nTranslationsSpecOnly);
+                case TWIN_STATUS_ID:
+                    return I18nSpecification.toSortSpecificationDirect(ascending, locale, TwinEntity.Fields.twinStatus, TwinStatusEntity.Fields.nameI18nTranslationsSpecOnly);
+                case OWNER_USER_ID:
+                    return toSortSpecification(ascending, TwinEntity.Fields.ownerUser, UserEntity.Fields.name);
+                case ASSIGNEE_USER_ID:
+                    return toSortSpecification(ascending, TwinEntity.Fields.assignerUserSpecOnly, UserEntity.Fields.name);
+                case CREATOR_USER_ID:
+                    return toSortSpecification(ascending, TwinEntity.Fields.createdByUserSpecOnly, UserEntity.Fields.name);
+                default:
+                    throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Field " + twinClassFieldId + " is not groupable");
+            }
+        }
+
+        // Default: dynamic field via TwinSorter featurer
+        TwinClassFieldEntity twinClassField = twinClassFieldService.findEntitySafe(twinClassFieldId);
+        TwinSorter fieldSorter = featurerService.getFeaturer(twinClassField.getTwinSorterFeaturerId(), TwinSorter.class);
+        var sortFn = fieldSorter.createSort(twinClassField.getTwinSorterParams(), twinClassField, toHibernateDirection(sortDirection));
+        return sortFn.apply((root, query, cb) -> cb.conjunction());
+    }
+
+    @Override
+    public String convertToEntityField(UUID twinClassFieldId) throws ServiceException {
+        var basicField = TwinEntity.BasicField.convertOrNull(twinClassFieldId);
+        if (basicField == TwinEntity.BasicField.HEAD_TWIN_ID
+                || basicField == TwinEntity.BasicField.FLAVOR_DATA_LIST_OPTION_ID
+                || basicField == TwinEntity.BasicField.TWIN_CLASS_ID
+                || basicField == TwinEntity.BasicField.TWIN_STATUS_ID
+                || basicField == TwinEntity.BasicField.OWNER_USER_ID
+                || basicField == TwinEntity.BasicField.ASSIGNEE_USER_ID
+                || basicField == TwinEntity.BasicField.CREATOR_USER_ID)
+            return basicField.getName();
+        throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Field " + twinClassFieldId + " is not groupable");
+    }
+
+    @Override
+    public void mapGroupedField(TwinEntity entity, UUID field, Object value) {
+        if (field.equals(SystemIds.TwinClassField.Base.TWIN_CLASS_ID))
+            entity.setTwinClassId((UUID) value);
+        else if (field.equals(SystemIds.TwinClassField.Base.STATUS_ID))
+            entity.setTwinStatusId((UUID) value);
+        else if (field.equals(SystemIds.TwinClassField.Base.OWNER_USER_ID))
+            entity.setOwnerUserId((UUID) value);
+        else if (field.equals(SystemIds.TwinClassField.Base.FLAVOR_ID))
+            entity.setFlavorDataListOptionId((UUID) value);
+        else if (field.equals(SystemIds.TwinClassField.Base.ASSIGNEE_USER_ID))
+            entity.setAssignerUserId((UUID) value);
+        else if (field.equals(SystemIds.TwinClassField.Base.CREATOR_USER_ID))
+            entity.setCreatedByUserId((UUID) value);
+        else if (field.equals(SystemIds.TwinClassField.Base.HEAD_ID))
+            entity.setHeadTwinId((UUID) value);
+        else {
+            // dynamic twin class field — store the grouped value generically for the count DTO;
+            // one entry per field, so several dynamic dimensions survive the round trip
+            if (entity.getGroupedFieldValues() == null)
+                entity.setGroupedFieldValues(new HashMap<>());
+            entity.getGroupedFieldValues().put(field, value);
+        }
+    }
+
+    private static org.hibernate.query.SortDirection toHibernateDirection(SortDirection direction) {
+        return direction == SortDirection.DESC
+                ? org.hibernate.query.SortDirection.DESCENDING
+                : org.hibernate.query.SortDirection.ASCENDING;
+    }
+
+    protected void detectSystemClassSearchCheck(BasicSearch basicSearch) throws ServiceException {
+        if (basicSearch.getDbuMembershipCheck() != null) {
+            return;
+        }
+        if (CollectionUtils.isEmpty(basicSearch.getTwinClassIdList())) {
+            basicSearch
+                    .addTwinClassId(List.of(SystemIds.TwinClass.BUSINESS_ACCOUNT, SystemIds.TwinClass.USER), true)
+                    .setDbuMembershipCheck(DBUMembershipCheck.BLOCKED);
+            return;
+        }
+        DBUMembershipCheck detectedCheck = DBUMembershipCheck.BLOCKED;
+        for (UUID twinClassId : basicSearch.getTwinClassIdList()) {
+            detectedCheck = dbuService.detectSystemTwinsDBUMembershipCheck(twinClassId);
+            if (detectedCheck != DBUMembershipCheck.BLOCKED && basicSearch.getTwinClassIdList().size() > 1) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_INCORRECT, "mixed search is not allowed");
+            }
+        }
+        basicSearch.setDbuMembershipCheck(detectedCheck);
+    }
+
+    public Map<UUID, Long> countByGroupFields(BasicSearch basicSearch, TwinEntity.BasicField basicField) throws ServiceException {
+        return countByGroupFields(basicSearch, basicField.getId());
+    }
+
+    /**
+     * Provider path for twin grouping: basic system field -> direct root field (reusing the
+     * {@link #convertToEntityField(UUID)} groupable whitelist); dynamic twin class field ->
+     * {@link org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage#countGroup}. Provider order
+     * matches the {@code groupFields} iteration (the row columns are read back in that order).
+     */
+    @Override
+    protected List<GroupExpressionProvider<TwinEntity>> resolveGroupProviders(BasicSearch search, Set<UUID> groupFields) throws ServiceException {
+        List<GroupExpressionProvider<TwinEntity>> providers = new ArrayList<>(groupFields.size());
+        for (UUID fieldId : groupFields) {
+            TwinEntity.BasicField basicField = TwinEntity.BasicField.convertOrNull(fieldId);
+            if (basicField != null) {
+                providers.add(GroupExpressionProvider.ofField(convertToEntityField(fieldId)));
+            } else {
+                providers.add(countGroup(twinClassFieldService.findEntitySafe(fieldId)));
+            }
+        }
+        return providers;
+    }
+
+    private GroupExpressionProvider<TwinEntity> countGroup(TwinClassFieldEntity field) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(field.getFieldTyperFeaturerId(), FieldTyper.class);
+        GroupExpressionProvider<TwinEntity> group = fieldTyper.getStorage(field).countGroup(field);
+        if (group == null) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT,
+                    "Field " + field.getId() + " is not countable; " + field.logShort());
+        }
+        return group;
+    }
+
+    /**
+     * Public facade over the contract filter method (kept under the historical name — many
+     * cross-package callers, e.g. UserSearchService child-twin subqueries).
+     */
+    public Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
+        return createFilterSpecification(basicSearch);
     }
 
     //***********************************************************************//
@@ -104,7 +342,7 @@ public class TwinSearchService {
      * tie-breaker decide the order.
      */
     public PaginationResult<TwinEntity> findTwins(BasicSearch basicSearch, List<TwinSort> sorts, SimplePagination pagination) throws ServiceException {
-        twinSearchServiceV2.detectSystemClassSearchCheck(basicSearch);
+        detectSystemClassSearchCheck(basicSearch);
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
         spec = addSorting(sorts, pagination, spec);
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
@@ -119,7 +357,7 @@ public class TwinSearchService {
         }
         Set<TwinEntity> alreadyLoaded = new LinkedHashSet<>();
         for (BasicSearch basicSearch : basicSearches) {
-            twinSearchServiceV2.detectSystemClassSearchCheck(basicSearch);
+            detectSystemClassSearchCheck(basicSearch);
             Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
             // no per-search sorting: the merged result is sorted in memory below (createdAt desc)
             List<TwinEntity> ret = twinRepository.findAll(spec);
@@ -137,22 +375,6 @@ public class TwinSearchService {
         List<TwinEntity> pageContent = all.subList(fromIndex, toIndex);
         return PaginationUtils.convertInPaginationResult(pageContent, pagination);
     }
-
-    public Long count(Specification<TwinEntity> spec) throws ServiceException {
-        return twinRepository.count(spec);
-    }
-
-    public Long count(BasicSearch basicSearch) throws ServiceException {
-        return count(createTwinEntitySearchSpecification(basicSearch));
-    }
-
-    public Long count(List<BasicSearch> basicSearches) throws ServiceException {
-        Specification<TwinEntity> spec = (root, query, builder) -> builder.disjunction();
-        for (BasicSearch basicSearch : basicSearches)
-            spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
-        return count(spec);
-    }
-
 
     public Map<String, Long> countTwinsBySearchAliasInBatch(Map<String, SearchByAlias> searchMap) throws ServiceException {
         Map<String, Long> result = new HashMap<>();
@@ -207,13 +429,6 @@ public class TwinSearchService {
         for (TwinSearchSortEntity sortEntity : twinSearchEntity.getSortKit().getList())
             sorts.add(new TwinSort().setTwinClassFieldId(sortEntity.getTwinClassFieldId()).setDirection(sortEntity.getDirection()));
         return sorts;
-    }
-
-    public Map<String, Long> countTwinsInBatch(Map<String, BasicSearch> searchMap) throws ServiceException {
-        Map<String, Long> result = new HashMap<>();
-        for (Map.Entry<String, BasicSearch> entry : searchMap.entrySet())
-            result.put(entry.getKey(), count(entry.getValue()));
-        return result;
     }
 
     public <GT> Map<GT, Long> countGroupBy(BasicSearch basicSearch, String groupFieldName) throws ServiceException {
@@ -332,7 +547,7 @@ public class TwinSearchService {
             throw new ServiceException(ErrorCodeTwins.PAGINATION_LIMIT_ERROR);
         if (pagination.getOffset() < 0)
             throw new ServiceException(ErrorCodeTwins.PAGINATION_ERROR, "pagination offset cannot be negative");
-        twinSearchServiceV2.detectSystemClassSearchCheck(basicSearch);
+        detectSystemClassSearchCheck(basicSearch);
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
         spec = addSorting(sorts, pagination, spec);
         Sort sort = pagination.getSort();

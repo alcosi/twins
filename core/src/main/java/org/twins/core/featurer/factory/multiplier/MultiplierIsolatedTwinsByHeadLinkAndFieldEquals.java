@@ -142,7 +142,7 @@ public class MultiplierIsolatedTwinsByHeadLinkAndFieldEquals extends Multiplier 
                 search.addFlavorDataListOptionId(flavorId, false);
             }
 
-            List<TwinEntity> twins = twinSearchService.findTwins(search);
+            List<TwinEntity> twins = twinSearchService.search(search);
             for (TwinEntity twin : twins) {
                 TwinUpdate twinUpdate = new TwinUpdate();
                 twinUpdate

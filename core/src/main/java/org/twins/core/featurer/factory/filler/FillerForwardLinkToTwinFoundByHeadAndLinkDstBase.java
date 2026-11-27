@@ -23,7 +23,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ public abstract class FillerForwardLinkToTwinFoundByHeadAndLinkDstBase extends F
 
     @Lazy
     @Autowired
-    private TwinSearchServiceV2 twinSearchService;
+    private TwinSearchService twinSearchService;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {

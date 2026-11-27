@@ -161,7 +161,7 @@ class MultiplierIsolatedCopyWithDepthAndClassChangeTest extends BaseUnitTest {
 
             when(authService.getApiUser()).thenReturn(apiUser);
             when(twinClassService.findEntitySafe(newClass)).thenReturn(new TwinClassEntity().setId(newClass));
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
 
             var result = multiplier.multiply(
                     props,
@@ -185,7 +185,7 @@ class MultiplierIsolatedCopyWithDepthAndClassChangeTest extends BaseUnitTest {
             var apiUser = stubApiUser();
 
             when(authService.getApiUser()).thenReturn(apiUser);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
 
             var result = multiplier.multiply(
                     props,
@@ -210,7 +210,7 @@ class MultiplierIsolatedCopyWithDepthAndClassChangeTest extends BaseUnitTest {
 
             when(authService.getApiUser()).thenReturn(apiUser);
             when(twinClassService.findEntitySafe(newClass)).thenReturn(new TwinClassEntity().setId(newClass));
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(
+            when(twinSearchService.search(any())).thenReturn(List.of(
                     new TwinEntity()
                             .setId(childId)
                             .setHeadTwinId(rootId)
@@ -256,7 +256,7 @@ class MultiplierIsolatedCopyWithDepthAndClassChangeTest extends BaseUnitTest {
 
             when(authService.getApiUser()).thenReturn(apiUser);
             when(twinClassService.findEntitySafe(rootNewClass)).thenReturn(new TwinClassEntity().setId(rootNewClass));
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(
+            when(twinSearchService.search(any())).thenReturn(List.of(
                     new TwinEntity()
                             .setId(childId)
                             .setHeadTwinId(rootId)
@@ -294,7 +294,7 @@ class MultiplierIsolatedCopyWithDepthAndClassChangeTest extends BaseUnitTest {
 
             when(authService.getApiUser()).thenReturn(apiUser);
             when(twinClassService.findEntitySafe(newClass)).thenReturn(new TwinClassEntity().setId(newClass));
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
 
             // forward link between the two collected input twins
             when(twinLinkService.findAllBetweenTwinsInAndLinkIdIn(any(), any())).thenReturn(new HashSet<>(Set.of(
@@ -344,7 +344,7 @@ class MultiplierIsolatedCopyWithDepthAndClassChangeTest extends BaseUnitTest {
 
             when(authService.getApiUser()).thenReturn(apiUser);
             when(twinClassService.findEntitySafe(newClass)).thenReturn(new TwinClassEntity().setId(newClass));
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
 
             var result = multiplier.multiply(
                     props,
@@ -360,7 +360,7 @@ class MultiplierIsolatedCopyWithDepthAndClassChangeTest extends BaseUnitTest {
         void multiply_emptyInput_producesNoOutput() throws ServiceException {
             var apiUser = stubApiUser();
             when(authService.getApiUser()).thenReturn(apiUser);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of());
+            when(twinSearchService.search(any())).thenReturn(List.of());
 
             var result = multiplier.multiply(
                     buildProperties(Map.of(UUID.randomUUID(), UUID.randomUUID()), null, 0, null, null, null),

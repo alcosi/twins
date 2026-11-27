@@ -13,7 +13,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
-import org.twins.core.service.twin.TwinSearchServiceV2;
+import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Collection;
 import java.util.Map;
@@ -36,7 +36,7 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 
     @Lazy
     @Autowired
-    TwinSearchServiceV2 twinSearchService;
+    TwinSearchService twinSearchService;
 
     @Override
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {

@@ -41,7 +41,7 @@ public class PointerOnSingleGrandChild extends Pointer {
         batchSearch
                 .addHierarchyTreeContainsId(srcTwinIds)
                 .addTwinClassExtendsHierarchyContainsId(grandChildClassId);
-        List<TwinEntity> allGrandchildren = twinSearchService.findTwins(batchSearch);
+        List<TwinEntity> allGrandchildren = twinSearchService.search(batchSearch);
         if (CollectionUtils.isEmpty(allGrandchildren)) {
             return Map.of();
         }

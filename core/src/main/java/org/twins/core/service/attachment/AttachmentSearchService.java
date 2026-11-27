@@ -67,7 +67,7 @@ public class AttachmentSearchService extends EntitySearchService
         // in TwinLinkSearchService: DISTINCT breaks ORDER BY on joined fields (twinName, etc.) on PostgreSQL.
         return Specification.allOf(
                 // Object-level authorization of the attachment's twin — an attachment is visible only when
-                // the caller is authorized to read its twin (same rules as TwinSearchServiceV2).
+                // the caller is authorized to read its twin (same rules as TwinSearchService).
                 twinAccessSpecificationFactory.checkTwinAccess(apiUser, TwinAttachmentEntity.Fields.twinSpecOnly),
                 checkUuidIn(search.getIdList(), false, false, TwinAttachmentEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TwinAttachmentEntity.Fields.id),

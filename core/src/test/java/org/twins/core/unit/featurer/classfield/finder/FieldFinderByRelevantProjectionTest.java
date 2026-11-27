@@ -17,7 +17,8 @@ import org.twins.core.service.twin.TwinSearchService;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
 
@@ -68,7 +69,7 @@ class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
             properties.setProperty("projectionTypeGroupIds", groupId.toString());
 
             when(projectionTypeService.findAndGroupByTwinClassId(Set.of(groupId))).thenReturn(grouped);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(twin));
+            when(twinSearchService.search(any())).thenReturn(List.of(twin));
 
             var search = new TwinClassFieldSearch();
             finder.concatSearch(properties, search, Map.of());
@@ -114,7 +115,7 @@ class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
             properties.setProperty("projectionTypeGroupIds", groupId.toString());
 
             when(projectionTypeService.findAndGroupByTwinClassId(Set.of(groupId))).thenReturn(grouped);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(twin));
+            when(twinSearchService.search(any())).thenReturn(List.of(twin));
 
             var search = new TwinClassFieldSearch();
             finder.concatSearch(properties, search, Map.of());
@@ -144,7 +145,7 @@ class FieldFinderByRelevantProjectionTest extends BaseUnitTest {
             properties.setProperty("projectionTypeGroupIds", groupId.toString());
 
             when(projectionTypeService.findAndGroupByTwinClassId(Set.of(groupId))).thenReturn(grouped);
-            when(twinSearchService.findTwins(any())).thenReturn(List.of(twin1, twin2));
+            when(twinSearchService.search(any())).thenReturn(List.of(twin1, twin2));
 
             var search = new TwinClassFieldSearch();
             finder.concatSearch(properties, search, Map.of());
