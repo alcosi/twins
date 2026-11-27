@@ -15,7 +15,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.usage.UsageRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.factory.FactoryService;
-import org.twins.core.service.permission.Permissions;
 
 import java.util.Collection;
 
@@ -144,7 +143,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
             dst.setTriggerIdList(src.getTwinFactoryTriggerKit().getIdSet());
             factoryTriggerRestDTOMapper.postpone(src.getTwinFactoryTriggerKit(), mapperContext.forkOnPoint(FactoryTriggerMode.Factory2FactoryTriggerMode.SHORT));
         }
-        if (showWithPermissionCheck(mapperContext, FactoryUsagesMode.HIDE, Permissions.FACTORY_MANAGE, Permissions.FACTORY_UPDATE)) {
+        if (mapperContext.hasModeButNot(FactoryUsagesMode.HIDE)) {
             factoryService.loadFactoryUsages(src);
             dst.setUsages(usageRestDTOMapper.convertCollection(src.getUsages(), mapperContext.forkOnPoint(FactoryUsagesMode.SHORT)));
         }
@@ -186,7 +185,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
         if (showPipelines || showBranches || showMultipliers || showConditionSets || showErasers || showTriggers) {
             factoryService.loadFactoryElements(srcCollection);
         }
-        if (showWithPermissionCheck(mapperContext, FactoryUsagesMode.HIDE, Permissions.FACTORY_MANAGE, Permissions.FACTORY_UPDATE))
+        if (mapperContext.hasModeButNot(FactoryUsagesMode.HIDE))
             factoryService.loadFactoryUsages(srcCollection);
     }
 }

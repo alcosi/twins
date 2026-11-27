@@ -1,7 +1,6 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -9,7 +8,6 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.holder.I18nCacheHolder;
@@ -19,8 +17,6 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.i18n.I18nService;
-import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclassfield.TwinClassFieldRuleMapService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
 
@@ -50,7 +46,6 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
 
     private final I18nService i18nService;
     private final FeaturerService featurerService;
-    private final PermissionService permissionService;
     private final TwinClassFieldRuleMapService twinClassFieldRuleMapService;
     private final TwinClassFieldService twinClassFieldService;
 
@@ -60,8 +55,6 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         FieldDescriptor fieldDescriptor;
         switch (mapperContext.getModeOrUse(TwinClassFieldMode.DETAILED)) {
             case MANAGED:
-                if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
-                    throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassFieldMode.MANAGED + "] is not allowed for current user");
                 fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturerId(), FieldTyper.class);
                 fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst

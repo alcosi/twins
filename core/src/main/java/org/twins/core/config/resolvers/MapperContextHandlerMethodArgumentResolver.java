@@ -2,6 +2,8 @@ package org.twins.core.config.resolvers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
@@ -10,15 +12,21 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
+import org.twins.core.controller.rest.annotation.ProtectedBy;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.mappers.rest.RestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.MapperMode;
-import org.twins.core.mappers.rest.RestDTOMapper;
 import org.twins.core.service.MapperModesResolveService;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -26,6 +34,8 @@ import java.util.Set;
 public class MapperContextHandlerMethodArgumentResolver implements HandlerMethodArgumentResolver {
 
     private final MapperModesResolveService mapperModesResolveService;
+    @Lazy
+    private final PermissionService permissionService;
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
@@ -34,7 +44,7 @@ public class MapperContextHandlerMethodArgumentResolver implements HandlerMethod
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, @Nullable NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, @Nullable NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws ServiceException {
         MapperContext mapperContext = new MapperContext();
         MapperContextBinding contextBinding = parameter.getParameterAnnotation(MapperContextBinding.class);
         if (null != contextBinding && null != webRequest) {
@@ -63,8 +73,9 @@ public class MapperContextHandlerMethodArgumentResolver implements HandlerMethod
                                 Enum.valueOf(enumType.asSubclass(Enum.class), paramValue) :
                                 enumType.getEnumConstants()[0]; // Default to the first enum constant
 
-                        if (enumValue instanceof MapperMode) {
-                            mapperContext.setMode((MapperMode) enumValue);
+                        if (enumValue instanceof MapperMode mapperMode) {
+                            checkModePermissions(boundMapperMode.getKey(), mapperMode);
+                            mapperContext.setMode(mapperMode);
                         }
                     } else
                         log.info("{} is blocked for controller", boundMapperMode.getKey());
@@ -72,5 +83,20 @@ public class MapperContextHandlerMethodArgumentResolver implements HandlerMethod
             }
         }
         return mapperContext;
+    }
+
+    /**
+     * Declarative gate for @ProtectedBy mapper modes: denied modes fail here, at request parsing,
+     * instead of blowing up later during response mapping. Same error code as the old mapper-side checks,
+     * so the client-visible error contract is unchanged.
+     */
+    private void checkModePermissions(String paramName, MapperMode mode) throws ServiceException {
+        for (ProtectedBy protection : mapperModesResolveService.getModeProtections(mode)) {
+            if (!permissionService.currentUserHasPermission(protection.anyOf(), protection.value())) {
+                String requiredPermissions = Arrays.stream(protection.value()).map(Permissions::name).collect(Collectors.joining(","));
+                log.warn("Access denied: user does not have required permissions [{}] for {} (request param {})", requiredPermissions, mode, paramName);
+                throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + mode + "] is not allowed for current user");
+            }
+        }
     }
 }
