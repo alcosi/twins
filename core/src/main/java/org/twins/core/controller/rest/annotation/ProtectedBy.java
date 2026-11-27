@@ -9,9 +9,12 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to check if the current user has any of the given permissions.
- * The check is performed using the PermissionService.currentUserHasPermission method.
+ * On controller methods/types the check is performed by ProtectedByAspect.
+ * On enum constants of MapperMode implementations the check is performed declaratively at request
+ * parsing time by MapperContextHandlerMethodArgumentResolver (see MapperModesResolveService).
+ * In both cases the check is performed using the PermissionService.currentUserHasPermission method.
  */
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ProtectedBy {
     /**

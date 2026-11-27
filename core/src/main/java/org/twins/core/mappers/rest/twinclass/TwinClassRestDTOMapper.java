@@ -22,8 +22,6 @@ import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.i18n.I18nService;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinclassfield.TwinClassFieldService;
@@ -86,7 +84,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     private final TwinClassFreezeDTOMapper twinClassFreezeDTOMapper;
 
     private final I18nService i18nService;
-    private final PermissionService permissionService;
     private final ResourceService resourceService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassService twinClassService;
@@ -96,11 +93,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
 
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperContext mapperContext) throws Exception {
-        if (mapperContext.hasMode(TwinClassMode.MANAGED) && !permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE)) {
-            log.warn("Show Mode [{}] is not allowed for current user", TwinClassMode.MANAGED);
-            mapperContext.setMode(TwinClassMode.DETAILED);
-        }
-
         if (mapperContext.hasMode(TwinClassMode.DETAILED) || mapperContext.hasMode(TwinClassMode.MANAGED)) {
             resourceService.loadIconResources(src);
         }

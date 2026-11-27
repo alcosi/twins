@@ -1,7 +1,6 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
@@ -9,7 +8,6 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldRuleEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDescriptorDTO;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRuleDTOv1;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldrule.fieldoverwriter.FieldParamOverwriter;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -19,8 +17,6 @@ import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldConditionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldRuleMode;
-import org.twins.core.service.permission.PermissionService;
-import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclassfield.TwinClassFieldRuleService;
 
 import java.util.Collection;
@@ -45,16 +41,12 @@ public class TwinClassFieldRuleRestDTOMapper extends RestSimpleDTOMapper<TwinCla
 
     private final FeaturerService featurerService;
 
-    private final PermissionService permissionService;
-
     @Override
     public void map(TwinClassFieldRuleEntity src, TwinClassFieldRuleDTOv1 dst, MapperContext mapperContext) throws Exception {
         if (src == null || dst == null)
             return;
         switch (mapperContext.getModeOrUse(TwinClassFieldRuleMode.DETAILED)) {
             case MANAGED:
-                if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_FIELD_MANAGE))
-                    throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassFieldMode.MANAGED + "] is not allowed for current user");
                 dst
                         .setFieldOverwriterFeaturerId(src.getFieldOverwriterFeaturerId())
                         .setFieldOverwriterParams(src.getFieldOverwriterParams());
