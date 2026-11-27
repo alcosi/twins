@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.UuidUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -11,6 +12,7 @@ import org.twins.core.domain.Identifiable;
 
 import java.util.UUID;
 
+@Slf4j
 @MappedSuperclass
 @Data
 @Accessors(chain = true)
@@ -50,6 +52,17 @@ public abstract class TwinFieldBaseEntity implements EasyLoggable, Identifiable<
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     protected TwinClassFieldEntity twinClassField;
+
+
+    public TwinFieldBaseEntity setTwin(TwinEntity twin) {
+        if (twin != null && this.twin != null && this.twin != twin) {
+            log.warn("twinField[{}] twin re-point denied, keep first owner {}: denied for {}",
+                    id, this.twin.getId(), twin.getId());
+            return this;
+        }
+        this.twin = twin;
+        return this;
+    }
 
     @PrePersist
     protected void onCreate() {
